@@ -4,7 +4,7 @@
 
 def type = "java"
 def product = "ccpay"
-def component = "ccpay-refunds-app"
+def component = "refunds-app"
 
 withPipeline(type, product, component) {
   enableAksStagingDeployment()
