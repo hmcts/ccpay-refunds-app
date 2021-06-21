@@ -104,8 +104,8 @@ project.tasks['sonarqube'].dependsOn jacocoTestReport
 
 sonarqube {
   properties {
-    property "sonar.projectName", "Reform :: ccpay-refunds-app"
-    property "sonar.projectKey", "uk.gov.hmcts.reform:ccpay-refunds-app"
+    property "sonar.projectName", "Reform :: refunds-app"
+    property "sonar.projectKey", "uk.gov.hmcts.reform:refunds-app"
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
   }
 }
@@ -197,7 +197,7 @@ mainClassName = 'uk.gov.hmcts.reform.refunds.Application'
 
 bootJar {
   getArchiveFileName().set(provider {
-    'ccpay-refunds-app.jar'
+    'refunds-app.jar'
   })
 
   manifest {

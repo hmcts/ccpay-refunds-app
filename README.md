@@ -35,7 +35,7 @@ Create docker image:
   docker-compose build
 ```
 
-Run the distribution (created in `build/install/ccpay-refunds-app` directory)
+Run the distribution (created in `build/install/refunds-app` directory)
 by executing the following command:
 
 ```bash
