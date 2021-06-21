@@ -1,7 +1,7 @@
 java:
   applicationPort: 4550
   image: 'hmctspublic.azurecr.io/ccpay/ccpay-refunds-app:latest'
-  ingressHost: ccpay-ccpay-refunds-app-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+  ingressHost: refunds-app-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: ccpay
 #  Uncomment once the vault containing the app insights key has been set up
 #  keyVaults:
