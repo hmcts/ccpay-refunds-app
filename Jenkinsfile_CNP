@@ -1,0 +1,14 @@
+#!groovy
+
+@Library("Infrastructure")
+
+def type = "java"
+def product = "ccpay"
+def component = "refunds-app"
+
+withPipeline(type, product, component) {
+  enableAksStagingDeployment()
+  enableSlackNotifications('#cc-payments-tech')
+  disableLegacyDeployment()
+}
+
