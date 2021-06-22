@@ -92,11 +92,11 @@ pmd {
 }
 
 jacocoTestReport {
-  executionData(test, integration)
+  executionData(test)
   reports {
     xml.enabled = true
     csv.enabled = false
-    xml.destination file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+    xml.destination file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
   }
 }
 
@@ -104,9 +104,10 @@ project.tasks['sonarqube'].dependsOn jacocoTestReport
 
 sonarqube {
   properties {
+    property "sonar.java.coveragePlugin", "jacoco"
     property "sonar.projectName", "Reform :: refunds-app"
     property "sonar.projectKey", "uk.gov.hmcts.reform:refunds-app"
-    property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
   }
 }
 
@@ -148,7 +149,8 @@ def versions = [
   junitPlatform   : '1.7.2',
   reformLogging   : '5.1.7',
   springBoot      : springBoot.class.package.implementationVersion,
-  springfoxSwagger: '3.0.0'
+  springfoxSwagger: '3.0.0',
+  jacocoVersion: '0.8.5'
 ]
 
 ext.libraries = [
