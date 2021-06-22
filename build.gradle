@@ -123,7 +123,7 @@ dependencyUpdates {
 }
 
 dependencyCheck {
-  suppressionFile = 'config/owasp/suppressions.xml'
+  suppressionFile = 'dependency-check-suppressions.xml'
 
 }
 
