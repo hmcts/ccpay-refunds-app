@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.refunds.config;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 

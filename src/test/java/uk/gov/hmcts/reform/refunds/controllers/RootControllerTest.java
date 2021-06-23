@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import static org.junit.Assert.assertEquals;
 
 public class RootControllerTest {
 
