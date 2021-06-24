@@ -11,7 +11,7 @@ public class RootControllerTest {
     private RootController rootController = new RootController();
 
     @Test
-    void should_return_welcome_message() {
+    public void should_return_welcome_message() {
 
         ResponseEntity<String> response = rootController.welcome();
 
