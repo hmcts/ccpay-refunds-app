@@ -12,12 +12,7 @@ public class RefundApplication {
     private static final Logger LOG = LoggerFactory.getLogger(RefundApplication.class);
 
     public static void main(final String[] args) {
-        try{
             SpringApplication.run(RefundApplication.class, args);
-        }catch (RuntimeException re) {
-            LOG.error("Application crashed with error message: ", re);
-        }
-
     }
 }
 
