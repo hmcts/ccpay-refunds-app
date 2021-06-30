@@ -92,34 +92,26 @@
           "dependsOn": [
             "[variables('fullApiName')]"
           ],
-          "properties": {
-        {
-          "apiVersion": "2017-03-01",
-          "type": "operations",
-          "name": "refunds-api",
-          "dependsOn": [
-            "[variables('fullApiName')]"
-          ],
-          "properties": {
-            "displayName": "refunds api ",
-            "description": "test refunds api",
-            "method": "GET",
-            "urlTemplate": "/refundstest",
-            "responses": [
-              {
-                "statusCode": 200,
-                "description": "Success"
-              },
-              {
-                "statusCode": 403,
-                "description": "Forbidden"
-              },
-              {
-                "statusCode": 404,
-                "description": "Not Found"
-              }
-            ]
-          }
+            "properties": {
+              "displayName": "refunds api ",
+              "description": "test refunds api",
+              "method": "GET",
+              "urlTemplate": "/refundstest",
+              "responses": [
+                {
+                  "statusCode": 200,
+                  "description": "Success"
+                },
+                {
+                  "statusCode": 403,
+                  "description": "Forbidden"
+                },
+                {
+                  "statusCode": 404,
+                  "description": "Not Found"
+                }
+              ]
+            }
         }
       ]
     },
