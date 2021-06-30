@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,8 +22,13 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
+import java.sql.Ref;
+import java.sql.Timestamp;
+import java.time.Instant;
+
 import static org.hamcrest.Matchers.any;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -60,13 +66,24 @@ public class RootControllerTest {
 
     @Test
     public void should_return_RefundId() throws Exception {
-        when(refundsRepository.save(Mockito.any(Refund.class))).thenReturn(Refund.refundsWith().refundsId("refund-id").build());
+        Timestamp dateInstant = Timestamp.from(Instant.now());
+        when(refundsRepository.save(Mockito.any(Refund.class))).thenReturn(Refund.refundsWith()
+                                                                                .id(1)
+                                                                               .refundsId("refund-id")
+                                                                                .dateCreated(dateInstant)
+                                                                                .dateUpdated(dateInstant)
+                                                                               .build());
         ResultActions resultActions = mockMvc.perform(post("/refunds")
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        assertEquals("Saved Refund Id - refund-id",resultActions.andReturn().getResponse().getContentAsString());
+        Refund refund = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsString(),Refund.class);
+        assertEquals(Integer.valueOf(1), refund.getId());
+        assertNotNull( refund.getDateCreated());
+        assertNotNull(refund.getDateUpdated());
+        assertEquals("refund-id",refund.getRefundsId());
 
     }
 

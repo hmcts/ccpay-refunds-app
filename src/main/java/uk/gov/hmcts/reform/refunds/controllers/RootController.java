@@ -50,8 +50,8 @@ public class RootController {
         @ApiResponse(code = 404, message = "Not found")
     })
     @PostMapping("/refunds")
-    public ResponseEntity<String> storeRefunds() {
+    public ResponseEntity<Refund> storeRefunds() {
         Refund refund= refundsService.saveRefund();
-        return ok("Saved Refund Id - "+refund.getRefundsId());
+        return ok(refund);
     }
 }
