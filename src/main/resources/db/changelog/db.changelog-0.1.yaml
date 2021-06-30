@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100001
+      author: jennings
+      changes:
+        - createTable:
+            tableName: refunds
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: envelope_id_PK
+              - column:
+                  name: refunds_id
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: date_updated
+                  type: TIMESTAMP WITHOUT TIME ZONE

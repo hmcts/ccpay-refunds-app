@@ -1,8 +1,13 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import io.swagger.annotations.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -10,6 +15,8 @@ import static org.springframework.http.ResponseEntity.ok;
  * Default endpoints per application.
  */
 @RestController
+@Api(tags = {"Refund group"})
+@SwaggerDefinition(tags = {@Tag(name = "TestController", description = "Refund group REST API")})
 public class RootController {
 
     /**
@@ -21,8 +28,30 @@ public class RootController {
      *
      * @return Welcome message from the service.
      */
-    @GetMapping("/")
+
+    @Autowired
+    private RefundsService refundsService;
+
+    @ApiOperation(value = "Get /refundstest ", notes = "Get refunds test")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "retrieved"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 404, message = "Not found")
+    })
+    @GetMapping("/refundstest")
     public ResponseEntity<String> welcome() {
         return ok("Welcome to ccpay-refunds-app");
+    }
+
+    @ApiOperation(value = "Get /refundstest ", notes = "Get refunds test")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "retrieved"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 404, message = "Not found")
+    })
+    @PostMapping("/refunds")
+    public ResponseEntity<String> storeRefunds() {
+        Refund refund= refundsService.saveRefund();
+        return ok("Saved Refund Id"+refund.getRefundsId());
     }
 }

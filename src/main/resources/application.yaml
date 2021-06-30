@@ -17,13 +17,13 @@ spring:
     import: "optional:configtree:/mnt/secrets/"
   application:
     name: Spring Boot Template
-#  datasource:
-#    driver-class-name: org.postgresql.Driver
-#    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}${DB_OPTIONS:}
-#    username: ${DB_USER_NAME}
-#    password: ${DB_PASSWORD}
-#    properties:
-#      charSet: UTF-8
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_NAME}${POSTGRES_CONNECTION_OPTIONS:}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    properties:
+      charSet: UTF-8
 #    hikari:
 #      minimumIdle: 2
 #      maximumPoolSize: 10
@@ -31,13 +31,26 @@ spring:
 #      poolName: {to-be-defined}HikariCP
 #      maxLifetime: 7200000
 #      connectionTimeout: 30000
-#  jpa:
-#    properties:
-#      hibernate:
-#        jdbc:
-#          lob:
-#            # silence the 'wall-of-text' - unnecessary exception throw about blob types
-#            non_contextual_creation: true
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            # silence the 'wall-of-text' - unnecessary exception throw about blob types
+            non_contextual_creation: true
+
+trusted:
+  s2s:
+    service:
+      names: ccpay_bubble,cmc,bulk_scan_payment_processor,api_gw,probate_frontend,divorce_frontend,ccd_gw,payment_app
+auth:
+  idam:
+    client:
+      baseUrl: ${AUTH_IDAM_CLIENT_BASEURL}
+  provider:
+    service:
+      client:
+        baseUrl: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL}
 
 azure:
   application-insights:
