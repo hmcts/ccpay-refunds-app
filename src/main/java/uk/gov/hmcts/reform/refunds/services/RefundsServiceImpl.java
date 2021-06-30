@@ -5,10 +5,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
-import java.sql.Ref;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -24,7 +22,6 @@ public class RefundsServiceImpl implements RefundsService{
                             .dateCreated(Timestamp.from(Instant.now()))
                             .dateUpdated(Timestamp.from(Instant.now()))
                             .build();
-        Refund resultRefund = refundsRepository.save(refund);
-        return resultRefund;
+        return refundsRepository.save(refund);
     }
 }
