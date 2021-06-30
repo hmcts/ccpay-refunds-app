@@ -62,11 +62,15 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
         try {
             http.addFilter(authCheckerFilter)
                 .sessionManagement().sessionCreationPolicy(STATELESS).and()
-                .csrf().disable()
+//                .csrf().disable()
                 .formLogin().disable()
                 .logout().disable()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/refundstest").hasAnyAuthority(
+                AUTHORISED_ROLE_PAYMENT,
+                AUTHORISED_ROLE_CITIZEN
+            )
+                .antMatchers(HttpMethod.POST, "/refunds").hasAnyAuthority(
                 AUTHORISED_ROLE_PAYMENT,
                 AUTHORISED_ROLE_CITIZEN
             )
