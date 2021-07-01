@@ -13,16 +13,6 @@ locals {
   api_base_path = "refunds"
 }
 
-resource "azurerm_resource_group" "ccpay" {
-  name      = join("-", [var.product, var.component, var.env])
-  location  = var.location
-  tags      = {
-    "Deployment Environment"  = var.env
-    "Team Name"               = var.team_name
-    "lastUpdated"             = timestamp()
-  }
-}
-
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
   resource_group_name = join("-", [var.core_product, var.env])
