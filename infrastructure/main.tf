@@ -19,11 +19,11 @@ data "azurerm_key_vault" "payment_key_vault" {
 }
 
 // Database Infra
-module "refunds-database-v11" {
+module "ccpay-refunds-database-v11" {
   source = "git@github.com:hmcts/cnp-module-postgres?ref=master"
   product = var.product
   component = var.component
-  name = join("-", [var.product, "postgres-db-v11"])
+  name = "${var.product}-${var.component}-postgres-db-v11"
   location = var.location
   env = var.env
   postgresql_user = var.postgresql_user
@@ -40,31 +40,31 @@ module "refunds-database-v11" {
 
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name      = join("-", [var.component, "POSTGRES-USER"])
-  value     = module.refunds-database-v11.user_name
+  value     = module.ccpay-refunds-database-v11.user_name
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name      = join("-", [var.component, "POSTGRES-PASS"])
-  value     = module.refunds-database-v11.postgresql_password
+  value     = module.ccpay-refunds-database-v11.postgresql_password
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
   name      = join("-", [var.component, "POSTGRES-HOST"])
-  value     = module.refunds-database-v11.host_name
+  value     = module.ccpay-refunds-database-v11.host_name
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
   name      = join("-", [var.component, "POSTGRES-PORT"])
-  value     = module.refunds-database-v11.postgresql_listen_port
+  value     = module.ccpay-refunds-database-v11.postgresql_listen_port
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name      = join("-", [var.component, "POSTGRES-DATABASE"])
-  value     = module.refunds-database-v11.postgresql_database
+  value     = module.ccpay-refunds-database-v11.postgresql_database
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
