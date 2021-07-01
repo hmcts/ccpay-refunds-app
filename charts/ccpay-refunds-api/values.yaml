@@ -7,7 +7,7 @@ java:
     POSTGRES_PORT: 5432
     POSTGRES_HOST: ccpay-refunds-api-postgres-db-v11-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_NAME: refunds
-    POSTGRES_USERNAME: refunds@refunds-postgres-db-v11-{{ .Values.global.environment }}
+    POSTGRES_USERNAME: refunds@ccpay-refunds-api-postgres-db-v11-{{ .Values.global.environment }}
     POSTGRES_CONNECTION_OPTIONS: ?sslmode=require
     SPRING_LIQUIBASE_ENABLED: false
 
