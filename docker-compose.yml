@@ -1,7 +1,7 @@
 version: '2.1'
 
 services:
-  refunds-app:
+  refunds-api:
     build:
       context: .
       args:
@@ -24,3 +24,15 @@ services:
       - LOGBACK_REQUIRE_ERROR_CODE=false
     ports:
       - $SERVER_PORT:$SERVER_PORT
+
+  ccpay-refunds-db:
+    container_name: ccpay-refunds-db
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_USER=refunds
+      - POSTGRES_PASSWORD=refunds
+      - POSTGRES_DB=refunds
+    ports:
+      - 5182:5432
+    volumes:
+      - ccpay-refunds-db-data:/var/lib/postgresql/data

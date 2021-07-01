@@ -4,9 +4,9 @@
 
 def type = "java"
 def product = "ccpay"
-def component = "refunds-app"
+def app = "refunds-api"
 
-withPipeline(type, product, component) {
+withPipeline(type, product, app) {
   enableAksStagingDeployment()
   enableSlackNotifications('#cc-payments-tech')
   disableLegacyDeployment()

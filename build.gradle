@@ -219,7 +219,7 @@ mainClassName = 'uk.gov.hmcts.reform.refunds.RefundApplication'
 
 bootJar {
   getArchiveFileName().set(provider {
-    'refunds-app.jar'
+    'refunds-api.jar'
   })
 
   manifest {
