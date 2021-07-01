@@ -18,10 +18,9 @@ java:
     AUTH_IDAM_CLIENT_BASEURL: https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net
     TRUSTED_S2S_SERVICE_NAMES: "cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service"
 
-#  Uncomment once the vault containing the app insights key has been set up
-#  keyVaults:
-#    rpe:
-#      secrets:
-#        - name: AppInsightsInstrumentationKey
-#          alias: azure.application-insights.instrumentation-key
-# environment:
+  keyVaults:
+    "ccpay":
+      resourceGroup: ccpay
+      secrets:
+        - refunds-api-POSTGRES-PASS
+        - AppInsightsInstrumentationKey
