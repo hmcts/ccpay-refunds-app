@@ -5,7 +5,7 @@ variable "product" {
 
 variable "component" {
   type    = string
-  default = "refunds-app"
+  default = "refunds-api"
 
 }
 
