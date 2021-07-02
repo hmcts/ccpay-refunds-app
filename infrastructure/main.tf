@@ -7,13 +7,13 @@ locals {
   vaultName = join("-", [var.core_product, var.env])
   s2sUrl = "http://rpe-service-auth-provider-${var.env}.service.core-compute-${var.env}.internal"
 
-  #region API gateway
-  thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.refunds_api_gateway_certificate_thumbprints)}"
-  thumbprints_in_quotes_str = "${join(",", local.thumbprints_in_quotes)}"
-  api_base_path = "refunds"
+//  #region API gateway
+//  thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.refunds_api_gateway_certificate_thumbprints)}"
+//  thumbprints_in_quotes_str = "${join(",", local.thumbprints_in_quotes)}"
+//  api_base_path = "refunds"
 }
 
-data "azurerm_key_vault" "payment_key_vault" {
+data "azurerm_key_vault" "refunds_key_vault" {
   name = "${local.vaultName}"
   resource_group_name = join("-", [var.core_product, var.env])
 }
@@ -41,74 +41,74 @@ module "ccpay-refunds-database-v11" {
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name      = join("-", [var.component, "POSTGRES-USER"])
   value     = module.ccpay-refunds-database-v11.user_name
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+  key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name      = join("-", [var.component, "POSTGRES-PASS"])
   value     = module.ccpay-refunds-database-v11.postgresql_password
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+  key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
   name      = join("-", [var.component, "POSTGRES-HOST"])
   value     = module.ccpay-refunds-database-v11.host_name
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+  key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
   name      = join("-", [var.component, "POSTGRES-PORT"])
   value     = module.ccpay-refunds-database-v11.postgresql_listen_port
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+  key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name      = join("-", [var.component, "POSTGRES-DATABASE"])
   value     = module.ccpay-refunds-database-v11.postgresql_database
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+  key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
 
 
 # region API (gateway)
 
-data "azurerm_key_vault_secret" "s2s_client_secret" {
-  name = "gateway-s2s-client-secret"
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
-}
+//data "azurerm_key_vault_secret" "s2s_client_secret" {
+//  name = "gateway-s2s-client-secret"
+//  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+//}
+//
+//data "azurerm_key_vault_secret" "s2s_client_id" {
+//  name = "gateway-s2s-client-id"
+//  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+//}
 
-data "azurerm_key_vault_secret" "s2s_client_id" {
-  name = "gateway-s2s-client-id"
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
-}
+//data "template_file" "policy_template" {
+//  template = "${file("${path.module}/template/api-policy.xml")}"
+//
+//  vars = {
+//    allowed_certificate_thumbprints = "${local.thumbprints_in_quotes_str}"
+//    s2s_client_id = "${data.azurerm_key_vault_secret.s2s_client_id.value}"
+//    s2s_client_secret = "${data.azurerm_key_vault_secret.s2s_client_secret.value}"
+//    s2s_base_url = "${local.s2sUrl}"
+//  }
+//}
 
-data "template_file" "policy_template" {
-  template = "${file("${path.module}/template/api-policy.xml")}"
+//data "template_file" "api_template" {
+//  template = "${file("${path.module}/template/api.json")}"
+//}
 
-  vars = {
-    allowed_certificate_thumbprints = "${local.thumbprints_in_quotes_str}"
-    s2s_client_id = "${data.azurerm_key_vault_secret.s2s_client_id.value}"
-    s2s_client_secret = "${data.azurerm_key_vault_secret.s2s_client_secret.value}"
-    s2s_base_url = "${local.s2sUrl}"
-  }
-}
-
-data "template_file" "api_template" {
-  template = "${file("${path.module}/template/api.json")}"
-}
-
-resource "azurerm_template_deployment" "refunds_api" {
-  template_body       = data.template_file.api_template.rendered
-  name                = "refunds-api-${var.env}"
-  deployment_mode     = "Incremental"
-  resource_group_name = "core-infra-${var.env}"
-  count               = var.env != "preview" ? 1: 0
-
-  parameters = {
-    apiManagementServiceName  = "core-api-mgmt-${var.env}"
-    apiName                   = "refunds-api"
-    apiProductName            = "refunds"
-    serviceUrl                = "http://refunds-api-${var.env}.service.core-compute-${var.env}.internal"
-    apiBasePath               = local.api_base_path
-    policy                    = data.template_file.policy_template.rendered
-  }
-}
+//resource "azurerm_template_deployment" "refunds_api" {
+//  template_body       = data.template_file.api_template.rendered
+//  name                = "refunds-api-${var.env}"
+//  deployment_mode     = "Incremental"
+//  resource_group_name = "core-infra-${var.env}"
+//  count               = var.env != "preview" ? 1: 0
+//
+//  parameters = {
+//    apiManagementServiceName  = "core-api-mgmt-${var.env}"
+//    apiName                   = "refunds-api"
+//    apiProductName            = "refunds"
+//    serviceUrl                = "http://refunds-api-${var.env}.service.core-compute-${var.env}.internal"
+//    apiBasePath               = local.api_base_path
+//    policy                    = data.template_file.policy_template.rendered
+//  }
+//}
