@@ -5,6 +5,12 @@ spring:
       enabled: true
       paths: /mnt/secrets/ccpay
       aliases:
-        refunds-api-POSTGRES-PASS: POSTGRES_PASSWORD
+#        refunds-api-POSTGRES-PASS: POSTGRES_PASSWORD
+        refunds-api-POSTGRES-PORT: POSTGRES_PORT
+        refunds-api-POSTGRES-HOST: POSTGRES_HOST
+        refunds-api-POSTGRES-DATABASE: POSTGRES_NAME
+        refunds-api-POSTGRES-USER: POSTGRES_USERNAME
+
+
         AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
 
