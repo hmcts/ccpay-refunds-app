@@ -12,6 +12,8 @@ plugins {
 
 apply from: 'liquibase.gradle'
 
+println 'checking = '
+
 group = 'uk.gov.hmcts.reform'
 version = '0.0.1'
 
