@@ -22,5 +22,7 @@ java:
     "ccpay":
       resourceGroup: ccpay
       secrets:
-        - refunds-api-POSTGRES-PASS
-        - AppInsightsInstrumentationKey
+        - name: refunds-api-POSTGRES-PASS
+          alias: POSTGRES_PASSWORD
+        - name: AppInsightsInstrumentationKey
+          alias: azure.application-insights.instrumentation-key
