@@ -43,7 +43,7 @@ public class RootController {
         return ok("Welcome to ccpay-refunds-app");
     }
 
-    @ApiOperation(value = "Get /refundstest ", notes = "Get refunds test")
+    @ApiOperation(value = "Post refunds test ", notes = "Post refunds test")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "retrieved"),
         @ApiResponse(code = 403, message = "Forbidden"),
