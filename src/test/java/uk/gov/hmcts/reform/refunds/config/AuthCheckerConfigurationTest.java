@@ -7,7 +7,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-import uk.gov.hmcts.reform.refunds.config.security.AuthCheckerConfiguration;
+import uk.gov.hmcts.reform.refunds.config.security.authcheckerconfiguration.AuthCheckerConfiguration;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;

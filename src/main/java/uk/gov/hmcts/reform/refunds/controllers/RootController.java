@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
@@ -50,7 +51,7 @@ public class RootController {
         @ApiResponse(code = 404, message = "Not found")
     })
     @PostMapping("/refunds")
-    public ResponseEntity<Refund> storeRefunds() {
+    public ResponseEntity<Refund> storeRefunds( @RequestHeader("Authorization") String authorization) {
         Refund refund= refundsService.saveRefund();
         return ok(refund);
     }
