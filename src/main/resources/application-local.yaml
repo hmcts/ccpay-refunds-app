@@ -1,6 +1,11 @@
+server:
+  port: 8084
 spring:
   application:
-    name: bulk-scanning
+    name: refunds-service
+
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/refunds
@@ -18,15 +23,38 @@ spring:
     enabled: ${SPRING_LIQUIBASE_ENABLED:true}
     change-log: classpath:/db/changelog/db.changelog-master.xml
 
-trusted:
-  s2s:
-    service:
-      names: ccpay_bubble,cmc,bulk_scan_payment_processor,api_gw,probate_frontend,divorce_frontend
+  security:
+    oauth2:
+      client:
+        provider:
+          oidc:
+            issuer-uri: http://localhost:5000/o
+        # Dummy OIDC client required even we are not going to use
+        registration:
+          oidc:
+            client-id: internal
+            client-secret: internal
+oidc:
+  audience-list: internal,paybubble,refunds
+  issuer: ${OIDC_ISSUER:http://fr-am:8080/openam/oauth2/hmcts}
+
 auth:
   provider:
     service:
       client:
-        baseUrl: http://localhost:23443
+        baseUrl: http://localhost:8085
   idam:
     client:
-      baseUrl: http://localhost:23443
+      baseUrl: http://localhost:8085
+azure:
+  application-insights:
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+idam:
+  api:
+    url: ${IDAM_API_URL:http://localhost:5000}
+  s2s-authorised:
+    services: ccpay_bubble, cmc, bulk_scan_payment_processor, api_gw, probate_frontend, divorce_frontend, ccd_gw,internal,divorce
+  s2s-auth:
+    url: http://localhost:8085
+    totp_secret: AAAAAAAAAAAAAAAA
+    microservice: divorce
