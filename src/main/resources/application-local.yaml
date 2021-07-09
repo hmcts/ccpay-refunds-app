@@ -28,7 +28,7 @@ spring:
       client:
         provider:
           oidc:
-            issuer-uri: http://localhost:5003/o
+            issuer-uri: http://localhost:5000/o
         # Dummy OIDC client required even we are not going to use
         registration:
           oidc:
@@ -51,7 +51,7 @@ azure:
     instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
 idam:
   api:
-    url: ${IDAM_API_URL:http://localhost:5002}
+    url: ${IDAM_API_URL:http://localhost:5000}
   s2s-authorised:
     services: ccpay_bubble, cmc, bulk_scan_payment_processor, api_gw, probate_frontend, divorce_frontend, ccd_gw,internal,divorce
   s2s-auth:
