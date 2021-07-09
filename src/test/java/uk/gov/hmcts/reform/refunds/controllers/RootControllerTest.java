@@ -61,7 +61,7 @@ public class RootControllerTest {
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
         Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
-        assertEquals("Welcome to ccpay-refunds-app", resultActions.andReturn().getResponse().getContentAsString());
+        assertEquals("Welcome to ccpay-refunds-ap", resultActions.andReturn().getResponse().getContentAsString());
     }
 
     @Test
@@ -83,7 +83,7 @@ public class RootControllerTest {
         assertEquals(Integer.valueOf(1), refund.getId());
         assertNotNull( refund.getDateCreated());
         assertNotNull(refund.getDateUpdated());
-        assertEquals("refund-id",refund.getRefundsId());
+        assertEquals("refund-i",refund.getRefundsId());
 
     }
 
