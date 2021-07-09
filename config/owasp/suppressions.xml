@@ -27,5 +27,6 @@
     <cve>CVE-2020-11022</cve>
     <cve>CVE-2020-11023</cve>
     <cve>CVE-2015-9251</cve>
+    <cve>CVE-2021-27568</cve>
    </suppress>
 </suppressions>
