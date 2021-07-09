@@ -17,7 +17,7 @@ java:
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     AUTH_IDAM_CLIENT_BASEURL: https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net
     TRUSTED_S2S_SERVICE_NAMES: "cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,civil_service"
-
+    IDAM_API_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
