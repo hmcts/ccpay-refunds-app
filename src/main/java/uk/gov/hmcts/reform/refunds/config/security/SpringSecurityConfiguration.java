@@ -42,7 +42,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SpringSecurityConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
-    private static final String AUTHORISED_ROLE_REFUNDS = "refunds";
+    private static final String AUTHORISED_ROLE_REFUNDS = "payments";
 
     @Configuration
     @Order(1)
