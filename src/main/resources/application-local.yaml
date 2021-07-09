@@ -28,7 +28,7 @@ spring:
       client:
         provider:
           oidc:
-            issuer-uri: http://localhost:5001/o
+            issuer-uri: http://localhost:5003/o
         # Dummy OIDC client required even we are not going to use
         registration:
           oidc:
