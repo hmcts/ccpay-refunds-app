@@ -66,7 +66,7 @@ public class SpringSecurityTestConfiguration {
                 return "testToken";
             }
         };
-        return new SecurityUtils(idamRepository());
+        return new SecurityUtils(authTokenGenerator, idamRepository());
     }
 
     @Bean
