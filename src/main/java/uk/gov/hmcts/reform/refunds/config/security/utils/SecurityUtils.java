@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.refunds.config.security.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -10,7 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 
@@ -26,12 +24,12 @@ import java.util.stream.Stream;
  */
 @Service
 public class SecurityUtils {
-    private final AuthTokenGenerator authTokenGenerator;
+//    private final AuthTokenGenerator authTokenGenerator;
     private final IdamRepository idamRepository;
 
     @Autowired
-    public SecurityUtils(final AuthTokenGenerator authTokenGenerator, IdamRepository idamRepository) {
-        this.authTokenGenerator = authTokenGenerator;
+    public SecurityUtils(IdamRepository idamRepository) {
+//        this.authTokenGenerator = authTokenGenerator;
         this.idamRepository = idamRepository;
     }
 
