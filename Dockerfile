@@ -7,5 +7,5 @@ FROM hmctspublic.azurecr.io/base/java:openjdk-11-distroless-1.2
 COPY lib/AI-Agent.xml /opt/app/
 COPY build/libs/refunds-api.jar /opt/app/
 
-EXPOSE 4550
+EXPOSE 8080
 CMD [ "refunds-api.jar" ]
