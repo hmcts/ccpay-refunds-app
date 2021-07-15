@@ -16,6 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.reform.refunds.dtos.requests.NewRefund;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
@@ -24,6 +25,7 @@ import java.time.Instant;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -68,9 +70,15 @@ public class RootControllerTest {
                                                                                 .dateCreated(dateInstant)
                                                                                 .dateUpdated(dateInstant)
                                                                                .build());
+        NewRefund mockRefund = NewRefund.createRefundRequest()
+                                .refundsName("refundsName")
+                                .refundsNumber("1234")
+                                .build();
         ResultActions resultActions = mockMvc.perform(post("/refunds")
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
+                                                          .content(new ObjectMapper().writeValueAsString(mockRefund))
+                                                                       .contentType(MediaType.APPLICATION_JSON)
                                                           .accept(MediaType.APPLICATION_JSON));
         ObjectMapper objectMapper = new ObjectMapper();
 
