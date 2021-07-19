@@ -58,3 +58,12 @@ variable "sku_capacity" {
 variable "postgresql_version" {
   default = "11"
 }
+
+variable "refunds_api_gateway_certificate_thumbprints" {
+  type    = list(any)
+  default = [] # TODO: remove default and provide environment-specific values
+}
+
+variable "product_name" {
+  type    = string
+}
