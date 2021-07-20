@@ -1,0 +1,26 @@
+test:
+  url: ${TEST_URL:http://localhost:8000}
+  user:
+    password: ${TEST_USER_PASSWORD:LevelAt12}
+
+idam:
+  api:
+    url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
+
+generated:
+  user:
+    email:
+      pattern: ${GENERATED_USER_EMAIL_PATTERN:freg-test-functional-aldie-junk-user-%s@feemail.com}
+
+s2s:
+  url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
+  service:
+    name: ${S2S_SERVICE_NAME:cmc}
+    secret: ${S2S_SERVICE_SECRET_CMC}
+
+oauth2:
+  redirect:
+    uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
+  client:
+    id: ${OAUTH2_CLIENT_ID:cmc_citizen}
+    secret: ${OAUTH2_CLIENT_SECRET_CMC_CITIZEN}
