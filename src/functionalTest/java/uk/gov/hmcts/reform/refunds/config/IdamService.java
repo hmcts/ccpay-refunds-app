@@ -66,16 +66,13 @@ public class IdamService {
         LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
 
         try {
-            TokenExchangeRequest tokenExchangeRequest = new TokenExchangeRequest(
-                username,
-                password,
-                SCOPES,
-                GRANT_TYPE,
-                testConfig.getOauth2().getClientId(),
-                testConfig.getOauth2().getClientSecret(),
-                testConfig.getOauth2().getRedirectUrl()
-            );
-            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(tokenExchangeRequest);
+            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
+                                                                               password,
+                                                                               SCOPES,
+                                                                               GRANT_TYPE,
+                                                                               testConfig.getOauth2().getClientId(),
+                                                                               testConfig.getOauth2().getClientSecret(),
+                                                                               testConfig.getOauth2().getRedirectUrl());
 
             return BEARER + tokenExchangeResponse.getAccessToken();
         } catch (Exception ex) {
