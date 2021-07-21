@@ -1,9 +1,59 @@
+management:
+  endpoints:
+    web:
+      base-path: /
+
+#If you use a database then uncomment below lines and update db properties accordingly
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: bulk-scanning
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:11.0://localhost/features
+  liquibase:
+    enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+  # open id
+  security:
+    oauth2:
+      client:
+        provider:
+          oidc:
+            issuer-uri: https://idam-web-public.aat.platform.hmcts.net/o
+        # Dummy OIDC client required even we are not going to use
+        registration:
+          oidc:
+            client-id: paybubble
+            client-secret: ${OIDC_CLIENT_SECRET}
+      resource:
+        filter-order: 3
+oidc:
+  audience-list: paybubble,cmc_citizen
+  issuer: ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/hmcts}
+
+auth:
+  provider:
+    service:
+      client:
+        baseUrl: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+  idam:
+    client:
+      baseUrl: https://idam-api.aat.platform.hmcts.net
 test:
   url: ${TEST_URL:http://localhost:8000}
   user:
     password: ${TEST_USER_PASSWORD:LevelAt12}
 
+
 idam:
+  s2s-auth:
+    url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
+    totp_secret: ${OIDC_S2S_SECRET:dummy}
+    microservice: ${OIDC_S2S_MICROSERVICE_NAME:cmc}
+  s2s-authorised:
+    services: ccpay_bubble, cmc, bulk_scan_payment_processor, api_gw, probate_frontend, divorce_frontend, ccd_gw
   api:
     url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
 
@@ -12,15 +62,19 @@ generated:
     email:
       pattern: ${GENERATED_USER_EMAIL_PATTERN:freg-test-functional-aldie-junk-user-%s@feemail.com}
 
-s2s:
-  url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
-  service:
-    name: ${S2S_SERVICE_NAME:cmc}
-    secret: ${S2S_SERVICE_SECRET_CMC}
-
 oauth2:
   redirect:
     uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
   client:
     id: ${OAUTH2_CLIENT_ID:cmc_citizen}
-    secret: ${OAUTH2_CLIENT_SECRET_CMC_CITIZEN}
+    secret: ${OAUTH2_CLIENT_SECRET_CMC_CITIZEN:abcd}
+
+s2s:
+  url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
+  service:
+    name: ${S2S_SERVICE_NAME:cmc}
+    secret: ${S2S_SERVICE_SECRET_CMC:dummy}
+
+azure:
+  application-insights:
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
