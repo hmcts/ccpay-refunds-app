@@ -50,6 +50,7 @@ public class RootFunctionalTest {
     private static String userToken;
     private static String serviceToken;
     private static boolean tokenInitialized;
+    private static final Logger LOG = LoggerFactory.getLogger(RootFunctionalTest.class);
 
     @Before
     public void setUp() {
