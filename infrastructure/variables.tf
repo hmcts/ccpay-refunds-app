@@ -66,4 +66,6 @@ variable "refunds_api_gateway_certificate_thumbprints" {
 
 variable "product_name" {
   type    = string
+  default = "refunds"
+
 }

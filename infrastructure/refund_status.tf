@@ -15,7 +15,7 @@ module "ccpay-refund-status-api" {
   revision      = "1"
   service_url   = "${local.refunds_api_url}"
   product_id    = "${module.ccpay-refund-status-product.product_id}"
-  name          = "refunds-status-api"
+  name          = join("-", [var.product_name, "api"])
   display_name  = "refunds-status API"
   path          = "refunds-status"
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-status.json"
@@ -24,9 +24,9 @@ module "ccpay-refund-status-api" {
 
 
 data "template_file" "refund_status_policy_template" {
-  template = "${file("${path.module}/templates/api-policy.xml")}"
+  template = file(join("", [path.module, "/template/api-policy.xml"]))
 
-  vars {
+  vars = {
     allowed_certificate_thumbprints = "${local.refund_status_thumbprints_in_quotes_str}"
     s2s_client_id                   = "${data.azurerm_key_vault_secret.s2s_client_id.value}"
     s2s_client_secret               = "${data.azurerm_key_vault_secret.s2s_client_secret.value}"
