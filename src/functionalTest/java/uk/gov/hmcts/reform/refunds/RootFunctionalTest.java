@@ -73,6 +73,8 @@ public class RootFunctionalTest {
 
     @Test
     public  void testRefundsPostRequest() throws Exception {
+        System.out.println("user value"+userToken);
+        System.out.println("service value"+serviceToken);
         Response response = RestAssured.given()
             .header("Authorization",userToken)
             .header("ServiceAuthorization", serviceToken)
