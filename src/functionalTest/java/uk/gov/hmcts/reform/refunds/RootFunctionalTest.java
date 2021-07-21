@@ -50,7 +50,6 @@ public class RootFunctionalTest {
     private static String userToken;
     private static String serviceToken;
     private static boolean tokenInitialized;
-    private static final Logger LOG = LoggerFactory.getLogger(RootFunctionalTest.class);
 
     @Before
     public void setUp() {
@@ -74,8 +73,6 @@ public class RootFunctionalTest {
 
     @Test
     public  void testRefundsPostRequest() throws Exception {
-        LOG.info("user value", userToken);
-        LOG.info("service value", serviceToken);
         Response response = RestAssured.given()
             .header("Authorization",userToken)
             .header("ServiceAuthorization", serviceToken)
