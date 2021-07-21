@@ -19,7 +19,7 @@ public interface IdamApi {
     @Headers("Content-Type: application/x-www-form-urlencoded")
     @Body("username={username}&password={password}&scope={scope}&grant_type="
         + "{grant_type}&client_id={client_id}&client_secret={client_secret}&redirect_uri={redirect_uri}")
-    TokenExchangeResponse exchangeCode(TokenExchangeRequest tokenExchangeRequest);
+    TokenExchangeResponse exchangeCode(TokenExchangeRequest... tokenExchangeRequests);
 
 }
 
