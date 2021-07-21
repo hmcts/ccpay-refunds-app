@@ -72,8 +72,8 @@ oauth2:
 s2s:
   url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
   service:
-    name: ${S2S_SERVICE_NAME:cmc}
-    secret: ${S2S_SERVICE_SECRET_CMC:dummy}
+    name: ${S2S_SERVICE_NAME}
+    secret: ${S2S_SERVICE_SECRET_CMC}
 
 azure:
   application-insights:
