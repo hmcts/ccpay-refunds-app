@@ -47,23 +47,23 @@ public class RootFunctionalTest {
     @Autowired
     private S2sTokenService s2sTokenService;
 
-    private static String USER_TOKEN;
-    private static String SERVICE_TOKEN;
-    private static boolean TOKENS_INITIALIZED;
+    private static String userToken;
+    private static String serviceToken;
+    private static boolean tokenInitialized;
 
     @Before
     public void setUp() {
-        if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-            TOKENS_INITIALIZED = true;
+        if (!tokenInitialized) {
+            userToken = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            serviceToken = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
+            tokenInitialized = true;
         }
     }
 
     @Test
     public void testRefundsRequest() throws Exception {
         Response response = RestAssured.given()
-            .header("ServiceAuthorization", SERVICE_TOKEN)
+            .header("ServiceAuthorization", serviceToken)
             .contentType(ContentType.JSON)
             .when()
             .get("/refundstest");
@@ -74,8 +74,8 @@ public class RootFunctionalTest {
     @Test
     public  void testRefundsPostRequest() throws Exception {
         Response response = RestAssured.given()
-            .header("Authorization",USER_TOKEN)
-            .header("ServiceAuthorization", SERVICE_TOKEN)
+            .header("Authorization",userToken)
+            .header("ServiceAuthorization", serviceToken)
             .contentType(ContentType.JSON)
             .when()
             .post("/refunds");

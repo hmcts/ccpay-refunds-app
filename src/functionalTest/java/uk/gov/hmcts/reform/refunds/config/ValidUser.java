@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder(builderMethodName = "userWith")
-public class User {
+public class ValidUser {
     private final String email;
     private final String authorisationToken;
 }

@@ -25,11 +25,9 @@ public class IdamService {
     public static final String BEARER = "Bearer ";
     public static final String GRANT_TYPE = "password";
     public static final String SCOPES = "openid profile roles";
-
+    private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
     private final IdamApi idamApi;
     private final TestConfigProperties testConfig;
-
-    private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
 
     @Autowired
     public IdamService(TestConfigProperties testConfig) {
@@ -41,7 +39,7 @@ public class IdamService {
     }
 
 
-    public User createUserWith(String userGroup, String... roles) {
+    public ValidUser createUserWith(String userGroup, String... roles) {
         String email = nextUserEmail();
         CreateUserRequest userRequest = userRequest(email, userGroup, roles);
         LOG.info("idamApi : " + idamApi.toString());
@@ -54,10 +52,7 @@ public class IdamService {
 
         String accessToken = authenticateUser(email, testConfig.getTestUserPassword());
 
-        return User.userWith()
-            .authorisationToken(accessToken)
-            .email(email)
-            .build();
+        return new ValidUser(email, accessToken);
     }
 
     public String authenticateUser(String username, String password) {
@@ -71,7 +66,7 @@ public class IdamService {
         LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
 
         try {
-            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
+            TokenExchangeRequest tokenExchangeRequest = new TokenExchangeRequest(
                 username,
                 password,
                 SCOPES,
@@ -80,6 +75,7 @@ public class IdamService {
                 testConfig.getOauth2().getClientSecret(),
                 testConfig.getOauth2().getRedirectUrl()
             );
+            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(tokenExchangeRequest);
 
             return BEARER + tokenExchangeResponse.getAccessToken();
         } catch (Exception ex) {
@@ -89,7 +85,7 @@ public class IdamService {
     }
 
 
-    private CreateUserRequest userRequest(String email, String userGroup, String[] roles) {
+    private CreateUserRequest userRequest(String email, String userGroup, String... roles) {
         return CreateUserRequest.builder()
             .email(email)
             .password(testConfig.getTestUserPassword())
