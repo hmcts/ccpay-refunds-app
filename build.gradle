@@ -70,15 +70,29 @@ task functional(type: Test) {
 task integration(type: Test) {
   description = "Runs integration tests"
   group = "Verification"
+  include "uk/gov/hmcts/reform/refunds/**"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
   failFast = true
+  testLogging.showStandardStreams = true
+  systemProperties System.getProperties()
+  environment("APPINSIGHTS_INSTRUMENTATIONKEY", "test-key")
+  enableAssertions = true
+  scanForTestClasses = true
 }
 
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
+}
+
+tasks.withType(Test) {
+  useJUnitPlatform()
+
+  testLogging {
+    exceptionFormat = 'full'
+  }
 }
 
 pmd {
@@ -183,6 +197,16 @@ configurations {
 
 apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
+ext.libraries = [
+  junit5: [
+    "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
+    "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
+    "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
+    "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
+    "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
+  ]
+]
+
 dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
@@ -239,15 +263,37 @@ dependencies {
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+  testCompileOnly 'org.projectlombok:lombok:1.18.12'
+  testImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  testImplementation group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: versions.reformLogging
 
+  integrationTestImplementation "org.junit.jupiter:junit-jupiter:5.7.2"
+  integrationTestRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-engine', version: '1.7.2'
+
+  smokeTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+  smokeTestCompileOnly 'org.projectlombok:lombok:1.18.12'
+  smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: versions.reformLogging
+  smokeTestImplementation sourceSets.main.runtimeClasspath
+  smokeTestImplementation sourceSets.test.runtimeClasspath
+
+  integrationTestImplementation "org.junit.jupiter:junit-jupiter:5.7.2"
+  integrationTestRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-engine', version: '1.7.2'
+
+  integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+  integrationTestCompileOnly 'org.projectlombok:lombok:1.18.12'
+  integrationTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  integrationTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: versions.reformLogging
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
 
+  functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+  functionalTestCompileOnly 'org.projectlombok:lombok:1.18.12'
+  functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: versions.reformLogging
   functionalTestImplementation sourceSets.main.runtimeClasspath
-
-  smokeTestImplementation sourceSets.main.runtimeClasspath
-  smokeTestImplementation sourceSets.test.runtimeClasspath
-  smokeTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+  functionalTestImplementation sourceSets.test.runtimeClasspath
 }
 
 mainClassName = 'uk.gov.hmcts.reform.refunds.RefundApplication'

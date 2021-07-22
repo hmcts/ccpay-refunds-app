@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
+@Slf4j
 public class RootControllerTest {
 
     MockMvc mockMvc;
@@ -57,6 +59,7 @@ public class RootControllerTest {
                                                           .accept(MediaType.APPLICATION_JSON));
         Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
         assertEquals("Welcome to ccpay-refunds-app", resultActions.andReturn().getResponse().getContentAsString());
+        log.info("The should_return_welcome_message() test have completed...");
     }
 
     @Test
