@@ -18,7 +18,7 @@ import uk.gov.hmcts.reform.refunds.config.IdamService;
 import uk.gov.hmcts.reform.refunds.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.config.TestContextConfiguration;
-import uk.gov.hmcts.reform.refunds.config.launchdarkly.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 

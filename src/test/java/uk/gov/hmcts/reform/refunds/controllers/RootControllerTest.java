@@ -16,7 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.reform.refunds.config.launchdarkly.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
@@ -44,7 +44,7 @@ public class RootControllerTest {
     private RefundsRepository refundsRepository;
 
     @MockBean
-    LaunchDarklyFeatureToggler featureToggler;
+    private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
     private WebApplicationContext webApplicationContext;
