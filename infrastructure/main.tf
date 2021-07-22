@@ -3,8 +3,18 @@ provider "azurerm" {
 }
 
 locals {
+
+  # Api Management config
+  api_mgmt_name     = join("-", ["core-api-mgmt", var.env])
+  api_mgmt_rg       = join("-", ["core-infra", var.env])
+
   vaultName = join("-", [var.core_product, var.env])
   s2sUrl = "http://rpe-service-auth-provider-${var.env}.service.core-compute-${var.env}.internal"
+  refunds_api_url = join("", ["http://refunds-api-", var.env, ".service.core-compute-", var.env, ".internal"])
+
+  # list of the thumbprints of the SSL certificates that should be accepted by the refund status API (gateway)
+  refund_status_thumbprints_in_quotes = formatlist("&quot;%s&quot;", var.refunds_api_gateway_certificate_thumbprints)
+  refund_status_thumbprints_in_quotes_str = join(",", local.refund_status_thumbprints_in_quotes)
 }
 
 data "azurerm_key_vault" "refunds_key_vault" {
@@ -62,5 +72,18 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
 
+data "azurerm_key_vault" "refund_key_vault" {
+  name                = local.vaultName
+  resource_group_name = local.vaultName
+}
 
+data "azurerm_key_vault_secret" "s2s_client_secret" {
+  name         = "gateway-s2s-client-secret"
+  key_vault_id = data.azurerm_key_vault.refund_key_vault.id
+}
+
+data "azurerm_key_vault_secret" "s2s_client_id" {
+  name         = "gateway-s2s-client-id"
+  key_vault_id = data.azurerm_key_vault.refund_key_vault.id
+}
 
