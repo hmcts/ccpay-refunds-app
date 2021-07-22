@@ -4,7 +4,7 @@ module "ccpay-refund-status-product" {
   api_mgmt_name = "core-api-mgmt-${var.env}"
   api_mgmt_rg   = "core-infra-${var.env}"
 
-  name = "refund-status"
+  name = join("-", [var.product_name, "api"])
 }
 
 module "ccpay-refund-status-api" {
