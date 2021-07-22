@@ -35,7 +35,7 @@ public class RootController {
     private RefundsService refundsService;
 
     @Autowired
-    LaunchDarklyFeatureToggler featureToggler;
+    private LaunchDarklyFeatureToggler featureToggler;
 
     @ApiOperation(value = "Get /refundstest ", notes = "Get refunds test")
     @ApiResponses(value = {
