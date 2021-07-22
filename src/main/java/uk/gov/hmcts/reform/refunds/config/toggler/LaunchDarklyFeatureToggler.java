@@ -15,12 +15,13 @@ public class LaunchDarklyFeatureToggler implements FeatureToggler {
     @Value("${launch.darkly.user.name}")
     private String userName;
 
-    private LDClientInterface ldClient;
+    private final LDClientInterface ldClient;
 
     public LaunchDarklyFeatureToggler(LDClientInterface ldClient) {
         this.ldClient = ldClient;
     }
 
+    @Override
     public boolean getBooleanValue(String key, Boolean defaultValue) {
 
         LOG.info("userName in LaunchDarklyFeatureToggler: {}", userName);
