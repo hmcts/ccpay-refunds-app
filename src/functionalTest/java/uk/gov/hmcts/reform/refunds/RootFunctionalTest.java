@@ -18,9 +18,13 @@ import uk.gov.hmcts.reform.refunds.config.IdamService;
 import uk.gov.hmcts.reform.refunds.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.config.TestContextConfiguration;
+import uk.gov.hmcts.reform.refunds.config.launchdarkly.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.refunds.config.IdamService.CMC_CITIZEN_GROUP;
 
 
@@ -47,6 +51,9 @@ public class RootFunctionalTest {
     @Autowired
     private S2sTokenService s2sTokenService;
 
+    @Autowired
+    private LaunchDarklyFeatureToggler featureToggler;
+
     private static String userToken;
     private static String serviceToken;
     private static boolean tokenInitialized;
@@ -62,6 +69,7 @@ public class RootFunctionalTest {
 
     @Test
     public void testRefundsRequest() throws Exception {
+        when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(false);
         Response response = RestAssured.given()
             .header("ServiceAuthorization", serviceToken)
             .contentType(ContentType.JSON)

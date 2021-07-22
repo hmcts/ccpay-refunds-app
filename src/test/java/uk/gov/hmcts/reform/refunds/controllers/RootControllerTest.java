@@ -16,6 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.reform.refunds.config.launchdarkly.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
@@ -24,6 +25,8 @@ import java.time.Instant;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,6 +43,9 @@ public class RootControllerTest {
     @MockBean
     private RefundsRepository refundsRepository;
 
+    @MockBean
+    LaunchDarklyFeatureToggler featureToggler;
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -50,13 +56,25 @@ public class RootControllerTest {
 
 
     @Test
-    public void should_return_welcome_message() throws Exception {
+    public void should_return_welcome_message_with_feature_enabled() throws Exception {
+        when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(true);
         ResultActions resultActions = mockMvc.perform(get("/refundstest")
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
         Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
-        assertEquals("Welcome to ccpay-refunds-app", resultActions.andReturn().getResponse().getContentAsString());
+        assertEquals("Welcome to refunds with feature enabled", resultActions.andReturn().getResponse().getContentAsString());
+    }
+
+    @Test
+    public void should_return_welcome_message_with_feature_false() throws Exception {
+        when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(false);
+        ResultActions resultActions = mockMvc.perform(get("/refundstest")
+                                                          .header("Authorization", "user")
+                                                          .header("ServiceAuthorization", "service")
+                                                          .accept(MediaType.APPLICATION_JSON));
+        Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
+        assertEquals("Welcome to refunds with feature false", resultActions.andReturn().getResponse().getContentAsString());
     }
 
     @Test
