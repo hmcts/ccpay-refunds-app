@@ -58,10 +58,6 @@
   </inbound>
   <outbound>
     <base/>
-    <choose>
-      <when condition="@(context.Response.StatusCode == 200)">
-      </when>
-    </choose>
   </outbound>
   <on-error>
     <base/>
