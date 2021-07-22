@@ -45,7 +45,7 @@ public class RootController {
     })
     @GetMapping("/refundstest")
     public ResponseEntity<String> welcome() {
-        boolean refundsEnabled = this.featureToggler.getBooleanValue("refunds-test",false);
+        boolean refundsEnabled = this.featureToggler.getBooleanValue("refund-test",false);
         return ok(refundsEnabled?"Welcome to refunds with feature enabled":"Welcome to refunds with feature false");
     }
 
