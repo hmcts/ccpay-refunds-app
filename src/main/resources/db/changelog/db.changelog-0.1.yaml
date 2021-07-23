@@ -25,3 +25,26 @@ databaseChangeLog:
               - column:
                   name: date_updated
                   type: TIMESTAMP WITHOUT TIME ZONE
+  - changeSet:
+      id: 100001-1
+      author: vignesh
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE refunds ADD COLUMN amount numeric(19, 2);
+              ALTER TABLE refunds ADD COLUMN reason varchar(255);
+              ALTER TABLE refunds ADD COLUMN refund_status varchar(255);
+              ALTER TABLE refunds ADD COLUMN reference varchar(255);
+              ALTER TABLE refunds ADD COLUMN payment_reference varchar(255);
+              ALTER TABLE refunds ADD COLUMN order_reference varchar(255);
+              ALTER TABLE refunds ADD COLUMN created_by varchar(255);
+              ALTER TABLE refunds ADD COLUMN updated_by varchar(255);
+  - changeSet:
+      id: 100001-3
+      author: Vignesh
+      changes:
+        - dropColumn:
+            columnName: refunds_id
+            tableName: refunds
