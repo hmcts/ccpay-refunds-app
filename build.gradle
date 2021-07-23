@@ -83,7 +83,7 @@ task smoke(type: Test) {
 
 pmd {
   toolVersion = "6.18.0"
-  sourceSets = [sourceSets.main, sourceSets.test, sourceSets.functionalTest, sourceSets.integrationTest, sourceSets.smokeTest]
+  sourceSets = [sourceSets.main, sourceSets.test,sourceSets.functionalTest, sourceSets.integrationTest, sourceSets.smokeTest]
   reportsDir = file("$project.buildDir/reports/pmd")
   // https://github.com/pmd/pmd/issues/876
   ruleSets = []
@@ -172,7 +172,10 @@ def versions = [
   reformLogging   : '5.1.7',
   springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '3.0.0',
-  jacocoVersion: '0.8.5'
+  jacocoVersion: '0.8.5',
+  serenity                : '2.2.12',
+  serenityreporter        : '2.1.4',
+  serenityCucumber        : '1.9.51'
 ]
 
 configurations {
@@ -239,6 +242,15 @@ dependencies {
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+
+  functionalTestCompile sourceSets.test.runtimeClasspath
+  functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
+  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
+  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
+  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
+  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  compile group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
 
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
