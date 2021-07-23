@@ -4,7 +4,7 @@ module "ccpay-refund-status-product" {
   api_mgmt_name = "core-api-mgmt-${var.env}"
   api_mgmt_rg   = "core-infra-${var.env}"
 
-  name = join("-", [var.product_name, "api"])
+  name = var.product_name
 }
 
 module "ccpay-refund-status-api" {
@@ -17,7 +17,7 @@ module "ccpay-refund-status-api" {
   product_id    = "${module.ccpay-refund-status-product.product_id}"
   name          = join("-", [var.product_name, "api"])
   display_name  = "refunds-status API"
-  path          = "refunds-status"
+  path          = "refunds-api"
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-status.json"
 }
 
