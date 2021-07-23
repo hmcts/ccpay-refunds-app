@@ -79,7 +79,7 @@ public class RootControllerTest {
     }
 
     @Test
-    void should_return_RefundId() throws Exception {
+    public void should_return_RefundId() throws Exception {
         Timestamp dateInstant = Timestamp.from(Instant.now());
         when(refundsRepository.save(Mockito.any(Refund.class))).thenReturn(Refund.refundsWith()
                                                                                 .id(1)
