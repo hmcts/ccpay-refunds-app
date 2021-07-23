@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Service
-public class RefundsServiceImpl implements RefundsService{
+public class RefundsDomainServiceImpl implements RefundsDomainService {
 
     @Autowired
     RefundsRepository refundsRepository;
