@@ -1,9 +1,10 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +23,17 @@ import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RootControllerTest {
 
     MockMvc mockMvc;
@@ -43,24 +44,24 @@ public class RootControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
 
     @Test
-    public void should_return_welcome_message() throws Exception {
+    void should_return_welcome_message() throws Exception {
         ResultActions resultActions = mockMvc.perform(get("/refundstest")
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
-        Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
+        assertEquals(200, resultActions.andReturn().getResponse().getStatus());
         assertEquals("Welcome to ccpay-refunds-app", resultActions.andReturn().getResponse().getContentAsString());
     }
 
     @Test
-    public void should_return_RefundId() throws Exception {
+    void should_return_RefundId() throws Exception {
         Timestamp dateInstant = Timestamp.from(Instant.now());
         when(refundsRepository.save(Mockito.any(Refund.class))).thenReturn(Refund.refundsWith()
                                                                                 .id(1)
@@ -79,8 +80,5 @@ public class RootControllerTest {
         assertNotNull( refund.getDateCreated());
         assertNotNull(refund.getDateUpdated());
         assertEquals("refund-id",refund.getRefundsId());
-
     }
-
-
 }
