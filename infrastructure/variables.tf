@@ -1,6 +1,6 @@
 variable "product" {
   type    = string
-  default = "ccpay"
+  default = "refunds"
 }
 
 variable "component" {
