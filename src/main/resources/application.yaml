@@ -1,8 +1,11 @@
-server:
-  port: 4550
 
 management:
   endpoint:
+    jmx:
+      exposure:
+        include: "health"
+    web:
+      base-path: "/"
     health:
       show-details: "always"
   endpoints:
@@ -13,10 +16,12 @@ management:
 
 #If you use a database then uncomment below lines and update db properties accordingly
 spring:
-  config:
-    import: "optional:configtree:/mnt/secrets/"
   application:
-    name: Spring Boot Template
+    name: refunds-api
+  main:
+    allow-bean-definition-overriding: true
+  config:
+    import: "optional:configtree:/mnt/secrets/ccpay/"
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:refunds}${POSTGRES_CONNECTION_OPTIONS:}
@@ -24,13 +29,33 @@ spring:
     password: ${POSTGRES_PASSWORD}
     properties:
       charSet: UTF-8
-#    hikari:
-#      minimumIdle: 2
-#      maximumPoolSize: 10
-#      idleTimeout: 10000
-#      poolName: {to-be-defined}HikariCP
-#      maxLifetime: 7200000
-#      connectionTimeout: 30000
+    tomcat:
+      max-active: 10
+      max-idle: 10
+      min-idle: 2
+      max-wait: 10000
+      test-on-borrow: true
+      test-on-connect: true
+      test-on-idle: true
+      validation-query: "SELECT 1"
+      time-between-eviction-runs-millis: 10000
+      test-while-idle: true
+      test-on-return: true
+      remove-abandoned: true
+      remove-abandoned-timeout: 60
+      log-abandoned: true
+      abandon-when-percentage-full: 0
+  security:
+    oauth2:
+      client:
+        provider:
+          oidc:
+            issuer-uri: ${ISSUER_URI}
+        # Dummy OIDC client required even we are not going to use
+        registration:
+          oidc:
+            client-id: ${OIDC_CLIENT_ID}
+            client-secret: ${OIDC_CLIENT_SECRET}
   jpa:
     properties:
       hibernate:
@@ -38,6 +63,28 @@ spring:
           lob:
             # silence the 'wall-of-text' - unnecessary exception throw about blob types
             non_contextual_creation: true
+
+
+security:
+  anonymousPaths:
+    - "/health"
+    - "/health/liveness"
+    - "/health/readiness"
+    - "/actuator/**"
+    - "/loggers/**"
+    - "/swagger-ui.html"
+    - "/swagger-resources/**"
+    - "/v2/api-docs"
+    - "/webjars/springfox-swagger-ui/**"
+    - "/search/**"
+#    hikari:
+#      minimumIdle: 2
+#      maximumPoolSize: 10
+#      idleTimeout: 10000
+#      poolName: {to-be-defined}HikariCP
+#      maxLifetime: 7200000
+#      connectionTimeout: 30000
+
 
 trusted:
   s2s:
@@ -51,7 +98,38 @@ auth:
     service:
       client:
         baseUrl: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL}
+oidc:
+  audience-list: ${OIDC_AUDIENCE_LIST}
+  issuer: ${OIDC_ISSUER}
 
 azure:
   application-insights:
     instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+
+idam:
+  api:
+    url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
+  s2s-authorised:
+    services: ${S2S_AUTHORISED_SERVICES}
+  s2s-auth:
+    url: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL}
+    totp_secret: ${OIDC_S2S_SECRET}
+    microservice: ${OIDC_S2S_MICROSERVICE_NAME}
+
+
+#Launch Darkly Config
+launch:
+  darkly:
+    sdk:
+      key: ${LAUNCH_DARKLY_SDK_KEY:dummy}
+    user:
+      name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:dummy}@feesandpay.com
+
+launchDarkly:
+  connectionTimeout: 3
+  socketTimeout: 3
+  flushInterval: 10
+
+
+
+
