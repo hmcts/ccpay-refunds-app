@@ -1,3 +1,14 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+  dependencies {
+    classpath("net.serenity-bdd:serenity-gradle-plugin:2.0.83")
+    classpath("net.serenity-bdd:serenity-single-page-report:2.1.4")
+  }
+}
+
 plugins {
   id 'application'
   id 'pmd'
@@ -9,6 +20,8 @@ plugins {
   id 'org.sonarqube' version '3.2.0'
   id 'uk.gov.hmcts.java' version '0.12.5'
 }
+
+apply plugin: 'net.serenity-bdd.aggregator'
 
 apply from: 'liquibase.gradle'
 
@@ -66,6 +79,8 @@ task functional(type: Test) {
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
 }
+
+functional.finalizedBy(aggregate)
 
 task integration(type: Test) {
   description = "Runs integration tests"
@@ -294,5 +309,9 @@ pmdTest.enabled(false);
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
+}
+
+serenity {
+  reports = ["single-page-html"]
 }
 
