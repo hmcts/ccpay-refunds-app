@@ -33,6 +33,6 @@ public class SmokeTest {
             .statusCode(200)
             .body(
                 "status", equalTo("UP"));
-        assertFalse(testUrl.isEmpty());
+        assertFalse(testUrl.isEmpty(),"Sample Test for the template....");
     }
 }
