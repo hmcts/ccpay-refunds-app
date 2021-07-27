@@ -4,18 +4,14 @@ import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static io.restassured.RestAssured.given;
-import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 
-
-@RunWith(SpringRunner.class)
 @Slf4j
 public class SmokeTest {
     @Value("${TEST_URL:http://localhost:8080}")
@@ -37,6 +33,6 @@ public class SmokeTest {
             .statusCode(200)
             .body(
                 "status", equalTo("UP"));
-        assertFalse("passed",testUrl.isEmpty());
+        assertFalse(testUrl.isEmpty());
     }
 }
