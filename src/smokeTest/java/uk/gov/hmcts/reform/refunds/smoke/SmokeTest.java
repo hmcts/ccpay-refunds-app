@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 
 @Slf4j
