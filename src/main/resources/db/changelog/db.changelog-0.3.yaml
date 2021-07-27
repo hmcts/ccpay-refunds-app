@@ -15,16 +15,3 @@ databaseChangeLog:
               - column:
                   name: description
                   type: varchar(255)
-
-  - changeSet:
-      id: 100003-1
-      author: Vignesh
-      changes:
-        - addForeignKeyConstraint:
-            baseColumnNames: reason
-            baseTableName: refunds
-            constraintName: FK_1000031
-            deferrable: false
-            initiallyDeferred: false
-            referencedColumnNames: id
-            referencedTableName: reasons
