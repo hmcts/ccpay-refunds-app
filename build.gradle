@@ -289,6 +289,7 @@ dependencies {
   functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  functionalTestCompile sourceSets.test.runtimeClasspath
   functionalTestImplementation sourceSets.main.runtimeClasspath
   functionalTestImplementation sourceSets.test.runtimeClasspath
 
