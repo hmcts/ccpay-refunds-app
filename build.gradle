@@ -283,13 +283,14 @@ dependencies {
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
+  integrationTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
   functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  functionalTestCompile sourceSets.test.runtimeClasspath
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  functionalTestImplementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
   functionalTestImplementation sourceSets.main.runtimeClasspath
   functionalTestImplementation sourceSets.test.runtimeClasspath
 
