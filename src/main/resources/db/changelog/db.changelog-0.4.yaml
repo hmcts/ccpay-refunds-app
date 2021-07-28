@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100004
+      author: Vignesh
+      changes:
+        - createTable:
+            tableName: refund_status
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_status (name, description)
+                VALUES
+                  ('submitted', 'Refund request submitted'),
+                  ('approved', 'Refund request approved'),
+                  ('sent back', 'Refund request sent back'),
+                  ('accepted', 'Refund request accepted'),
+                  ('rejected', 'Refund request rejected');
+  - changeSet:
+      id: 100004-1
+      author: Vignesh
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: refund_status
+            baseTableName: refunds
+            constraintName: FK_1000041
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: refund_status
+
+  - changeSet:
+      id: 100004-2
+      author: Vignesh
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: reason
+            baseTableName: refunds
+            constraintName: FK_1000042
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: reasons

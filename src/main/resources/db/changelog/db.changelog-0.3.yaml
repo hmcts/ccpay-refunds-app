@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100003
+      author: Vignesh
+      changes:
+        - createTable:
+            tableName: reasons
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
