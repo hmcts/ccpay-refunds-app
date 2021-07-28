@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface RefundReasonsRepository extends CrudRepository<RefundReason, String> {
+    @Override
     List<RefundReason> findAll();
 }
