@@ -71,3 +71,7 @@ launchDarkly:
   connectionTimeout: 3
   socketTimeout: 3
   flushInterval: 10
+
+payments:
+  api:
+    url: http://localhost:8091
