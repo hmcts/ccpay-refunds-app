@@ -41,6 +41,6 @@ class SwaggerPublisherTest {
         try (OutputStream outputStream = Files.newOutputStream(Paths.get("/tmp/swagger-specs.json"))) {
             outputStream.write(specs);
         }
-        assertTrue(specs.length > 0);
+        assertTrue(specs.length > 0,"Sample message for the Test Template to function....");
     }
 }
