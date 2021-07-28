@@ -91,6 +91,7 @@ public class SpringSecurityConfiguration {
                     .logout().disable()
                     .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/refundstest")
+                    .antMatchers(HttpMethod.GET, "/refund/reasons")
                     .and()
                     .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
                     .authenticationEntryPoint(refundsAuthenticationEntryPoint);
