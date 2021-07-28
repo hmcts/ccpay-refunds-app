@@ -6,6 +6,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.refunds.RefundApplication;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -15,6 +18,8 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("smoke")
+@SpringBootTest(classes = {RefundApplication.class})
 public class SmokeTest {
     @Value("${test.url}")
     private String testUrl;
