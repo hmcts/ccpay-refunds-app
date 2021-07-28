@@ -268,16 +268,15 @@ dependencies {
   testAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
   testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
-  testCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
-  testAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
-
-  testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
-  testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
+  testImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  testImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
 
   integrationTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
   integrationTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
   integrationTestImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   integrationTestImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
+  integrationTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  integrationTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
 

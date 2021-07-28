@@ -25,12 +25,12 @@ public class SmokeTest {
     private String testUrl;
 
     @BeforeAll
-    public void setUp() {
+    void setUp() {
         RestAssured.baseURI = testUrl;
     }
 
     @Test
-    public void healthCheck() {
+    void healthCheck() {
         given()
             .relaxedHTTPSValidation()
             .header(CONTENT_TYPE, "application/json")
@@ -40,6 +40,6 @@ public class SmokeTest {
             .statusCode(200)
             .body(
                 "status", equalTo("UP"));
-        assertFalse(testUrl.isEmpty(),"Sample Test for the template....");
+        assertFalse(testUrl.isEmpty(), "Sample Test for the template....");
     }
 }

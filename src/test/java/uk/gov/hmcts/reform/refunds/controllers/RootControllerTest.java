@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
+@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
@@ -55,6 +57,7 @@ public class RootControllerTest {
 
     @Test
     void should_return_welcome_message_with_feature_enabled() throws Exception {
+        log.info("Test : should_return_welcome_message_with_feature_enabled() has started");
         when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(true);
         ResultActions resultActions = mockMvc.perform(get("/refundstest")
                                                           .header("Authorization", "user")
@@ -62,6 +65,7 @@ public class RootControllerTest {
                                                           .accept(MediaType.APPLICATION_JSON));
         assertEquals(200, resultActions.andReturn().getResponse().getStatus());
         assertEquals("Welcome to refunds with feature enabled", resultActions.andReturn().getResponse().getContentAsString());
+        log.info("Test : should_return_welcome_message_with_feature_enabled() has completed");
     }
 
     @Test
