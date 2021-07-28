@@ -2,8 +2,10 @@ package uk.gov.hmcts.reform.refunds.smoke;
 
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Value;
 
 import static io.restassured.RestAssured.given;
@@ -13,11 +15,12 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 
 @Slf4j
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SmokeTest {
-    @Value("${TEST_URL:http://localhost:8080}")
+    @Value("${test.url}")
     private String testUrl;
 
-    @BeforeEach
+    @BeforeAll
     public void setUp() {
         RestAssured.baseURI = testUrl;
     }
