@@ -6,18 +6,19 @@ import io.swagger.annotations.ApiResponses;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.services.RefundsDomainService;
 
-import java.util.HashMap;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
 
-import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 public class RefundsController {
@@ -36,7 +37,7 @@ public class RefundsController {
     })
     @PostMapping("/refund")
     public RefundResponse getRefundReference( @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @RequestBody RefundRequest refundRequest) throws CheckDigitException,InvalidRefundRequestException {
+                                              @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException,InvalidRefundRequestException {
         return refundsDomainService.getRefundReference(headers,refundRequest);
     }
 
@@ -46,9 +47,17 @@ public class RefundsController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(PaymentReferenceNotFoundException.class)
+    public String return404(PaymentReferenceNotFoundException ex) {
+        return ex.getMessage();
+    }
+
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(CheckDigitException.class)
     public String return500(CheckDigitException ex) {
         return ex.getMessage();
     }
+
+
 }
