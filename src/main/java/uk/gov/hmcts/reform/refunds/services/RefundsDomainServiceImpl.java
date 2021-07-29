@@ -11,8 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.refunds.dtos.PaymentDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
-import uk.gov.hmcts.reform.refunds.model.Reason;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
@@ -20,12 +19,10 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
 import java.math.BigDecimal;
-import java.sql.Ref;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
-import static uk.gov.hmcts.reform.refunds.model.Reason.REASON1;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
 @Service
@@ -103,8 +100,10 @@ public class RefundsDomainServiceImpl implements RefundsDomainService {
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("content-type",headers.get("content-type"));
-        inputHeaders.put("Authorization", headers.get("Authorization"));
-        inputHeaders.put("ServiceAuthorization", headers.get("ServiceAuthorization"));
+//        inputHeaders.put("Authorization", headers.get("Authorization"));
+//        inputHeaders.put("ServiceAuthorization", headers.get("ServiceAuthorization"));
+        inputHeaders.put("Authorization", Arrays.asList("krishnakn00@gmail.com"));
+        inputHeaders.put("ServiceAuthorization", Arrays.asList("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1MzMyMzc3NjN9.3iwg2cCa1_G9-TAMupqsQsIVBMWg9ORGir5xZyPhDabk09Ldk0-oQgDQq735TjDQzPI8AxL1PgjtOPDKeKyxfg[akiss@reformMgmtDevBastion02"));
         return new HttpEntity<>(inputHeaders);
     }
 
@@ -124,7 +123,7 @@ public class RefundsDomainServiceImpl implements RefundsDomainService {
         return Refund.refundsWith()
                 .amount(refundRequest.getRefundAmount())
                 .paymentReference(refundRequest.getPaymentReference())
-                .reason(Reason.getReasonObject(refundRequest.getRefundReason()))
+                .reason(RefundReason.getReasonObject(refundRequest.getRefundReason()))
                 .refundStatus(SUBMITTED)
                 .reference(referenceUtil.getNext("RF"))
                 .build();

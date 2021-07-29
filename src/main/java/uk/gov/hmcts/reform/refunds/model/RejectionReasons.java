@@ -16,6 +16,9 @@ import javax.persistence.Table;
 @Table(name = "rejection_reasons")
 public class RejectionReasons {
     @Id
+    @Column(name = "code")
+    private String code;
+
     @Column(name = "name")
     private String name;
 

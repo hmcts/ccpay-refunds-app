@@ -11,25 +11,28 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table(name = "reasons")
-public class Reason {
+@Table(name = "refund_reasons")
+public class RefundReason {
 
-    public final static Reason REASON1 = new Reason("reason1", "reason1");
-    public final static Map<String,Reason> reasonMap;
+    public final static RefundReason REASON1 = new RefundReason("RESN1", "reason1", "reason1");
+    public final static Map<String,RefundReason> reasonMap;
     static {
         reasonMap = new HashMap<>();
-        reasonMap.put("reason1",REASON1);
+        reasonMap.put("RESN1",REASON1);
     }
 
 
     @Id
+    @Column(name = "code")
+    private String code;
+
     @Column(name = "name")
     private String name;
 
     @Column(name = "description")
     private String description;
 
-    public static Reason getReasonObject(String reason){
+    public static RefundReason getReasonObject(String reason){
         return reasonMap.get(reason);
     }
 

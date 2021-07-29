@@ -24,9 +24,9 @@ public class Refund {
 
     @ManyToOne
     @JoinColumn(name = "reason")
-    private Reason reason;
+    private RefundReason reason;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "refund_status")
     private RefundStatus refundStatus;
 
