@@ -289,7 +289,6 @@ dependencies {
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
-  integrationTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
   functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
   functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
