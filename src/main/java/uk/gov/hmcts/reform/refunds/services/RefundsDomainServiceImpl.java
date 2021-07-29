@@ -65,6 +65,11 @@ public class RefundsDomainServiceImpl implements RefundsDomainService {
     }
 
     private void validateRefundRequest(MultiValueMap<String,String> headers, RefundRequest refundRequest){
+
+        if(RefundReason.getReasonObject(refundRequest.getRefundReason()).isEmpty()){
+            throw new InvalidRefundRequestException("Invalid Reason Type");
+        }
+
         PaymentDto paymentDto = getPaymentForGiven(refundRequest.getPaymentReference(), headers);
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
         BigDecimal refundedHistoryAmount = refundsList.isPresent()?
@@ -100,17 +105,12 @@ public class RefundsDomainServiceImpl implements RefundsDomainService {
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("content-type",headers.get("content-type"));
-//        inputHeaders.put("Authorization", headers.get("Authorization"));
-//        inputHeaders.put("ServiceAuthorization", headers.get("ServiceAuthorization"));
-        inputHeaders.put("Authorization", Arrays.asList("krishnakn00@gmail.com"));
-        inputHeaders.put("ServiceAuthorization", Arrays.asList("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1MzMyMzc3NjN9.3iwg2cCa1_G9-TAMupqsQsIVBMWg9ORGir5xZyPhDabk09Ldk0-oQgDQq735TjDQzPI8AxL1PgjtOPDKeKyxfg[akiss@reformMgmtDevBastion02"));
+        inputHeaders.put("Authorization", headers.get("Authorization"));
+        inputHeaders.put("ServiceAuthorization", headers.get("ServiceAuthorization"));
         return new HttpEntity<>(inputHeaders);
     }
 
     private boolean isPaidAmountLessThanRefundRequestAmount(BigDecimal refundsAmount, BigDecimal paidAmount){
-        // Actual logic is coming
-        // Check for old refunds
-
         return paidAmount.compareTo(refundsAmount)<0;
     }
 
@@ -123,7 +123,7 @@ public class RefundsDomainServiceImpl implements RefundsDomainService {
         return Refund.refundsWith()
                 .amount(refundRequest.getRefundAmount())
                 .paymentReference(refundRequest.getPaymentReference())
-                .reason(RefundReason.getReasonObject(refundRequest.getRefundReason()))
+                .reason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get())
                 .refundStatus(SUBMITTED)
                 .reference(referenceUtil.getNext("RF"))
                 .build();

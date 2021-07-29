@@ -6,6 +6,7 @@ import javax.persistence.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Entity
 @AllArgsConstructor
@@ -32,8 +33,8 @@ public class RefundReason {
     @Column(name = "description")
     private String description;
 
-    public static RefundReason getReasonObject(String reason){
-        return reasonMap.get(reason);
+    public static Optional<RefundReason> getReasonObject(String reason){
+        return Optional.ofNullable(reasonMap.get(reason));
     }
 
 }
