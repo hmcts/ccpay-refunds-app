@@ -4,13 +4,18 @@ databaseChangeLog:
       author: Vignesh
       changes:
         - createTable:
-            tableName: reasons
+            tableName: refund_reasons
             columns:
+              - column:
+                  name: code
+                  type: varchar(5)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
               - column:
                   name: name
                   type: varchar(255)
                   constraints:
-                    primaryKey: true
                     nullable: false
               - column:
                   name: description
