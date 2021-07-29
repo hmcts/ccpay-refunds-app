@@ -284,16 +284,21 @@ dependencies {
   smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
   smokeTestImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   smokeTestImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
+  smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
   integrationTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
   functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+  functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
   functionalTestImplementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
   functionalTestImplementation sourceSets.main.runtimeClasspath
   functionalTestImplementation sourceSets.test.runtimeClasspath
