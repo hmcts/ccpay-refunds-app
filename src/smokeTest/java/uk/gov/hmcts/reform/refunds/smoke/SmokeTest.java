@@ -31,6 +31,7 @@ public class SmokeTest {
 
     @Test
     void healthCheck() {
+        log.info("TEST - healthCheck() started");
         given()
             .relaxedHTTPSValidation()
             .header(CONTENT_TYPE, "application/json")
@@ -41,5 +42,6 @@ public class SmokeTest {
             .body(
                 "status", equalTo("UP"));
         assertFalse(testUrl.isEmpty(), "Sample Test for the template....");
+        log.info("TEST - healthCheck() finished");
     }
 }

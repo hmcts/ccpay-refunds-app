@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,12 +29,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.refunds.config.IdamService.CMC_CITIZEN_GROUP;
 
-
+@Slf4j
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
 @EnableFeignClients
 @ContextConfiguration(classes = TestContextConfiguration.class)
-@ActiveProfiles("test")
+@ActiveProfiles("functional")
 @TestPropertySource(locations = "classpath:application-test.yaml")
 public class RootFunctionalTest {
 
@@ -70,6 +71,7 @@ public class RootFunctionalTest {
 
     @Test
     public void testRefundsRequest() throws Exception {
+        log.info("FUNCTIONAL TEST - testRefundsRequest() has started");
         when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(false);
         Response response = RestAssured.given()
             .header("ServiceAuthorization", serviceToken)
