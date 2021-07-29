@@ -4,8 +4,8 @@ module "ccpay-refund-status-product" {
   api_mgmt_name = local.api_mgmt_name
   api_mgmt_rg   = local.api_mgmt_rg
   name          = var.product_name
-  
-  product_access_control_groups = ["administrators", "developers"]
+
+  product_access_control_groups = ["developers"]
 }
 
 module "ccpay-refund-status-api" {
