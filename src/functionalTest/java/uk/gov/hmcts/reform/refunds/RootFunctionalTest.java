@@ -21,7 +21,7 @@ import uk.gov.hmcts.reform.refunds.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.config.TestContextConfiguration;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.RefundsDomainService;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -38,7 +38,7 @@ import static uk.gov.hmcts.reform.refunds.config.IdamService.CMC_CITIZEN_GROUP;
 public class RootFunctionalTest {
 
     @Autowired
-    RefundsService refundsService;
+    RefundsDomainService refundsDomainService;
 
     @Autowired
     RefundsRepository refundsRepository;
