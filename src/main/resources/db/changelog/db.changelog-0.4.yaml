@@ -50,5 +50,5 @@ databaseChangeLog:
             constraintName: FK_1000042
             deferrable: false
             initiallyDeferred: false
-            referencedColumnNames: name
-            referencedTableName: reasons
+            referencedColumnNames: code
+            referencedTableName: refund_reasons
