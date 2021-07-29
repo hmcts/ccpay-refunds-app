@@ -28,6 +28,7 @@ databaseChangeLog:
   - changeSet:
       id: 100004-1
       author: Vignesh
+      failOnError: true
       changes:
         - addForeignKeyConstraint:
             baseColumnNames: refund_status
@@ -35,5 +36,19 @@ databaseChangeLog:
             constraintName: FK_1000041
             deferrable: false
             initiallyDeferred: false
-            referencedColumnNames: id
+            referencedColumnNames: name
             referencedTableName: refund_status
+
+  - changeSet:
+      id: 100004-2
+      author: Vignesh
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: reason
+            baseTableName: refunds
+            constraintName: FK_1000042
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: code
+            referencedTableName: refund_reasons
