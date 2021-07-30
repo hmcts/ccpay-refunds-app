@@ -1,4 +1,3 @@
-
 module "ccpay-refund-status-product" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
 
