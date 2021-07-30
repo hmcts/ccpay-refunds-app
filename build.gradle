@@ -144,9 +144,11 @@ dependencyUpdates {
 }
 
 dependencyCheck {
-  suppressionFile = 'config/owasp/suppressions.xml'
-
+  failBuildOnCVSS = 0
+  suppressionFile = 'dependency-check-suppressions.xml'
+  format='ALL'
 }
+
 apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
 
@@ -291,6 +293,7 @@ checkstyleMain.enabled(false)
 checkstyleTest.enabled(false)
 checkstyleIntegrationTest.enabled(false)
 pmdTest.enabled(false);
+pmdMain.enabled(false);
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
