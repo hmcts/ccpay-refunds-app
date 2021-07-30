@@ -13,6 +13,7 @@ import java.util.Optional;
 @NoArgsConstructor
 @Data
 @Table(name = "refund_reasons")
+@Builder(builderMethodName = "refundsReasonWith")
 public class RefundReason {
 
     public final static RefundReason REASON1 = new RefundReason("RESN1", "reason1", "reason1");

@@ -64,6 +64,11 @@ public class RefundsDomainServiceImpl implements RefundsDomainService {
         return response;
     }
 
+    @Override
+    public Refund retrieve(String reference) {
+        return refundsRepository.findByReference(reference);
+    }
+
     private void validateRefundRequest(MultiValueMap<String,String> headers, RefundRequest refundRequest){
 
         if(RefundReason.getReasonObject(refundRequest.getRefundReason()).isEmpty()){

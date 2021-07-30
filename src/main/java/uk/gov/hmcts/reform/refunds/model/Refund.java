@@ -12,6 +12,8 @@ import java.util.List;
 @Builder(builderMethodName = "refundsWith")
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 @Data
 @Table(name = "refunds")
 public class Refund {
@@ -44,10 +46,16 @@ public class Refund {
     @Column(name = "date_updated")
     private Timestamp dateUpdated;
 
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
 
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refund_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
+
 
 }

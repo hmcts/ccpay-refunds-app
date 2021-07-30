@@ -14,4 +14,6 @@ public interface RefundsDomainService {
     Refund saveRefund();
 
     RefundResponse getRefundReference(MultiValueMap<String,String> headers, RefundRequest refundRequest) throws CheckDigitException;
+
+    Refund retrieve(String reference);
 }

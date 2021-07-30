@@ -26,7 +26,7 @@ public class SwaggerConfiguration {
         return Arrays.asList(
             new ParameterBuilder()
                 .name("Authorization")
-                .description("Authorization header")
+                .description("User authorization header")
                 .required(true)
                 .parameterType("header")
                 .modelRef(new ModelRef("string"))

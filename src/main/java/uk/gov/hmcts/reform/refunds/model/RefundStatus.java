@@ -10,6 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Table(name = "refund_status")
+@Builder(builderMethodName = "refundsStatusWith")
 public class RefundStatus {
 
 
