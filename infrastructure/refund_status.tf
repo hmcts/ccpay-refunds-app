@@ -1,3 +1,4 @@
+/*
 module "ccpay-refund-status-product" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
 
@@ -7,7 +8,8 @@ module "ccpay-refund-status-product" {
 
   product_access_control_groups = ["developers"]
 }
-
+*/
+/*
 module "ccpay-refund-status-api" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-api?ref=master"
 
@@ -44,3 +46,4 @@ module "ccpay-refund-status-policy" {
   api_name               = module.ccpay-refund-status-api.name
   api_policy_xml_content = data.template_file.refund_status_policy_template.rendered
 }
+*/
