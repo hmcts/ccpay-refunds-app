@@ -19,5 +19,6 @@
     <cve>CVE-2021-24122</cve>
     <cve>CVE-2021-25122</cve>
     <cve>CVE-2021-25329</cve>
+    <cve>CVE-2019-10086</cve>
   </suppress>
 </suppressions>
