@@ -1,11 +1,11 @@
 variable "product" {
   type    = string
-  default = "refunds"
+  default = "refund"
 }
 
 variable "component" {
   type    = string
-  default = "refunds-api"
+  default = "refund-api"
 
 }
 
