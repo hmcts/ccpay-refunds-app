@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.repository.RefundReasonsRepository;
+import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 
 import java.util.List;
 
@@ -19,14 +19,15 @@ import java.util.List;
 public class RefundController {
 
     @Autowired
-    RefundReasonsRepository refundsReasonsRepository;
+    RefundReasonsService refundReasonsService;
 
     /**
      * Api for returning list of Refund reasons
+     *
      * @return List of Refund reasons
      */
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason() {
-        return ResponseEntity.ok().body(refundsReasonsRepository.findAll());
+        return ResponseEntity.ok().body(refundReasonsService.findAll());
     }
 }
