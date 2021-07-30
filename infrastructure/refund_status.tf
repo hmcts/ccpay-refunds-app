@@ -1,10 +1,11 @@
-/*
+
 module "ccpay-refund-status-product" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
 
   api_mgmt_name = local.api_mgmt_name
   api_mgmt_rg   = local.api_mgmt_rg
   name = var.product_name
+  product_access_control_groups = ["developers"]
 }
 
 module "ccpay-refund-status-api" {
@@ -20,8 +21,6 @@ module "ccpay-refund-status-api" {
   path          = "refunds-api"
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-status.json"
 }
-
-
 
 data "template_file" "refund_status_policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
@@ -43,4 +42,4 @@ module "ccpay-refund-status-policy" {
   api_name               = module.ccpay-refund-status-api.name
   api_policy_xml_content = data.template_file.refund_status_policy_template.rendered
 }
-*/
+
