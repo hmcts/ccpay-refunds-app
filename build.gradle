@@ -80,6 +80,7 @@ task functional(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  testLogging.showStandardStreams = true
 }
 
 functional.finalizedBy(aggregate)
@@ -89,6 +90,7 @@ task integration(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
+  testLogging.showStandardStreams = true
   failFast = true
 }
 
@@ -96,6 +98,7 @@ task smoke(type: Test) {
   description = "Runs Smoke Tests"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
+  testLogging.showStandardStreams = true
 }
 
 tasks.withType(Test) {
@@ -124,6 +127,7 @@ jacocoTestReport {
   }
 }
 task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
+  testLogging.showStandardStreams = true
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
 }
