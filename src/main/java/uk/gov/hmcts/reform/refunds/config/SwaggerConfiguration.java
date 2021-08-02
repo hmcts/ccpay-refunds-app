@@ -25,12 +25,20 @@ public class SwaggerConfiguration {
     private List<Parameter> getGlobalOperationParameters() {
         return Arrays.asList(
             new ParameterBuilder()
+                .name("Authorization")
+                .description("User authorization header")
+                .required(true)
+                .parameterType("header")
+                .modelRef(new ModelRef("string"))
+                .build(),
+            new ParameterBuilder()
                 .name("ServiceAuthorization")
                 .description("Service authorization header")
                 .required(true)
                 .parameterType("header")
                 .modelRef(new ModelRef("string"))
-                .build());
+                .build()
+        );
     }
 
     @Bean

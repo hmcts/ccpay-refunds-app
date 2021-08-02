@@ -44,6 +44,7 @@ public class RefundControllerTest {
     @Test
     public void getRefundReasonsList() throws Exception {
         MvcResult mvcResult = this.mockMvc.perform(get("/refund/reasons")
+                                                       .header("Authorization", "user")
                                                        .header("ServiceAuthorization", "Services")
                                                        .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
