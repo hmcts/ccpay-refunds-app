@@ -22,6 +22,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder(builderMethodName = "paymentDtoWith")
 public class PaymentDto {
 
     private String id;

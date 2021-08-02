@@ -20,3 +20,17 @@ databaseChangeLog:
               - column:
                   name: description
                   type: varchar(255)
+  - changeSet:
+      id: 100003-1
+      author: Vignesh
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_reasons (code,name, description)
+                VALUES
+                  ('RESN1', 'reason1','reason1'),
+                  ('RESN2', 'reason2','reason2'),
+                  ('RESN3', 'reason3','reason3'),
+                  ('RESN4', 'reason4','reason4');
+#              Will be replaced with valid reasons

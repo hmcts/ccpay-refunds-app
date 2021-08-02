@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface RefundsRepository extends CrudRepository<Refund, Integer> {
     Optional<List<Refund>> findByPaymentReference(String paymentReference);
+
+    Optional<Refund> findByReference(String reference);
 }

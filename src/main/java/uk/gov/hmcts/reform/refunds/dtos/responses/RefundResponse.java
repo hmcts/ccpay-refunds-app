@@ -4,11 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Builder(builderMethodName = "buildRefundResponseWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class RefundResponse {
 
     private String refundReference;
