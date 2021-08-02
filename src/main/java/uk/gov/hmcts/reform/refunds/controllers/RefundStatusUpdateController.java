@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.reform.refunds.dto.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dto.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
@@ -36,7 +36,7 @@ public class RefundStatusUpdateController {
     @ResponseBody
     @Transactional
     public ResponseEntity updateRefundStatus(@PathVariable("reference") String reference,
-                                             @RequestBody @Valid RefundRequest request) {
+                                             @RequestBody @Valid RefundStatusUpdateRequest request) {
 
         Refund refund = refundsService.retrieve(reference);
         if(refund != null)

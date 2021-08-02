@@ -42,7 +42,7 @@ public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
         Collection<String> authorizedRoles = authorizedRolesExtractor.apply(request);

@@ -19,7 +19,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @Getter
 @Setter
-public class RefundRequest {
+public class RefundStatusUpdateRequest {
 
     private String reason;
 
