@@ -10,11 +10,11 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import java.util.Map;
 
 
-public interface RefundsDomainService {
+public interface RefundsService {
 
     Refund saveRefund();
 
-    RefundResponse getRefundReference(MultiValueMap<String, String> headers, RefundRequest refundRequest) throws CheckDigitException;
+    RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException;
 
     HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest);
 }

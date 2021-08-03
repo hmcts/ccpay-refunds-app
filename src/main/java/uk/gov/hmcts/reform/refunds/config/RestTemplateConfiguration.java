@@ -18,8 +18,8 @@ public class RestTemplateConfiguration {
             .build();
     }
 
-    @Bean (value = "restTemplatePayment")
-    public RestTemplate restTemplatePayment() {
+    @Bean (value = "restTemplateIdam")
+    public RestTemplate restTemplateIdam() {
         RestTemplate restTemplate =  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
         restTemplate.setErrorHandler(new RestTemplateResponseErrorHandler());
         return restTemplate;

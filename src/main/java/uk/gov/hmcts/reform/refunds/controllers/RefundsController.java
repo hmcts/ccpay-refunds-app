@@ -6,18 +6,14 @@ import io.swagger.annotations.ApiResponses;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
-import uk.gov.hmcts.reform.refunds.services.RefundsDomainService;
+import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
-import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 
 
@@ -25,7 +21,7 @@ import javax.validation.Valid;
 public class RefundsController {
 
     @Autowired
-    private RefundsDomainService refundsDomainService;
+    private RefundsService refundsService;
 
     @ApiOperation(value = "POST /refund ", notes = "Submit Refund Request")
     @ApiResponses(value = {
@@ -37,19 +33,19 @@ public class RefundsController {
 
     })
     @PostMapping("/refund")
-    public RefundResponse getRefundReference(@RequestHeader(required = false) MultiValueMap<String, String> headers,
+    public RefundResponse createRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
                                              @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException, InvalidRefundRequestException {
-        return refundsDomainService.getRefundReference(headers, refundRequest);
+        return refundsService.initiateRefund(refundRequest, headers);
     }
 
 
     @PatchMapping("/refund/reference/{reference}")
     public HttpStatus reSubmitRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                         @PathVariable(value = "reference", required = true) String reference,
-                                         @Valid @RequestBody RefundRequest refundRequest) {
+                                     @PathVariable(value = "reference", required = true) String reference,
+                                     @Valid @RequestBody RefundRequest refundRequest) {
 
 
-        return refundsDomainService.reSubmitRefund(headers,reference,refundRequest);
+        return refundsService.reSubmitRefund(headers, reference, refundRequest);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
