@@ -28,9 +28,9 @@ public class RootController {
      * @return Welcome message from the service.
      */
 
-    @Autowired
-    private RefundsService refundsService;
-
+//    @Autowired
+//    private RefundsService refundsService;
+//
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 

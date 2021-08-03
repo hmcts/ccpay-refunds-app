@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -76,17 +77,17 @@ public class RefundsServiceImpl implements RefundsService {
 
             RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
 
-            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
+//            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
 //              return new ResponseEntity("Invalid refund event entered next valid refund events is/are : " + nextValidEvents, HttpStatus.BAD_REQUEST);
-            }
+//            }
 //
 //          request.setState(currentstate.nextState(currentEventFromRequest));
 
 //          if(RefundState.valueOf(refund.get().getRefundStatus().getName()).equals())
-            refund.get().setPaymentReference(refundRequest.getPaymentReference());
+//            refund.get().setPaymentReference(refundRequest.getPaymentReference());
 //            refund.get().setReason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get());
 //            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
-            refund.get().setRefundStatus(SUBMITTED);
+//            refund.get().setRefundStatus(SUBMITTED);
 
         }
         return HttpStatus.ACCEPTED;

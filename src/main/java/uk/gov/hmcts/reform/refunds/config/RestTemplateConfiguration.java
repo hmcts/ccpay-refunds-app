@@ -18,7 +18,7 @@ public class RestTemplateConfiguration {
             .build();
     }
 
-    @Bean (value = "restTemplateIdam")
+    @Bean ("restTemplateIdam")
     public RestTemplate restTemplateIdam() {
         RestTemplate restTemplate =  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
         restTemplate.setErrorHandler(new RestTemplateResponseErrorHandler());
