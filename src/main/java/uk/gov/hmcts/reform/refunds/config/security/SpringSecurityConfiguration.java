@@ -38,7 +38,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 
 @EnableWebSecurity
-@Configuration
 public class SpringSecurityConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
