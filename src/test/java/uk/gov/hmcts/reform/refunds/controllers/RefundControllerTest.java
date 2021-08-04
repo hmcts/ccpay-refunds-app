@@ -35,7 +35,6 @@ import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -53,16 +52,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
+
+@ActiveProfiles({"local", "test"})
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles({"local", "test"})
 public class RefundControllerTest {
 
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -91,12 +91,12 @@ public class RefundControllerTest {
 
     @Before
     public void setUp() {
-        this.mockMvc = webAppContextSetup(webApplicationContext).build();
+        mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
     public void getRefundReasonsList() throws Exception {
-        MvcResult mvcResult = this.mockMvc.perform(get("/refund/reasons")
+        MvcResult mvcResult = mockMvc.perform(get("/refund/reasons")
                                                        .header("Authorization", "user")
                                                        .header("ServiceAuthorization", "Services")
                                                        .accept(MediaType.APPLICATION_JSON))
@@ -142,7 +142,7 @@ public class RefundControllerTest {
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-        MvcResult result = this.mockMvc.perform(post("/refund")
+        MvcResult result = mockMvc.perform(post("/refund")
                                                     .content(asJsonString(refundRequest))
                                                     .header("Authorization", "user")
                                                     .header("ServiceAuthorization", "Services")
@@ -182,7 +182,7 @@ public class RefundControllerTest {
         List<Refund> refunds = Collections.singletonList(refund);
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
 
-        MvcResult result = this.mockMvc.perform(post("/refund")
+        MvcResult result = mockMvc.perform(post("/refund")
                                  .content(asJsonString(refundRequest))
                                  .header("Authorization", "user")
                                  .header("ServiceAuthorization", "Services")
