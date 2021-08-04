@@ -46,11 +46,11 @@ public class IdamServiceImpl implements IdamService {
         // return "asdfghjk-kjhgfds-dfghj-sdfghjk";
         try {
             ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
-            IdamUserIdResponse idamUserIdResponse = responseEntity.hasBody() ? responseEntity.getBody() : null;
+            IdamUserIdResponse idamUserIdResponse = responseEntity.getBody();
             return idamUserIdResponse.getUid();
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
-                throw new UserNotFoundException("User not found for given token");
+            throw new UserNotFoundException("User not found for given token");
         } catch (HttpServerErrorException e) {
             LOG.error("server err ", e);
             throw new GatewayTimeoutException("Unable to retrieve User information. Please try again later");
@@ -71,10 +71,11 @@ public class IdamServiceImpl implements IdamService {
     private HttpEntity<String> getEntity(MultiValueMap<String, String> headers) {
         MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<>();
         headerMultiValueMap.put("Content-Type", headers.get("content-type"));
-        String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get("authorization").get(0);
+        String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
+            "authorization").get(0);
         headerMultiValueMap.put(
             "Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
-                                          ? userAuthorization : "Bearer ".concat(userAuthorization))
+                                                           ? userAuthorization : "Bearer ".concat(userAuthorization))
         );
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
         return new HttpEntity<>(httpHeaders);
