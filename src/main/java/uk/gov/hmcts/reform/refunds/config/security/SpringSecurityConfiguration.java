@@ -155,7 +155,6 @@ public class SpringSecurityConfiguration {
                 "/favicon.ico",
                 "/mock-api/**",
                 "/",
-                "/**/*",
                 "/refund"
             );
         }

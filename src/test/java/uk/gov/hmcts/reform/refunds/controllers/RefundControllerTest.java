@@ -28,7 +28,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
+import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
@@ -36,22 +36,23 @@ import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -79,7 +80,6 @@ public class RefundControllerTest {
     @InjectMocks
     private RefundsController refundsController;
 
-    @Mock
     private ReferenceUtil referenceUtil;
 
     @Mock
@@ -150,14 +150,6 @@ public class RefundControllerTest {
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-//        Refund refund = Refund.refundsWith()
-//            .amount(new BigDecimal(100))
-//            .paymentReference("RC-1234-1234-1234-1234")
-//            .reference("RF-1234-1234-1234-1234")
-//            .refundStatus(RefundStatus.SUBMITTED)
-//            .build();
-//        when(refundsRepository.save(any())).thenReturn(refund);
-
         MvcResult result = this.mockMvc.perform(post("/refund")
                                                     .content(asJsonString(refundRequest))
                                                     .header("Authorization", "user")
@@ -176,5 +168,35 @@ public class RefundControllerTest {
         );
         assertTrue(refundResponse.getRefundReference().matches(REFUND_REFERENCE_REGEX));
 
+    }
+
+    @Test
+    public void createRefundReturns400() throws Exception {
+
+        RefundRequest refundRequest = RefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundAmount(new BigDecimal(100))
+            .refundReason("RR002")
+            .build();
+
+        Refund refund = Refund.refundsWith()
+            .amount(refundRequest.getRefundAmount())
+            .paymentReference(refundRequest.getPaymentReference())
+            .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()))
+            .refundStatus(SUBMITTED)
+            .reference(referenceUtil.getNext("RF"))
+            .build();
+
+        List<Refund> refunds = Collections.singletonList(refund);
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+
+        this.mockMvc.perform(post("/refund")
+                                 .content(asJsonString(refundRequest))
+                                 .header("Authorization", "user")
+                                 .header("ServiceAuthorization", "Services")
+                                 .contentType(MediaType.APPLICATION_JSON)
+                                 .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 }
