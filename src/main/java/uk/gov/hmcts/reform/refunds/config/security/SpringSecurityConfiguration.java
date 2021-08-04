@@ -64,21 +64,19 @@ public class SpringSecurityConfiguration {
 
         @Override
         public void configure(WebSecurity web) {
-            web.ignoring().antMatchers(
-                "/swagger-ui.html",
-                "/webjars/springfox-swagger-ui/**",
-                "/swagger-resources",
-                "/swagger-resources/**",
-                "/v2/**",
-                "/refdata/**",
-                "/health",
-                "/health/liveness",
-                "/health/readiness",
-                "/info",
-                "/favicon.ico",
-                "/mock-api/**",
-                "/"
-            );
+            web.ignoring().antMatchers("/swagger-ui.html",
+                                       "/webjars/springfox-swagger-ui/**",
+                                       "/swagger-resources",
+                                       "/swagger-resources/**",
+                                       "/v2/**",
+                                       "/refdata/**",
+                                       "/health",
+                                       "/health/liveness",
+                                       "/health/readiness",
+                                       "/info",
+                                       "/favicon.ico",
+                                       "/mock-api/**",
+                                       "/");
         }
 
         @Override
@@ -109,19 +107,21 @@ public class SpringSecurityConfiguration {
     @Order(2)
     public static class InternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
-        private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
-        private final ServiceAuthFilter serviceAuthFilter;
+        @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
+        private String issuerUri;
+
+        @Value("${oidc.audience-list}")
+        private String[] allowedAudiences;
 
 //        @Value("${oidc.issuer}")
 //        private String issuerOverride;
+
+        private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
+        private final ServiceAuthFilter serviceAuthFilter;
         private final ServiceAndUserAuthFilter serviceAndUserAuthFilter;
         private final JwtAuthenticationConverter jwtAuthenticationConverter;
         private final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint;
         private final RefundsAccessDeniedHandler refundsAccessDeniedHandler;
-        @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
-        private String issuerUri;
-        @Value("${oidc.audience-list}")
-        private String[] allowedAudiences;
 
         @Inject
         public InternalApiSecurityConfigurationAdapter(final RefundsJwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter,
@@ -186,7 +186,7 @@ public class SpringSecurityConfiguration {
                     .and()
                     .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
                     .authenticationEntryPoint(refundsAuthenticationEntryPoint)
-                ;
+                   ;
 
             } catch (Exception e) {
                 LOG.info("Error in InternalApiSecurityConfigurationAdapter: {}", e);
@@ -205,10 +205,8 @@ public class SpringSecurityConfiguration {
 
             // Commented issuer validation as confirmed by IDAM
             /* OAuth2TokenValidator<Jwt> withIssuer = new JwtIssuerValidator(issuerOverride);*/
-            OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(
-                withTimestamp,
-                audienceValidator
-            );
+            OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(withTimestamp,
+                                                                                          audienceValidator);
             jwtDecoder.setJwtValidator(withAudience);
 
             return jwtDecoder;

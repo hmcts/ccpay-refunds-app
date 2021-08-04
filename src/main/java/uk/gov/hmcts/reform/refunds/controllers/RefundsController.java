@@ -56,20 +56,20 @@ public class RefundsController {
 
     })
     @PostMapping("/refund")
-    public RefundResponse createRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
+    public ResponseEntity<RefundResponse> createRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
                                              @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException, InvalidRefundRequestException {
-        return refundsService.initiateRefund(refundRequest, headers);
+        return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers),HttpStatus.CREATED);
     }
 
 
-    @PatchMapping("/refund/reference/{reference}")
-    public HttpStatus reSubmitRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                     @PathVariable(value = "reference", required = true) String reference,
-                                     @Valid @RequestBody RefundRequest refundRequest) {
-
-
-        return refundsService.reSubmitRefund(headers, reference, refundRequest);
-    }
+//    @PatchMapping("/refund/reference/{reference}")
+//    public HttpStatus reSubmitRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
+//                                     @PathVariable(value = "reference", required = true) String reference,
+//                                     @Valid @RequestBody RefundRequest refundRequest) {
+//
+//
+//        return refundsService.reSubmitRefund(headers, reference, refundRequest);
+//    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidRefundRequestException.class)
