@@ -42,7 +42,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SpringSecurityConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
-//    private static final String AUTHORISED_ROLE_REFUNDS = "payments";
+    private static final String AUTHORISED_ROLE_REFUNDS = "payments";
 
     @Configuration
     @Order(1)
@@ -153,9 +153,7 @@ public class SpringSecurityConfiguration {
                 "/health/readiness",
                 "/info",
                 "/favicon.ico",
-                "/mock-api/**",
-                "/",
-                "/refund"
+                "/mock-api/**"
             );
         }
 
@@ -171,7 +169,7 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .authorizeRequests()
-//                    .antMatchers(HttpMethod.POST, "/refunds").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
+                    .antMatchers(HttpMethod.POST, "/refunds").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()
