@@ -27,10 +27,9 @@ databaseChangeLog:
         - sql:
             splitStatements: true
             sql: >
-              INSERT INTO refund_reasons (code,name, description)
+              INSERT INTO refund_reasons (code, name, description)
                 VALUES
-                  ('RESN1', 'reason1','reason1'),
-                  ('RESN2', 'reason2','reason2'),
-                  ('RESN3', 'reason3','reason3'),
-                  ('RESN4', 'reason4','reason4');
-#              Will be replaced with valid reasons
+                  ('RR001', 'Duplicate Payment', 'Refund for duplicate payment'),
+                  ('RR002', 'Human Error', 'Refund request for human error scenario'),
+                  ('RR003', 'Case Withdrawn', 'Refund request when case has been withdrawn'),
+                  ('RR004', 'Other', 'Any other refund reason category');
