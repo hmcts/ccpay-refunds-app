@@ -28,7 +28,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
@@ -71,7 +70,7 @@ public class RefundControllerTest {
     @Mock
     private RefundsServiceImpl refundsService;
 
-    @Mock
+    @MockBean
     private RefundsRepository refundsRepository;
 
     @Mock
@@ -80,6 +79,7 @@ public class RefundControllerTest {
     @InjectMocks
     private RefundsController refundsController;
 
+    @Autowired
     private ReferenceUtil referenceUtil;
 
     @Mock
@@ -88,14 +88,6 @@ public class RefundControllerTest {
     @MockBean
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
-
-    private static String asJsonString(final Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Before
     public void setUp() {
@@ -190,7 +182,7 @@ public class RefundControllerTest {
         List<Refund> refunds = Collections.singletonList(refund);
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
 
-        this.mockMvc.perform(post("/refund")
+        MvcResult result = this.mockMvc.perform(post("/refund")
                                  .content(asJsonString(refundRequest))
                                  .header("Authorization", "user")
                                  .header("ServiceAuthorization", "Services")
@@ -198,5 +190,17 @@ public class RefundControllerTest {
                                  .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest())
             .andReturn();
+
+        String ErrorMessage = result.getResponse().getContentAsString();
+        assertTrue(ErrorMessage.equals("Paid Amount is less than requested Refund Amount "));
     }
+
+    private static String asJsonString(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

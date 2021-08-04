@@ -24,15 +24,6 @@ spring:
       fail-on-unknown-properties: true
   security:
     oauth2:
-      client:
-        provider:
-          oidc:
-            issuer-uri: https://idam-web-public.aat.platform.hmcts.net/o
-        # Dummy OIDC client required even we are not going to use
-        registration:
-          oidc:
-            client-id: paybubble
-            client-secret: ${OIDC_CLIENT_SECRET}
       resource:
         filter-order: 3
 oidc:
