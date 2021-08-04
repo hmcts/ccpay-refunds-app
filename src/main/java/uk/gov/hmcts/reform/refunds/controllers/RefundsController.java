@@ -1,27 +1,49 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
 import javax.validation.Valid;
+import java.util.List;
 
 
+/**
+ * Refund controller for backend rest api operations
+ */
 @RestController
+@Api(tags = {"Refund Journey group"})
 public class RefundsController {
 
     @Autowired
     private RefundsService refundsService;
+
+    @Autowired
+    RefundReasonsService refundReasonsService;
+
+    /**
+     * Api for returning list of Refund reasons
+     *
+     * @return List of Refund reasons
+     */
+    @GetMapping("/refund/reasons")
+    public ResponseEntity<List<RefundReason>> getRefundReason() {
+        return ResponseEntity.ok().body(refundReasonsService.findAll());
+    }
 
     @ApiOperation(value = "POST /refund ", notes = "Submit Refund Request")
     @ApiResponses(value = {

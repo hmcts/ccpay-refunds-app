@@ -87,7 +87,7 @@ pmd {
   reportsDir = file("$project.buildDir/reports/pmd")
   // https://github.com/pmd/pmd/issues/876
   ruleSets = []
-//  ruleSetFiles = files("config/pmd/ruleset.xml")
+  ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
 jacocoTestReport {
