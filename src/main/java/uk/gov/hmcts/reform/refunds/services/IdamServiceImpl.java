@@ -23,12 +23,14 @@ import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import java.util.Collections;
 
 @Service
+@SuppressWarnings("PMD.PreserveStackTrace")
 public class IdamServiceImpl implements IdamService {
 
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
 
     private static final String USERID_ENDPOINT = "/o/userinfo";
-    private static final String USERNAME_ENDPOINT = "/api/v1/users";
+    //uncomment when we use
+    // private static final String USERNAME_ENDPOINT = "/api/v1/users";
 
     @Value("${idam.api.url}")
     private String idamBaseURL;
@@ -37,6 +39,7 @@ public class IdamServiceImpl implements IdamService {
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
+    @Override
     public String getUserId(MultiValueMap<String, String> headers) {
 
         // to test locally
@@ -66,13 +69,11 @@ public class IdamServiceImpl implements IdamService {
     }
 
     private HttpEntity<String> getEntity(MultiValueMap<String, String> headers) {
-        MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
+        MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<>();
         headerMultiValueMap.put("Content-Type", headers.get("content-type"));
-        String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get(
-            "Authorization").get(0);
+        String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get("authorization").get(0);
         headerMultiValueMap.put(
-            "Authorization",
-            Collections.singletonList(userAuthorization.startsWith("Bearer ")
+            "Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
                                           ? userAuthorization : "Bearer ".concat(userAuthorization))
         );
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);

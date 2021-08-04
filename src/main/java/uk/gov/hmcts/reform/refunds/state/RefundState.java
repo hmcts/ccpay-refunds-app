@@ -1,30 +1,39 @@
 package uk.gov.hmcts.reform.refunds.state;
 
 
+import static uk.gov.hmcts.reform.refunds.state.RefundEvent.ACCEPT;
+import static uk.gov.hmcts.reform.refunds.state.RefundEvent.APPROVE;
+import static uk.gov.hmcts.reform.refunds.state.RefundEvent.CANCEL;
+import static uk.gov.hmcts.reform.refunds.state.RefundEvent.REJECT;
+import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SENDBACK;
+import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SUBMIT;
+
+@SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
 public enum RefundState {
-    submitted {
+    SUBMITTED {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{RefundEvent.APPROVE, RefundEvent.REJECT, RefundEvent.SENDBACK};
+            return new RefundEvent[]{APPROVE, REJECT, SENDBACK};
         }
 
         @Override
         public RefundState nextState(RefundEvent event) {
             switch (event) {
                 case APPROVE:
-                    return approved;
+                    return APPROVED;
                 case REJECT:
-                    return rejected;
+                    return REJECTED;
                 case SENDBACK:
-                    return needmoreinfo;
+                    return NEEDMOREINFO;
+                default:
+                    return this;
             }
-            return this;
         }
     },
-    needmoreinfo {
+    NEEDMOREINFO {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{RefundEvent.SUBMIT, RefundEvent.CANCEL};
+            return new RefundEvent[]{SUBMIT, CANCEL};
         }
 
         @Override
@@ -32,17 +41,18 @@ public enum RefundState {
 
             switch (refundEvent) {
                 case SUBMIT:
-                    return submitted;
+                    return SUBMITTED;
                 case CANCEL:
-                    return rejected;
+                    return REJECTED;
+                default:
+                    return this;
             }
-            return this;
         }
     },
-    approved {
+    APPROVED {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{RefundEvent.ACCEPT,RefundEvent.CANCEL};
+            return new RefundEvent[]{ACCEPT, CANCEL};
         }
 
         @Override
@@ -50,14 +60,16 @@ public enum RefundState {
 
             switch (refundEvent) {
                 case ACCEPT:
-                    return accepted;
+                    return ACCEPTED;
                 case CANCEL:
-                    return rejected;
+                    return REJECTED;
+                default:
+                    return this;
+
             }
-            return this;
         }
     },
-    accepted {
+    ACCEPTED {
         @Override
         public RefundEvent[] nextValidEvents() {
             return RefundEvent.values();
@@ -68,7 +80,7 @@ public enum RefundState {
             return this;
         }
     },
-    rejected {
+    REJECTED {
         @Override
         public RefundEvent[] nextValidEvents() {
             return RefundEvent.values();

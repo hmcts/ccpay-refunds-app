@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -15,17 +14,12 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.state.RefundEvent;
-import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
@@ -47,35 +41,29 @@ public class RefundsServiceImpl implements RefundsService {
     private RefundReasonRepository refundReasonRepository;
 
     @Override
-    public Refund saveRefund() {
-        Refund refund = Refund.refundsWith()
-            .dateCreated(Timestamp.from(Instant.now()))
-            .dateUpdated(Timestamp.from(Instant.now()))
-            .build();
-        return refundsRepository.save(refund);
-    }
-
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundRequest(refundRequest);
         String uid = idamService.getUserId(headers);
-        Refund refund = InitiateRefundEntity(refundRequest, uid);
+        Refund refund = initiateRefundEntity(refundRequest, uid);
         refundsRepository.save(refund);
+        LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
             .refundReference(refund.getReference())
             .build();
     }
 
 
+    @Override
     public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
-        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-        if (refund.isPresent()) {
+//        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
+//        if (refund.isPresent()) {
 
-            String status = refund.get().getRefundStatus().getName();
-            List<String> nextValidEvents = Arrays.asList(RefundState.valueOf(status).nextValidEvents()).stream().map(
-                refundEvent1 -> refundEvent1.toString()).collect(
-                Collectors.toList());
+//            String status = refund.get().getRefundStatus().getName();
+//            List<String> nextValidEvents = Arrays.asList(RefundState.valueOf(status).nextValidEvents()).stream().map(
+//                refundEvent1 -> refundEvent1.toString()).collect(
+//                Collectors.toList());
 
-            RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
+//            RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
 
 //            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
 //              return new ResponseEntity("Invalid refund event entered next valid refund events is/are : " + nextValidEvents, HttpStatus.BAD_REQUEST);
@@ -89,7 +77,7 @@ public class RefundsServiceImpl implements RefundsService {
 //            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
 //            refund.get().setRefundStatus(SUBMITTED);
 
-        }
+//        }
         return HttpStatus.ACCEPTED;
 
     }
@@ -124,7 +112,7 @@ public class RefundsServiceImpl implements RefundsService {
         return true;
     }
 
-    private Refund InitiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
+    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .paymentReference(refundRequest.getPaymentReference())

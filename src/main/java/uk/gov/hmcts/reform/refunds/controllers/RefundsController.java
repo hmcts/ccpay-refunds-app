@@ -27,6 +27,7 @@ import java.util.List;
  */
 @RestController
 @Api(tags = {"Refund Journey group"})
+@SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")
 public class RefundsController {
 
     @Autowired

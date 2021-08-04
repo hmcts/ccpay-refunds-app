@@ -24,7 +24,7 @@ public class ReferenceUtil {
 
         // append the random 4 characters
         SecureRandom random = new SecureRandom();
-        sb.append(String.format("%04d", random.nextInt(10000)));
+        sb.append(String.format("%04d", random.nextInt(10_000)));
 
         CheckDigit checkDigit = new LuhnCheckDigit();
         sb.append(checkDigit.calculate(sb.toString()));
