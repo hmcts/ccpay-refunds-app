@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 
 import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -32,7 +31,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local"})
+@ActiveProfiles({"local","test"})
 @SpringBootTest(webEnvironment = MOCK)
 public class IdamServiceTest {
 

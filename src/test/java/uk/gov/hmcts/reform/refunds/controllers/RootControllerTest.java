@@ -68,37 +68,16 @@ public class RootControllerTest {
 
     @Test
     public void should_return_welcome_message_with_feature_false() throws Exception {
-        when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(false);
         ResultActions resultActions = mockMvc.perform(get("/refundstest")
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
         Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
-        assertEquals("Welcome to refunds with feature false", resultActions.andReturn().getResponse().getContentAsString());
+        assertEquals(
+            "Welcome to refunds with feature false",
+            resultActions.andReturn().getResponse().getContentAsString()
+        );
     }
-
-//    @Test
-//    public void should_return_RefundId() throws Exception {
-//        Timestamp dateInstant = Timestamp.from(Instant.now());
-//        when(refundsRepository.save(Mockito.any(Refund.class))).thenReturn(Refund.refundsWith()
-//                                                                                .id(1)
-//                                                                                    ("refund-id")
-//                                                                                .dateCreated(dateInstant)
-//                                                                                .dateUpdated(dateInstant)
-//                                                                               .build());
-//        ResultActions resultActions = mockMvc.perform(post("/refunds")
-//                                                          .header("Authorization", "user")
-//                                                          .header("ServiceAuthorization", "service")
-//                                                          .accept(MediaType.APPLICATION_JSON));
-//        ObjectMapper objectMapper = new ObjectMapper();
-//
-//        Refund refund = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsString(),Refund.class);
-//        assertEquals(Integer.valueOf(1), refund.getId());
-//        assertNotNull( refund.getDateCreated());
-//        assertNotNull(refund.getDateUpdated());
-//        assertEquals("refund-id",refund.getRefundsId());
-//
-//    }
-
 
 }
