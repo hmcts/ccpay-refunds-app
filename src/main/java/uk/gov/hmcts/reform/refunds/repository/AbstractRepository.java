@@ -10,7 +10,6 @@ import java.util.Optional;
 @NoRepositoryBean
 @SuppressWarnings("PMD.GenericsNaming")
 public interface AbstractRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
-    String getEntityName();
 
     Optional<T> findByCode(String code);
 

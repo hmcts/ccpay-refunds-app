@@ -9,12 +9,7 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 public interface RefundReasonRepository extends AbstractRepository<RefundReason, String> {
-
-    @Override
-    default String getEntityName() {
-        return RefundReason.class.getName();
-    }
-
+    
     @Override
     List<RefundReason> findAll();
 }
