@@ -42,7 +42,7 @@ public class RefundsServiceImpl implements RefundsService {
     private RefundReasonRepository refundReasonRepository;
 
     @Override
-    public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException, UserNotFoundException {
+    public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundRequest(refundRequest);
         String uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid);
