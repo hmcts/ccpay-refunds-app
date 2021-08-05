@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -135,7 +136,13 @@ public class RefundControllerTest {
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
 
         IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .uid("986-erfg-kjhg-123").build();
+            .familyName("VP")
+            .givenName("VP")
+            .name("VP")
+            .sub("V_P@gmail.com")
+            .roles(Arrays.asList("vp"))
+            .uid("986-erfg-kjhg-123")
+            .build();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
 

@@ -23,8 +23,10 @@ import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 
+import java.util.Arrays;
 import java.util.Collections;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,7 +34,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local","test"})
+@ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
 public class IdamServiceTest {
 
@@ -42,6 +44,31 @@ public class IdamServiceTest {
     @Mock
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
+
+    @Test
+    public void getResponseOnValidToken() throws Exception {
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .familyName("VP")
+            .givenName("VP")
+            .name("VP")
+            .sub("V_P@gmail.com")
+            .roles(Arrays.asList("vp"))
+            .uid("986-erfg-kjhg-123")
+            .build();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        String idamUserIdResponse = idamService.getUserId(header);
+        assertEquals(idamUserIdResponse, mockIdamUserIdResponse.getUid());
+    }
 
     @Test(expected = UserNotFoundException.class)
     public void getExceptionOnInvalidToken() throws Exception {
