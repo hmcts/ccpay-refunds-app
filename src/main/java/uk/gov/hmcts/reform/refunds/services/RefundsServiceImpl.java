@@ -84,9 +84,9 @@ public class RefundsServiceImpl implements RefundsService {
 
     private void validateRefundRequest(RefundRequest refundRequest) {
 
-        if (isRefundEligibilityFlagged(false)) {
-            throw new InvalidRefundRequestException("Refund Eligibility flag is unflagged");
-        }
+//        if (isRefundEligibilityFlagged()) {
+//            throw new InvalidRefundRequestException("Refund Eligibility flag is unflagged");
+//        }
 
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
         BigDecimal refundedHistoryAmount = refundsList.isPresent() ?
@@ -106,12 +106,11 @@ public class RefundsServiceImpl implements RefundsService {
     private boolean isPaidAmountLessThanRefundRequestAmount(BigDecimal refundsAmount, BigDecimal paidAmount) {
         return paidAmount.compareTo(refundsAmount) < 0;
     }
-
-    private boolean isRefundEligibilityFlagged(Boolean val) {
-        // Actual logic is coming
-        LOG.info("RefundEligibility Check " + val);
-        return val;
-    }
+//
+//    private boolean isRefundEligibilityFlagged() {
+//        // Actual logic is coming
+//        return false;
+//    }
 
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()

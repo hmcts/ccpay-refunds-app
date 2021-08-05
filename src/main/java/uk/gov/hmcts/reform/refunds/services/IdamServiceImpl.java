@@ -46,8 +46,10 @@ public class IdamServiceImpl implements IdamService {
         // return "asdfghjk-kjhgfds-dfghj-sdfghjk";
         try {
             ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
-            if (responseEntity.hasBody() && responseEntity.getBody() != null) {
-                return responseEntity.getBody().getUid();
+            if (responseEntity != null) {
+                IdamUserIdResponse idamUserIdResponse = responseEntity.getBody();
+                if (idamUserIdResponse != null)
+                    return idamUserIdResponse.getUid();
             }
             LOG.error("Parse error user not found");
             throw new UserNotFoundException("User not found for given token");
