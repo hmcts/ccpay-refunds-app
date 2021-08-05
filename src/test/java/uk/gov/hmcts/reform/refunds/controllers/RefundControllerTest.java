@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,7 +82,7 @@ public class RefundControllerTest {
     @InjectMocks
     private RefundsController refundsController;
 
-    @Autowired
+    @Mock
     private ReferenceUtil referenceUtil;
 
     @Mock
@@ -91,6 +92,14 @@ public class RefundControllerTest {
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
+    private static String asJsonString(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Before
     public void setUp() {
         mockMvc = webAppContextSetup(webApplicationContext).build();
@@ -99,9 +108,9 @@ public class RefundControllerTest {
     @Test
     public void getRefundReasonsList() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/refund/reasons")
-                                                       .header("Authorization", "user")
-                                                       .header("ServiceAuthorization", "Services")
-                                                       .accept(MediaType.APPLICATION_JSON))
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].code").value("RR001"))
             .andExpect(jsonPath("$[0].name").value("Duplicate Payment"))
@@ -151,11 +160,11 @@ public class RefundControllerTest {
         )).thenReturn(responseEntity);
 
         MvcResult result = mockMvc.perform(post("/refund")
-                                                    .content(asJsonString(refundRequest))
-                                                    .header("Authorization", "user")
-                                                    .header("ServiceAuthorization", "Services")
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .accept(MediaType.APPLICATION_JSON))
+                                               .content(asJsonString(refundRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -191,11 +200,11 @@ public class RefundControllerTest {
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
 
         MvcResult result = mockMvc.perform(post("/refund")
-                                 .content(asJsonString(refundRequest))
-                                 .header("Authorization", "user")
-                                 .header("ServiceAuthorization", "Services")
-                                 .contentType(MediaType.APPLICATION_JSON)
-                                 .accept(MediaType.APPLICATION_JSON))
+                                               .content(asJsonString(refundRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -203,12 +212,53 @@ public class RefundControllerTest {
         assertTrue(ErrorMessage.equals("Paid Amount is less than requested Refund Amount "));
     }
 
-    private static String asJsonString(final Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Test
+    public void createRefundThrowsCheckDigitException() throws Exception {
+
+        RefundRequest refundRequest = RefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundAmount(new BigDecimal(100))
+            .refundReason("RR002")
+            .build();
+
+        List<Refund> refunds = Collections.emptyList();
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+
+        RefundReason refundReason = RefundReason.refundReasonWith().
+            code("RR002")
+            .description("No comments")
+            .name("reason1")
+            .build();
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .familyName("VP")
+            .givenName("VP")
+            .name("VP")
+            .sub("V_P@gmail.com")
+            .roles(Arrays.asList("vp"))
+            .uid("986-erfg-kjhg-123")
+            .build();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        when(referenceUtil.getNext(anyString())).thenThrow(new CheckDigitException("cgeck"));
+
+        MvcResult result = mockMvc.perform(post("/refund")
+                                               .content(asJsonString(refundRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+
+        String ErrorMessage = result.getResponse().getContentAsString();
+        assertTrue(ErrorMessage.equals("Paid Amount is less than requested Refund Amount "));
     }
 
 }
