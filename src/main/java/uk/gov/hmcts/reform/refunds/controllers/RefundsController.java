@@ -12,6 +12,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
@@ -30,10 +31,9 @@ import java.util.List;
 public class RefundsController {
 
     @Autowired
-    private RefundsService refundsService;
-
-    @Autowired
     RefundReasonsService refundReasonsService;
+    @Autowired
+    private RefundsService refundsService;
 
     /**
      * Api for returning list of Refund reasons
@@ -56,8 +56,8 @@ public class RefundsController {
     })
     @PostMapping("/refund")
     public ResponseEntity<RefundResponse> createRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                             @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException, InvalidRefundRequestException {
-        return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers),HttpStatus.CREATED);
+                                                       @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException, InvalidRefundRequestException {
+        return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
     }
 
 
@@ -76,9 +76,9 @@ public class RefundsController {
         return ex.getMessage();
     }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(CheckDigitException.class)
-    public String return500(CheckDigitException ex) {
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return500(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
 

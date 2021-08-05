@@ -22,11 +22,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
@@ -212,8 +214,9 @@ public class RefundControllerTest {
         assertTrue(ErrorMessage.equals("Paid Amount is less than requested Refund Amount "));
     }
 
+
     @Test
-    public void createRefundThrowsCheckDigitException() throws Exception {
+    public void createRefundReturns504ForGatewayTimeout() throws Exception {
 
         RefundRequest refundRequest = RefundRequest.refundRequestWith()
             .paymentReference("RC-1234-1234-1234-1234")
@@ -224,29 +227,9 @@ public class RefundControllerTest {
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
 
-        RefundReason refundReason = RefundReason.refundReasonWith().
-            code("RR002")
-            .description("No comments")
-            .name("reason1")
-            .build();
-        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
-
-        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
-            .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
-            .build();
-
-        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
-
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                                        eq(IdamUserIdResponse.class)
-        )).thenReturn(responseEntity);
-
-        when(referenceUtil.getNext(anyString())).thenThrow(new CheckDigitException("cgeck"));
+        )).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
 
         MvcResult result = mockMvc.perform(post("/refund")
                                                .content(asJsonString(refundRequest))
@@ -254,11 +237,11 @@ public class RefundControllerTest {
                                                .header("ServiceAuthorization", "Services")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isInternalServerError())
+            .andExpect(status().isGatewayTimeout())
             .andReturn();
 
         String ErrorMessage = result.getResponse().getContentAsString();
-        assertTrue(ErrorMessage.equals("Paid Amount is less than requested Refund Amount "));
+        assertTrue(ErrorMessage.equals("Unable to retrieve User information. Please try again later"));
     }
 
 }
