@@ -84,7 +84,7 @@ public class RefundsServiceImpl implements RefundsService {
 
     private void validateRefundRequest(RefundRequest refundRequest) {
 
-        if (isRefundEligibilityFlagged()) {
+        if (isRefundEligibilityFlagged(false)) {
             throw new InvalidRefundRequestException("Refund Eligibility flag is unflagged");
         }
 
@@ -107,9 +107,10 @@ public class RefundsServiceImpl implements RefundsService {
         return paidAmount.compareTo(refundsAmount) < 0;
     }
 
-    private boolean isRefundEligibilityFlagged() {
+    private boolean isRefundEligibilityFlagged(Boolean val) {
         // Actual logic is coming
-        return false;
+        LOG.info("RefundEligibility Check " + val);
+        return val;
     }
 
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
