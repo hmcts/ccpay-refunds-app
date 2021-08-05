@@ -38,7 +38,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 
 @EnableWebSecurity
-@Configuration
 public class SpringSecurityConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
@@ -142,18 +141,19 @@ public class SpringSecurityConfiguration {
 
         @Override
         public void configure(WebSecurity web) {
-            web.ignoring().antMatchers("/swagger-ui.html",
-                                       "/webjars/springfox-swagger-ui/**",
-                                       "/swagger-resources/**",
-                                       "/v2/**",
-                                       "/refdata/**",
-                                       "/health",
-                                       "/health/liveness",
-                                       "/health/readiness",
-                                       "/info",
-                                       "/favicon.ico",
-                                       "/mock-api/**",
-                                       "/");
+            web.ignoring().antMatchers(
+                "/swagger-ui.html",
+                "/webjars/springfox-swagger-ui/**",
+                "/swagger-resources/**",
+                "/v2/**",
+                "/refdata/**",
+                "/health",
+                "/health/liveness",
+                "/health/readiness",
+                "/info",
+                "/favicon.ico",
+                "/mock-api/**"
+            );
         }
 
         @Override

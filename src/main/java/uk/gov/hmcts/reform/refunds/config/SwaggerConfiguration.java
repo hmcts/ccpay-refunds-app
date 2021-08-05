@@ -26,7 +26,7 @@ public class SwaggerConfiguration {
         return Arrays.asList(
             new ParameterBuilder()
                 .name("Authorization")
-                .description("User authorization header")
+                .description("Authorization header")
                 .required(true)
                 .parameterType("header")
                 .modelRef(new ModelRef("string"))
@@ -37,8 +37,7 @@ public class SwaggerConfiguration {
                 .required(true)
                 .parameterType("header")
                 .modelRef(new ModelRef("string"))
-                .build()
-        );
+                .build());
     }
 
     @Bean

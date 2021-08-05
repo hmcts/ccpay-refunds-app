@@ -4,11 +4,9 @@ import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.services.RefundsDomainService;
+
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -30,9 +28,9 @@ public class RootController {
      * @return Welcome message from the service.
      */
 
-    @Autowired
-    private RefundsDomainService refundsDomainService;
-
+//    @Autowired
+//    private RefundsService refundsService;
+//
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
@@ -48,15 +46,15 @@ public class RootController {
         return ok(refundsEnabled?"Welcome to refunds with feature enabled":"Welcome to refunds with feature false");
     }
 
-    @ApiOperation(value = "Get /refundstest ", notes = "Get refunds test")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "retrieved"),
-        @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 404, message = "Not found")
-    })
-    @PostMapping("/refunds")
-    public ResponseEntity<Refund> storeRefunds() {
-        Refund refund= refundsDomainService.saveRefund();
-        return ok(refund);
-    }
+//    @ApiOperation(value = "Get /refundstest ", notes = "Get refunds test")
+//    @ApiResponses(value = {
+//        @ApiResponse(code = 200, message = "retrieved"),
+//        @ApiResponse(code = 403, message = "Forbidden"),
+//        @ApiResponse(code = 404, message = "Not found")
+//    })
+//    @PostMapping("/refunds")
+//    public ResponseEntity<Refund> storeRefunds( @RequestHeader("Authorization") String authorization) {
+////        Refund refund= refundsDomainService.saveRefund();
+//        return ok("dev in progress");
+//    }
 }
