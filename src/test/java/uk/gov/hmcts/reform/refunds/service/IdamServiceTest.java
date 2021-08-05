@@ -111,4 +111,23 @@ public class IdamServiceTest {
         idamService.getUserId(header);
     }
 
+    @Test
+    public void validateResponseDto() throws Exception{
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .familyName("VP")
+            .givenName("VP")
+            .name("VP")
+            .sub("V_P@gmail.com")
+            .roles(Arrays.asList("vp"))
+            .uid("986-erfg-kjhg-123")
+            .build();
+
+        assertEquals(idamUserIdResponse.getFamilyName(),"VP");
+        assertEquals(idamUserIdResponse.getGivenName(),"VP");
+        assertEquals(idamUserIdResponse.getName(),"VP");
+        assertEquals(idamUserIdResponse.getRoles(),Arrays.asList("vp"));
+        assertEquals(idamUserIdResponse.getUid(),"986-erfg-kjhg-123");
+        assertEquals(idamUserIdResponse.getSub(),"V_P@gmail.com");
+    }
+
 }
