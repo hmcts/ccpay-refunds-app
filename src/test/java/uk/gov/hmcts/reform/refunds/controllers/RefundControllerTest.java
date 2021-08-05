@@ -26,6 +26,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
@@ -163,7 +164,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void createRefundReturns400() throws Exception {
+    public void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
 
         RefundRequest refundRequest = RefundRequest.refundRequestWith()
             .paymentReference("RC-1234-1234-1234-1234")
