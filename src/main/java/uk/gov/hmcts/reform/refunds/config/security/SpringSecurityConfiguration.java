@@ -168,7 +168,7 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/refunds").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
+                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()
