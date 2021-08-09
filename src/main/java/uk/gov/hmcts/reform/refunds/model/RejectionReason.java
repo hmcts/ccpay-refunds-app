@@ -14,7 +14,7 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @Getter
 @Table(name = "rejection_reasons")
-public class RejectionReasons {
+public class RejectionReason {
     @Id
     @Column(name = "code")
     private String code;

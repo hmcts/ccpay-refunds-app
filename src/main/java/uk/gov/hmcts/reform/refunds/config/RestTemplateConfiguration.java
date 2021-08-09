@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.reform.refunds.exceptions.RestTemplateResponseErrorHandler;
 
 @Configuration
 public class RestTemplateConfiguration {
@@ -20,9 +19,12 @@ public class RestTemplateConfiguration {
 
     @Bean ("restTemplateIdam")
     public RestTemplate restTemplateIdam() {
-        RestTemplate restTemplate =  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-        restTemplate.setErrorHandler(new RestTemplateResponseErrorHandler());
-        return restTemplate;
+        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
+
+    @Bean ("restTemplatePayment")
+    public RestTemplate restTemplatePayment() {
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
 }

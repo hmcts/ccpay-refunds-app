@@ -8,4 +8,8 @@ public class PaymentReferenceNotFoundException  extends RuntimeException impleme
     public PaymentReferenceNotFoundException(String message) {
         super(message);
     }
+
+    public PaymentReferenceNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
