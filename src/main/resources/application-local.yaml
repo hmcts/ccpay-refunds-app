@@ -58,3 +58,16 @@ idam:
     url: http://localhost:8085
     totp_secret: AAAAAAAAAAAAAAAA
     microservice: divorce
+
+#Launch Darkly Config
+launch:
+  darkly:
+    sdk:
+      key: ${LAUNCH_DARKLY_SDK_KEY:dummy}
+    user:
+      name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:dummy}@feesandpay.com
+
+launchDarkly:
+  connectionTimeout: 3
+  socketTimeout: 3
+  flushInterval: 10

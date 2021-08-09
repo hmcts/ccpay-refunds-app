@@ -6,9 +6,49 @@ def type = "java"
 def product = "ccpay"
 def app = "refunds-api"
 
+def secrets = [
+  'ccpay-${env}': [
+    secret('cmc-service-secret', 'S2S_SERVICE_SECRET_CMC'),
+    secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET_CMC_CITIZEN'),
+    secret('freg-idam-generated-user-email-pattern', 'GENERATED_USER_EMAIL_PATTERN'),
+    secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
+    secret('paybubble-idam-client-secret', 'OIDC_CLIENT_SECRET')
+  ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [ $class: 'AzureKeyVaultSecret',
+    secretType: 'Secret',
+    name: secretName,
+    version: '',
+    envVariable: envVar
+  ]
+}
+
 withPipeline(type, product, app) {
+  loadVaultSecrets(secrets)
   enableDbMigration('ccpay')
   enableAksStagingDeployment()
+  after('functionalTest:aat') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    publishHTML target: [
+      reportDir            : "target/site/serenity/",
+      reportFiles          : "index.html",
+      reportName           : "AAT Functional Tests",
+      alwaysLinkToLastBuild: true
+    ]
+
+  }
+
+  after('functionalTest:preview') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    publishHTML target: [
+      reportDir            : "target/site/serenity/",
+      reportFiles          : "index.html",
+      reportName           : "Preview Functional Tests",
+      alwaysLinkToLastBuild: true
+    ]
+  }
   enableSlackNotifications('#cc-payments-tech')
   disableLegacyDeployment()
 }
