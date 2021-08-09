@@ -31,7 +31,7 @@ public class RefundsServiceImpl implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
-    private static final Pattern REASONPATTERN = Pattern.compile("[^RR004-][a-zA-Z]+");
+    private static final Pattern REASONPATTERN = Pattern.compile("^^RR004-[a-zA-Z]+");
 
     @Autowired
     private RefundsRepository refundsRepository;
