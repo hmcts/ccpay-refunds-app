@@ -179,6 +179,56 @@ public class RefundControllerTest {
 
     }
 
+
+    @Test
+    public void createRefundWithOtherReason() throws Exception {
+
+        RefundRequest refundRequest = RefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundAmount(new BigDecimal(100))
+            .refundReason("RR004-Other")
+            .build();
+
+        List<Refund> refunds = Collections.emptyList();
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .familyName("VP")
+            .givenName("VP")
+            .name("VP")
+            .sub("V_P@gmail.com")
+            .roles(Arrays.asList("vp"))
+            .uid("986-erfg-kjhg-123")
+            .build();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        MvcResult result = mockMvc.perform(post("/refund")
+                                               .content(asJsonString(refundRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        RefundResponse refundResponse = mapper.readValue(
+            result.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
+
+        );
+        assertTrue(refundResponse.getRefundReference().matches(REFUND_REFERENCE_REGEX));
+
+    }
+
     @Test
     public void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
 
