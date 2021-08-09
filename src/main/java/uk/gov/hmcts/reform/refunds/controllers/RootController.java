@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.RefundsDomainService;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -31,7 +32,10 @@ public class RootController {
      */
 
     @Autowired
-    private RefundsService refundsService;
+    private RefundsDomainService refundsDomainService;
+
+    @Autowired
+    private LaunchDarklyFeatureToggler featureToggler;
 
     @ApiOperation(value = "Get /refundstest ", notes = "Get refunds test")
     @ApiResponses(value = {
@@ -41,7 +45,8 @@ public class RootController {
     })
     @GetMapping("/refundstest")
     public ResponseEntity<String> welcome() {
-        return ok("Welcome to ccpay-refunds-app");
+        boolean refundsEnabled = this.featureToggler.getBooleanValue("refund-test",false);
+        return ok(refundsEnabled?"Welcome to refunds with feature enabled":"Welcome to refunds with feature false");
     }
 
     @ApiOperation(value = "Get /refundstest ", notes = "Get refunds test")
@@ -52,7 +57,7 @@ public class RootController {
     })
     @PostMapping("/refunds")
     public ResponseEntity<Refund> storeRefunds( @RequestHeader("Authorization") String authorization) {
-        Refund refund= refundsService.saveRefund();
+        Refund refund= refundsDomainService.saveRefund();
         return ok(refund);
     }
 }
