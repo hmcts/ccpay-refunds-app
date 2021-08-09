@@ -24,6 +24,15 @@ spring:
       fail-on-unknown-properties: true
   security:
     oauth2:
+      client:
+        provider:
+          oidc:
+            issuer-uri: https://idam-web-public.aat.platform.hmcts.net/o
+        # Dummy OIDC client required even we are not going to use
+        registration:
+          oidc:
+            client-id: paybubble
+            client-secret: ${OIDC_CLIENT_SECRET}
       resource:
         filter-order: 3
 
@@ -48,7 +57,7 @@ idam:
   api:
     url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
   s2s-authorised:
-    services: ccpay_bubble, cmc, bulk_scan_payment_processor, api_gw, probate_frontend, divorce_frontend, ccd_gw
+    services: ccpay_bubble, payment_app, cmc, bulk_scan_payment_processor, api_gw, probate_frontend, divorce_frontend, ccd_gw
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     totp_secret: dummy

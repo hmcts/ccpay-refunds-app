@@ -34,13 +34,12 @@ import java.util.List;
 public class RefundsController {
 
     @Autowired
+    RefundReasonsService refundReasonsService;
+    @Autowired
     private RefundsService refundsService;
 
     @Autowired
     private RefundReviewService refundReviewService;
-
-    @Autowired
-    RefundReasonsService refundReasonsService;
 
     /**
      * Api for returning list of Refund reasons
@@ -63,8 +62,8 @@ public class RefundsController {
     })
     @PostMapping("/refund")
     public ResponseEntity<RefundResponse> createRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                             @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException, InvalidRefundRequestException {
-        return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers),HttpStatus.CREATED);
+                                                       @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException, InvalidRefundRequestException {
+        return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
     }
 
 
@@ -119,5 +118,10 @@ public class RefundsController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return500(GatewayTimeoutException ex) {
+        return ex.getMessage();
+    }
 
 }

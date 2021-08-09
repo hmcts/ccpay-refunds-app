@@ -128,7 +128,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
             }
             throw new PaymentInvalidRequestException("Invalid Payment Request "+e.getMessage(), e);
         } catch ( Exception e){
-           throw new PaymentServerException("Payment Server Exception "+ e.getCause(), e);
+           throw new PaymentServerException("Payment Server Exception", e);
         }
     }
 
@@ -184,7 +184,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
             }
             throw new LiberataInvalidRequestException("Liberata Invalid Request", e);
         } catch ( Exception e){
-            throw new LiberataServerException("Liberata Server Exception "+e.getMessage(), e);
+            throw new LiberataServerException("Liberata Server Exception ", e);
         }
     }
 
