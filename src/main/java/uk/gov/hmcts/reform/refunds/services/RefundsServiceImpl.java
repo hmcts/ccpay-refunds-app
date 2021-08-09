@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
@@ -20,13 +21,17 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
 @Service
+@SuppressWarnings("PMD.PreserveStackTrace")
 public class RefundsServiceImpl implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
+
+    private static final Pattern REASONPATTERN = Pattern.compile("[^RR004-][a-zA-Z]+");
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -96,6 +101,14 @@ public class RefundsServiceImpl implements RefundsService {
             ) : BigDecimal.ZERO;
         BigDecimal totalRefundedAmount = refundedHistoryAmount.add(refundRequest.getRefundAmount());
 
+        Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
+        if (matcher) {
+            refundRequest.setRefundReason(refundRequest.getRefundReason().substring(7));
+        } else {
+            RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason());
+            refundRequest.setRefundReason(refundReason.getCode());
+        }
+
         if (refundRequest.getRefundAmount() != null &&
             isPaidAmountLessThanRefundRequestAmount(totalRefundedAmount, refundRequest.getRefundAmount())) {
             throw new InvalidRefundRequestException("Paid Amount is less than requested Refund Amount ");
@@ -116,7 +129,7 @@ public class RefundsServiceImpl implements RefundsService {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .paymentReference(refundRequest.getPaymentReference())
-            .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()))
+            .reason(refundRequest.getRefundReason())
             .refundStatus(SUBMITTED)
             .reference(referenceUtil.getNext("RF"))
             .createdBy(uid)

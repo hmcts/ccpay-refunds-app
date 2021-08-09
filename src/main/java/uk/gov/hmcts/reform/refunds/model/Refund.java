@@ -24,9 +24,8 @@ public class Refund {
     @Column(name = "amount")
     private BigDecimal amount;
 
-    @ManyToOne
     @JoinColumn(name = "reason")
-    private RefundReason reason;
+    private String reason;
 
     @ManyToOne
     @JoinColumn(name = "refund_status")
