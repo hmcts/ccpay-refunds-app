@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,8 +27,6 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
-import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
@@ -65,6 +62,12 @@ import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 public class RefundControllerTest {
 
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
+
+    private static RefundReason refundReason = RefundReason.refundReasonWith().
+        code("RR002")
+        .description("No comments")
+        .name("reason1")
+        .build();
 
     @Autowired
     private MockMvc mockMvc;
@@ -124,7 +127,7 @@ public class RefundControllerTest {
             new TypeReference<>() {
             }
         );
-        assertEquals(4, refundReasonList.size());
+        assertEquals(3, refundReasonList.size());
     }
 
     @Test
@@ -139,11 +142,56 @@ public class RefundControllerTest {
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
 
-        RefundReason refundReason = RefundReason.refundReasonWith().
-            code("RR002")
-            .description("No comments")
-            .name("reason1")
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+
+        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+            .familyName("VP")
+            .givenName("VP")
+            .name("VP")
+            .sub("V_P@gmail.com")
+            .roles(Arrays.asList("vp"))
+            .uid("986-erfg-kjhg-123")
             .build();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        MvcResult result = mockMvc.perform(post("/refund")
+                                               .content(asJsonString(refundRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        RefundResponse refundResponse = mapper.readValue(
+            result.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
+
+        );
+        assertTrue(refundResponse.getRefundReference().matches(REFUND_REFERENCE_REGEX));
+
+    }
+
+
+    @Test
+    public void createRefundWithOtherReason() throws Exception {
+
+        RefundRequest refundRequest = RefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundAmount(new BigDecimal(100))
+            .refundReason("RR004-Other")
+            .build();
+
+        List<Refund> refunds = Collections.emptyList();
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
 
         IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
@@ -190,10 +238,12 @@ public class RefundControllerTest {
             .refundReason("RR002")
             .build();
 
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+
         Refund refund = Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .paymentReference(refundRequest.getPaymentReference())
-            .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()))
+            .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()).getCode())
             .refundStatus(SUBMITTED)
             .reference(referenceUtil.getNext("RF"))
             .build();

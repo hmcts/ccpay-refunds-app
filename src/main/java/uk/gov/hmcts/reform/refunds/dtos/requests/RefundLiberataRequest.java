@@ -31,7 +31,7 @@ public class RefundLiberataRequest {
 
     private Timestamp dateUpdated;
 
-    private RefundReason refundReason;
+    private String refundReason;
 
     private BigDecimal totalRefundAmount;
 

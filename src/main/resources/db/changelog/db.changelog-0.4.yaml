@@ -52,3 +52,13 @@ databaseChangeLog:
             initiallyDeferred: false
             referencedColumnNames: code
             referencedTableName: refund_reasons
+
+  - changeSet:
+      id: 100004-3
+      author: Vignesh
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              ALTER TABLE refunds DROP CONSTRAINT FK_1000042;
