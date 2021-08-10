@@ -11,6 +11,4 @@ public interface RefundsService {
     RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException;
 
     HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest);
-
-    String getRejectedReasons();
 }
