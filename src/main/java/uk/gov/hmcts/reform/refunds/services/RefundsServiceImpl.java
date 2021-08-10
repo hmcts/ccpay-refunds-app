@@ -10,11 +10,13 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.NoRejectReasonFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
@@ -22,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
@@ -46,6 +49,9 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+
+    @Autowired
+    RejectionReasonRepository rejectionReasonRepository;
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
@@ -87,6 +93,18 @@ public class RefundsServiceImpl implements RefundsService {
 //        }
         return HttpStatus.ACCEPTED;
 
+    }
+
+    @Override
+    public String getRejectedReasons() throws NoRejectReasonFoundException {
+
+        List<String> reasons =  rejectionReasonRepository.findAll().stream().map(r->r.getName())
+            .collect(Collectors.toList());
+
+        if(reasons.isEmpty())
+            throw new NoRejectReasonFoundException("Reject reasons not found.");
+
+        return reasons.toString();
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {
