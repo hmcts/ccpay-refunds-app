@@ -43,7 +43,7 @@ public class RefundsController {
      */
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason() {
-        return ResponseEntity.ok().body(refundReasonsService.findAll());
+        return ok().body(refundReasonsService.findAll());
     }
 
     @ApiOperation(value = "POST /refund ", notes = "Submit Refund Request")
