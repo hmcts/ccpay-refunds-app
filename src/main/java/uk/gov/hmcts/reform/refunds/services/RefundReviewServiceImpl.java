@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.*;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
+import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
@@ -48,6 +49,9 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
     private RestTemplate restTemplatePayment;
 
     @Autowired
+    private IdamService idamService;
+
+    @Autowired
     private RefundsRepository refundsRepository;
 
     @Autowired
@@ -59,9 +63,15 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         Refund refundForGivenReference = getRefundForReference(reference);
-
         validateRefundReviewRequest(refundEvent, refundReviewRequest);
-
+        String userId = idamService.getUserId(headers);
+        List<StatusHistory> statusHistories = refundForGivenReference.getStatusHistories();
+        statusHistories.add(StatusHistory.statusHistoryWith()
+                                .createdBy(userId)
+                                .status(getStatus(refundEvent))
+                                .notes(getStatusNotes(refundEvent, refundReviewRequest))
+                                .build());
+        refundForGivenReference.setStatusHistories(statusHistories);
         if(refundEvent.equals(RefundEvent.APPROVE)){
                 ResponseEntity<PaymentDto> paymentDto = fetchDetailFromPayment(headers, refundForGivenReference.getPaymentReference());
                 RefundLiberataRequest refundLiberataRequest = getLiberataRefundRequest(paymentDto.getBody(), refundForGivenReference);
@@ -72,6 +82,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         }
 
         if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
+            validateRefundRejectionReason(refundReviewRequest.getCode());
             updateRefundStatus(refundForGivenReference, refundEvent);
         }
 
@@ -88,7 +99,6 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
             throw new InvalidRefundRequestException("Refund Rejection Reason Required");
         }
 
-        validateRefundRejectionReason(refundReviewRequest.getCode());
     }
 
     private Refund getRefundForReference(String reference){
@@ -194,4 +204,19 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         }
     }
 
+    private String getStatus(RefundEvent refundEvent){
+        return  refundEvent.equals(RefundEvent.APPROVE)?"approved":refundEvent.equals(RefundEvent.REJECT)?"rejected":"sentback";
+    }
+
+
+    private String getStatusNotes(RefundEvent refundEvent,RefundReviewRequest refundReviewRequest){
+        String notes = "";
+        if(refundEvent.equals(RefundEvent.APPROVE)){
+            notes =  "Refund Approved";
+        }
+        else if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
+            notes = refundReviewRequest.getReason();
+        }
+        return notes;
+    }
 }
