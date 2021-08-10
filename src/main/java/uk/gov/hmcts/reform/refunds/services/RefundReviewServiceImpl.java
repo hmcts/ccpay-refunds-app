@@ -113,7 +113,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
     }
 
     private Refund updateRefundStatus(Refund refund, RefundEvent refundEvent) {
-        RefundState updateStatusAfterAction = refund.getRefundStatus().getRefundState();
+        RefundState updateStatusAfterAction = RefundState.valueOf(refund.getRefundStatus().getName().toUpperCase());
         RefundState newState = updateStatusAfterAction.nextState(refundEvent);
         refund.setRefundStatus(newState.getRefundStatus());
         return refundsRepository.save(refund);
