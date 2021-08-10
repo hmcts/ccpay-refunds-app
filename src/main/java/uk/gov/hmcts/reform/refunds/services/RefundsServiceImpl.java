@@ -31,7 +31,7 @@ public class RefundsServiceImpl implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
-    private static final Pattern REASONPATTERN = Pattern.compile("^^RR004-[a-zA-Z]+");
+    private static final Pattern REASONPATTERN = Pattern.compile("(^RR004-[a-zA-Z]+)|(RR004$)");
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -103,7 +103,11 @@ public class RefundsServiceImpl implements RefundsService {
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
         if (matcher) {
-            refundRequest.setRefundReason(refundRequest.getRefundReason().substring(7));
+            if (refundRequest.getRefundReason().length() > 6) {
+                refundRequest.setRefundReason(refundRequest.getRefundReason().substring(7));
+            } else {
+                throw new InvalidRefundRequestException("Invalid Reason "+refundRequest.getRefundReason());
+            }
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason());
             refundRequest.setRefundReason(refundReason.getCode());
