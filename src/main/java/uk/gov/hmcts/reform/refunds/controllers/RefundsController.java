@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.NoRejectReasonFoundException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
@@ -23,7 +22,6 @@ import javax.validation.Valid;
 import java.util.List;
 
 import static org.springframework.http.ResponseEntity.ok;
-
 
 /**
  * Refund controller for backend rest api operations
@@ -73,13 +71,6 @@ public class RefundsController {
 //        return refundsService.reSubmitRefund(headers, reference, refundRequest);
 //    }
 
-
-    @GetMapping("/refund/rejection-reasons")
-    public ResponseEntity<String> getRejectedReasons() {
-        return ResponseEntity.ok().body(refundsService.getRejectedReasons());
-    }
-
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidRefundRequestException.class)
     public String return400(InvalidRefundRequestException ex) {
@@ -92,10 +83,5 @@ public class RefundsController {
         return ex.getMessage();
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(NoRejectReasonFoundException.class)
-    public String noRejectReasons(NoRejectReasonFoundException ex) {
-        return ex.getMessage();
-    }
 
 }
