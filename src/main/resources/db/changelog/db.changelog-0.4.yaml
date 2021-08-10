@@ -21,7 +21,7 @@ databaseChangeLog:
               INSERT INTO refund_status (name, description)
                 VALUES
                   ('submitted', 'Refund request submitted'),
-                  ('approved', 'Refund request approved'),
+                  ('sent to liberata', 'Refund request sent to liberata'),
                   ('sent back', 'Refund request sent back'),
                   ('accepted', 'Refund request accepted'),
                   ('rejected', 'Refund request rejected');
