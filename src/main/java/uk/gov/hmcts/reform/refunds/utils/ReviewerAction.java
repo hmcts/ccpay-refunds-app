@@ -1,16 +1,29 @@
 package uk.gov.hmcts.reform.refunds.utils;
 
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+
 public enum ReviewerAction {
-    APPROVE("approve"), REJECT("reject"), SENDBACK("sendback");
+    APPROVE {
+        @Override
+        public RefundEvent getEvent(){
+            return RefundEvent.APPROVE;
+        }
+    },
 
-    private String reviewerAction;
+    REJECT {
+        @Override
+        public RefundEvent getEvent(){
+            return RefundEvent.REJECT;
+        }
+    },
 
-    ReviewerAction(String reviewerAction){
-        this.reviewerAction = reviewerAction;
-    }
+    SENDBACK {
+        @Override
+        public RefundEvent getEvent(){
+            return RefundEvent.SENDBACK;
+        }
+    };
 
-    public String getReviewerAction() {
-        return this.reviewerAction;
-    }
+    public abstract RefundEvent getEvent();
 
 }

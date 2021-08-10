@@ -25,6 +25,8 @@ import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonsRepository;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.util.Arrays;
@@ -55,29 +57,33 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
 
 
     @Override
-    public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, ReviewerAction reviewerAction, RefundReviewRequest refundReviewRequest) {
-        validateRefundReviewRequest(reviewerAction, refundReviewRequest);
-
+    public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         Refund refundForGivenReference = getRefundForReference(reference);
 
-        if(reviewerAction.equals(ReviewerAction.APPROVE)){
+        validateRefundReviewRequest(refundEvent, refundReviewRequest);
+
+        if(refundEvent.equals(RefundEvent.APPROVE)){
                 ResponseEntity<PaymentDto> paymentDto = fetchDetailFromPayment(headers, refundForGivenReference.getPaymentReference());
                 RefundLiberataRequest refundLiberataRequest = getLiberataRefundRequest(paymentDto.getBody(), refundForGivenReference);
                 ResponseEntity<RefundLiberataResponse> liberataResponse = updateLiberataWithApprovedRefund(headers, refundLiberataRequest);
                 if(liberataResponse.getStatusCode().is2xxSuccessful()){
-                    updateRefundStatus(refundForGivenReference, reviewerAction);
+                    updateRefundStatus(refundForGivenReference, refundEvent);
                 }
         }
 
-        if(reviewerAction.equals(ReviewerAction.REJECT)||reviewerAction.equals(ReviewerAction.SENDBACK)){
-            updateRefundStatus(refundForGivenReference, reviewerAction);
+        if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
+            updateRefundStatus(refundForGivenReference, refundEvent);
         }
 
         return new ResponseEntity<>("Refund request reviewed successfully", HttpStatus.CREATED);
     }
 
-    private void  validateRefundReviewRequest( ReviewerAction reviewerAction, RefundReviewRequest refundReviewRequest) {
-        if((reviewerAction.equals(ReviewerAction.REJECT)||reviewerAction.equals(ReviewerAction.SENDBACK)) &&
+    private void  validateRefundReviewRequest( RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
+        if(Arrays.stream(RefundState.SUBMITTED.nextValidEvents()).noneMatch((refundEvent1 -> refundEvent1.equals(refundEvent)))){
+            throw new InvalidRefundRequestException("Invalid Refund Review Action");
+        }
+
+        if((refundEvent.equals(refundEvent.REJECT)||refundEvent.equals(refundEvent.SENDBACK)) &&
                     (refundReviewRequest.getCode()==null || refundReviewRequest.getCode().isEmpty())){
             throw new InvalidRefundRequestException("Refund Rejection Reason Required");
         }
@@ -92,7 +98,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
             throw new RefundNotFoundException("Refunds not found for "+ reference);
         }
 
-        if(refund.isPresent()&& !(refund.get().getRefundStatus().equals(RefundStatus.SUBMITTED))){
+        if(refund.isPresent()&& !(refund.get().getRefundStatus().equals(RefundState.SUBMITTED.getRefundStatus()))){
             throw new InvalidRefundRequestException("Refunds request is in "+ refund.get().getRefundStatus().getName());
         }
 
@@ -106,10 +112,10 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         }
     }
 
-    private Refund updateRefundStatus(Refund refund, ReviewerAction reviewerAction) {
-        RefundStatus updateStatusAfterAction =  reviewerAction.equals(ReviewerAction.APPROVE)?RefundStatus.SENT_TO_LIBERATA:
-            reviewerAction.equals(ReviewerAction.REJECT)?RefundStatus.REJECTED:RefundStatus.SENTBACK;
-        refund.setRefundStatus(updateStatusAfterAction);
+    private Refund updateRefundStatus(Refund refund, RefundEvent refundEvent) {
+        RefundState updateStatusAfterAction = refund.getRefundStatus().getRefundState();
+        RefundState newState = updateStatusAfterAction.nextState(refundEvent);
+        refund.setRefundStatus(newState.getRefundStatus());
         return refundsRepository.save(refund);
     }
 

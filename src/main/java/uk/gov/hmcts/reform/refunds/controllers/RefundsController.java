@@ -95,7 +95,7 @@ public class RefundsController {
                                    @PathVariable(value = "reference", required = true) String reference,
                                    @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
                                    @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
-        return refundReviewService.reviewRefund(headers, reference, reviewerAction, refundReviewRequest);
+        return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 
 

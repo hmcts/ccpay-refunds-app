@@ -1,5 +1,9 @@
 package uk.gov.hmcts.reform.refunds.state;
 
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
+
+import java.sql.Ref;
+
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.ACCEPT;
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.APPROVE;
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.CANCEL;
@@ -9,6 +13,7 @@ import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SUBMIT;
 
 @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
 public enum RefundState {
+
     SUBMITTED {
         @Override
         public RefundEvent[] nextValidEvents() {
@@ -19,7 +24,7 @@ public enum RefundState {
         public RefundState nextState(RefundEvent event) {
             switch (event) {
                 case APPROVE:
-                    return APPROVED;
+                    return SENT_TO_LIBERATA;
                 case REJECT:
                     return REJECTED;
                 case SENDBACK:
@@ -27,6 +32,11 @@ public enum RefundState {
                 default:
                     return this;
             }
+        }
+
+        @Override
+        public RefundStatus getRefundStatus(){
+            return RefundStatus.SUBMITTED;
         }
     },
     NEEDMOREINFO {
@@ -47,8 +57,13 @@ public enum RefundState {
                     return this;
             }
         }
+
+        @Override
+        public RefundStatus getRefundStatus(){
+            return RefundStatus.SENTBACK;
+        }
     },
-    APPROVED {
+    SENT_TO_LIBERATA {
         @Override
         public RefundEvent[] nextValidEvents() {
             return new RefundEvent[]{ACCEPT, CANCEL};
@@ -67,6 +82,11 @@ public enum RefundState {
 
             }
         }
+
+        @Override
+        public RefundStatus getRefundStatus(){
+            return RefundStatus.SENT_TO_LIBERATA;
+        }
     },
     ACCEPTED {
         @Override
@@ -77,6 +97,11 @@ public enum RefundState {
         @Override
         public RefundState nextState(RefundEvent refundEvent) {
             return this;
+        }
+
+        @Override
+        public RefundStatus getRefundStatus(){
+            return RefundStatus.ACCEPTED;
         }
     },
     REJECTED {
@@ -89,9 +114,16 @@ public enum RefundState {
         public RefundState nextState(RefundEvent refundEvent) {
             return this;
         }
+
+        @Override
+        public RefundStatus getRefundStatus(){
+            return RefundStatus.REJECTED;
+        }
     };
 
     public abstract RefundEvent[] nextValidEvents();
 
     public abstract RefundState nextState(RefundEvent refundEvent);
+
+    public abstract RefundStatus getRefundStatus();
 }

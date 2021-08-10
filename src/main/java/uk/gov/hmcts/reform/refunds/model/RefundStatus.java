@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.refunds.model;
 
 import lombok.*;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.state.RefundState;
 
 import javax.persistence.*;
 
@@ -24,5 +26,22 @@ public class RefundStatus {
 
     @Column(name = "description")
     private String description;
+
+    public RefundState getRefundState(){
+       switch (this.name){
+           case "submitted":
+               return RefundState.SUBMITTED;
+           case "sent to liberata":
+               return RefundState.SENT_TO_LIBERATA;
+           case "sent back":
+               return RefundState.NEEDMOREINFO;
+           case "accepted":
+               return RefundState.ACCEPTED;
+           case "rejected":
+               return RefundState.REJECTED;
+           default:
+               throw new InvalidRefundRequestException("Invalid State");
+       }
+    }
 
 }
