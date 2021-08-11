@@ -1,23 +1,30 @@
 package uk.gov.hmcts.reform.refunds.dtos.requests;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import java.util.List;
+
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonInclude(NON_NULL)
-@Data
+@Builder(builderMethodName = "paymentFeeDetailsWith")
 @AllArgsConstructor
 @NoArgsConstructor
-public class RefundReviewRequest {
+@Data
+public class PaymentFeeDetails {
 
-    private String code;
+    private String reference;
 
-    private String reason;
+    private String caseReference;
 
+    private String ccdCaseNumber;
+
+    private String accountNumber;
+
+    private List<FeeDto> fees;
 }

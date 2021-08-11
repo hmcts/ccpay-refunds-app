@@ -13,27 +13,27 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.reform.refunds.dtos.requests.PaymentFeeDetails;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundLiberataFee;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundLiberataRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.*;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
-import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static uk.gov.hmcts.reform.refunds.state.RefundState.SUBMITTED;
 
 @Service
 public class RefundReviewServiceImpl implements  RefundReviewService{
@@ -65,7 +65,8 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         Refund refundForGivenReference = getRefundForReference(reference);
         validateRefundReviewRequest(refundEvent, refundReviewRequest);
         String userId = idamService.getUserId(headers);
-        List<StatusHistory> statusHistories = refundForGivenReference.getStatusHistories();
+        List<StatusHistory> statusHistories = new ArrayList<>(refundForGivenReference.getStatusHistories());
+        refundForGivenReference.setUpdatedBy(userId);
         statusHistories.add(StatusHistory.statusHistoryWith()
                                 .createdBy(userId)
                                 .status(getStatus(refundEvent))
@@ -73,8 +74,8 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
                                 .build());
         refundForGivenReference.setStatusHistories(statusHistories);
         if(refundEvent.equals(RefundEvent.APPROVE)){
-                ResponseEntity<PaymentDto> paymentDto = fetchDetailFromPayment(headers, refundForGivenReference.getPaymentReference());
-                RefundLiberataRequest refundLiberataRequest = getLiberataRefundRequest(paymentDto.getBody(), refundForGivenReference);
+                PaymentFeeDetails paymentDto = getPaymentData(headers, refundForGivenReference.getPaymentReference());
+                RefundLiberataRequest refundLiberataRequest = getLiberataRefundRequest(paymentDto, refundForGivenReference);
                 ResponseEntity<RefundLiberataResponse> liberataResponse = updateLiberataWithApprovedRefund(headers, refundLiberataRequest);
                 if(liberataResponse.getStatusCode().is2xxSuccessful()){
                     updateRefundStatus(refundForGivenReference, refundEvent);
@@ -90,7 +91,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
     }
 
     private void  validateRefundReviewRequest( RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
-        if(Arrays.stream(RefundState.SUBMITTED.nextValidEvents()).noneMatch((refundEvent1 -> refundEvent1.equals(refundEvent)))){
+        if(Arrays.stream(SUBMITTED.nextValidEvents()).noneMatch(refundEvent1 -> refundEvent1.equals(refundEvent))){
             throw new InvalidRefundRequestException("Invalid Refund Review Action");
         }
 
@@ -98,7 +99,6 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
                     (refundReviewRequest.getCode()==null || refundReviewRequest.getCode().isEmpty())){
             throw new InvalidRefundRequestException("Refund Rejection Reason Required");
         }
-
     }
 
     private Refund getRefundForReference(String reference){
@@ -108,7 +108,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
             throw new RefundNotFoundException("Refunds not found for "+ reference);
         }
 
-        if(refund.isPresent()&& !(refund.get().getRefundStatus().equals(RefundState.SUBMITTED.getRefundStatus()))){
+        if(refund.isPresent()&& !(refund.get().getRefundStatus().equals(SUBMITTED.getRefundStatus()))){
             throw new InvalidRefundRequestException("Refunds request is in "+ refund.get().getRefundStatus().getName());
         }
 
@@ -122,22 +122,32 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         }
     }
 
+
+    /**
+     * @param refund
+     * @param refundEvent
+     *
+     * @return
+     */
     private Refund updateRefundStatus(Refund refund, RefundEvent refundEvent) {
-        RefundState updateStatusAfterAction = RefundState.valueOf(refund.getRefundStatus().getName().toUpperCase());
+        RefundState updateStatusAfterAction = RefundState.valueOf(refund.getRefundStatus().getName().toUpperCase(Locale.getDefault()));
+        // State transition logic
         RefundState newState = updateStatusAfterAction.nextState(refundEvent);
         refund.setRefundStatus(newState.getRefundStatus());
         return refundsRepository.save(refund);
     }
 
 
-    private ResponseEntity<PaymentDto> fetchDetailFromPayment(MultiValueMap<String, String> headers, String paymentReference) {
+    private ResponseEntity<PaymentGroupDto> fetchDetailFromPayment(MultiValueMap<String, String> headers, String paymentReference) {
         try{
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payments/").append(paymentReference).toString());
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
             return restTemplatePayment
                 .exchange(
                     builder.toUriString(),
                     HttpMethod.GET,
-                    getHeadersEntity(headers), PaymentDto.class);
+                    getHeadersEntity(headers), PaymentGroupDto.class);
+
+
         } catch (HttpClientErrorException e){
             if(e.getStatusCode().equals(HttpStatus.NOT_FOUND)){
                 throw new PaymentReferenceNotFoundException("Payment Reference "+ paymentReference+ "not found", e);
@@ -148,18 +158,35 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         }
     }
 
+    private PaymentFeeDetails getPaymentData(MultiValueMap<String, String> headers, String paymentReference){
+        ResponseEntity<PaymentGroupDto> paymentGroupDto = fetchDetailFromPayment(headers,paymentReference);
+        List<PaymentDto> paymentDtoList = paymentGroupDto.getBody().getPayments()
+                                            .stream().filter(paymentDto1 -> paymentDto1.getReference().equals(paymentReference))
+                                            .collect(Collectors.toList());
+        return PaymentFeeDetails.paymentFeeDetailsWith()
+                .accountNumber(paymentDtoList.get(0).getAccountNumber())
+                .caseReference(paymentDtoList.get(0).getCaseReference())
+                .ccdCaseNumber(paymentDtoList.get(0).getCcdCaseNumber())
+                .reference(paymentDtoList.get(0).getReference())
+                .fees(paymentGroupDto.getBody().getFees())
+                .build();
+    }
+
+
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("content-type",headers.get("content-type"));
-        inputHeaders.put("Authorization", headers.get("Authorization"));
-        inputHeaders.put("ServiceAuthorization", headers.get("ServiceAuthorization"));
+//        inputHeaders.put("Authorization", headers.get("Authorization"));
+//        inputHeaders.put("ServiceAuthorization", headers.get("ServiceAuthorization"));
+        inputHeaders.put("Authorization",Arrays.asList("krishnakn00@gmail.com"));
+        inputHeaders.put("ServiceAuthorization",Arrays.asList("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1MzMyMzc3NjN9.3iwg2cCa1_G9-TAMupqsQsIVBMWg9ORGir5xZyPhDabk09Ldk0-oQgDQq735TjDQzPI8AxL1PgjtOPDKeKyxfg[akiss@reformMgmtDevBastion02"));
         return new HttpEntity<>(inputHeaders);
     }
 
-    private RefundLiberataRequest getLiberataRefundRequest(PaymentDto paymentDto, Refund refund){
+    private RefundLiberataRequest getLiberataRefundRequest(PaymentFeeDetails paymentDto, Refund refund){
         return RefundLiberataRequest.refundLiberataRequestWith()
             .refundReference(refund.getReference())
-            .paymentReference(paymentDto.getPaymentReference())
+            .paymentReference(paymentDto.getReference())
             .dateCreated(refund.getDateCreated())
             .dateUpdated(refund.getDateUpdated())
             .refundReason(refund.getReason())
@@ -210,12 +237,14 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
 
 
     private String getStatusNotes(RefundEvent refundEvent,RefundReviewRequest refundReviewRequest){
-        String notes = "";
+        String notes;
         if(refundEvent.equals(RefundEvent.APPROVE)){
             notes =  "Refund Approved";
         }
         else if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
             notes = refundReviewRequest.getReason();
+        }else {
+            notes="";
         }
         return notes;
     }

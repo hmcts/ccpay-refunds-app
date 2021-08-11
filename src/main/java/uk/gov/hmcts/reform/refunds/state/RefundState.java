@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.refunds.state;
 
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
-import java.sql.Ref;
 
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.ACCEPT;
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.APPROVE;
