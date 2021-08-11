@@ -176,10 +176,8 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("content-type",headers.get("content-type"));
-//        inputHeaders.put("Authorization", headers.get("Authorization"));
-//        inputHeaders.put("ServiceAuthorization", headers.get("ServiceAuthorization"));
-        inputHeaders.put("Authorization",Arrays.asList("krishnakn00@gmail.com"));
-        inputHeaders.put("ServiceAuthorization",Arrays.asList("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1MzMyMzc3NjN9.3iwg2cCa1_G9-TAMupqsQsIVBMWg9ORGir5xZyPhDabk09Ldk0-oQgDQq735TjDQzPI8AxL1PgjtOPDKeKyxfg[akiss@reformMgmtDevBastion02"));
+        inputHeaders.put("Authorization", headers.get("Authorization"));
+        inputHeaders.put("ServiceAuthorization", headers.get("ServiceAuthorization"));
         return new HttpEntity<>(inputHeaders);
     }
 
