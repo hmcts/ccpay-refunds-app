@@ -96,7 +96,7 @@ public class RefundsServiceImpl implements RefundsService {
     }
 
     @Override
-    public String getRejectedReasons() throws NoRejectReasonFoundException {
+    public List<String> getRejectedReasons() throws NoRejectReasonFoundException {
 
         List<String> reasons =  rejectionReasonRepository.findAll().stream().map(r->r.getName())
             .collect(Collectors.toList());
@@ -104,7 +104,7 @@ public class RefundsServiceImpl implements RefundsService {
         if(reasons.isEmpty())
             throw new NoRejectReasonFoundException("Reject reasons not found.");
 
-        return reasons.toString();
+        return reasons;
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {

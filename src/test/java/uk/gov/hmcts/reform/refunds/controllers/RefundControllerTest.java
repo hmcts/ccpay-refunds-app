@@ -303,10 +303,12 @@ public class RefundControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        String rejectionReasons = mvcResult.getResponse().getContentAsString();
-        assertTrue(rejectionReasons.contains("No associated payment"));
-        assertTrue(rejectionReasons.contains("Already refunded"));
-        assertTrue(rejectionReasons.contains("More evidence is required"));
-        assertTrue(rejectionReasons.contains("Other"));
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> rejectionReasonList = mapper.readValue(
+            mvcResult.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
+        );
+        assertEquals(5, rejectionReasonList.size());
     }
 }

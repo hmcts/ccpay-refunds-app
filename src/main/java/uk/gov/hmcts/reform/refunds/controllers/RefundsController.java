@@ -74,7 +74,7 @@ public class RefundsController {
 
 
     @GetMapping("/refund/rejection-reasons")
-    public ResponseEntity<String> getRejectedReasons() {
+    public ResponseEntity<List<String>> getRejectedReasons() {
         return ResponseEntity.ok().body(refundsService.getRejectedReasons());
     }
 
