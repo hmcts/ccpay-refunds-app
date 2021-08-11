@@ -10,7 +10,6 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.NoRejectReasonFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
@@ -96,15 +95,9 @@ public class RefundsServiceImpl implements RefundsService {
     }
 
     @Override
-    public List<String> getRejectedReasons() throws NoRejectReasonFoundException {
-
-        List<String> reasons =  rejectionReasonRepository.findAll().stream().map(r->r.getName())
+    public List<String> getRejectedReasons() {
+        return rejectionReasonRepository.findAll().stream().map(r->r.getName())
             .collect(Collectors.toList());
-
-        if(reasons.isEmpty())
-            throw new NoRejectReasonFoundException("Reject reasons not found.");
-
-        return reasons;
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {
