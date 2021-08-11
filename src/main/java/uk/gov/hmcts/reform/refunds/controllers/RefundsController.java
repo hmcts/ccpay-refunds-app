@@ -21,7 +21,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundsService;
 import javax.validation.Valid;
 import java.util.List;
 
-
+import static org.springframework.http.ResponseEntity.ok;
 
 /**
  * Refund controller for backend rest api operations
