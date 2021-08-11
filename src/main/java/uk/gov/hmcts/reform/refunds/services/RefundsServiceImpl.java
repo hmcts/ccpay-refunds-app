@@ -105,7 +105,7 @@ public class RefundsServiceImpl implements RefundsService {
 
         if (refundRequest.getRefundAmount() != null &&
             isPaidAmountLessThanRefundRequestAmount(totalRefundedAmount, refundRequest.getRefundAmount())) {
-            throw new InvalidRefundRequestException("Paid Amount is less than requested Refund Amount ");
+            throw new InvalidRefundRequestException("Paid Amount is less than requested Refund Amount");
         }
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
@@ -113,7 +113,7 @@ public class RefundsServiceImpl implements RefundsService {
             if (refundRequest.getRefundReason().length() > reasonPrefixLength) {
                 refundRequest.setRefundReason(refundRequest.getRefundReason().substring(reasonPrefixLength));
             } else {
-                throw new InvalidRefundRequestException("Invalid Reason " + refundRequest.getRefundReason());
+                throw new InvalidRefundRequestException("Invalid reason selected");
             }
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason());
