@@ -32,7 +32,7 @@ import static org.springframework.http.ResponseEntity.ok;
 public class RefundsController {
 
     @Autowired
-    RefundReasonsService refundReasonsService;
+    private RefundReasonsService refundReasonsService;
     @Autowired
     private RefundsService refundsService;
 
