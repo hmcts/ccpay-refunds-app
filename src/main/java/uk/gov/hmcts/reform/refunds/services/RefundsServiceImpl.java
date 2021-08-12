@@ -135,7 +135,7 @@ public class RefundsServiceImpl implements RefundsService {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .paymentReference(refundRequest.getPaymentReference())
-            .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()).getCode())
+            .reason(refundRequest.getRefundReason())
             .refundStatus(SUBMITTED)
             .reference(referenceUtil.getNext("RF"))
             .createdBy(uid)
