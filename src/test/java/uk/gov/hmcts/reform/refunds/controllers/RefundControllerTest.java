@@ -138,7 +138,7 @@ public class RefundControllerTest {
             new TypeReference<>() {
             }
         );
-        assertEquals(3, refundReasonList.size());
+        assertEquals(4, refundReasonList.size());
     }
 
     @Test
@@ -272,7 +272,7 @@ public class RefundControllerTest {
             .andReturn();
 
         String ErrorMessage = result.getResponse().getContentAsString();
-        assertTrue(ErrorMessage.equals("Paid Amount is less than requested Refund Amount "));
+        assertTrue(ErrorMessage.equals("Paid Amount is less than requested Refund Amount"));
     }
 
 

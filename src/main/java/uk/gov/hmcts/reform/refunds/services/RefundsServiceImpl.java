@@ -31,7 +31,9 @@ public class RefundsServiceImpl implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
-    private static final Pattern REASONPATTERN = Pattern.compile("^^RR004-[a-zA-Z]+");
+    private static final Pattern REASONPATTERN = Pattern.compile("(^RR004-[a-zA-Z]+)|(RR004$)");
+
+    private static int reasonPrefixLength = 6;
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -101,17 +103,21 @@ public class RefundsServiceImpl implements RefundsService {
             ) : BigDecimal.ZERO;
         BigDecimal totalRefundedAmount = refundedHistoryAmount.add(refundRequest.getRefundAmount());
 
+        if (refundRequest.getRefundAmount() != null &&
+            isPaidAmountLessThanRefundRequestAmount(totalRefundedAmount, refundRequest.getRefundAmount())) {
+            throw new InvalidRefundRequestException("Paid Amount is less than requested Refund Amount");
+        }
+
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
         if (matcher) {
-            refundRequest.setRefundReason(refundRequest.getRefundReason().substring(7));
+            if (refundRequest.getRefundReason().length() > reasonPrefixLength) {
+                refundRequest.setRefundReason(refundRequest.getRefundReason().substring(reasonPrefixLength));
+            } else {
+                throw new InvalidRefundRequestException("Invalid reason selected");
+            }
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason());
             refundRequest.setRefundReason(refundReason.getCode());
-        }
-
-        if (refundRequest.getRefundAmount() != null &&
-            isPaidAmountLessThanRefundRequestAmount(totalRefundedAmount, refundRequest.getRefundAmount())) {
-            throw new InvalidRefundRequestException("Paid Amount is less than requested Refund Amount ");
         }
 
     }

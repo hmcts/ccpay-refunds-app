@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 import javax.validation.Valid;
 import java.util.List;
 
+import static org.springframework.http.ResponseEntity.ok;
 
 /**
  * Refund controller for backend rest api operations
@@ -34,7 +35,7 @@ import java.util.List;
 public class RefundsController {
 
     @Autowired
-    RefundReasonsService refundReasonsService;
+    private RefundReasonsService refundReasonsService;
     @Autowired
     private RefundsService refundsService;
 
@@ -48,7 +49,7 @@ public class RefundsController {
      */
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason() {
-        return ResponseEntity.ok().body(refundReasonsService.findAll());
+        return ok().body(refundReasonsService.findAll());
     }
 
     @ApiOperation(value = "POST /refund ", notes = "Submit Refund Request")
