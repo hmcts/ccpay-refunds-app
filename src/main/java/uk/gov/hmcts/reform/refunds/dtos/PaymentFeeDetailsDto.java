@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.dtos.requests;
+package uk.gov.hmcts.reform.refunds.dtos;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 
 import java.util.List;
 
@@ -16,9 +16,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PaymentFeeDetails {
+public class PaymentFeeDetailsDto {
 
-    private String reference;
+    private String paymentReference;
 
     private String caseReference;
 
@@ -26,5 +26,5 @@ public class PaymentFeeDetails {
 
     private String accountNumber;
 
-    private List<FeeDto> fees;
+    private List<PaymentFeeResponse> fees;
 }

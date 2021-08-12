@@ -9,8 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -19,30 +17,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "refundLiberataRequestWith")
-public class RefundLiberataRequest {
+@Builder(builderMethodName = "refundLiberataFeeWith")
+public class ReconcilitationProviderFeeRequest {
+    private String code;
 
-    private String refundReference;
+    private String version;
 
-    private String paymentReference;
-
-    private Timestamp dateCreated;
-
-    private Timestamp dateUpdated;
-
-    private String refundReason;
-
-    private BigDecimal totalRefundAmount;
-
-    private String currency;
-
-    private String caseReference;
-
-    private String ccdCaseNumber;
-
-    private String accountNumber;
-
-    private List<RefundLiberataFee> fees;
-
-
+    private BigDecimal refundAmount;
 }

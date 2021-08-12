@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.refunds.dtos.responses;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
@@ -9,16 +8,12 @@ import javax.validation.Valid;
 import java.util.Date;
 import java.util.List;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonInclude(NON_NULL)
 @Builder(builderMethodName = "paymentGroupDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-public class PaymentGroupDto {
+@Data
+public class PaymentGroupResponse {
 
     private String paymentGroupReference;
 
@@ -26,11 +21,11 @@ public class PaymentGroupDto {
 
     private Date dateUpdated;
 
-    private List<PaymentDto> payments;
+    private List<PaymentResponse> payments;
 
-    private List<RemissionDto> remissions;
+    private List<RemissionResponse> remissions;
 
     @Valid
-    private List<FeeDto> fees;
+    private List<PaymentFeeResponse> fees;
 
 }

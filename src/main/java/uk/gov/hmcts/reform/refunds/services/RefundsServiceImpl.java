@@ -10,6 +10,7 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
@@ -57,6 +58,15 @@ public class RefundsServiceImpl implements RefundsService {
         return RefundResponse.buildRefundResponseWith()
             .refundReference(refund.getReference())
             .build();
+    }
+
+    @Override
+    public Refund getRefundForReference(String reference){
+        Optional<Refund> refund = refundsRepository.findByReference(reference);
+        if(refund.isPresent()){
+            return  refund.get();
+        }
+        throw new RefundNotFoundException("Refunds not found for "+ reference);
     }
 
 
@@ -150,4 +160,6 @@ public class RefundsServiceImpl implements RefundsService {
             )
             .build();
     }
+
+
 }

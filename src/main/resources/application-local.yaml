@@ -76,6 +76,8 @@ payments:
   api:
     url: http://localhost:8095
 
-liberata:
+reconciliation-provider:
   api:
     url: http://localhost:8096
+  refund-status-update-path: /api/v3/refund
+

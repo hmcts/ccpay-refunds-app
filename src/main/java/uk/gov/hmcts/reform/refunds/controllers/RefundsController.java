@@ -102,7 +102,7 @@ public class RefundsController {
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({PaymentInvalidRequestException.class,LiberataInvalidRequestException.class,InvalidRefundRequestException.class,InvalidRefundReviewRequestException.class})
+    @ExceptionHandler({PaymentInvalidRequestException.class, ReconciliationProviderInvalidRequestException.class,InvalidRefundRequestException.class,InvalidRefundReviewRequestException.class})
     public String return400(Exception ex) {
         return ex.getMessage();
     }
@@ -114,7 +114,7 @@ public class RefundsController {
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({PaymentServerException.class,LiberataServerException.class,CheckDigitException.class})
+    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class,CheckDigitException.class})
     public String return500(Exception ex) {
         return ex.getMessage();
     }

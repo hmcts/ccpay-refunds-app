@@ -8,10 +8,9 @@ import java.math.BigDecimal;
 @Builder(builderMethodName = "buildRefundLiberataResponseWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class RefundLiberataResponse {
+public class ReconciliationProviderResponse {
 
     private String refundReference;
 

@@ -17,12 +17,12 @@ public class RestTemplateConfiguration {
             .build();
     }
 
-    @Bean ("restTemplateIdam")
+    @Bean("restTemplateIdam")
     public RestTemplate restTemplateIdam() {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
-    @Bean ("restTemplatePayment")
+    @Bean("restTemplatePayment")
     public RestTemplate restTemplatePayment() {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }

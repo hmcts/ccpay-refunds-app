@@ -29,7 +29,6 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
-import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
@@ -40,11 +39,9 @@ import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -319,29 +316,15 @@ public class RefundControllerTest {
         )).thenReturn(responseEntity);
 
 
-        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(PaymentGroupDto.class))).thenReturn(ResponseEntity.of(
-            Optional.of(        PaymentGroupDto.paymentGroupDtoWith()
-                                    .payments(Arrays.asList(
-                                        PaymentDto.payment2DtoWith()
-                                            .caseReference("case-reference")
-                                            .ccdCaseNumber("ccd-case-number")
-                                            .accountNumber("PBAFUNC1234")
-                                            .reference("RC-1628-5241-9956-2315")
-                                            .build()
-                                    ))
-                                    .fees(Arrays.asList(
-                                        FeeDto.feeDtoWith()
-                                            .code("FEE012")
-                                            .feeAmount(BigDecimal.valueOf(100))
-                                            .version("1")
-                                            .build()
-                                    ))
-                                    .build())
+        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
 
         ));
 
-        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(RefundLiberataResponse.class))).thenReturn(
-            ResponseEntity.of(Optional.of(RefundLiberataResponse.buildRefundLiberataResponseWith()
+        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class))).thenReturn(
+            ResponseEntity.of(Optional.of(ReconciliationProviderResponse.buildRefundLiberataResponseWith()
                                               .amount(BigDecimal.valueOf(100))
                                                 .refundReference("RF-1628-5241-9956-2215")
                                           .build()
@@ -443,7 +426,7 @@ public class RefundControllerTest {
     @Test
     public void rejectRefundRequest_WithOthersCodeWithoutReason() throws Exception{
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
-                                                    .code("RR004")
+                                                    .code("RE005")
                                                     .build();
         Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -466,7 +449,7 @@ public class RefundControllerTest {
     @Test
     public void rejectRefundRequest_WithOthersCodeWithReason() throws  Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
-                                                    .code("RR004")
+                                                    .code("RE005")
                                                     .reason("custom reason")
                                                     .build();
         Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
@@ -515,7 +498,7 @@ public class RefundControllerTest {
 
     @Test
     public void approveRefundRequest_ThrowingPaymentReferenceNotFound() throws Exception {
-        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR001","reason1");
         Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -526,7 +509,8 @@ public class RefundControllerTest {
         )).thenReturn(responseEntity);
 
 
-        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(PaymentGroupDto.class))).
+        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).
             thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         MvcResult result = mockMvc.perform(patch("/refund/{reference}/action/{reviewer-action}","RF-1628-5241-9956-2215","APPROVE")
                                                .content(asJsonString(refundReviewRequest))
@@ -552,7 +536,8 @@ public class RefundControllerTest {
         )).thenReturn(responseEntity);
 
 
-        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(PaymentGroupDto.class))).
+        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).
             thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
         MvcResult result = mockMvc.perform(patch("/refund/{reference}/action/{reviewer-action}","RF-1628-5241-9956-2215","APPROVE")
                                                .content(asJsonString(refundReviewRequest))
@@ -598,6 +583,67 @@ public class RefundControllerTest {
             .roles(Arrays.asList("vp"))
             .uid("986-erfg-kjhg-123")
             .build();
+    }
+
+    private PaymentGroupResponse getPaymentGroupDto(){
+        return  PaymentGroupResponse.paymentGroupDtoWith()
+            .paymentGroupReference("payment-group-reference")
+            .dateCreated(Date.from(Instant.now()))
+            .dateUpdated(Date.from(Instant.now()))
+            .payments(Arrays.asList(
+                PaymentResponse.paymentResponseWith()
+                    .amount(BigDecimal.valueOf(100))
+                    .description("description")
+                    .reference("RC-1628-5241-9956-2315")
+                    .dateCreated(Date.from(Instant.now()))
+                    .dateUpdated(Date.from(Instant.now()))
+                    .currency(CurrencyCode.GBP)
+                    .caseReference("case-reference")
+                    .ccdCaseNumber("ccd-case-number")
+                    .channel("solicitors portal")
+                    .method("payment by account")
+                    .externalProvider("provider")
+                    .accountNumber("PBAFUNC1234")
+                    .paymentAllocation(Arrays.asList(
+                        PaymentAllocationResponse.paymentAllocationDtoWith()
+                            .allocationStatus("allocationStatus")
+                            .build()
+                    ))
+                    .build()
+            ))
+            .remissions(Arrays.asList(
+                RemissionResponse.remissionDtoWith()
+                    .remissionReference("remission-reference")
+                    .beneficiaryName("ben-ten")
+                    .ccdCaseNumber("ccd-case-number")
+                    .caseReference("case-reference")
+                    .hwfReference("hwf-reference")
+                    .hwfAmount(BigDecimal.valueOf(100))
+                    .dateCreated(Date.from(Instant.now()))
+                    .build()
+            ))
+            .fees(Arrays.asList(
+                PaymentFeeResponse.feeDtoWith()
+                    .code("FEE012")
+                    .feeAmount(BigDecimal.valueOf(100))
+                    .calculatedAmount(BigDecimal.valueOf(100))
+                    .netAmount(BigDecimal.valueOf(100))
+                    .version("1")
+                    .volume(1)
+                    .feeAmount(BigDecimal.valueOf(100))
+                    .ccdCaseNumber("ccd-case-number")
+                    .reference("reference")
+                    .memoLine("memo-line")
+                    .naturalAccountCode("natural-account-code")
+                    .description("description")
+                    .allocatedAmount(BigDecimal.valueOf(100))
+                    .apportionAmount(BigDecimal.valueOf(100))
+                    .dateCreated(Date.from(Instant.now()))
+                    .dateUpdated(Date.from(Instant.now()))
+                    .dateApportioned(Date.from(Instant.now()))
+                    .amountDue(BigDecimal.valueOf(0))
+                    .build()
+            )).build();
     }
 
 }
