@@ -72,9 +72,9 @@ public class RefundsController {
 //    }
 
     /**
-     * Api for returning list of Rejection reasons
+     * Api for returning list of Rejection reason names
      *
-     * @return List of Rejection reasons
+     * @return List of Rejection reason names
      */
     @GetMapping("/refund/rejection-reasons")
     public ResponseEntity<List<String>> getRejectedReasons() {

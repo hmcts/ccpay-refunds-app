@@ -96,6 +96,7 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Override
     public List<String> getRejectedReasons() {
+        // Getting names from Rejection Reasons List object
         return rejectionReasonRepository.findAll().stream().map(r->r.getName())
             .collect(Collectors.toList());
     }
