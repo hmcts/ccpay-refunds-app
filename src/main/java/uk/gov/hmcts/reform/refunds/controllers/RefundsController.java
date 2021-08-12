@@ -101,7 +101,7 @@ public class RefundsController {
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({PaymentInvalidRequestException.class,LiberataInvalidRequestException.class,InvalidRefundRequestException.class})
+    @ExceptionHandler({PaymentInvalidRequestException.class,LiberataInvalidRequestException.class,InvalidRefundRequestException.class,InvalidRefundReviewRequestException.class})
     public String return400(Exception ex) {
         return ex.getMessage();
     }
