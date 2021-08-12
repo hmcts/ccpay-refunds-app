@@ -71,11 +71,6 @@ public class RefundsController {
 //        return refundsService.reSubmitRefund(headers, reference, refundRequest);
 //    }
 
-    /**
-     * Api for returning list of Rejection reason names
-     *
-     * @return List of Rejection reason names
-     */
     @GetMapping("/refund/rejection-reasons")
     public ResponseEntity<List<String>> getRejectedReasons() {
         return ResponseEntity.ok().body(refundsService.getRejectedReasons());
