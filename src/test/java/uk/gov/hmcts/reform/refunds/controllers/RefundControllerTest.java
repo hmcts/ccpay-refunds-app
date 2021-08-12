@@ -88,19 +88,19 @@ public class RefundControllerTest {
     @MockBean
     private RejectionReasonsRepository rejectionReasonsRepository;
 
-    @MockBean
+    @Mock
     private IdamServiceImpl idamService;
 
     @InjectMocks
     private RefundsController refundsController;
 
-    @MockBean
+    @Mock
     private ReferenceUtil referenceUtil;
 
     @Mock
     private RefundReasonRepository refundReasonRepository;
 
-    @Mock
+    @MockBean
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
