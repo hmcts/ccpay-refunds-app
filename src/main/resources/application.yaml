@@ -130,6 +130,15 @@ launchDarkly:
   socketTimeout: 3
   flushInterval: 10
 
+payments:
+  api:
+    url: http://localhost:8095
+
+liberata:
+  api:
+    url: http://localhost:8096
+
+
 
 
 

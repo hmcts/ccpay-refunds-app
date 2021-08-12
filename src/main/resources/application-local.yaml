@@ -1,5 +1,5 @@
 server:
-  port: 8084
+  port: 8093
 spring:
   application:
     name: refunds-api
@@ -74,4 +74,8 @@ launchDarkly:
 
 payments:
   api:
-    url: http://localhost:8091
+    url: http://localhost:8095
+
+liberata:
+  api:
+    url: http://localhost:8096

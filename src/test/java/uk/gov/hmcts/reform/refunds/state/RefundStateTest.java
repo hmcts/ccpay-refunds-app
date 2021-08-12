@@ -19,7 +19,7 @@ public class RefundStateTest {
     public void NextStateForSubmit() throws Exception {
 
         RefundState refundState = RefundState.SUBMITTED;
-        assertEquals(refundState.nextState(RefundEvent.APPROVE), RefundState.APPROVED);
+        assertEquals(refundState.nextState(RefundEvent.APPROVE), RefundState.SENT_TO_LIBERATA);
         assertEquals(refundState.nextState(RefundEvent.REJECT), RefundState.REJECTED);
         assertEquals(refundState.nextState(RefundEvent.SENDBACK), RefundState.NEEDMOREINFO);
     }
@@ -27,7 +27,7 @@ public class RefundStateTest {
     @Test
     public void NextStateForApprove() throws Exception {
 
-        RefundState refundState = RefundState.APPROVED;
+        RefundState refundState = RefundState.SENT_TO_LIBERATA;
         assertEquals(refundState.nextState(RefundEvent.CANCEL), RefundState.REJECTED);
         assertEquals(refundState.nextState(RefundEvent.ACCEPT), RefundState.ACCEPTED);
     }
