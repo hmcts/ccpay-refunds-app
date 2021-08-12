@@ -50,7 +50,7 @@ public class RefundsServiceImpl implements RefundsService {
     private RefundReasonRepository refundReasonRepository;
 
     @Autowired
-    RejectionReasonRepository rejectionReasonRepository;
+    private RejectionReasonRepository rejectionReasonRepository;
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
