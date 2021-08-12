@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
@@ -33,6 +35,7 @@ import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
@@ -68,31 +71,23 @@ public class RefundControllerTest {
         .description("No comments")
         .name("reason1")
         .build();
-
+    ObjectMapper mapper = new ObjectMapper();
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @Mock
     private RefundsServiceImpl refundsService;
-
     @MockBean
     private RefundsRepository refundsRepository;
-
     @Mock
     private IdamServiceImpl idamService;
-
     @InjectMocks
     private RefundsController refundsController;
-
     @Mock
     private ReferenceUtil referenceUtil;
-
     @Mock
     private RefundReasonRepository refundReasonRepository;
-
     @MockBean
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
@@ -218,12 +213,10 @@ public class RefundControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        ObjectMapper mapper = new ObjectMapper();
         RefundResponse refundResponse = mapper.readValue(
             result.getResponse().getContentAsString(),
             new TypeReference<>() {
             }
-
         );
         assertTrue(refundResponse.getRefundReference().matches(REFUND_REFERENCE_REGEX));
 
@@ -292,6 +285,31 @@ public class RefundControllerTest {
 
         String ErrorMessage = result.getResponse().getContentAsString();
         assertTrue(ErrorMessage.equals("Unable to retrieve User information. Please try again later"));
+    }
+
+
+    @Test
+    public void retrieveActions() throws Exception {
+        Refund refund = Refund.refundsWith()
+            .amount(new BigDecimal(100))
+            .paymentReference("RC-1111-2222-3333-4444")
+            .reason("test-123")
+            .refundStatus(SUBMITTED)
+            .reference("RF-1234-1234-1234-1234")
+            .build();
+        when(refundsRepository.findByReference(any())).thenReturn(Optional.of(refund));
+        MvcResult result = mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "service")
+                                               .accept(MediaType.APPLICATION_JSON)).andReturn();
+//
+        List<RefundEvent> refundEvents = mapper.readValue(
+            result.getResponse().getContentAsString(),
+            new TypeReference<List<RefundEvent>>() {
+            }
+        );
+        assertEquals(3, refundEvents.size());
+
     }
 
 }
