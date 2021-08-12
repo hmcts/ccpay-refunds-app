@@ -21,7 +21,7 @@ public class RefundStateTest {
         RefundState refundState = RefundState.SUBMITTED;
         assertEquals(refundState.nextState(RefundEvent.APPROVE), RefundState.SENTTOLIBERATA);
         assertEquals(refundState.nextState(RefundEvent.REJECT), RefundState.REJECTED);
-        assertEquals(refundState.nextState(RefundEvent.SENTBACK), RefundState.NEEDMOREINFO);
+        assertEquals(refundState.nextState(RefundEvent.SENDBACK), RefundState.NEEDMOREINFO);
     }
 
     @Test

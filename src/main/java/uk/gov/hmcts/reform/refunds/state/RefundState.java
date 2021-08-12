@@ -7,7 +7,7 @@ import static uk.gov.hmcts.reform.refunds.state.RefundEvent.ACCEPT;
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.APPROVE;
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.CANCEL;
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.REJECT;
-import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SENTBACK;
+import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SENDBACK;
 import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SUBMIT;
 
 @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
@@ -16,7 +16,7 @@ public enum RefundState {
     SUBMITTED {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{APPROVE, REJECT, SENTBACK};
+            return new RefundEvent[]{APPROVE, REJECT, SENDBACK};
         }
 
         @Override
@@ -26,7 +26,7 @@ public enum RefundState {
                     return SENTTOLIBERATA;
                 case REJECT:
                     return REJECTED;
-                case SENTBACK:
+                case SENDBACK:
                     return NEEDMOREINFO;
                 default:
                     return this;

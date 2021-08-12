@@ -20,7 +20,7 @@ public enum ReviewerAction {
     SENDBACK {
         @Override
         public RefundEvent getEvent(){
-            return RefundEvent.SENTBACK;
+            return RefundEvent.SENDBACK;
         }
     };
 
