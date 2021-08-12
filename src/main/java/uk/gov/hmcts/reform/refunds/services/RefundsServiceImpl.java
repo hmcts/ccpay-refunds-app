@@ -15,6 +15,8 @@ import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
@@ -46,6 +48,13 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+
+    @Override
+    public RefundEvent[] retrieveActions(String reference) {
+        Optional<Refund> refund = refundsRepository.findByReference(reference);
+        RefundEvent[] refundEvents = RefundState.valueOf(refund.get().getRefundStatus().getName().replaceAll("\\s+", "").toUpperCase()).nextValidEvents();
+        return refundEvents;
+    }
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
