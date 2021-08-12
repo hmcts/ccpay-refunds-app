@@ -100,7 +100,7 @@ public class RefundControllerTest {
     @Mock
     private RefundReasonRepository refundReasonRepository;
 
-    @MockBean
+    @Mock
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
