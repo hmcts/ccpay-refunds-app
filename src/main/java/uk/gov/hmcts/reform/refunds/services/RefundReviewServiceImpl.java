@@ -88,7 +88,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
                 }
         }
 
-        if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
+        if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENTBACK)){
 
             updateRefundStatus(refundForGivenReference, refundEvent);
         }
@@ -221,7 +221,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         if(refundEvent.equals(RefundEvent.APPROVE)){
             notes =  "Refund Approved";
         }
-        else if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
+        else if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENTBACK)){
 
             if(refundEvent.equals(refundEvent.REJECT)) {
                 notes = getRejectNotes(refundReviewRequest);
