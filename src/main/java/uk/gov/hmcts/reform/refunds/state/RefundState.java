@@ -23,7 +23,7 @@ public enum RefundState {
         public RefundState nextState(RefundEvent event) {
             switch (event) {
                 case APPROVE:
-                    return SENT_TO_LIBERATA;
+                    return SENTTOLIBERATA;
                 case REJECT:
                     return REJECTED;
                 case SENDBACK:
@@ -62,7 +62,7 @@ public enum RefundState {
             return RefundStatus.SENTBACK;
         }
     },
-    SENT_TO_LIBERATA {
+    SENTTOLIBERATA {
         @Override
         public RefundEvent[] nextValidEvents() {
             return new RefundEvent[]{ACCEPT, CANCEL};
@@ -84,7 +84,7 @@ public enum RefundState {
 
         @Override
         public RefundStatus getRefundStatus(){
-            return RefundStatus.SENT_TO_LIBERATA;
+            return RefundStatus.SENTTOLIBERATA;
         }
     },
     ACCEPTED {
