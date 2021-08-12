@@ -52,8 +52,24 @@ public class RefundsServiceImpl implements RefundsService {
     @Override
     public RefundEvent[] retrieveActions(String reference) {
         Optional<Refund> refund = refundsRepository.findByReference(reference);
-        RefundEvent[] refundEvents = RefundState.valueOf(refund.get().getRefundStatus().getName().replaceAll("\\s+", "").toUpperCase()).nextValidEvents();
-        return refundEvents;
+        RefundState currentRefundState = getRefundState(refund.get().getRefundStatus().getName());
+        return currentRefundState.nextValidEvents();
+    }
+
+    private RefundState getRefundState(String status) {
+        switch (status) {
+            case "submitted":
+                return RefundState.SUBMITTED;
+            case "sent to liberata":
+                return RefundState.SENTTOLIBERATA;
+            case "sent back":
+                return RefundState.NEEDMOREINFO;
+            case "accepted":
+                return RefundState.ACCEPTED;
+            case "rejected":
+                return RefundState.REJECTED;
+        }
+        return null;
     }
 
     @Override
