@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,7 +56,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.ACCEPTED;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
+import static uk.gov.hmcts.reform.refunds.state.RefundState.NEEDMOREINFO;
 
 
 @ActiveProfiles({"local", "test"})
@@ -66,12 +70,33 @@ public class RefundControllerTest {
 
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
 
-    private static RefundReason refundReason = RefundReason.refundReasonWith().
+    private RefundReason refundReason = RefundReason.refundReasonWith().
         code("RR002")
         .description("No comments")
         .name("reason1")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
+    private IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+        .familyName("VP")
+        .givenName("VP")
+        .name("VP")
+        .sub("V_P@gmail.com")
+        .roles(Arrays.asList("vp"))
+        .uid("986-erfg-kjhg-123")
+        .build();
+    private Refund refund = Refund.refundsWith()
+        .amount(new BigDecimal(100))
+        .paymentReference("RC-1111-2222-3333-4444")
+        .reason("test-123")
+        .refundStatus(SUBMITTED)
+        .reference("RF-1234-1234-1234-1234")
+        .build();
+    private ObjectMapper mapper = new ObjectMapper();
+    private RefundRequest refundRequest = RefundRequest.refundRequestWith()
+        .paymentReference("RC-1234-1234-1234-1234")
+        .refundAmount(new BigDecimal(100))
+        .refundReason("RR002")
+        .build();
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -116,7 +141,6 @@ public class RefundControllerTest {
             .andExpect(jsonPath("$[0].name").value("Duplicate Payment"))
             .andReturn();
 
-        ObjectMapper mapper = new ObjectMapper();
         List<RefundReason> refundReasonList = mapper.readValue(
             mvcResult.getResponse().getContentAsString(),
             new TypeReference<>() {
@@ -128,25 +152,9 @@ public class RefundControllerTest {
     @Test
     public void createRefund() throws Exception {
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundAmount(new BigDecimal(100))
-            .refundReason("RR002")
-            .build();
-
-        List<Refund> refunds = Collections.emptyList();
-        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
-
-        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
-            .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
-            .build();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
 
@@ -178,25 +186,12 @@ public class RefundControllerTest {
     @Test
     public void createRefundWithOtherReason() throws Exception {
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundAmount(new BigDecimal(100))
-            .refundReason("RR004-Other")
-            .build();
+        refundRequest.setRefundReason("RR004-Other");
 
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
-
-        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
-            .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
-            .build();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
 
@@ -289,27 +284,44 @@ public class RefundControllerTest {
 
 
     @Test
-    public void retrieveActions() throws Exception {
-        Refund refund = Refund.refundsWith()
-            .amount(new BigDecimal(100))
-            .paymentReference("RC-1111-2222-3333-4444")
-            .reason("test-123")
-            .refundStatus(SUBMITTED)
-            .reference("RF-1234-1234-1234-1234")
-            .build();
-        when(refundsRepository.findByReference(any())).thenReturn(Optional.of(refund));
-        MvcResult result = mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
-                                               .header("Authorization", "user")
-                                               .header("ServiceAuthorization", "service")
-                                               .accept(MediaType.APPLICATION_JSON)).andReturn();
-//
-        List<RefundEvent> refundEvents = mapper.readValue(
-            result.getResponse().getContentAsString(),
-            new TypeReference<List<RefundEvent>>() {
-            }
-        );
-        assertEquals(3, refundEvents.size());
-
+    public void retrieveActionsForSubmittedState() throws Exception {
+        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "service")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(3)))
+            .andExpect(jsonPath("$.[0].code").value("Approve"))
+            .andExpect(jsonPath("$.[0].label").value("Refund request will be approved"))
+            .andExpect(jsonPath("$.[1].code").value("Reject"))
+            .andExpect(jsonPath("$.[2].code").value("Return to caseworker"));
     }
+
+    @Test
+    public void retrieveActionsForNeedMoreInfoState() throws Exception {
+        refund.setRefundStatus(SENTBACK);
+        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "service")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$.[0].code").value("Submit"))
+            .andExpect(jsonPath("$.[0].label").value("Refund request will be submitted"))
+            .andExpect(jsonPath("$.[1].code").value("Cancel"));
+    }
+
+    @Test
+    public void retrieveActionsForAcceptedState() throws Exception {
+        refund.setRefundStatus(ACCEPTED);
+        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "service")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$").value("No actions to proceed further"));
+    }
+
 
 }

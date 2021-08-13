@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 import java.util.List;
 import java.util.Map;
 
@@ -105,6 +106,7 @@ public class RefundsController {
     public ResponseEntity<RefundEvent[]> retrieveActions(
         @PathVariable(value = "reference", required = true) String reference) {
         return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
+
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -114,7 +116,7 @@ public class RefundsController {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({RefundNotFoundException.class, PaymentReferenceNotFoundException.class})
+    @ExceptionHandler({RefundNotFoundException.class, PaymentReferenceNotFoundException.class, ActionNotFoundException.class})
     public String return404(Exception ex) {
         return ex.getMessage();
     }

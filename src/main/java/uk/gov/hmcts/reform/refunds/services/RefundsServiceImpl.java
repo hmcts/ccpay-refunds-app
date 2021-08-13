@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
@@ -51,8 +52,8 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {
-        Optional<Refund> refund = refundsRepository.findByReference(reference);
-        RefundState currentRefundState = getRefundState(refund.get().getRefundStatus().getName());
+        Refund refund = refundsRepository.findByCodeOrThrow(reference);
+        RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         return currentRefundState.nextValidEvents();
     }
 
@@ -65,9 +66,8 @@ public class RefundsServiceImpl implements RefundsService {
             case "sent back":
                 return RefundState.NEEDMOREINFO;
             case "accepted":
-                return RefundState.ACCEPTED;
             case "rejected":
-                return RefundState.REJECTED;
+                throw new ActionNotFoundException("No actions to proceed further");
         }
         return null;
     }
