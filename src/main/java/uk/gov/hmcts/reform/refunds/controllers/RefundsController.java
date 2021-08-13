@@ -71,6 +71,12 @@ public class RefundsController {
 //        return refundsService.reSubmitRefund(headers, reference, refundRequest);
 //    }
 
+    @GetMapping("/refund/rejection-reasons")
+    public ResponseEntity<List<String>> getRejectedReasons() {
+        return ResponseEntity.ok().body(refundsService.getRejectedReasons());
+    }
+
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidRefundRequestException.class)
     public String return400(InvalidRefundRequestException ex) {
@@ -82,6 +88,5 @@ public class RefundsController {
     public String return500(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
-
 
 }

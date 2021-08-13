@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
@@ -46,6 +48,9 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+
+    @Autowired
+    private RejectionReasonRepository rejectionReasonRepository;
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
@@ -87,6 +92,13 @@ public class RefundsServiceImpl implements RefundsService {
 //        }
         return HttpStatus.ACCEPTED;
 
+    }
+
+    @Override
+    public List<String> getRejectedReasons() {
+        // Getting names from Rejection Reasons List object
+        return rejectionReasonRepository.findAll().stream().map(r->r.getName())
+            .collect(Collectors.toList());
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {
