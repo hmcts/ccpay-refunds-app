@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100005
+      author: Vignesh
+      changes:
+        - createTable:
+            tableName: rejection_reasons
+            columns:
+              - column:
+                  name: code
+                  type: varchar(5)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
+
+  - changeSet:
+      id: 100005-1
+      author: Prashant
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO rejection_reasons (code, name, description)
+                VALUES
+                  ('RE001', 'No associated payment', 'No associated payment for the refund.'),
+                  ('RE002', 'Already refunded', 'The amount is Already refunded'),
+                  ('RE003', 'The case details don’t match the help with fees details', 'The case details don’t match the help with fees details'),
+                  ('RE004', 'More evidence is required', 'More evidence is required to process the refund.'),
+                  ('RE005', 'Other', 'Other');

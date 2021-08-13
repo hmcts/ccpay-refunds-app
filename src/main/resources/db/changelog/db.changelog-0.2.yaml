@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100002
+      author: Vignesh
+      changes:
+        - createTable:
+            tableName: status_history
+            columns:
+              - column:
+                  name: id
+                  type: int(4)
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: refunds_id
+                  type: int(4)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(255)
+              - column:
+                  name: notes
+                  type: varchar(255)
+              - column:
+                  name: date_created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: created_by
+                  type: varchar(255)
+  - changeSet:
+      id: 100002-1
+      author: Vignesh
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: refunds_id
+            baseTableName: status_history
+            constraintName: FK_1000021
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: id
+            referencedTableName: refunds
+
+
