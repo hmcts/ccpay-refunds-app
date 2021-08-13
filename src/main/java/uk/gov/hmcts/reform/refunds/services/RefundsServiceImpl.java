@@ -138,7 +138,7 @@ public class RefundsServiceImpl implements RefundsService {
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
-//            .ccdCaseNumber(refundRequest.getCcdCaseNumber())
+            .ccdCaseNumber(refundRequest.getCcdCaseNumber())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundRequest.getRefundReason())
             .refundStatus(SUBMITTED)
