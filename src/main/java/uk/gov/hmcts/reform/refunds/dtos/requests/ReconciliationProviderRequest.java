@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "refundLiberataRequestWith")
+@Builder(builderMethodName = "refundReconciliationProviderRequestWith")
 public class ReconciliationProviderRequest {
 
     private String refundReference;

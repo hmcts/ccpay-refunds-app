@@ -17,7 +17,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "refundLiberataFeeWith")
+@Builder(builderMethodName = "refundReconcilitationProviderFeeRequest")
 public class ReconcilitationProviderFeeRequest {
     private String code;
 

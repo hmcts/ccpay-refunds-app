@@ -41,7 +41,7 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
         } catch (HttpClientErrorException e){
             throw new ReconciliationProviderInvalidRequestException("Invalid Request: Reconciliation Provider", e);
         } catch ( Exception e){
-            throw new ReconciliationProviderServerException("Reconciliation Provider Server Exception ", e);
+            throw new ReconciliationProviderServerException("Reconciliation Provider Server Exception", e);
         }
     }
 

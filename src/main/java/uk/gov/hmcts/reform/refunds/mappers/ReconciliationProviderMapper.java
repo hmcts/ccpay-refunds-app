@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class ReconciliationProviderMapper {
 
     public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentFeeDetailsDto paymentDto, Refund refund){
-        return ReconciliationProviderRequest.refundLiberataRequestWith()
+        return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
             .refundReference(refund.getReference())
             .paymentReference(paymentDto.getPaymentReference())
             .dateCreated(refund.getDateCreated())
@@ -36,7 +36,7 @@ public class ReconciliationProviderMapper {
     }
 
     private ReconcilitationProviderFeeRequest feeDtoMapToReconcilitationProviderFeeRequest(PaymentFeeResponse paymentFeeResponse){
-        return ReconcilitationProviderFeeRequest.refundLiberataFeeWith()
+        return ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
             .code(paymentFeeResponse.getCode())
             .refundAmount(paymentFeeResponse.getFeeAmount())
             .version(paymentFeeResponse.getVersion())

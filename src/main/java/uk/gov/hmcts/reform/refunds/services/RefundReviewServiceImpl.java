@@ -63,10 +63,10 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         if(refundEvent.equals(RefundEvent.APPROVE)){
                 PaymentFeeDetailsDto paymentDto = paymentService.getPaymentData(headers, refundForGivenReference.getPaymentReference());
                 ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(paymentDto, refundForGivenReference);
-                ResponseEntity<ReconciliationProviderResponse> liberataResponse = reconciliationProviderService.updateReconciliationProviderWithApprovedRefund(headers,
+                ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService.updateReconciliationProviderWithApprovedRefund(headers,
                                                                                                                                                                reconciliationProviderRequest
                 );
-                if(liberataResponse.getStatusCode().is2xxSuccessful()){
+                if(reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()){
                     updateRefundStatus(refundForGivenReference, refundEvent);
                 }
         }

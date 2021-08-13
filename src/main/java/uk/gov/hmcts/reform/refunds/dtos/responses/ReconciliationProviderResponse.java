@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
 import java.math.BigDecimal;
-@Builder(builderMethodName = "buildRefundLiberataResponseWith")
+@Builder(builderMethodName = "buildReconciliationProviderResponseWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
