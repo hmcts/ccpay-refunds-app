@@ -106,16 +106,11 @@ public class RefundsServiceImpl implements RefundsService {
 //        }
 
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-        BigDecimal refundedHistoryAmount = refundsList.isPresent() ?
-            refundsList.get().stream().map(Refund::getAmount).reduce(
-                BigDecimal.ZERO,
-                BigDecimal::add
-            ) : BigDecimal.ZERO;
-        BigDecimal totalRefundedAmount = refundedHistoryAmount.add(refundRequest.getRefundAmount());
+        long refundProcessingCount = refundsList.get().stream().map(refund -> !refund.getRefundStatus().equals(
+            "rejected")).count();
 
-        if (refundRequest.getRefundAmount() != null &&
-            isPaidAmountLessThanRefundRequestAmount(totalRefundedAmount, refundRequest.getRefundAmount())) {
-            throw new InvalidRefundRequestException("Paid Amount is less than requested Refund Amount");
+        if (refundProcessingCount > 0) {
+            throw new InvalidRefundRequestException("Refund is already processed/ in progress");
         }
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
@@ -130,10 +125,6 @@ public class RefundsServiceImpl implements RefundsService {
             refundRequest.setRefundReason(refundReason.getCode());
         }
 
-    }
-
-    private boolean isPaidAmountLessThanRefundRequestAmount(BigDecimal refundsAmount, BigDecimal paidAmount) {
-        return paidAmount.compareTo(refundsAmount) < 0;
     }
 //
 //    private boolean isRefundEligibilityFlagged() {
