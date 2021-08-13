@@ -26,6 +26,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
@@ -104,6 +105,9 @@ public class RefundControllerTest {
     @MockBean
     @Qualifier("restTemplatePayment")
     private RestTemplate restTemplatePayment;
+
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
 
     private static String asJsonString(final Object obj) {
         try {
@@ -500,6 +504,7 @@ public class RefundControllerTest {
     public void approveRefundRequest_ThrowingPaymentReferenceNotFound() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR001","reason1");
         Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
