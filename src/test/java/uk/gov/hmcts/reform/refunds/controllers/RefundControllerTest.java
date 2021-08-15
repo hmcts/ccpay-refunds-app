@@ -66,21 +66,40 @@ public class RefundControllerTest {
 
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
 
-    private static RefundReason refundReason = RefundReason.refundReasonWith().
+    private RefundReason refundReason = RefundReason.refundReasonWith().
         code("RR002")
         .description("No comments")
         .name("reason1")
         .build();
+    private IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
+        .familyName("VP")
+        .givenName("VP")
+        .name("VP")
+        .sub("V_P@gmail.com")
+        .roles(Arrays.asList("vp"))
+        .uid("986-erfg-kjhg-123")
+        .build();
+    private Refund refund = Refund.refundsWith()
+        .amount(new BigDecimal(100))
+        .paymentReference("RC-1111-2222-3333-4444")
+        .reason("test-123")
+        .refundStatus(SUBMITTED)
+        .reference("RF-1234-1234-1234-1234")
+        .build();
+    private ObjectMapper mapper = new ObjectMapper();
+    private RefundRequest refundRequest = RefundRequest.refundRequestWith()
+        .paymentReference("RC-1234-1234-1234-1234")
+        .refundAmount(new BigDecimal(100))
+        .refundReason("RR002")
+        .ccdCaseNumber("1111222233334444")
+        .build();
 
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @Mock
     private RefundsServiceImpl refundsService;
-
     @MockBean
     private RefundsRepository refundsRepository;
 
@@ -89,16 +108,12 @@ public class RefundControllerTest {
 
     @Mock
     private IdamServiceImpl idamService;
-
     @InjectMocks
     private RefundsController refundsController;
-
     @Mock
     private ReferenceUtil referenceUtil;
-
     @Mock
     private RefundReasonRepository refundReasonRepository;
-
     @MockBean
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
@@ -140,7 +155,6 @@ public class RefundControllerTest {
             .andExpect(jsonPath("$[0].name").value("Duplicate Payment"))
             .andReturn();
 
-        ObjectMapper mapper = new ObjectMapper();
         List<RefundReason> refundReasonList = mapper.readValue(
             mvcResult.getResponse().getContentAsString(),
             new TypeReference<>() {
@@ -152,25 +166,9 @@ public class RefundControllerTest {
     @Test
     public void createRefund() throws Exception {
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundAmount(new BigDecimal(100))
-            .refundReason("RR002")
-            .build();
-
-        List<Refund> refunds = Collections.emptyList();
-        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
-
-        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
-            .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
-            .build();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
 
@@ -202,25 +200,12 @@ public class RefundControllerTest {
     @Test
     public void createRefundWithOtherReason() throws Exception {
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundAmount(new BigDecimal(100))
-            .refundReason("RR004-Other")
-            .build();
+        refundRequest.setRefundReason("RR004-Other");
 
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
-
-        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
-            .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
-            .build();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
 
@@ -237,12 +222,10 @@ public class RefundControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        ObjectMapper mapper = new ObjectMapper();
         RefundResponse refundResponse = mapper.readValue(
             result.getResponse().getContentAsString(),
             new TypeReference<>() {
             }
-
         );
         assertTrue(refundResponse.getRefundReference().matches(REFUND_REFERENCE_REGEX));
 
@@ -250,12 +233,6 @@ public class RefundControllerTest {
 
     @Test
     public void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
-
-        RefundRequest refundRequest = RefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundAmount(new BigDecimal(100))
-            .refundReason("RR002")
-            .build();
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
 
@@ -286,12 +263,6 @@ public class RefundControllerTest {
 
     @Test
     public void createRefundReturns504ForGatewayTimeout() throws Exception {
-
-        RefundRequest refundRequest = RefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundAmount(new BigDecimal(100))
-            .refundReason("RR002")
-            .build();
 
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
