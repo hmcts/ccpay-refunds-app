@@ -16,12 +16,14 @@ import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
@@ -32,6 +34,8 @@ public class RefundsServiceImpl implements RefundsService {
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     private static final Pattern REASONPATTERN = Pattern.compile("(^RR004-[a-zA-Z]+)|(RR004$)");
+
+    private static final Pattern STATUSPATTERN = Pattern.compile("[^rejected]");
 
     private static int reasonPrefixLength = 6;
 
@@ -46,6 +50,9 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+
+    @Autowired
+    private RejectionReasonRepository rejectionReasonRepository;
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
@@ -98,6 +105,13 @@ public class RefundsServiceImpl implements RefundsService {
 
     }
 
+    @Override
+    public List<String> getRejectedReasons() {
+        // Getting names from Rejection Reasons List object
+        return rejectionReasonRepository.findAll().stream().map(r -> r.getName())
+            .collect(Collectors.toList());
+    }
+
     private void validateRefundRequest(RefundRequest refundRequest) {
 
 //        if (isRefundEligibilityFlagged()) {
@@ -105,8 +119,8 @@ public class RefundsServiceImpl implements RefundsService {
 //        }
 
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-        long refundProcessingCount = refundsList.get().stream().map(refund -> !refund.getRefundStatus().equals(
-            "rejected")).count();
+        long refundProcessingCount = refundsList.isPresent() ? refundsList.get().stream().map(refund -> STATUSPATTERN.matcher(
+            refund.getRefundStatus().getName()).find()).count() : 0;
 
         if (refundProcessingCount > 0) {
             throw new InvalidRefundRequestException("Refund is already processed/ in progress");
@@ -134,6 +148,7 @@ public class RefundsServiceImpl implements RefundsService {
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
+//            .ccdCaseNumber(refundRequest.getCcdCaseNumber())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundRequest.getRefundReason())
             .refundStatus(SUBMITTED)

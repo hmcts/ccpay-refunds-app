@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -318,7 +317,7 @@ public class RefundControllerTest {
     @Test
     public void approveRefundRequest() throws Exception{
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -361,7 +360,7 @@ public class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .code("RR0001")
                                                     .build();
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -392,7 +391,7 @@ public class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .reason("send back reason")
                                                     .build();
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -417,7 +416,7 @@ public class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .reason("reason")
                                                     .build();
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -440,7 +439,7 @@ public class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .code("RE005")
                                                     .build();
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -464,7 +463,7 @@ public class RefundControllerTest {
                                                     .code("RE005")
                                                     .reason("custom reason")
                                                     .build();
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -488,7 +487,7 @@ public class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .code("RR002")
                                                     .build();
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -511,7 +510,7 @@ public class RefundControllerTest {
     @Test
     public void approveRefundRequest_ThrowingPaymentReferenceNotFound() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR001","reason1");
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         when(authTokenGenerator.generate()).thenReturn("service auth token");
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -539,7 +538,7 @@ public class RefundControllerTest {
     @Test
     public void approveRefundRequest_WhenPaymentServerIsUnAvailable() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -566,7 +565,7 @@ public class RefundControllerTest {
     @Test
     public void approveRefundRequest_WhenSendingMalformedRequestToPayment() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -593,7 +592,7 @@ public class RefundControllerTest {
     @Test
     public void approveRefundRequest_WhenSendingInvalidRequestToReconciliationProvider() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -626,7 +625,7 @@ public class RefundControllerTest {
     @Test
     public void approveRefundRequest_WhenReconciliationProviderIsUnavailabel() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -659,7 +658,7 @@ public class RefundControllerTest {
     @Test
     public void approveRefundRequest_WhenRefundIsNotAvailable() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
-        Mockito.when(refundsRepository.findByReference(anyString())).thenReturn(Optional.ofNullable(null));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.ofNullable(null));
 
         MvcResult result = mockMvc.perform(patch("/refund/{reference}/action/{reviewer-action}","RF-1628-5241-9956-2215","APPROVE")
                                                .content(asJsonString(refundReviewRequest))
@@ -766,6 +765,24 @@ public class RefundControllerTest {
                     .amountDue(BigDecimal.valueOf(0))
                     .build()
             )).build();
+    }
+
+    @Test
+    public void getRejectionReasonsList() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/refund/rejection-reasons")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> rejectionReasonList = mapper.readValue(
+            mvcResult.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
+        );
+        assertEquals(5, rejectionReasonList.size());
     }
 
 }

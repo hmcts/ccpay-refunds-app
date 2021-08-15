@@ -77,6 +77,10 @@ public class RefundsController {
 //        return refundsService.reSubmitRefund(headers, reference, refundRequest);
 //    }
 
+    @GetMapping("/refund/rejection-reasons")
+    public ResponseEntity<List<String>> getRejectedReasons() {
+        return ok().body(refundsService.getRejectedReasons());
+    }
 
     @ApiOperation(value = "PATCH refund/{reference}/action/{reviewer-action} ", notes = "Review Refund Request")
     @ApiResponses(value = {
