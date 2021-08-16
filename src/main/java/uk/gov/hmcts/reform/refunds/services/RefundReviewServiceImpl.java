@@ -5,11 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.reform.refunds.dtos.PaymentFeeDetailsRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.*;
 import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
@@ -21,7 +19,6 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.refunds.state.RefundState.SUBMITTED;
 
@@ -64,7 +61,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         refundForGivenReference.setStatusHistories(statusHistories);
 
         if(refundEvent.equals(RefundEvent.APPROVE)){
-                PaymentFeeDetailsRequest paymentData = getPaymentData(headers, refundForGivenReference.getPaymentReference());
+                PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(headers, refundForGivenReference.getPaymentReference());
                 ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(paymentData, refundForGivenReference);
                 ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService.updateReconciliationProviderWithApprovedRefund(headers,
                                                                                                                                                                reconciliationProviderRequest
@@ -103,27 +100,6 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
         refund.setRefundStatus(newState.getRefundStatus());
         return refundsRepository.save(refund);
     }
-
-
-    public PaymentFeeDetailsRequest getPaymentData(MultiValueMap<String, String> headers, String paymentReference){
-        ResponseEntity<PaymentGroupResponse> paymentGroupDto = paymentService.fetchDetailFromPayment(headers, paymentReference);
-        List<PaymentResponse> paymentResponseList = paymentGroupDto.getBody().getPayments()
-            .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
-            .collect(Collectors.toList());
-        if(!paymentResponseList.isEmpty()){
-            return PaymentFeeDetailsRequest.paymentFeeDetailsWith()
-                .accountNumber(paymentResponseList.get(0).getAccountNumber())
-                .caseReference(paymentResponseList.get(0).getCaseReference())
-                .ccdCaseNumber(paymentResponseList.get(0).getCcdCaseNumber())
-                .paymentReference(paymentResponseList.get(0).getReference())
-                .fees(paymentGroupDto.getBody().getFees())
-                .build();
-        }
-        throw new PaymentReferenceNotFoundException("Payment Reference "+ paymentReference+ "not found");
-    }
-
-
-
 
 
 }

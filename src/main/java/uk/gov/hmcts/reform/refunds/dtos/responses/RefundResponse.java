@@ -8,7 +8,7 @@ import lombok.*;
 @Builder(builderMethodName = "buildRefundResponseWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class RefundResponse {
 

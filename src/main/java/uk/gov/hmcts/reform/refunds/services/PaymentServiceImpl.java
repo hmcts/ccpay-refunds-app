@@ -15,11 +15,14 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentServiceImpl implements PaymentService{
@@ -36,14 +39,22 @@ public class PaymentServiceImpl implements PaymentService{
 
 
     @Override
-    public ResponseEntity<PaymentGroupResponse> fetchDetailFromPayment(MultiValueMap<String, String> headers, String paymentReference) {
+    public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
         try{
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
-            return restTemplatePayment
-                .exchange(
-                    builder.toUriString(),
-                    HttpMethod.GET,
-                    getHeadersEntity(headers), PaymentGroupResponse.class);
+            ResponseEntity<PaymentGroupResponse> paymentGroupResponse =  restTemplatePayment
+                                                                            .exchange(
+                                                                                builder.toUriString(),
+                                                                                HttpMethod.GET,
+                                                                                getHeadersEntity(headers), PaymentGroupResponse.class);
+            List<PaymentResponse> paymentResponseList = paymentGroupResponse.getBody().getPayments()
+                .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
+                .collect(Collectors.toList());
+            if(!paymentResponseList.isEmpty()){
+                return paymentGroupResponse.getBody();
+            }
+
+            throw new PaymentReferenceNotFoundException("Payment Reference "+ paymentReference+ "not found");
 
         } catch (HttpClientErrorException e){
             if(e.getStatusCode().equals(HttpStatus.NOT_FOUND)){
@@ -62,4 +73,5 @@ public class PaymentServiceImpl implements PaymentService{
         inputHeaders.put("ServiceAuthorization", Arrays.asList(authTokenGenerator.generate()));
         return new HttpEntity<>(inputHeaders);
     }
+
 }

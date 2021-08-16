@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.refunds.mappers;
 
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.refunds.dtos.PaymentFeeDetailsRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconcilitationProviderFeeRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 
 import java.util.List;
@@ -13,18 +13,18 @@ import java.util.stream.Collectors;
 @Component
 public class ReconciliationProviderMapper {
 
-    public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentFeeDetailsRequest paymentDto, Refund refund){
+    public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund){
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
             .refundReference(refund.getReference())
-            .paymentReference(paymentDto.getPaymentReference())
+            .paymentReference(paymentDto.getPayments().get(0).getReference())
             .dateCreated(refund.getDateCreated())
             .dateUpdated(refund.getDateUpdated())
             .refundReason(refund.getReason())
             .totalRefundAmount(refund.getAmount())
             .currency("GBP")
-            .caseReference(paymentDto.getCaseReference())
-            .ccdCaseNumber(paymentDto.getCcdCaseNumber())
-            .accountNumber(paymentDto.getAccountNumber())
+            .caseReference(paymentDto.getPayments().get(0).getCaseReference())
+            .ccdCaseNumber(paymentDto.getPayments().get(0).getCcdCaseNumber())
+            .accountNumber(paymentDto.getPayments().get(0).getAccountNumber())
             .fees(getRefundRequestFees(paymentDto.getFees()))
             .build();
     }
