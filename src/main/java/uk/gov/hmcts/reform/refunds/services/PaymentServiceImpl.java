@@ -42,8 +42,8 @@ public class PaymentServiceImpl implements PaymentService{
     public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
         try{
             ResponseEntity<PaymentGroupResponse> paymentGroupResponse = fetchPaymentGroupData(headers,paymentReference);
-                checkPaymentReference(paymentGroupResponse,  paymentReference);
-                return paymentGroupResponse.getBody();
+            checkPaymentReference(paymentGroupResponse,  paymentReference);
+            return paymentGroupResponse.getBody();
 
         } catch (HttpClientErrorException e){
             if(e.getStatusCode().equals(HttpStatus.NOT_FOUND)){
@@ -72,19 +72,17 @@ public class PaymentServiceImpl implements PaymentService{
                 getHeadersEntity(headers), PaymentGroupResponse.class);
     }
 
-    private int checkPaymentReference(ResponseEntity<PaymentGroupResponse> paymentGroupResponse, String paymentReference){
-        if(paymentGroupResponse.getBody()!=null ){
-            if( paymentGroupResponse.getBody().getPayments() !=null){
-                List<PaymentResponse> paymentResponseList = paymentGroupResponse.getBody().getPayments()
-                    .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
-                    .collect(Collectors.toList());
-                if(paymentResponseList.isEmpty()){
-                    throw new PaymentReferenceNotFoundException("Payment Reference  not found");
-                }
-                return 0;
-            }
+    private void checkPaymentReference(ResponseEntity<PaymentGroupResponse> paymentGroupResponse, String paymentReference){
+        if(paymentGroupResponse.getBody()==null){
+            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
         }
-        throw new PaymentReferenceNotFoundException("Payment Reference  not found");
+        List<PaymentResponse> paymentResponseList = paymentGroupResponse.getBody().getPayments()
+            .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
+            .collect(Collectors.toList());
+        if(paymentResponseList.isEmpty()){
+            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
+        }
     }
+
 
 }
