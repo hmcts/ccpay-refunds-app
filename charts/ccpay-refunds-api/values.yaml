@@ -20,6 +20,7 @@ java:
     S2S_AUTHORISED_SERVICES: payment_app,ccpay_bubble,api_gw,ccd_gw
     IDAM_API_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
     LAUNCH_DARKLY_USER_NAME_PREFIX: '{{ .Values.global.environment }}'
+    PAYMENT_API_URL: "http://payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
   keyVaults:
     "ccpay":
       resourceGroup: ccpay

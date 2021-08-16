@@ -44,10 +44,9 @@ public class PaymentServiceImpl implements PaymentService{
             ResponseEntity<PaymentGroupResponse> paymentGroupResponse = fetchPaymentGroupData(headers,paymentReference);
             if(paymentGroupResponse.getBody()!=null){
                 checkPaymentReference(paymentGroupResponse.getBody(),  paymentReference);
+                return paymentGroupResponse.getBody();
             }
-
-            return paymentGroupResponse.getBody();
-
+            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
         } catch (HttpClientErrorException e){
             if(e.getStatusCode().equals(HttpStatus.NOT_FOUND)){
                 throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
