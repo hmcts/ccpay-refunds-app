@@ -73,7 +73,7 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     private int checkPaymentReference(ResponseEntity<PaymentGroupResponse> paymentGroupResponse, String paymentReference){
-        if(paymentGroupResponse.hasBody() && paymentGroupResponse.getBody().getPayments() !=null){
+        if(paymentGroupResponse.getBody()!=null && paymentGroupResponse.getBody().getPayments() !=null){
             List<PaymentResponse> paymentResponseList = paymentGroupResponse.getBody().getPayments()
                 .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
                 .collect(Collectors.toList());
