@@ -42,7 +42,10 @@ public class PaymentServiceImpl implements PaymentService{
     public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
         try{
             ResponseEntity<PaymentGroupResponse> paymentGroupResponse = fetchPaymentGroupData(headers,paymentReference);
-            checkPaymentReference(paymentGroupResponse,  paymentReference);
+            if(paymentGroupResponse.getBody()!=null){
+                checkPaymentReference(paymentGroupResponse.getBody(),  paymentReference);
+            }
+
             return paymentGroupResponse.getBody();
 
         } catch (HttpClientErrorException e){
@@ -72,11 +75,8 @@ public class PaymentServiceImpl implements PaymentService{
                 getHeadersEntity(headers), PaymentGroupResponse.class);
     }
 
-    private void checkPaymentReference(ResponseEntity<PaymentGroupResponse> paymentGroupResponse, String paymentReference){
-        if(paymentGroupResponse.getBody()==null){
-            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
-        }
-        List<PaymentResponse> paymentResponseList = paymentGroupResponse.getBody().getPayments()
+    private void checkPaymentReference(PaymentGroupResponse paymentGroupResponse, String paymentReference){
+        List<PaymentResponse> paymentResponseList = paymentGroupResponse.getPayments()
             .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
             .collect(Collectors.toList());
         if(paymentResponseList.isEmpty()){
