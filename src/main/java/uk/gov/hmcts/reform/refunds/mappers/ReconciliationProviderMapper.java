@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.refunds.mappers;
 
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.refunds.dtos.PaymentFeeDetailsDto;
+import uk.gov.hmcts.reform.refunds.dtos.PaymentFeeDetailsRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconcilitationProviderFeeRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Component
 public class ReconciliationProviderMapper {
 
-    public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentFeeDetailsDto paymentDto, Refund refund){
+    public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentFeeDetailsRequest paymentDto, Refund refund){
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
             .refundReference(refund.getReference())
             .paymentReference(paymentDto.getPaymentReference())

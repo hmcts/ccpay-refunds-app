@@ -677,6 +677,26 @@ public class RefundControllerTest {
             .build();
     }
 
+
+
+    @Test
+    public void getRejectionReasonsList() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/refund/rejection-reasons")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> rejectionReasonList = mapper.readValue(
+            mvcResult.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
+        );
+        assertEquals(5, rejectionReasonList.size());
+    }
+
     private PaymentGroupResponse getPaymentGroupDto(){
         return  PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
@@ -737,23 +757,4 @@ public class RefundControllerTest {
                     .build()
             )).build();
     }
-
-    @Test
-    public void getRejectionReasonsList() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get("/refund/rejection-reasons")
-                                                  .header("Authorization", "user")
-                                                  .header("ServiceAuthorization", "Services")
-                                                  .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        ObjectMapper mapper = new ObjectMapper();
-        List<String> rejectionReasonList = mapper.readValue(
-            mvcResult.getResponse().getContentAsString(),
-            new TypeReference<>() {
-            }
-        );
-        assertEquals(5, rejectionReasonList.size());
-    }
-
 }

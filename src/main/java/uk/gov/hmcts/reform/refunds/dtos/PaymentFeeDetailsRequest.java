@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PaymentFeeDetailsDto {
+public class PaymentFeeDetailsRequest {
 
     private String paymentReference;
 

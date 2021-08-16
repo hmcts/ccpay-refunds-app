@@ -14,16 +14,12 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.refunds.dtos.PaymentFeeDetailsDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PaymentServiceImpl implements PaymentService{
@@ -38,26 +34,9 @@ public class PaymentServiceImpl implements PaymentService{
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
+
     @Override
-    public PaymentFeeDetailsDto getPaymentData(MultiValueMap<String, String> headers, String paymentReference){
-        ResponseEntity<PaymentGroupResponse> paymentGroupDto = fetchDetailFromPayment(headers, paymentReference);
-        List<PaymentResponse> paymentResponseList = paymentGroupDto.getBody().getPayments()
-            .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
-            .collect(Collectors.toList());
-        if(!paymentResponseList.isEmpty()){
-            return PaymentFeeDetailsDto.paymentFeeDetailsWith()
-                .accountNumber(paymentResponseList.get(0).getAccountNumber())
-                .caseReference(paymentResponseList.get(0).getCaseReference())
-                .ccdCaseNumber(paymentResponseList.get(0).getCcdCaseNumber())
-                .paymentReference(paymentResponseList.get(0).getReference())
-                .fees(paymentGroupDto.getBody().getFees())
-                .build();
-        }
-        throw new PaymentReferenceNotFoundException("Payment Reference "+ paymentReference+ "not found");
-    }
-
-
-    private ResponseEntity<PaymentGroupResponse> fetchDetailFromPayment(MultiValueMap<String, String> headers, String paymentReference) {
+    public ResponseEntity<PaymentGroupResponse> fetchDetailFromPayment(MultiValueMap<String, String> headers, String paymentReference) {
         try{
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
             return restTemplatePayment
