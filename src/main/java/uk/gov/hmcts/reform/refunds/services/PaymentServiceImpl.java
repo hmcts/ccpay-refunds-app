@@ -41,19 +41,11 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
         try{
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
-            ResponseEntity<PaymentGroupResponse> paymentGroupResponse =  restTemplatePayment
-                                                                            .exchange(
-                                                                                builder.toUriString(),
-                                                                                HttpMethod.GET,
-                                                                                getHeadersEntity(headers), PaymentGroupResponse.class);
-            List<PaymentResponse> paymentResponseList = paymentGroupResponse.getBody().getPayments()
-                .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
-                .collect(Collectors.toList());
-            if(!paymentResponseList.isEmpty()){
+            ResponseEntity<PaymentGroupResponse> paymentGroupResponse = fetchPaymentGroupData(headers,paymentReference);
+            if( paymentGroupResponse.getBody().getPayments() !=null){
+                checkPaymentReference(paymentGroupResponse.getBody(),  paymentReference);
                 return paymentGroupResponse.getBody();
             }
-
             throw new PaymentReferenceNotFoundException("Payment Reference "+ paymentReference+ "not found");
 
         } catch (HttpClientErrorException e){
@@ -72,6 +64,24 @@ public class PaymentServiceImpl implements PaymentService{
         inputHeaders.put("Authorization", headers.get("Authorization"));
         inputHeaders.put("ServiceAuthorization", Arrays.asList(authTokenGenerator.generate()));
         return new HttpEntity<>(inputHeaders);
+    }
+
+    private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupData(MultiValueMap<String,String> headers,String paymentReference){
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
+        return  restTemplatePayment
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                getHeadersEntity(headers), PaymentGroupResponse.class);
+    }
+
+    private void checkPaymentReference(PaymentGroupResponse paymentGroupResponse, String paymentReference){
+        List<PaymentResponse> paymentResponseList = paymentGroupResponse.getPayments()
+            .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
+            .collect(Collectors.toList());
+        if(paymentResponseList.isEmpty()){
+            throw new PaymentReferenceNotFoundException("Payment Reference "+ paymentReference+" not found");
+        }
     }
 
 }
