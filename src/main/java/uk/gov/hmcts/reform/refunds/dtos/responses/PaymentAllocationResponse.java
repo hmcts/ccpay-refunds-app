@@ -13,6 +13,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "paymentAllocationDtoWith")
 @AllArgsConstructor
 @Getter
+@NoArgsConstructor
 public class PaymentAllocationResponse {
 
     private String allocationStatus;

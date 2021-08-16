@@ -41,7 +41,7 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
         try{
-            ResponseEntity<PaymentGroupResponse> paymentGroupResponse = fetchPaymentGroupData(headers,paymentReference);
+            ResponseEntity<PaymentGroupResponse> paymentGroupResponse = fetchPaymentGroupDataFromPayhub(headers, paymentReference);
             if(paymentGroupResponse.getBody()!=null){
                 checkPaymentReference(paymentGroupResponse.getBody(),  paymentReference);
                 return paymentGroupResponse.getBody();
@@ -65,7 +65,7 @@ public class PaymentServiceImpl implements PaymentService{
         return new HttpEntity<>(inputHeaders);
     }
 
-    private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupData(MultiValueMap<String,String> headers,String paymentReference){
+    private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
         return  restTemplatePayment
             .exchange(

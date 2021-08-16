@@ -13,6 +13,7 @@ import java.util.List;
 @Builder(builderMethodName = "paymentResponseWith")
 @AllArgsConstructor
 @Getter
+@NoArgsConstructor
 public class PaymentResponse {
 
     private String reference;
