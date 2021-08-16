@@ -12,7 +12,7 @@ import java.util.Date;
 @Builder(builderMethodName = "remissionDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
 public class RemissionResponse {
 
     private String remissionReference;

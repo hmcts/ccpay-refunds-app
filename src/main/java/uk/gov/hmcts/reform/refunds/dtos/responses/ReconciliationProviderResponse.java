@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Builder(builderMethodName = "buildReconciliationProviderResponseWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ReconciliationProviderResponse {
 

@@ -11,8 +11,7 @@ import java.util.List;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Builder(builderMethodName = "paymentGroupDtoWith")
 @AllArgsConstructor
-@NoArgsConstructor
-@Data
+@Getter
 public class PaymentGroupResponse {
 
     private String paymentGroupReference;
