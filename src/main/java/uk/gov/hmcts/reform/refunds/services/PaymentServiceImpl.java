@@ -75,7 +75,7 @@ public class PaymentServiceImpl implements PaymentService{
                 getHeadersEntity(headers), PaymentGroupResponse.class);
     }
 
-    private void checkPaymentReference(ResponseEntity<PaymentGroupResponse> paymentGroupResponse, String paymentReference){
+    private int checkPaymentReference(ResponseEntity<PaymentGroupResponse> paymentGroupResponse, String paymentReference){
         if(paymentGroupResponse.getBody().getPayments() !=null){
             List<PaymentResponse> paymentResponseList = paymentGroupResponse.getBody().getPayments()
                 .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
@@ -83,8 +83,9 @@ public class PaymentServiceImpl implements PaymentService{
             if(paymentResponseList.isEmpty()){
                 throw new PaymentReferenceNotFoundException("Payment Reference  not found");
             }
+            return 0;
         }
-        throw new PaymentReferenceNotFoundException("Payment Reference not found");
+        throw new PaymentReferenceNotFoundException("Payment Reference  not found");
     }
 
 }

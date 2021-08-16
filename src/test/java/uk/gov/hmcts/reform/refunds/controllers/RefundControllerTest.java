@@ -503,7 +503,7 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                .andExpect(status().isNotFound())
                                                .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Payment Reference RC-1628-5241-9956-2315 not found");
+        assertEquals(result.getResponse().getContentAsString(),"Payment Reference not found");
     }
 
     @Test
