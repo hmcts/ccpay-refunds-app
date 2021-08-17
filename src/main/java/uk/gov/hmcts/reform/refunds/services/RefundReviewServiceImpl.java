@@ -33,7 +33,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.refunds.state.RefundState.SUBMITTED;
+import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
 
 @Service
 public class RefundReviewServiceImpl implements  RefundReviewService{
@@ -91,7 +91,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
     }
 
     private void  validateRefundReviewRequest( RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
-        if(Arrays.stream(SUBMITTED.nextValidEvents()).noneMatch(refundEvent1 -> refundEvent1.equals(refundEvent))){
+        if(Arrays.stream(SENTFORAPPROVAL.nextValidEvents()).noneMatch(refundEvent1 -> refundEvent1.equals(refundEvent))){
             throw new InvalidRefundRequestException("Invalid Refund Review Action");
         }
 
@@ -108,7 +108,7 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
             throw new RefundNotFoundException("Refunds not found for "+ reference);
         }
 
-        if(refund.isPresent()&& !(refund.get().getRefundStatus().equals(SUBMITTED.getRefundStatus()))){
+        if(refund.isPresent()&& !(refund.get().getRefundStatus().equals(SENTFORAPPROVAL.getRefundStatus()))){
             throw new InvalidRefundRequestException("Refunds request is in "+ refund.get().getRefundStatus().getName());
         }
 

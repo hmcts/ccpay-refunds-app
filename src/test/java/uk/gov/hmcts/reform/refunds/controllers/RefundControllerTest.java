@@ -58,8 +58,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.ACCEPTED;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
-import static uk.gov.hmcts.reform.refunds.state.RefundState.NEEDMOREINFO;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 
 @ActiveProfiles({"local", "test"})
@@ -87,7 +86,7 @@ public class RefundControllerTest {
         .amount(new BigDecimal(100))
         .paymentReference("RC-1111-2222-3333-4444")
         .reason("test-123")
-        .refundStatus(SUBMITTED)
+        .refundStatus(SENTFORAPPROVAL)
         .reference("RF-1234-1234-1234-1234")
         .build();
     private ObjectMapper mapper = new ObjectMapper();
@@ -232,7 +231,7 @@ public class RefundControllerTest {
             .amount(refundRequest.getRefundAmount())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()).getCode())
-            .refundStatus(SUBMITTED)
+            .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .build();
 
@@ -292,7 +291,7 @@ public class RefundControllerTest {
                             .accept(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$", hasSize(3)))
             .andExpect(jsonPath("$.[0].code").value("Approve"))
-            .andExpect(jsonPath("$.[0].label").value("Refund request will be approved"))
+            .andExpect(jsonPath("$.[0].label").value("Send to middle office"))
             .andExpect(jsonPath("$.[1].code").value("Reject"))
             .andExpect(jsonPath("$.[2].code").value("Return to caseworker"));
     }
@@ -307,7 +306,7 @@ public class RefundControllerTest {
                             .accept(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$", hasSize(2)))
             .andExpect(jsonPath("$.[0].code").value("Submit"))
-            .andExpect(jsonPath("$.[0].label").value("Refund request will be submitted"))
+            .andExpect(jsonPath("$.[0].label").value("Send for approval"))
             .andExpect(jsonPath("$.[1].code").value("Cancel"));
     }
 

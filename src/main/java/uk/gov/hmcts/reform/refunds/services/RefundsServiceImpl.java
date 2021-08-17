@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
@@ -59,10 +59,10 @@ public class RefundsServiceImpl implements RefundsService {
 
     private RefundState getRefundState(String status) {
         switch (status) {
-            case "submitted":
-                return RefundState.SUBMITTED;
-            case "sent to liberata":
-                return RefundState.SENTTOLIBERATA;
+            case "sent for approval":
+                return RefundState.SENTFORAPPROVAL;
+            case "sent to middle office":
+                return RefundState.SENTTOMIDDLEOFFICE;
             case "sent back":
                 return RefundState.NEEDMOREINFO;
             case "accepted":
@@ -161,7 +161,7 @@ public class RefundsServiceImpl implements RefundsService {
             .amount(refundRequest.getRefundAmount())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundRequest.getRefundReason())
-            .refundStatus(SUBMITTED)
+            .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .createdBy(uid)
             .updatedBy(uid)
@@ -169,7 +169,7 @@ public class RefundsServiceImpl implements RefundsService {
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
                                   .notes("Refund initiated")
-                                  .status(SUBMITTED.getName())
+                                  .status(SENTFORAPPROVAL.getName())
                                   .build()
                 )
             )
