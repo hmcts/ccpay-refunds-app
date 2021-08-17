@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -25,15 +26,14 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     @Value("${reconciliation-provider.refund-status-update-path}")
     private String refundStatusUpdatePath;
 
-    @Qualifier("restTemplatePayment")
     @Autowired
-    private RestTemplate restTemplatePayment;
+    private OAuth2RestOperations restTemplate;
 
     @Override
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest){
         try{
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
-            return restTemplatePayment.exchange(
+            return restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 new HttpEntity<>(reconciliationProviderRequest, headers), ReconciliationProviderResponse.class
