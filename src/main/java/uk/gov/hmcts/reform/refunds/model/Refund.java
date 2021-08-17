@@ -21,6 +21,9 @@ public class Refund {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ccd_case_number")
+    private String ccdCaseNumber;
+
     @Column(name = "amount")
     private BigDecimal amount;
 

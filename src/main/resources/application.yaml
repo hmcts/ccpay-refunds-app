@@ -89,7 +89,7 @@ security:
 trusted:
   s2s:
     service:
-      names: ccpay_bubble,cmc,bulk_scan_payment_processor,api_gw,probate_frontend,divorce_frontend,ccd_gw,payment_app
+      names:  ccpay_bubble,internal,payment_app,refunds_api
 auth:
   idam:
     client:
@@ -129,15 +129,6 @@ launchDarkly:
   connectionTimeout: 3
   socketTimeout: 3
   flushInterval: 10
-
-payments:
-  api:
-    url: http://localhost:8095
-
-liberata:
-  api:
-    url: http://localhost:8096
-
 
 
 

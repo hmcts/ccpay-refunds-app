@@ -5,8 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.state.RefundEvent;
-
 
 public interface RefundsService {
 
@@ -14,5 +12,9 @@ public interface RefundsService {
 
     RefundEvent[] retrieveActions(String reference);
 
+    Refund getRefundForReference(String reference);
+
     HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest);
+
+    List<String> getRejectedReasons();
 }

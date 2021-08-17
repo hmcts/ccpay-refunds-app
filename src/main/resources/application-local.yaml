@@ -1,5 +1,5 @@
 server:
-  port: 8093
+  port: 8084
 spring:
   application:
     name: refunds-api
@@ -53,11 +53,11 @@ idam:
   api:
     url: ${IDAM_API_URL:http://localhost:5000}
   s2s-authorised:
-    services: ccpay_bubble,internal,payment_app
+    services: ccpay_bubble,internal,payment_app,refunds_api
   s2s-auth:
     url: http://localhost:8085
     totp_secret: AAAAAAAAAAAAAAAA
-    microservice: divorce
+    microservice: payment_app
 
 #Launch Darkly Config
 launch:
@@ -74,8 +74,10 @@ launchDarkly:
 
 payments:
   api:
-    url: http://localhost:8095
+    url: ${PAYMENT_API_URL:http://localhost:8095}
 
-liberata:
+reconciliation-provider:
   api:
     url: http://localhost:8096
+  refund-status-update-path: /api/v3/refund
+

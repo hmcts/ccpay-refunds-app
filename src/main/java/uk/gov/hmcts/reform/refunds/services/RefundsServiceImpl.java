@@ -11,13 +11,12 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.state.RefundEvent;
-import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
@@ -84,6 +83,15 @@ public class RefundsServiceImpl implements RefundsService {
             .build();
     }
 
+    @Override
+    public Refund getRefundForReference(String reference){
+        Optional<Refund> refund = refundsRepository.findByReference(reference);
+        if(refund.isPresent()){
+            return  refund.get();
+        }
+        throw new RefundNotFoundException("Refunds not found for "+ reference);
+    }
+
 
     @Override
     public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
@@ -121,16 +129,11 @@ public class RefundsServiceImpl implements RefundsService {
 //        }
 
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-        BigDecimal refundedHistoryAmount = refundsList.isPresent() ?
-            refundsList.get().stream().map(Refund::getAmount).reduce(
-                BigDecimal.ZERO,
-                BigDecimal::add
-            ) : BigDecimal.ZERO;
-        BigDecimal totalRefundedAmount = refundedHistoryAmount.add(refundRequest.getRefundAmount());
+        long refundProcessingCount = refundsList.isPresent() ? refundsList.get().stream().map(refund -> STATUSPATTERN.matcher(
+            refund.getRefundStatus().getName()).find()).count() : 0;
 
-        if (refundRequest.getRefundAmount() != null &&
-            isPaidAmountLessThanRefundRequestAmount(totalRefundedAmount, refundRequest.getRefundAmount())) {
-            throw new InvalidRefundRequestException("Paid Amount is less than requested Refund Amount");
+        if (refundProcessingCount > 0) {
+            throw new InvalidRefundRequestException("Refund is already processed/ in progress");
         }
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
@@ -159,6 +162,7 @@ public class RefundsServiceImpl implements RefundsService {
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
+            .ccdCaseNumber(refundRequest.getCcdCaseNumber())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundRequest.getRefundReason())
             .refundStatus(SENTFORAPPROVAL)

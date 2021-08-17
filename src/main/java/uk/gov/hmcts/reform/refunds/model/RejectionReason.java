@@ -14,6 +14,7 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @Getter
 @Table(name = "rejection_reasons")
+@Builder(builderMethodName = "rejectionReasonWith")
 public class RejectionReason {
     @Id
     @Column(name = "code")

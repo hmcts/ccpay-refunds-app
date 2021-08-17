@@ -47,3 +47,13 @@ databaseChangeLog:
         - dropColumn:
             columnName: refunds_id
             tableName: refunds
+
+  - changeSet:
+      id: 100001-4
+      author: vignesh
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE refunds ADD COLUMN ccd_case_number varchar(255);

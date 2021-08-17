@@ -14,18 +14,16 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.*;
+import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
-import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
 import java.util.List;
-import java.util.Map;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -80,6 +78,11 @@ public class RefundsController {
 //        return refundsService.reSubmitRefund(headers, reference, refundRequest);
 //    }
 
+    @GetMapping("/refund/rejection-reasons")
+    public ResponseEntity<List<String>> getRejectedReasons() {
+        return ok().body(refundsService.getRejectedReasons());
+    }
+
     @ApiOperation(value = "PATCH refund/{reference}/action/{reviewer-action} ", notes = "Review Refund Request")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Ok"),
@@ -94,35 +97,29 @@ public class RefundsController {
     @PatchMapping("/refund/{reference}/action/{reviewer-action}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> reviewRefund(
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @PathVariable(value = "reference", required = true) String reference,
-        @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
-        @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+                                   @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                   @PathVariable(value = "reference", required = true) String reference,
+                                   @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+                                   @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 
 
-    @GetMapping("/refunds/{reference}/actions")
-    public ResponseEntity<RefundEvent[]> retrieveActions(
-        @PathVariable(value = "reference", required = true) String reference) {
-        return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
-
-    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({PaymentInvalidRequestException.class, LiberataInvalidRequestException.class, InvalidRefundRequestException.class})
+    @ExceptionHandler({PaymentInvalidRequestException.class, ReconciliationProviderInvalidRequestException.class,InvalidRefundRequestException.class,InvalidRefundReviewRequestException.class})
     public String return400(Exception ex) {
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({RefundNotFoundException.class, PaymentReferenceNotFoundException.class, ActionNotFoundException.class})
+    @ExceptionHandler({RefundNotFoundException.class,PaymentReferenceNotFoundException.class})
     public String return404(Exception ex) {
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({PaymentServerException.class, LiberataServerException.class, CheckDigitException.class})
+    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class,CheckDigitException.class})
     public String return500(Exception ex) {
         return ex.getMessage();
     }
@@ -132,5 +129,6 @@ public class RefundsController {
     public String return500(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
+
 
 }
