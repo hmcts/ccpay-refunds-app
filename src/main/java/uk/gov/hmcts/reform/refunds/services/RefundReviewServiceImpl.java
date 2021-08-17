@@ -17,13 +17,16 @@ import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
+import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.util.*;
 
-import static uk.gov.hmcts.reform.refunds.state.RefundState.SUBMITTED;
+import java.util.ArrayList;
+import java.util.List;
+
+import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
 
 @Service
-public class RefundReviewServiceImpl implements  RefundReviewService{
+public class RefundReviewServiceImpl extends StateUtil implements RefundReviewService {
 
     @Autowired
     private IdamService idamService;
@@ -60,27 +63,34 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
                                 .build());
         refundForGivenReference.setStatusHistories(statusHistories);
 
-        if(refundEvent.equals(RefundEvent.APPROVE)){
-                PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(headers, refundForGivenReference.getPaymentReference());
-                ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(paymentData, refundForGivenReference);
-                ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService.updateReconciliationProviderWithApprovedRefund(headers,
-                                                                                                                                                               reconciliationProviderRequest
-                );
-                if(reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()){
-                    updateRefundStatus(refundForGivenReference, refundEvent);
-                }
+        if (refundEvent.equals(RefundEvent.APPROVE)) {
+            PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
+                headers,
+                refundForGivenReference.getPaymentReference()
+            );
+            ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(
+                paymentData,
+                refundForGivenReference
+            );
+            ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService.updateReconciliationProviderWithApprovedRefund(
+                headers,
+                reconciliationProviderRequest
+            );
+            if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
+                updateRefundStatus(refundForGivenReference, refundEvent);
+            }
         }
 
-        if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
+        if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.SENDBACK)) {
             updateRefundStatus(refundForGivenReference, refundEvent);
         }
         return new ResponseEntity<>("Refund request reviewed successfully", HttpStatus.CREATED);
     }
 
-    private Refund validatedAndGetRefundForGivenReference(String reference){
+    private Refund validatedAndGetRefundForGivenReference(String reference) {
         Refund refund = refundsService.getRefundForReference(reference);
 
-        if(!refund.getRefundStatus().equals(SUBMITTED.getRefundStatus())){
+        if (!refund.getRefundStatus().equals(SENTFORAPPROVAL.getRefundStatus())) {
             throw new InvalidRefundReviewRequestException("Refund is not submitted");
         }
         return refund;
@@ -88,13 +98,11 @@ public class RefundReviewServiceImpl implements  RefundReviewService{
 
     /**
      * @param refund
-     * @param refundEvent
-     *
-     * updates the refund status in database using state transition mechanism.
+     * @param refundEvent updates the refund status in database using state transition mechanism.
      * @return
      */
     private Refund updateRefundStatus(Refund refund, RefundEvent refundEvent) {
-        RefundState updateStatusAfterAction = RefundState.valueOf(refund.getRefundStatus().getName().toUpperCase(Locale.getDefault()));
+        RefundState updateStatusAfterAction = getRefundState(refund.getRefundStatus().getName());
         // State transition logic
         RefundState newState = updateStatusAfterAction.nextState(refundEvent);
         refund.setRefundStatus(newState.getRefundStatus());

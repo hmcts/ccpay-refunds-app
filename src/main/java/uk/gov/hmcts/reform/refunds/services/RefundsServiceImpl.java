@@ -17,28 +17,38 @@ import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
+import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
-public class RefundsServiceImpl implements RefundsService {
+public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     private static final Pattern REASONPATTERN = Pattern.compile("(^RR004-[a-zA-Z]+)|(RR004$)");
 
+    private static final Pattern STATUSPATTERN = Pattern.compile("[^rejected]");
+
     private static int reasonPrefixLength = 6;
 
     @Autowired
     private RefundsRepository refundsRepository;
+
+    @Autowired
+    private RejectionReasonRepository rejectionReasonRepository;
 
     @Autowired
     private ReferenceUtil referenceUtil;
@@ -50,25 +60,10 @@ public class RefundsServiceImpl implements RefundsService {
     private RefundReasonRepository refundReasonRepository;
 
     @Override
-    public RefundEvent[] retrieveActions(String reference) {
+    public RefundEvent[] retrieveActions(String reference) throws ActionNotFoundException {
         Refund refund = refundsRepository.findByCodeOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         return currentRefundState.nextValidEvents();
-    }
-
-    private RefundState getRefundState(String status) {
-        switch (status) {
-            case "sent for approval":
-                return RefundState.SENTFORAPPROVAL;
-            case "sent to middle office":
-                return RefundState.SENTTOMIDDLEOFFICE;
-            case "sent back":
-                return RefundState.NEEDMOREINFO;
-            case "accepted":
-            case "rejected":
-                throw new ActionNotFoundException("No actions to proceed further");
-        }
-        return null;
     }
 
     @Override
@@ -84,12 +79,12 @@ public class RefundsServiceImpl implements RefundsService {
     }
 
     @Override
-    public Refund getRefundForReference(String reference){
+    public Refund getRefundForReference(String reference) {
         Optional<Refund> refund = refundsRepository.findByReference(reference);
-        if(refund.isPresent()){
-            return  refund.get();
+        if (refund.isPresent()) {
+            return refund.get();
         }
-        throw new RefundNotFoundException("Refunds not found for "+ reference);
+        throw new RefundNotFoundException("Refunds not found for " + reference);
     }
 
 
@@ -120,6 +115,13 @@ public class RefundsServiceImpl implements RefundsService {
 //        }
         return HttpStatus.ACCEPTED;
 
+    }
+
+    @Override
+    public List<String> getRejectedReasons() {
+        // Getting names from Rejection Reasons List object
+        return rejectionReasonRepository.findAll().stream().map(r -> r.getName())
+            .collect(Collectors.toList());
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {

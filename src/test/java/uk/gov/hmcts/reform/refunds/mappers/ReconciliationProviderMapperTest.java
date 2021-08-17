@@ -21,7 +21,7 @@ import java.util.Date;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "test"})
@@ -32,25 +32,25 @@ public class ReconciliationProviderMapperTest {
     private ReconciliationProviderMapper reconciliationProviderMapper;
 
     @Test
-    public void testGetReconciliationProviderRequest(){
+    public void testGetReconciliationProviderRequest() {
         ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper
-            .getReconciliationProviderRequest(getPaymentGroupDto(),getRefund());
-        assertEquals("PBAFUNC1234",reconciliationProviderRequest.getAccountNumber());
-        assertEquals("RF-1628-5241-9956-2215",reconciliationProviderRequest.getRefundReference());
-        assertEquals("RC-1628-5241-9956-2315",reconciliationProviderRequest.getPaymentReference());
+            .getReconciliationProviderRequest(getPaymentGroupDto(), getRefund());
+        assertEquals("PBAFUNC1234", reconciliationProviderRequest.getAccountNumber());
+        assertEquals("RF-1628-5241-9956-2215", reconciliationProviderRequest.getRefundReference());
+        assertEquals("RC-1628-5241-9956-2315", reconciliationProviderRequest.getPaymentReference());
         assertNotNull(reconciliationProviderRequest.getDateCreated());
         assertNotNull(reconciliationProviderRequest.getDateUpdated());
-        assertEquals("RR0001",reconciliationProviderRequest.getRefundReason());
-        assertEquals(BigDecimal.valueOf(100),reconciliationProviderRequest.getTotalRefundAmount());
-        assertEquals("case-reference",reconciliationProviderRequest.getCaseReference());
-        assertEquals("ccd-case-number",reconciliationProviderRequest.getCcdCaseNumber());
-        assertEquals("FEE012",reconciliationProviderRequest.getFees().get(0).getCode());
-        assertEquals("1",reconciliationProviderRequest.getFees().get(0).getVersion());
-        assertEquals(BigDecimal.valueOf(100),reconciliationProviderRequest.getFees().get(0).getRefundAmount());
+        assertEquals("RR0001", reconciliationProviderRequest.getRefundReason());
+        assertEquals(BigDecimal.valueOf(100), reconciliationProviderRequest.getTotalRefundAmount());
+        assertEquals("case-reference", reconciliationProviderRequest.getCaseReference());
+        assertEquals("ccd-case-number", reconciliationProviderRequest.getCcdCaseNumber());
+        assertEquals("FEE012", reconciliationProviderRequest.getFees().get(0).getCode());
+        assertEquals("1", reconciliationProviderRequest.getFees().get(0).getVersion());
+        assertEquals(BigDecimal.valueOf(100), reconciliationProviderRequest.getFees().get(0).getRefundAmount());
     }
 
-    private PaymentGroupResponse getPaymentGroupDto(){
-        return  PaymentGroupResponse.paymentGroupDtoWith()
+    private PaymentGroupResponse getPaymentGroupDto() {
+        return PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
             .dateCreated(Date.from(Instant.now()))
             .dateUpdated(Date.from(Instant.now()))
@@ -117,8 +117,8 @@ public class ReconciliationProviderMapperTest {
             )).build();
     }
 
-    private Refund getRefund(){
-        return  Refund.refundsWith()
+    private Refund getRefund() {
+        return Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
             .reason("RR0001")
@@ -126,12 +126,12 @@ public class ReconciliationProviderMapperTest {
             .paymentReference("RC-1628-5241-9956-2315")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .refundStatus(SUBMITTED)
+            .refundStatus(SENTFORAPPROVAL)
             .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
-                                               .status("submitted")
+                                               .status(SENTFORAPPROVAL.getName())
                                                .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
                                                .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
                                                .notes("Refund Initiated")

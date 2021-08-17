@@ -15,7 +15,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-public class RefundStateTest {
+public class RefundStateUtilTest {
 
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;

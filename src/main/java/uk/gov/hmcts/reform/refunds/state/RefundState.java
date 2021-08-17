@@ -123,4 +123,6 @@ public enum RefundState {
     public abstract RefundEvent[] nextValidEvents();
 
     public abstract RefundState nextState(RefundEvent refundEvent);
+
+    public abstract RefundStatus getRefundStatus();
 }

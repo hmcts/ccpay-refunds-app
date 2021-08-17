@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
