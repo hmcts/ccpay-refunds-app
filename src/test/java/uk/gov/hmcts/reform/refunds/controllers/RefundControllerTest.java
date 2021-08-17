@@ -237,7 +237,7 @@ public class RefundControllerTest {
             .andReturn();
 
         String ErrorMessage = result.getResponse().getContentAsString();
-        assertTrue(ErrorMessage.equals("Refund is already processed/ in progress"));
+        assertTrue(ErrorMessage.equals("Refund is already processed for this payment"));
     }
 
 
