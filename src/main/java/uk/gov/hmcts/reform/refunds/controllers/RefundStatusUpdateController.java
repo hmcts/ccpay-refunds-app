@@ -29,7 +29,7 @@ public class RefundStatusUpdateController {
 
     @ApiOperation(value = "Update refund status by refund reference", notes = "Update refund status by refund reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "No content"),
+        @ApiResponse(code = 204, message = "No content"),
         @ApiResponse(code = 404, message = "Refund details not found")
     })
     @PatchMapping("/refund/{reference}")
