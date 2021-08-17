@@ -38,7 +38,7 @@ public class ReconciliationProviderMapper {
     private ReconcilitationProviderFeeRequest feeDtoMapToReconcilitationProviderFeeRequest(PaymentFeeResponse paymentFeeResponse){
         return ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
             .code(paymentFeeResponse.getCode())
-            .refundAmount(paymentFeeResponse.getFeeAmount())
+            .refundAmount(paymentFeeResponse.getCalculatedAmount())
             .version(paymentFeeResponse.getVersion())
             .build();
     }
