@@ -1,37 +1,36 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-@RunWith(SpringRunner.class)
+@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RootControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    MockMvc mockMvc;
 
     @MockBean
     private RefundsRepository refundsRepository;
@@ -42,35 +41,55 @@ public class RootControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
 
     @Test
-    public void should_return_welcome_message_with_feature_enabled() throws Exception {
+    void should_return_welcome_message_with_feature_enabled() throws Exception {
+        log.info("Test : should_return_welcome_message_with_feature_enabled() has started");
         when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(true);
         ResultActions resultActions = mockMvc.perform(get("/refundstest")
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
-        Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
+        assertEquals(200, resultActions.andReturn().getResponse().getStatus());
         assertEquals("Welcome to refunds with feature enabled", resultActions.andReturn().getResponse().getContentAsString());
+        log.info("Test : should_return_welcome_message_with_feature_enabled() has completed");
     }
 
     @Test
-    public void should_return_welcome_message_with_feature_false() throws Exception {
-        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(false);
+    void should_return_welcome_message_with_feature_false() throws Exception {
+        when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(false);
         ResultActions resultActions = mockMvc.perform(get("/refundstest")
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
-        Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
-        assertEquals(
-            "Welcome to refunds with feature false",
-            resultActions.andReturn().getResponse().getContentAsString()
-        );
+        assertEquals(200, resultActions.andReturn().getResponse().getStatus());
+        assertEquals("Welcome to refunds with feature false", resultActions.andReturn().getResponse().getContentAsString());
     }
 
+   /* @Test
+    public void should_return_RefundId() throws Exception {
+        Timestamp dateInstant = Timestamp.from(Instant.now());
+        when(refundsRepository.save(Mockito.any(Refund.class))).thenReturn(Refund.refundsWith()
+                                                                               .id(1)
+                                                                               .refundsId("refund-id")
+                                                                               .dateCreated(dateInstant)
+                                                                               .dateUpdated(dateInstant)
+                                                                               .build());
+        ResultActions resultActions = mockMvc.perform(post("/refunds")
+                                                          .header("Authorization", "user")
+                                                          .header("ServiceAuthorization", "service")
+                                                          .accept(MediaType.APPLICATION_JSON));
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        Refund refund = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsString(),Refund.class);
+        assertEquals(Integer.valueOf(1), refund.getId());
+        assertNotNull( refund.getDateCreated());
+        assertNotNull(refund.getDateUpdated());
+        assertEquals("refund-id",refund.getRefundsId());
+    }*/
 }

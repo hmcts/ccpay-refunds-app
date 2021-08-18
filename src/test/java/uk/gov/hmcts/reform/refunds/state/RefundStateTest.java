@@ -1,15 +1,12 @@
 package uk.gov.hmcts.reform.refunds.state;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
-@RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
 public class RefundStateTest {

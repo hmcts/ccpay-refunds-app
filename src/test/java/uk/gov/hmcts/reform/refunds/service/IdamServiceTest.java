@@ -1,18 +1,16 @@
 package uk.gov.hmcts.reform.refunds.service;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -27,13 +25,13 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
-@RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
 public class IdamServiceTest {
@@ -46,7 +44,7 @@ public class IdamServiceTest {
     private RestTemplate restTemplateIdam;
 
     @Test
-    public void getResponseOnValidToken() throws Exception {
+    void getResponseOnValidToken() throws Exception {
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
@@ -70,8 +68,8 @@ public class IdamServiceTest {
         assertEquals(idamUserIdResponse, mockIdamUserIdResponse.getUid());
     }
 
-    @Test(expected = UserNotFoundException.class)
-    public void getExceptionOnInvalidToken() throws Exception {
+    @Test
+    void getExceptionOnInvalidToken() throws Exception {
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
@@ -80,11 +78,13 @@ public class IdamServiceTest {
                                        eq(IdamUserIdResponse.class)
         )).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND, "user not found"));
 
-        idamService.getUserId(header);
+        assertThrows(UserNotFoundException.class,() -> {
+            idamService.getUserId(header);
+        });
     }
 
-    @Test(expected = UserNotFoundException.class)
-    public void getExceptionOnTokenReturnsNullResponse() throws Exception {
+    @Test
+    void getExceptionOnTokenReturnsNullResponse() throws Exception {
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
@@ -94,12 +94,13 @@ public class IdamServiceTest {
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
-
-        idamService.getUserId(header);
+        assertThrows(UserNotFoundException.class,() -> {
+            idamService.getUserId(header);
+        });
     }
 
-    @Test(expected = GatewayTimeoutException.class)
-    public void getExceptionOnValidToken() throws Exception {
+    @Test
+    void getExceptionOnValidToken() throws Exception {
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
@@ -107,12 +108,13 @@ public class IdamServiceTest {
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                                        eq(IdamUserIdResponse.class)
         )).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT, "Gateway timeout"));
-
-        idamService.getUserId(header);
+        assertThrows(GatewayTimeoutException.class,() -> {
+            idamService.getUserId(header);
+        });
     }
 
     @Test
-    public void validateResponseDto() throws Exception{
+    void validateResponseDto() throws Exception{
         IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
             .familyName("VP")
             .givenName("VP")
