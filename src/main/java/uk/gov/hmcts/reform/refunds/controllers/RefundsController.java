@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
@@ -85,9 +86,15 @@ public class RefundsController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(UserNotFoundException.class)
+    public String return500(UserNotFoundException ex) {
+        return ex.getMessage();
+    }
+
     @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
     @ExceptionHandler(GatewayTimeoutException.class)
-    public String return500(GatewayTimeoutException ex) {
+    public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
 
