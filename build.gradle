@@ -252,6 +252,7 @@ dependencies {
   compileOnly 'org.projectlombok:lombok'
   annotationProcessor 'org.projectlombok:lombok'
 
+  testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.3.0'
   testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.15.1'
   testCompile group: 'org.springframework.security', name: 'spring-security-test', version: '5.2.1.RELEASE'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
