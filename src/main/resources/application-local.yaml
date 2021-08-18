@@ -78,7 +78,7 @@ payments:
 
 reconciliation-provider:
   api:
-    url: http://localhost:8096
+    url: ${LIBERATA_BASE_URL:https://bpacustomerportal.liberata.com/pba/public}
   refund-status-update-path: /api/v3/refund
 liberata:
   oauth2:

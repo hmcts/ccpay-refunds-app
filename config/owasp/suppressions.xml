@@ -8,4 +8,9 @@
     <cpe>cpe:/a:pivotal_software:spring_security</cpe>
     <cve>CVE-2018-1258</cve>
   </suppress>
+
+  <suppress>
+    <notes> Suppressing this CVE as it occurs even in the latest version of lang-tag-1.5</notes>
+    <cve>CVE-2020-23171</cve>
+  </suppress>
 </suppressions>
