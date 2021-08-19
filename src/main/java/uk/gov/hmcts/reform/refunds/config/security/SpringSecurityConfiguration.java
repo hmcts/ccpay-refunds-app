@@ -38,7 +38,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 
 @EnableWebSecurity
-@Configuration
 public class SpringSecurityConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
@@ -91,6 +90,7 @@ public class SpringSecurityConfiguration {
                     .logout().disable()
                     .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/refundstest")
+                    .antMatchers(HttpMethod.GET, "/refund/reasons")
                     .and()
                     .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
                     .authenticationEntryPoint(refundsAuthenticationEntryPoint);
@@ -141,18 +141,19 @@ public class SpringSecurityConfiguration {
 
         @Override
         public void configure(WebSecurity web) {
-            web.ignoring().antMatchers("/swagger-ui.html",
-                                       "/webjars/springfox-swagger-ui/**",
-                                       "/swagger-resources/**",
-                                       "/v2/**",
-                                       "/refdata/**",
-                                       "/health",
-                                       "/health/liveness",
-                                       "/health/readiness",
-                                       "/info",
-                                       "/favicon.ico",
-                                       "/mock-api/**",
-                                       "/");
+            web.ignoring().antMatchers(
+                "/swagger-ui.html",
+                "/webjars/springfox-swagger-ui/**",
+                "/swagger-resources/**",
+                "/v2/**",
+                "/refdata/**",
+                "/health",
+                "/health/liveness",
+                "/health/readiness",
+                "/info",
+                "/favicon.ico",
+                "/mock-api/**"
+            );
         }
 
         @Override
@@ -167,7 +168,7 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/refunds").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
+                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()

@@ -20,3 +20,24 @@ databaseChangeLog:
               - column:
                   name: description
                   type: varchar(255)
+  - changeSet:
+      id: 100003-1
+      author: Vignesh
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_reasons (code, name, description)
+                VALUES
+                  ('RR001', 'Duplicate Payment', 'Refund for duplicate payment'),
+                  ('RR002', 'Human Error', 'Refund request for human error scenario'),
+                  ('RR003', 'Case Withdrawn', 'Refund request when case has been withdrawn'),
+                  ('RR004', 'Other', 'Any other refund reason category');
+#  - changeSet:
+#      id: 100003-2
+#      author: Vignesh
+#      changes:
+#        - sql:
+#            splitStatements: true
+#            sql: >
+#              DELETE FROM refund_reasons WHERE code = 'RR004';

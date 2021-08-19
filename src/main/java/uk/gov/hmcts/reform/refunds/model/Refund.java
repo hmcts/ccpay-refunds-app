@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.model;
 
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -17,16 +18,19 @@ import java.util.List;
 @Data
 @Table(name = "refunds")
 public class Refund {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ccd_case_number")
+    private String ccdCaseNumber;
+
     @Column(name = "amount")
     private BigDecimal amount;
 
-    @ManyToOne
     @JoinColumn(name = "reason")
-    private RefundReason reason;
+    private String reason;
 
     @ManyToOne
     @JoinColumn(name = "refund_status")
@@ -38,7 +42,7 @@ public class Refund {
     @Column(name = "payment_reference")
     private String paymentReference;
 
-    @UpdateTimestamp
+    @CreationTimestamp
     @Column(name = "date_created")
     private Timestamp dateCreated;
 
@@ -54,7 +58,7 @@ public class Refund {
 
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "refund_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
 

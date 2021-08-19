@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.refunds.exceptions;
 
-public class InvalidRefundRequestException extends RuntimeException {
+import java.io.Serializable;
 
-    public InvalidRefundRequestException() {
-    }
+public class InvalidRefundRequestException extends RuntimeException implements Serializable {
 
+    public static final long serialVersionUID = 413287432;
     public InvalidRefundRequestException(String message) {
         super(message);
     }

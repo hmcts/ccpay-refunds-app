@@ -11,5 +11,7 @@ import java.util.Optional;
 @Repository
 public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaSpecificationExecutor<Refund> {
     Optional<List<Refund>> findByPaymentReference(String paymentReference);
+
+    Optional<Refund> findByReference(String reference);
     Refund findByReference(String reference);
 }

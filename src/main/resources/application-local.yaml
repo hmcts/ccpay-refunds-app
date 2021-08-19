@@ -35,7 +35,7 @@ spring:
             client-id: internal
             client-secret: internal
 oidc:
-  audience-list: internal,paybubble,refunds
+  audience-list: internal,paybubble,refunds,payments
   issuer: ${OIDC_ISSUER:http://fr-am:8080/openam/oauth2/hmcts}
 
 auth:
@@ -53,7 +53,7 @@ idam:
   api:
     url: ${IDAM_API_URL:http://localhost:5000}
   s2s-authorised:
-    services: ccpay_bubble, cmc, bulk_scan_payment_processor, api_gw, probate_frontend, divorce_frontend, ccd_gw,internal,divorce
+    services: ccpay_bubble,internal,payment_app
   s2s-auth:
     url: http://localhost:8085
     totp_secret: AAAAAAAAAAAAAAAA
