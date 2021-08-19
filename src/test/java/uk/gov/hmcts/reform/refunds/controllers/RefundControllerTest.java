@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +62,10 @@ import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 
+@SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = MOCK)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RefundControllerTest {
 
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
@@ -142,7 +143,7 @@ public class RefundControllerTest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         mockMvc = webAppContextSetup(webApplicationContext).build();
     }
@@ -260,7 +261,7 @@ public class RefundControllerTest {
             .andReturn();
 
         String ErrorMessage = result.getResponse().getContentAsString();
-        assertTrue(ErrorMessage.equals("Refund is already processed/ in progress"));
+        assertTrue(ErrorMessage.equals("Refund is already processed for this payment"));
     }
 
 

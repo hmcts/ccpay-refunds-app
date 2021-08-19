@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotEmpty;
@@ -22,7 +25,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "feeDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode
+@SuppressWarnings("PMD.TooManyFields")
 public class FeeDto {
 
     private Integer id;

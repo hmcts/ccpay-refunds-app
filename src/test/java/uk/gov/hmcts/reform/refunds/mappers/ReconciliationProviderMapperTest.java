@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
-@RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
 public class ReconciliationProviderMapperTest {

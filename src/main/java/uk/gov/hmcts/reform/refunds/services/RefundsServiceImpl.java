@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -23,7 +22,6 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +58,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private RefundReasonRepository refundReasonRepository;
 
     @Override
-    public RefundEvent[] retrieveActions(String reference) throws ActionNotFoundException {
+    public RefundEvent[] retrieveActions(String reference) {
         Refund refund = refundsRepository.findByCodeOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         return currentRefundState.nextValidEvents();
@@ -150,10 +148,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundRequest.setRefundReason(refundReason.getCode());
         }
 
-    }
-
-    private boolean isPaidAmountLessThanRefundRequestAmount(BigDecimal refundsAmount, BigDecimal paidAmount) {
-        return paidAmount.compareTo(refundsAmount) < 0;
     }
 //
 //    private boolean isRefundEligibilityFlagged() {

@@ -20,8 +20,6 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.util.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +66,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                                 .build());
         refundForGivenReference.setStatusHistories(statusHistories);
 
-        if(refundEvent.equals(RefundEvent.APPROVE)) {
+        if (refundEvent.equals(RefundEvent.APPROVE)) {
             boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
             if (isRefundLiberata) {
                 PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
@@ -91,13 +89,13 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             }
         }
 
-        if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
+        if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.SENDBACK)) {
             updateRefundStatus(refundForGivenReference, refundEvent);
         }
         return new ResponseEntity<>("Refund request reviewed successfully", HttpStatus.CREATED);
     }
 
-    private Refund validatedAndGetRefundForGivenReference(String reference){
+    private Refund validatedAndGetRefundForGivenReference(String reference) {
         Refund refund = refundsService.getRefundForReference(reference);
 
         if (!refund.getRefundStatus().equals(SENTFORAPPROVAL.getRefundStatus())) {
@@ -108,13 +106,11 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
     /**
      * @param refund
-     * @param refundEvent
-     *
-     * updates the refund status in database using state transition mechanism.
+     * @param refundEvent updates the refund status in database using state transition mechanism.
      * @return
      */
     private Refund updateRefundStatus(Refund refund, RefundEvent refundEvent) {
-        RefundState updateStatusAfterAction = RefundState.valueOf(refund.getRefundStatus().getName().toUpperCase(Locale.getDefault()));
+        RefundState updateStatusAfterAction = getRefundState(refund.getRefundStatus().getName());
         // State transition logic
         RefundState newState = updateStatusAfterAction.nextState(refundEvent);
         refund.setRefundStatus(newState.getRefundStatus());
