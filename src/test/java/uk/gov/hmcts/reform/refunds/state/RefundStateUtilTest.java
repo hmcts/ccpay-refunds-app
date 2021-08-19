@@ -33,7 +33,7 @@ public class RefundStateUtilTest {
     public void NextStateForApprove() throws Exception {
 
         RefundState refundState = RefundState.SENTTOMIDDLEOFFICE;
-        assertEquals(refundState.nextState(RefundEvent.CANCEL), RefundState.REJECTED);
+        assertEquals(refundState.nextState(RefundEvent.REJECT), RefundState.REJECTED);
         assertEquals(refundState.nextState(RefundEvent.ACCEPT), RefundState.ACCEPTED);
     }
 
