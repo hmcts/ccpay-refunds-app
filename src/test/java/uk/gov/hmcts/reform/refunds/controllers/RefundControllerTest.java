@@ -17,6 +17,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,6 +29,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
@@ -49,6 +51,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -127,10 +130,16 @@ public class RefundControllerTest {
     private RestTemplate restTemplatePayment;
 
     @MockBean
+    private OAuth2RestOperations restOperations;
+
+    @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -149,7 +158,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void getRefundReasonsList() throws Exception {
+    void getRefundReasonsList() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/refund/reasons")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
@@ -168,7 +177,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void createRefund() throws Exception {
+    void createRefund() throws Exception {
 
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
@@ -202,7 +211,7 @@ public class RefundControllerTest {
 
 
     @Test
-    public void createRefundWithOtherReason() throws Exception {
+    void createRefundWithOtherReason() throws Exception {
 
         refundRequest.setRefundReason("RR004-Other");
 
@@ -236,7 +245,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
+    void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
 
@@ -266,7 +275,7 @@ public class RefundControllerTest {
 
 
     @Test
-    public void createRefundReturns504ForGatewayTimeout() throws Exception {
+    void createRefundReturns504ForGatewayTimeout() throws Exception {
 
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
@@ -287,48 +296,6 @@ public class RefundControllerTest {
         String ErrorMessage = result.getResponse().getContentAsString();
         assertTrue(ErrorMessage.equals("Unable to retrieve User information. Please try again later"));
     }
-
-
-    @Test
-    public void retrieveActionsForSubmittedState() throws Exception {
-        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
-                            .header("Authorization", "user")
-                            .header("ServiceAuthorization", "service")
-                            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$", hasSize(3)))
-            .andExpect(jsonPath("$.[0].code").value("Approve"))
-            .andExpect(jsonPath("$.[0].label").value("Send to middle office"))
-            .andExpect(jsonPath("$.[1].code").value("Reject"))
-            .andExpect(jsonPath("$.[2].code").value("Return to caseworker"));
-    }
-
-    @Test
-    public void retrieveActionsForNeedMoreInfoState() throws Exception {
-        refund.setRefundStatus(SENTBACK);
-        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
-                            .header("Authorization", "user")
-                            .header("ServiceAuthorization", "service")
-                            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$", hasSize(2)))
-            .andExpect(jsonPath("$.[0].code").value("Submit"))
-            .andExpect(jsonPath("$.[0].label").value("Send for approval"))
-            .andExpect(jsonPath("$.[1].code").value("Cancel"));
-    }
-
-    @Test
-    public void retrieveActionsForAcceptedState() throws Exception {
-        refund.setRefundStatus(ACCEPTED);
-        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
-                            .header("Authorization", "user")
-                            .header("ServiceAuthorization", "service")
-                            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$").value("No actions to proceed further"));
-    }
-
 
     @Test
     public void approveRefundRequest() throws Exception{
@@ -583,6 +550,7 @@ public class RefundControllerTest {
     @Test
     public void approveRefundRequest_WhenSendingMalformedRequestToPayment() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
+        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -626,7 +594,7 @@ public class RefundControllerTest {
 
         ));
 
-        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+        when(restOperations.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
             ReconciliationProviderResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
 
         MvcResult result = mockMvc.perform(patch("/refund/{reference}/action/{reviewer-action}","RF-1628-5241-9956-2215","APPROVE")
@@ -659,7 +627,7 @@ public class RefundControllerTest {
 
         ));
 
-        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+        when(restOperations.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
             ReconciliationProviderResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
 
         MvcResult result = mockMvc.perform(patch("/refund/{reference}/action/{reviewer-action}","RF-1628-5241-9956-2215","APPROVE")
@@ -727,7 +695,7 @@ public class RefundControllerTest {
 
 
     @Test
-    public void getRejectionReasonsList() throws Exception {
+    void getRejectionReasonsList() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/refund/rejection-reasons")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
