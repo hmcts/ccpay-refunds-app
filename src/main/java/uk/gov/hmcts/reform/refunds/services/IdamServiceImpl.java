@@ -53,10 +53,10 @@ public class IdamServiceImpl implements IdamService {
                 }
             }
             LOG.error("Parse error user not found");
-            throw new UserNotFoundException("User not found");
+            throw new UserNotFoundException("Internal Server error. Please, try again later");
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
-            throw new UserNotFoundException("User not found");
+            throw new UserNotFoundException("Internal Server error. Please, try again later");
         } catch (HttpServerErrorException e) {
             LOG.error("server err ", e);
             throw new GatewayTimeoutException("Unable to retrieve User information. Please try again later");

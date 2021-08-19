@@ -139,9 +139,15 @@ public class RefundsController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(UserNotFoundException.class)
+    public String return500(UserNotFoundException ex) {
+        return ex.getMessage();
+    }
+
     @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
     @ExceptionHandler(GatewayTimeoutException.class)
-    public String return500(GatewayTimeoutException ex) {
+    public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
 
