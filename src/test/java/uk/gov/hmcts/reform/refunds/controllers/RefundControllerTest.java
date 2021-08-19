@@ -79,6 +79,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.ACCEPTED;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTTOMIDDLEOFFICE;
 
 
 @SpringBootTest
@@ -770,6 +771,23 @@ public class RefundControllerTest {
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$").value("No actions to proceed further"));
     }
+
+
+    @Test
+    public void retrieveActionsForApprovedState() throws Exception {
+        refund.setRefundStatus(SENTTOMIDDLEOFFICE);
+        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "service")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$.[0].code").value("Accept"))
+            .andExpect(jsonPath("$.[0].label").value("Refund request accepted"))
+            .andExpect(jsonPath("$.[1].code").value("Reject"))
+            .andExpect(jsonPath("$.[1].label").value("There is no refund due"));
+    }
+
 
     @Test
     void getRejectionReasonsList() throws Exception {

@@ -65,7 +65,7 @@ public enum RefundState {
     SENTTOMIDDLEOFFICE{
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{ACCEPT, CANCEL};
+            return new RefundEvent[]{ACCEPT, REJECT};
         }
 
         @Override
@@ -74,7 +74,7 @@ public enum RefundState {
             switch (refundEvent) {
                 case ACCEPT:
                     return ACCEPTED;
-                case CANCEL:
+                case REJECT:
                     return REJECTED;
                 default:
                     return this;
