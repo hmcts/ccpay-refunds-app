@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
@@ -61,8 +62,21 @@ public class RefundsController {
         return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "GET /refund ", notes = "Get refund list based on status")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Success"),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "UnAuthorised"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 504, message = "Unable to retrieve service information")
 
-//    @PatchMapping("/refund/reference/{reference}")
+    })
+    @GetMapping("/refund")
+    public ResponseEntity<RefundListDto> getRefundList(@RequestHeader(required = false) MultiValueMap<String, String> headers, @RequestParam String status) {
+        return new ResponseEntity<>(refundsService.getRefundList(status, headers), HttpStatus.OK);
+    }
+
+    //    @PatchMapping("/refund/reference/{reference}")
 //    public HttpStatus reSubmitRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
 //                                     @PathVariable(value = "reference", required = true) String reference,
 //                                     @Valid @RequestBody RefundRequest refundRequest) {

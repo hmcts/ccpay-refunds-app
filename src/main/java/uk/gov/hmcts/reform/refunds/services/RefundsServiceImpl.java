@@ -8,15 +8,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundEmptyException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
@@ -59,6 +63,32 @@ public class RefundsServiceImpl implements RefundsService {
             .build();
     }
 
+    @Override
+    public RefundListDto getRefundList(String status, MultiValueMap<String, String> headers) {
+        //Get the userId
+        String uid = idamService.getUserId(headers);
+
+        RefundStatus refundStatus = RefundStatus
+            .refundStatusWith()
+            .name(status.toLowerCase())
+            .description(status.toLowerCase())
+            .build();
+
+        //get the refund list except the self uid
+        Optional<List<Refund>> refundList = SUBMITTED.getName().equalsIgnoreCase(status) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+            refundStatus,
+            uid) : refundsRepository.findByRefundStatus(refundStatus);
+
+        if (refundList.isPresent() && refundList.get().size() > 0) {
+            return RefundListDto
+                .buildRefundListWith()
+                .refundList(refundList.get())
+                .build();
+        } else {
+            throw new RefundEmptyException("Refund list is empty for given status -> " + refundStatus.getName());
+        }
+    }
+
 
     @Override
     public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
@@ -89,6 +119,7 @@ public class RefundsServiceImpl implements RefundsService {
 
     }
 
+    @Transactional
     private void validateRefundRequest(RefundRequest refundRequest) {
 
 //        if (isRefundEligibilityFlagged()) {
