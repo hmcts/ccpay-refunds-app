@@ -16,7 +16,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -30,7 +29,6 @@ import uk.gov.hmcts.reform.refunds.dto.RefundStatus;
 import uk.gov.hmcts.reform.refunds.dto.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.services.RefundsDomainService;
 
 import java.math.BigDecimal;
 
@@ -51,36 +49,38 @@ public class RefundStatusUpdateControllerTest {
 
     MockMvc mvc;
 
-    @Autowired
-    RefundsDomainService refundsDomainService;
-
     RefundStatusUpdateRequest refundStatusUpdateRequest;
 
     @Autowired
     RefundsRepository refundsRepository;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
     @Autowired
     ServiceAuthFilter serviceAuthFilter;
-
     @InjectMocks
     ServiceAndUserAuthFilter serviceAndUserAuthFilter;
-
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
     @MockBean
     SecurityUtils securityUtils;
-
+    RestActions restActions;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepository;
     @MockBean
     private JwtDecoder jwtDecoder;
-
-    RestActions restActions;
-
     @Autowired
     private ObjectMapper objectMapper;
+
+    public static RefundStatusUpdateRequest createRefundStatusUpdateRequest() {
+        return RefundStatusUpdateRequest.RefundRequestWith().status(RefundStatus.REJECTED)
+            .reason("Abc")
+            .build();
+    }
+
+    public static RefundRequest createRefundRequest() {
+        return RefundRequest.refundRequestWith().paymentReference("RC-1626-4388-8013-9800")
+            .refundAmount(BigDecimal.valueOf(100.00))
+            .refundReason("abc").
+                build();
+    }
 
     @Before
     public void setUp() {
@@ -98,11 +98,11 @@ public class RefundStatusUpdateControllerTest {
 
     @Test
     @WithMockUser(authorities = "payments")
-    public void testRefundStatusUpdateRequest() throws Exception{
+    public void testRefundStatusUpdateRequest() throws Exception {
 
         RefundRequest refundRequest = createRefundRequest();
 
-        RefundStatusUpdateRequest refundStatusUpdateRequest= createRefundStatusUpdateRequest();
+        RefundStatusUpdateRequest refundStatusUpdateRequest = createRefundStatusUpdateRequest();
 
         //Post request
         ResultActions resultActions = restActions.post("/refund", refundRequest);
@@ -110,23 +110,10 @@ public class RefundStatusUpdateControllerTest {
         Assert.assertNotNull(resultActions.andReturn().getResponse().getContentAsString());
 
         //PATCH Request
-        ResultActions patchRequest = restActions.patch("/refund/RC-1626-4388-8013-9800",refundStatusUpdateRequest);
+        ResultActions patchRequest = restActions.patch("/refund/RC-1626-4388-8013-9800", refundStatusUpdateRequest);
 
         Assert.assertNotNull(patchRequest.andReturn().getResponse().getContentAsString());
 
-    }
-
-    public static RefundStatusUpdateRequest createRefundStatusUpdateRequest() {
-        return RefundStatusUpdateRequest.RefundRequestWith().status(RefundStatus.REJECTED)
-            .reason("Abc")
-            .build();
-    }
-
-    public static RefundRequest createRefundRequest() {
-        return RefundRequest.RefundRequestWith().paymentReference("RC-1626-4388-8013-9800")
-            .refundAmount(BigDecimal.valueOf(100.00))
-            .refundReason("abc").
-                build();
     }
 
 }

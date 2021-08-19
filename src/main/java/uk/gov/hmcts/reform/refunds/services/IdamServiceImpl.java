@@ -43,24 +43,24 @@ public class IdamServiceImpl implements IdamService {
     public String getUserId(MultiValueMap<String, String> headers) {
 
 //         to test locally
-//         return "asdfghjk-kjhgfds-dfghj-sdfghjk";
-        try {
-            ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
-            if (responseEntity != null) {
-                IdamUserIdResponse idamUserIdResponse = responseEntity.getBody();
-                if (idamUserIdResponse != null) {
-                    return idamUserIdResponse.getUid();
-                }
-            }
-            LOG.error("Parse error user not found");
-            throw new UserNotFoundException("Internal Server error. Please, try again later");
-        } catch (HttpClientErrorException e) {
-            LOG.error("client err ", e);
-            throw new UserNotFoundException("Internal Server error. Please, try again later");
-        } catch (HttpServerErrorException e) {
-            LOG.error("server err ", e);
-            throw new GatewayTimeoutException("Unable to retrieve User information. Please try again later");
-        }
+         return "asdfghjk-kjhgfds-dfghj-sdfghjk";
+//        try {
+//            ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
+//            if (responseEntity != null) {
+//                IdamUserIdResponse idamUserIdResponse = responseEntity.getBody();
+//                if (idamUserIdResponse != null) {
+//                    return idamUserIdResponse.getUid();
+//                }
+//            }
+//            LOG.error("Parse error user not found");
+//            throw new UserNotFoundException("Internal Server error. Please, try again later");
+//        } catch (HttpClientErrorException e) {
+//            LOG.error("client err ", e);
+//            throw new UserNotFoundException("Internal Server error. Please, try again later");
+//        } catch (HttpServerErrorException e) {
+//            LOG.error("server err ", e);
+//            throw new GatewayTimeoutException("Unable to retrieve User information. Please try again later");
+//        }
     }
 
     private ResponseEntity<IdamUserIdResponse> getResponseEntity(MultiValueMap<String, String> headers) {
