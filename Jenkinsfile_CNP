@@ -30,25 +30,31 @@ withPipeline(type, product, app) {
   enableDbMigration('ccpay')
   enableAksStagingDeployment()
   after('functionalTest:aat') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     publishHTML target: [
       reportDir            : "target/site/serenity/",
       reportFiles          : "index.html",
       reportName           : "AAT Functional Tests",
       alwaysLinkToLastBuild: true
     ]
-
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
 
   after('functionalTest:preview') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     publishHTML target: [
       reportDir            : "target/site/serenity/",
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/tests/functional",
       reportFiles          : "index.html",
       reportName           : "Preview Functional Tests",
       alwaysLinkToLastBuild: true
+      reportName           : "CCPAY Refunds API Functional Test Report"
     ]
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
+
   enableSlackNotifications('#cc-payments-tech')
   disableLegacyDeployment()
 }
