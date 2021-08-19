@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
