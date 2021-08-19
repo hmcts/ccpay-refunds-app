@@ -1,3 +1,14 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+  dependencies {
+    classpath("net.serenity-bdd:serenity-gradle-plugin:2.0.83")
+    classpath("net.serenity-bdd:serenity-single-page-report:2.1.4")
+  }
+}
+
 plugins {
   id 'application'
   id 'pmd'
@@ -10,6 +21,7 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.5'
 }
 
+apply plugin: 'net.serenity-bdd.aggregator'
 apply from: 'liquibase.gradle'
 
 println 'checking = '
@@ -79,6 +91,13 @@ task smoke(type: Test) {
   description = "Runs Smoke Tests"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
+}
+
+tasks.withType(Test) {
+  useJUnitPlatform()
+  testLogging {
+    exceptionFormat = 'full'
+  }
 }
 
 pmd {
@@ -245,28 +264,34 @@ dependencies {
   compileOnly 'org.projectlombok:lombok'
   annotationProcessor 'org.projectlombok:lombok'
 
-  testImplementation group: 'junit', name: 'junit', version: '4.13'
   testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.3.0'
-  testCompile group: 'junit', name: 'junit', version: '4.13'
   testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.15.1'
   testCompile group: 'org.springframework.security', name: 'spring-security-test', version: '5.2.1.RELEASE'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+  testCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
+  testAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
+  testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
+  testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
+  testImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  testImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
 
-  functionalTestCompile sourceSets.test.runtimeClasspath
   functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
-  functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  compile group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
+  functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
+  functionalTestImplementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
+  functionalTestImplementation sourceSets.main.runtimeClasspath
+  functionalTestImplementation sourceSets.test.runtimeClasspath
 
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
-
-  functionalTestImplementation sourceSets.main.runtimeClasspath
 
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
@@ -297,3 +322,6 @@ wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
 
+serenity {
+  reports = ["single-page-html"]
+}

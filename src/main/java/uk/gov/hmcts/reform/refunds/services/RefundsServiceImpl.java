@@ -18,14 +18,15 @@ import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
@@ -36,6 +37,8 @@ public class RefundsServiceImpl implements RefundsService {
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     private static final Pattern REASONPATTERN = Pattern.compile("(^RR004-[a-zA-Z]+)|(RR004$)");
+
+    private static final Pattern STATUSPATTERN = Pattern.compile("[^rejected]");
 
     private static int reasonPrefixLength = 6;
 
@@ -50,6 +53,9 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+
+    @Autowired
+    private RejectionReasonRepository rejectionReasonRepository;
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
@@ -119,7 +125,13 @@ public class RefundsServiceImpl implements RefundsService {
 
     }
 
-    @Transactional
+    @Override
+    public List<String> getRejectedReasons() {
+        // Getting names from Rejection Reasons List object
+        return rejectionReasonRepository.findAll().stream().map(r -> r.getName())
+            .collect(Collectors.toList());
+    }
+
     private void validateRefundRequest(RefundRequest refundRequest) {
 
 //        if (isRefundEligibilityFlagged()) {
@@ -127,16 +139,11 @@ public class RefundsServiceImpl implements RefundsService {
 //        }
 
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-        BigDecimal refundedHistoryAmount = refundsList.isPresent() ?
-            refundsList.get().stream().map(Refund::getAmount).reduce(
-                BigDecimal.ZERO,
-                BigDecimal::add
-            ) : BigDecimal.ZERO;
-        BigDecimal totalRefundedAmount = refundedHistoryAmount.add(refundRequest.getRefundAmount());
+        long refundProcessingCount = refundsList.isPresent() ? refundsList.get().stream().map(refund -> STATUSPATTERN.matcher(
+            refund.getRefundStatus().getName()).find()).count() : 0;
 
-        if (refundRequest.getRefundAmount() != null &&
-            isPaidAmountLessThanRefundRequestAmount(totalRefundedAmount, refundRequest.getRefundAmount())) {
-            throw new InvalidRefundRequestException("Paid Amount is less than requested Refund Amount");
+        if (refundProcessingCount > 0) {
+            throw new InvalidRefundRequestException("Refund is already processed for this payment");
         }
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
@@ -152,10 +159,6 @@ public class RefundsServiceImpl implements RefundsService {
         }
 
     }
-
-    private boolean isPaidAmountLessThanRefundRequestAmount(BigDecimal refundsAmount, BigDecimal paidAmount) {
-        return paidAmount.compareTo(refundsAmount) < 0;
-    }
 //
 //    private boolean isRefundEligibilityFlagged() {
 //        // Actual logic is coming
@@ -165,6 +168,7 @@ public class RefundsServiceImpl implements RefundsService {
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
+            .ccdCaseNumber(refundRequest.getCcdCaseNumber())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundRequest.getRefundReason())
             .refundStatus(SUBMITTED)
