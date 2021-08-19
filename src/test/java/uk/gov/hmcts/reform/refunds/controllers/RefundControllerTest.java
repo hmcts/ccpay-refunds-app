@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,10 +58,10 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
 
-@ActiveProfiles({"local", "test"})
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles({"local", "test"})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RefundControllerTest {
 
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
@@ -145,13 +145,13 @@ public class RefundControllerTest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
-    public void getRefundReasonsList() throws Exception {
+    void getRefundReasonsList() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/refund/reasons")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
@@ -170,7 +170,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void createRefund() throws Exception {
+    void createRefund() throws Exception {
 
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
@@ -204,7 +204,7 @@ public class RefundControllerTest {
 
 
     @Test
-    public void createRefundWithOtherReason() throws Exception {
+    void createRefundWithOtherReason() throws Exception {
 
         refundRequest.setRefundReason("RR004-Other");
 
@@ -238,7 +238,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
+    void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
 
@@ -263,12 +263,12 @@ public class RefundControllerTest {
             .andReturn();
 
         String ErrorMessage = result.getResponse().getContentAsString();
-        assertTrue(ErrorMessage.equals("Refund is already processed/ in progress"));
+        assertTrue(ErrorMessage.equals("Refund is already processed for this payment"));
     }
 
 
     @Test
-    public void createRefundReturns504ForGatewayTimeout() throws Exception {
+    void createRefundReturns504ForGatewayTimeout() throws Exception {
 
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
@@ -691,7 +691,7 @@ public class RefundControllerTest {
 
 
     @Test
-    public void getRejectionReasonsList() throws Exception {
+    void getRejectionReasonsList() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/refund/rejection-reasons")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
