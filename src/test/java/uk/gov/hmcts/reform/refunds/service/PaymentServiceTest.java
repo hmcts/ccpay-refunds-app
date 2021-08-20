@@ -60,7 +60,7 @@ public class PaymentServiceTest {
 
 
     @Test
-    public void testFetchPaymentDetails() throws ParseException{
+    public void fetchPaymentDetailsReturnsValidResponse() throws ParseException{
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization","auth");
         headers.add("ServiceAuthorization","service-auth");
