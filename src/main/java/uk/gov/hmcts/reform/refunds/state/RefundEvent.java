@@ -8,12 +8,13 @@ import lombok.Getter;
 @AllArgsConstructor
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum RefundEvent {
-    SUBMIT("Submit", "Refund request will be submitted"),
+
+    SUBMIT("Submit", "Send for approval"),
     REJECT("Reject", "There is no refund due"),
     SENDBACK("Return to caseworker", "Some information needs correction"),
-    APPROVE("Approve", "Refund request will be approved"),
-    ACCEPT("Accept", "Refund request will be accepted"),
-    CANCEL("Cancel", "Refund request will be cancelled");
+    APPROVE("Approve", "Send to middle office"),
+    ACCEPT("Accept", "Refund request accepted"),
+    CANCEL("Cancel", "Refund request cancelled");
 
     private String code;
     private String label;

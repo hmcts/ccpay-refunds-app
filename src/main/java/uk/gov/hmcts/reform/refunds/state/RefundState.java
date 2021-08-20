@@ -13,7 +13,7 @@ import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SUBMIT;
 @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
 public enum RefundState {
 
-    SUBMITTED {
+    SENTFORAPPROVAL {
         @Override
         public RefundEvent[] nextValidEvents() {
             return new RefundEvent[]{APPROVE, REJECT, SENDBACK};
@@ -23,7 +23,7 @@ public enum RefundState {
         public RefundState nextState(RefundEvent event) {
             switch (event) {
                 case APPROVE:
-                    return SENTTOLIBERATA;
+                    return SENTTOMIDDLEOFFICE;
                 case REJECT:
                     return REJECTED;
                 case SENDBACK:
@@ -35,7 +35,7 @@ public enum RefundState {
 
         @Override
         public RefundStatus getRefundStatus(){
-            return RefundStatus.SUBMITTED;
+            return RefundStatus.SENTFORAPPROVAL;
         }
     },
     NEEDMOREINFO {
@@ -49,7 +49,7 @@ public enum RefundState {
 
             switch (refundEvent) {
                 case SUBMIT:
-                    return SUBMITTED;
+                    return SENTFORAPPROVAL;
                 case CANCEL:
                     return REJECTED;
                 default:
@@ -62,10 +62,10 @@ public enum RefundState {
             return RefundStatus.SENTBACK;
         }
     },
-    SENTTOLIBERATA {
+    SENTTOMIDDLEOFFICE{
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{ACCEPT, CANCEL};
+            return new RefundEvent[]{ACCEPT, REJECT};
         }
 
         @Override
@@ -74,7 +74,7 @@ public enum RefundState {
             switch (refundEvent) {
                 case ACCEPT:
                     return ACCEPTED;
-                case CANCEL:
+                case REJECT:
                     return REJECTED;
                 default:
                     return this;
@@ -84,7 +84,7 @@ public enum RefundState {
 
         @Override
         public RefundStatus getRefundStatus(){
-            return RefundStatus.SENTTOLIBERATA;
+            return RefundStatus.SENTTOMIDDLEOFFICE;
         }
     },
     ACCEPTED {
