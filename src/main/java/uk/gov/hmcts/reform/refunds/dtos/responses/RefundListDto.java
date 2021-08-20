@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-@Builder(builderMethodName = "buildRefundListWith")
+@Builder(builderMethodName = "buildRefundListDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -18,5 +18,23 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 public class RefundListDto {
-    private List<Refund> refundList;
+
+    private String ccdCaseNumber;
+
+    private BigDecimal amount;
+
+    private String reason;
+
+    private RefundStatus refundStatus;
+
+    private String refundReference;
+
+    private String paymentReference;
+
+    private String userFullName;
+
+    private String dateCreated;
+
+    private String dateUpdated;
+
 }

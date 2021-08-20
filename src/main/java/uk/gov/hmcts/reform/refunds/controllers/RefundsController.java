@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
@@ -75,8 +75,17 @@ public class RefundsController {
 
     })
     @GetMapping("/refund")
-    public ResponseEntity<RefundListDto> getRefundList(@RequestHeader(required = false) MultiValueMap<String, String> headers, @RequestParam String status) {
-        return new ResponseEntity<>(refundsService.getRefundList(status, headers), HttpStatus.OK);
+    public ResponseEntity<RefundListDtoResponse> getRefundList(@RequestHeader(required = false) MultiValueMap<String, String> headers, @RequestParam String status
+        , @RequestParam String ccdCaseNumber, @RequestParam String selfExclusive) {
+        return new ResponseEntity<>(
+            refundsService.getRefundList(
+                status,
+                headers,
+                ccdCaseNumber,
+                selfExclusive == null ? "true" : selfExclusive // default true
+            ),
+            HttpStatus.OK
+        );
     }
 
     //    @PatchMapping("/refund/reference/{reference}")

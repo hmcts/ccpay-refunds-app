@@ -16,6 +16,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamFullNameRetrivalResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
@@ -29,8 +30,8 @@ public class IdamServiceImpl implements IdamService {
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
 
     private static final String USERID_ENDPOINT = "/o/userinfo";
-    //uncomment when we use
-    // private static final String USERNAME_ENDPOINT = "/api/v1/users";
+
+    private static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
 
     @Value("${idam.api.url}")
     private String idamBaseURL;
@@ -85,5 +86,30 @@ public class IdamServiceImpl implements IdamService {
         );
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
         return new HttpEntity<>(httpHeaders);
+    }
+
+
+    public String getUserFullName(MultiValueMap<String, String> headers, String UID) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+            .queryParam("query", "id:" + UID);
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+
+        ResponseEntity<IdamFullNameRetrivalResponse> idamFullNameResEntity = restTemplateIdam
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                getEntity(headers), IdamFullNameRetrivalResponse.class
+            );
+
+        IdamFullNameRetrivalResponse userFullName;
+
+        if (idamFullNameResEntity.getBody() != null) {
+            userFullName = idamFullNameResEntity.getBody();
+            return userFullName.getForename() + " " + userFullName.getSurname();
+
+        } else {
+            LOG.error("User name not found for given user id : " + UID);
+            throw new UserNotFoundException("Internal Server error. Please, try again later");
+        }
     }
 }
