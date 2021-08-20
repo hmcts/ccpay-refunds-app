@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ReconcilitationProviderFeeRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
@@ -15,14 +16,17 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
 
+@RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
 public class ReconciliationProviderMapperTest {
@@ -31,28 +35,41 @@ public class ReconciliationProviderMapperTest {
     private ReconciliationProviderMapper reconciliationProviderMapper;
 
     @Test
-    public void testGetReconciliationProviderRequest() {
+    public void testGetReconciliationProviderRequest(){
         ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper
-            .getReconciliationProviderRequest(getPaymentGroupDto(), getRefund());
-        assertEquals("PBAFUNC1234", reconciliationProviderRequest.getAccountNumber());
-        assertEquals("RF-1628-5241-9956-2215", reconciliationProviderRequest.getRefundReference());
-        assertEquals("RC-1628-5241-9956-2315", reconciliationProviderRequest.getPaymentReference());
-        assertNotNull(reconciliationProviderRequest.getDateCreated());
-        assertNotNull(reconciliationProviderRequest.getDateUpdated());
-        assertEquals("RR0001", reconciliationProviderRequest.getRefundReason());
-        assertEquals(BigDecimal.valueOf(100), reconciliationProviderRequest.getTotalRefundAmount());
-        assertEquals("case-reference", reconciliationProviderRequest.getCaseReference());
-        assertEquals("ccd-case-number", reconciliationProviderRequest.getCcdCaseNumber());
-        assertEquals("FEE012", reconciliationProviderRequest.getFees().get(0).getCode());
-        assertEquals("1", reconciliationProviderRequest.getFees().get(0).getVersion());
-        assertEquals(BigDecimal.valueOf(100), reconciliationProviderRequest.getFees().get(0).getRefundAmount());
+            .getReconciliationProviderRequest(getPaymentGroupDto(),getRefund());
+
+        assertThat(reconciliationProviderRequest).usingRecursiveComparison().isEqualTo(getExpectedReconciliationProviderRequest());
     }
 
-    private PaymentGroupResponse getPaymentGroupDto() {
-        return PaymentGroupResponse.paymentGroupDtoWith()
+    private ReconciliationProviderRequest getExpectedReconciliationProviderRequest(){
+        return  ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
+                    .accountNumber("PBAFUNC1234")
+                    .refundReference("RF-1628-5241-9956-2215")
+                    .paymentReference("RC-1628-5241-9956-2315")
+                    .dateCreated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
+                    .dateUpdated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
+                    .caseReference("case-reference")
+                    .ccdCaseNumber("ccd-case-number")
+                    .currency("GBP")
+                    .refundReason("RR0001")
+                    .totalRefundAmount(BigDecimal.valueOf(100))
+                    .fees(Arrays.asList(
+                            ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
+                                .code("FEE012")
+                                .refundAmount(BigDecimal.valueOf(100))
+                                .version("1")
+                                .build()
+                          )
+                    )
+                    .build();
+    }
+
+    private PaymentGroupResponse getPaymentGroupDto(){
+        return  PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
-            .dateCreated(Date.from(Instant.now()))
-            .dateUpdated(Date.from(Instant.now()))
+            .dateCreated(Date.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
+            .dateUpdated(Date.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
             .payments(Arrays.asList(
                 PaymentResponse.paymentResponseWith()
                     .amount(BigDecimal.valueOf(100))
@@ -116,21 +133,21 @@ public class ReconciliationProviderMapperTest {
             )).build();
     }
 
-    private Refund getRefund() {
-        return Refund.refundsWith()
+    private Refund getRefund(){
+        return  Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
             .reason("RR0001")
             .reference("RF-1628-5241-9956-2215")
             .paymentReference("RC-1628-5241-9956-2315")
-            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .refundStatus(SENTFORAPPROVAL)
+            .dateCreated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
+            .dateUpdated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
+            .refundStatus(SUBMITTED)
             .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
-                                               .status(SENTFORAPPROVAL.getName())
+                                               .status("submitted")
                                                .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
                                                .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
                                                .notes("Refund Initiated")
