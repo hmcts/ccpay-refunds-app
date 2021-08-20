@@ -123,7 +123,7 @@ public class RefundsServiceImpl implements RefundsService {
             refund.getRefundStatus().getName()).find()).count() : 0;
 
         if (refundProcessingCount > 0) {
-            throw new InvalidRefundRequestException("Refund is already processed/ in progress");
+            throw new InvalidRefundRequestException("Refund is already processed for this payment");
         }
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
