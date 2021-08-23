@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.refunds.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
@@ -11,19 +11,17 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
+@Data
+@Builder(builderMethodName = "refundStatusWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Table(name = "refund_reasons")
-@Builder(builderMethodName = "refundReasonWith")
-public class RefundReason {
-    @Id
-    @Column(name = "code", nullable = false)
-    String code;
+@Table(name = "refund_status")
+public class Status {
 
+    @Id
     @Column(name = "name", nullable = false)
-    String name;
+    private String name;
 
     @Column(name = "description")
-    String description;
+    private String description;
 }
