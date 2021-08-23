@@ -155,13 +155,13 @@ public class RefundsController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({PaymentInvalidRequestException.class, ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
+    @ExceptionHandler({PaymentInvalidRequestException.class, ActionNotFoundException.class, ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
     public String return400(Exception ex) {
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({RefundNotFoundException.class, ActionNotFoundException.class, PaymentReferenceNotFoundException.class})
+    @ExceptionHandler({RefundNotFoundException.class, PaymentReferenceNotFoundException.class})
     public String return404(Exception ex) {
         return ex.getMessage();
     }

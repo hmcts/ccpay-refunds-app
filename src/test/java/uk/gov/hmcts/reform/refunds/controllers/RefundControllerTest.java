@@ -774,7 +774,7 @@ public class RefundControllerTest {
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
+            .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$").value("No actions to proceed further"));
     }
 
@@ -818,11 +818,9 @@ public class RefundControllerTest {
 
     @Test
     public void UpdateRefundStatusAccepted() throws Exception {
-        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
-            "RR0001",
-            RefundStatus.ACCEPTED
-        );
-        refund.setRefundStatus(ACCEPTED);
+        RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith().status(
+            RefundStatus.ACCEPTED).build();
+        refund.setRefundStatus(SENTTOMIDDLEOFFICE);
         when(refundsRepository.findByCodeOrThrow(anyString())).thenReturn(refund);
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -832,21 +830,85 @@ public class RefundControllerTest {
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-
         MvcResult result = mockMvc.perform(patch(
-            "/refund/RF-1234-1234-1234-1234"
+            "/refund/{reference}",
+            "RF-1234-1234-1234-1234"
         )
                                                .content(asJsonString(refundStatusUpdateRequest))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isCreated())
+            .andExpect(status().isNoContent())
             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(), "Refund request reviewed successfully");
+
+        assertTrue(result.getResponse().getContentAsString().equals("Refund status updated successfully"));
 
     }
 
+    @Test
+    public void UpdateRefundStatusRejected() throws Exception {
+        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
+            "Refund rejected",
+            RefundStatus.REJECTED
+        );
+        refund.setRefundStatus(SENTTOMIDDLEOFFICE);
+        when(refundsRepository.findByCodeOrThrow(anyString())).thenReturn(refund);
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        MvcResult result = mockMvc.perform(patch(
+            "/refund/{reference}",
+            "RF-1234-1234-1234-1234"
+        )
+                                               .content(asJsonString(refundStatusUpdateRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent())
+            .andReturn();
+
+        assertTrue(result.getResponse().getContentAsString().equals("Refund status updated successfully"));
+
+    }
+
+    @Test
+    public void UpdateRefundStatusNotAllowedWithCurrentStatus() throws Exception {
+        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
+            "Refund rejected",
+            RefundStatus.REJECTED
+        );
+        refund.setRefundStatus(SENTFORAPPROVAL);
+        when(refundsRepository.findByCodeOrThrow(anyString())).thenReturn(refund);
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        MvcResult result = mockMvc.perform(patch(
+            "/refund/{reference}",
+            "RF-1234-1234-1234-1234"
+        )
+                                               .content(asJsonString(refundStatusUpdateRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result.getResponse().getContentAsString().equals("Action not allowed to proceed"));
+
+    }
 
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()

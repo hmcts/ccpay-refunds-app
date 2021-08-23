@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
+
 import java.util.Arrays;
 
 @Service
@@ -43,14 +44,16 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                     uid,
                     RefundStatus.ACCEPTED,
-                    statusUpdateRequest.getReason())
+                    statusUpdateRequest.getReason()
+                                                        )
                 ));
             } else {
                 refund.setRefundStatus(RefundStatus.REJECTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                     uid,
                     RefundStatus.REJECTED,
-                    statusUpdateRequest.getReason())
+                    statusUpdateRequest.getReason()
+                                                        )
                 ));
             }
             refund.setUpdatedBy(uid);
@@ -58,7 +61,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         } else {
             throw new ActionNotFoundException("Action not allowed to proceed");
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
     }
 
 }
