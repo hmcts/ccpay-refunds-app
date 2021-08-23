@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -14,7 +15,8 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @Getter
 @Table(name = "rejection_reasons")
-public class RejectionReasons {
+@Builder(builderMethodName = "rejectionReasonWith")
+public class RejectionReason {
     @Id
     @Column(name = "code")
     private String code;

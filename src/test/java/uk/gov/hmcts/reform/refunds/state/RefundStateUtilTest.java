@@ -12,7 +12,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-public class RefundStateTest {
+public class RefundStateUtilTest {
 
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
@@ -21,7 +21,7 @@ public class RefundStateTest {
     private JwtDecoder jwtDecoder;
 
     @Test
-    public void NextStateForSubmit() throws Exception {
+    public void NextStateForSubmitOrSentForApproval() throws Exception {
 
         RefundState refundState = RefundState.SENTFORAPPROVAL;
         assertEquals(refundState.nextState(RefundEvent.APPROVE), RefundState.SENTTOMIDDLEOFFICE);

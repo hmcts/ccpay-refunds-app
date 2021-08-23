@@ -15,16 +15,27 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dto.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
+import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderInvalidRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
+import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -48,6 +59,9 @@ public class RefundsController {
     @Autowired
     private RefundStatusService refundStatusService;
 
+
+    @Autowired
+    private RefundReviewService refundReviewService;
 
     /**
      * Api for returning list of Refund reasons
@@ -104,8 +118,50 @@ public class RefundsController {
         return ok().body(refundsService.getRejectedReasons());
     }
 
+    @ApiOperation(value = "PATCH refund/{reference}/action/{reviewer-action} ", notes = "Review Refund Request")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Ok"),
+        @ApiResponse(code = 201, message = "Refund request reviewed successfully"),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "IDAM User Authorization Failed"),
+        @ApiResponse(code = 403, message = "RPE Service Authentication Failed"),
+        @ApiResponse(code = 404, message = "Refund Not found"),
+        @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
+
+    })
+    @PatchMapping("/refund/{reference}/action/{reviewer-action}")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity<String> reviewRefund(
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @PathVariable(value = "reference", required = true) String reference,
+        @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+        @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+        return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
+    }
+
+
+    @GetMapping("/refunds/{reference}/actions")
+    public ResponseEntity<RefundEvent[]> retrieveActions(
+        @PathVariable(value = "reference", required = true) String reference) {
+        return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
+
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({PaymentInvalidRequestException.class, ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
+    public String return400(Exception ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler({RefundNotFoundException.class, ActionNotFoundException.class, PaymentReferenceNotFoundException.class})
+    public String return404(Exception ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class})
+    public String return500(Exception ex) {
     @ExceptionHandler({InvalidRefundRequestException.class})
     public String return400(Exception ex) {
         return ex.getMessage();

@@ -112,9 +112,6 @@ public class SpringSecurityConfiguration {
         @Value("${oidc.audience-list}")
         private String[] allowedAudiences;
 
-//        @Value("${oidc.issuer}")
-//        private String issuerOverride;
-
         private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
         private final ServiceAuthFilter serviceAuthFilter;
         private final ServiceAndUserAuthFilter serviceAndUserAuthFilter;
