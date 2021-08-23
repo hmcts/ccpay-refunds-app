@@ -18,7 +18,7 @@ public interface RefundsService {
 
     Refund getRefundForReference(String reference);
 
-    HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest);
+//    HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest);
 
     List<String> getRejectedReasons();
 }

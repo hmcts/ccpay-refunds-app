@@ -86,8 +86,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
 
-    @Override
-    public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
+//    @Override
+//    public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
 //        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
 //        if (refund.isPresent()) {
 
@@ -111,9 +111,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 //            refund.get().setRefundStatus(SUBMITTED);
 
 //        }
-        return HttpStatus.ACCEPTED;
+//        return HttpStatus.ACCEPTED;
 
-    }
+//    }
 
     @Override
     public List<String> getRejectedReasons() {
