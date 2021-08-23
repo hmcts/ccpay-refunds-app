@@ -14,7 +14,6 @@ import static io.restassured.RestAssured.expect;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -49,7 +48,7 @@ public class SmokeTest {
     }
 
     @Test
-    void getReasons() {
+    void testGetReasons() {
         expect().given()
             .relaxedHTTPSValidation()
             .header("Authorization", "user")
@@ -60,6 +59,6 @@ public class SmokeTest {
             .get("/refund/reasons")
             .then()
             .statusCode(200);
-        assertTrue(true, "The Reasons for the Refunds...");
+        assertFalse(testUrl.isEmpty() ,"The test has completed...");
     }
 }
