@@ -59,6 +59,6 @@ public class SmokeTest {
             .get("/refund/reasons")
             .then()
             .statusCode(200);
-        assertFalse(testUrl.isEmpty() ,"The test has completed...");
+        assertFalse(testUrl.isEmpty(), "The test has completed...");
     }
 }
