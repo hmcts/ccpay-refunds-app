@@ -109,7 +109,7 @@ public class IdamServiceImpl implements IdamService {
             throw new UserNotFoundException("Internal Server error. Please, try again later");
         } else {
             userFullName = idamFullNameResEntity.getBody();
-            return userFullName.getForename() + " " + userFullName.getSurname();
+            return userFullName != null ? userFullName.getForename() + " " + userFullName.getSurname() : null;
         }
     }
 }
