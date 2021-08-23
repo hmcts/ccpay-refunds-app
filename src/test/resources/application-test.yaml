@@ -61,7 +61,7 @@ idam:
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     totp_secret: dummy
-    microservice: ccpay_bubble
+    microservice: divorce
 
 oauth2:
   redirect:

@@ -118,10 +118,6 @@ jacocoTestReport {
     xml.destination file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
   }
 }
-task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
-  testClassesDirs = sourceSets.smokeTest.output.classesDirs
-  classpath = sourceSets.smokeTest.runtimeClasspath
-}
 
 
 project.tasks['sonarqube'].dependsOn jacocoTestReport
@@ -284,6 +280,7 @@ dependencies {
   smokeTestImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
   smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
   smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
+  smokeTestImplementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
@@ -303,9 +300,6 @@ dependencies {
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
 
-  smokeTestImplementation sourceSets.main.runtimeClasspath
-  smokeTestImplementation sourceSets.test.runtimeClasspath
-  smokeTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 }
 
 mainClassName = 'uk.gov.hmcts.reform.refunds.RefundApplication'
