@@ -6,10 +6,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -42,6 +45,12 @@ public class IdamServiceTest {
     @Mock
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
+
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    private JwtDecoder jwtDecoder;
 
     @Test
     void getResponseOnValidToken() throws Exception {
