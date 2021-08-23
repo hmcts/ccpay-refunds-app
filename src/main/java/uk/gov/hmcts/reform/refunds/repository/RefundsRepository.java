@@ -14,7 +14,7 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer> {
 
     Optional<Refund> findByReference(String reference);
 
-    default Refund findByCodeOrThrow(String reference) {
+    default Refund findByReferenceOrThrow(String reference) {
         return findByReference(reference).orElseThrow(() -> new RefundNotFoundException(
             "Refund not found for given reference"));
     }

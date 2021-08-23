@@ -35,7 +35,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     @Override
     public ResponseEntity updateRefundStatus(String reference, RefundStatusUpdateRequest statusUpdateRequest, MultiValueMap<String, String> headers) {
-        Refund refund = refundsRepository.findByCodeOrThrow(reference);
+        Refund refund = refundsRepository.findByReferenceOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         if (currentRefundState.getRefundStatus().getName().equals("sent to middle office")) {
             String uid = idamService.getUserId(headers);

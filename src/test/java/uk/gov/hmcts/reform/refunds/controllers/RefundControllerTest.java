@@ -740,7 +740,7 @@ public class RefundControllerTest {
     @Test
     public void retrieveActionsForSubmittedState() throws Exception {
         refund.setRefundStatus(SENTFORAPPROVAL);
-        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
         mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
@@ -755,7 +755,7 @@ public class RefundControllerTest {
     @Test
     public void retrieveActionsForNeedMoreInfoState() throws Exception {
         refund.setRefundStatus(SENTBACK);
-        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
         mockMvc.perform(get("/refunds/RF-1234-1234-1234-1233/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
@@ -769,7 +769,7 @@ public class RefundControllerTest {
     @Test
     public void retrieveActionsForAcceptedState() throws Exception {
         refund.setRefundStatus(ACCEPTED);
-        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
         mockMvc.perform(get("/refunds/RF-1234-1234-1234-1231/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
@@ -782,7 +782,7 @@ public class RefundControllerTest {
     @Test
     public void retrieveActionsForApprovedState() throws Exception {
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
-        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
         mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
@@ -821,7 +821,7 @@ public class RefundControllerTest {
         RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith().status(
             RefundStatus.ACCEPTED).build();
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
-        when(refundsRepository.findByCodeOrThrow(anyString())).thenReturn(refund);
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -853,7 +853,7 @@ public class RefundControllerTest {
             RefundStatus.REJECTED
         );
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
-        when(refundsRepository.findByCodeOrThrow(anyString())).thenReturn(refund);
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -885,7 +885,7 @@ public class RefundControllerTest {
             RefundStatus.REJECTED
         );
         refund.setRefundStatus(SENTFORAPPROVAL);
-        when(refundsRepository.findByCodeOrThrow(anyString())).thenReturn(refund);
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 

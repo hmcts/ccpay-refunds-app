@@ -59,7 +59,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {
-        Refund refund = refundsRepository.findByCodeOrThrow(reference);
+        Refund refund = refundsRepository.findByReferenceOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         return currentRefundState.nextValidEvents();
     }
