@@ -41,6 +41,7 @@ import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -676,6 +677,66 @@ public class RefundControllerTest {
         assertEquals(result.getResponse().getContentAsString(),"Refunds not found for RF-1628-5241-9956-2215");
     }
 
+    @Test
+    public void approveRefundRequestWithRetrospectiveRemissionReturnsSuccessResponse() throws Exception {
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
+
+        Refund refundWithRetroRemission = getRefund();
+        refundWithRetroRemission.setReason("RR004-Retrospective Remission");
+        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                                                   .amount(BigDecimal.valueOf(100))
+                                                   .refundReference("RF-1628-5241-9956-2215")
+                                                   .build()
+        ))).when(restOperations).exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class));
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+
+        MvcResult result = mockMvc.perform(patch("/refund/{reference}/action/{reviewer-action}","RF-1628-5241-9956-2215","APPROVE")
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andReturn();
+        assertEquals(result.getResponse().getContentAsString(),"Refund request reviewed successfully");
+    }
+
+    @Test
+    void getRejectionReasonsList() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/refund/rejection-reasons")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> rejectionReasonList = mapper.readValue(
+            mvcResult.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
+        );
+        assertEquals(5, rejectionReasonList.size());
+    }
+
+
 
 
     private Refund getRefund(){
@@ -713,23 +774,7 @@ public class RefundControllerTest {
 
 
 
-    @Test
-    void getRejectionReasonsList() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get("/refund/rejection-reasons")
-                                                  .header("Authorization", "user")
-                                                  .header("ServiceAuthorization", "Services")
-                                                  .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn();
 
-        ObjectMapper mapper = new ObjectMapper();
-        List<String> rejectionReasonList = mapper.readValue(
-            mvcResult.getResponse().getContentAsString(),
-            new TypeReference<>() {
-            }
-        );
-        assertEquals(5, rejectionReasonList.size());
-    }
 
     private PaymentGroupResponse getPaymentGroupDto(){
         return  PaymentGroupResponse.paymentGroupDtoWith()
@@ -766,10 +811,12 @@ public class RefundControllerTest {
                     .hwfReference("hwf-reference")
                     .hwfAmount(BigDecimal.valueOf(100))
                     .dateCreated(Date.from(Instant.now()))
+                    .feeId(50)
                     .build()
             ))
             .fees(Arrays.asList(
                 PaymentFeeResponse.feeDtoWith()
+                    .id(50)
                     .code("FEE012")
                     .feeAmount(BigDecimal.valueOf(100))
                     .calculatedAmount(BigDecimal.valueOf(100))

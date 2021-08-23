@@ -118,7 +118,10 @@ public class RefundsController {
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class,CheckDigitException.class})
+    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class,
+        CheckDigitException.class, FeesNotFoundForRefundException.class, RefundFeeNotFoundInPaymentException.class,
+        RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class
+    })
     public String return500(Exception ex) {
         return ex.getMessage();
     }
