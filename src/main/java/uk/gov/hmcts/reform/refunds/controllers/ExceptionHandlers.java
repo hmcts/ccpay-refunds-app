@@ -51,11 +51,11 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = {DataIntegrityViolationException.class})
-    @ResponseStatus(code = CONFLICT)
-    public void dataIntegrityViolationException(DataIntegrityViolationException e) {
-        LOG.warn("Data integrity violation", e);
-    }
+//    @ExceptionHandler(value = {DataIntegrityViolationException.class})
+//    @ResponseStatus(code = CONFLICT)
+//    public void dataIntegrityViolationException(DataIntegrityViolationException e) {
+//        LOG.warn("Data integrity violation", e);
+//    }
 
     @ExceptionHandler({PaymentInvalidRequestException.class, ActionNotFoundException.class, ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
     public ResponseEntity return400(RuntimeException ex) {
