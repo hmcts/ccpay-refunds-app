@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -90,7 +91,7 @@ public class RefundsServiceImpl implements RefundsService {
             .build();
 
         //get the refund list except the self uid
-        refundList = SUBMITTED.getName().equalsIgnoreCase(status) && selfExclusive.equalsIgnoreCase("true") ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+        refundList = SUBMITTED.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(selfExclusive) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
             refundStatus,
             uid
         ) : refundsRepository.findByRefundStatus(refundStatus);
@@ -116,7 +117,7 @@ public class RefundsServiceImpl implements RefundsService {
             .collect(Collectors.toSet());
 
         //Map UID -> User full name
-        Map<String, String> userFullNameMap = new HashMap<>();
+        Map<String, String> userFullNameMap = new ConcurrentHashMap<>();
         distintUIDSet.forEach(userId -> userFullNameMap.put(
             userId,
             idamService.getUserFullName(headers, userId)

@@ -89,9 +89,10 @@ public class IdamServiceImpl implements IdamService {
     }
 
 
-    public String getUserFullName(MultiValueMap<String, String> headers, String UID) {
+    @Override
+    public String getUserFullName(MultiValueMap<String, String> headers, String uid) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-            .queryParam("query", "id:" + UID);
+            .queryParam("query", "id:" + uid);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
         ResponseEntity<IdamFullNameRetrivalResponse> idamFullNameResEntity = restTemplateIdam
@@ -103,13 +104,12 @@ public class IdamServiceImpl implements IdamService {
 
         IdamFullNameRetrivalResponse userFullName;
 
-        if (idamFullNameResEntity.getBody() != null) {
+        if (idamFullNameResEntity.getBody() == null) {
+            LOG.error("User name not found for given user id : " + uid);
+            throw new UserNotFoundException("Internal Server error. Please, try again later");
+        } else {
             userFullName = idamFullNameResEntity.getBody();
             return userFullName.getForename() + " " + userFullName.getSurname();
-
-        } else {
-            LOG.error("User name not found for given user id : " + UID);
-            throw new UserNotFoundException("Internal Server error. Please, try again later");
         }
     }
 }
