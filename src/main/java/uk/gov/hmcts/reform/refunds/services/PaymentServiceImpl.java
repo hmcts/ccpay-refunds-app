@@ -46,8 +46,9 @@ public class PaymentServiceImpl implements PaymentService {
                 headers,
                 paymentReference
             );
-            if (paymentGroupResponse.getBody() != null) {
-                checkPaymentReference(paymentGroupResponse.getBody(), paymentReference);
+            PaymentGroupResponse paymentGroupResponse1 = paymentGroupResponse.getBody();
+            if (paymentGroupResponse1 != null) {
+                checkPaymentReference(paymentGroupResponse1, paymentReference);
                 return paymentGroupResponse.getBody();
             }
             throw new PaymentReferenceNotFoundException("Payment Reference not found");
