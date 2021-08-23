@@ -15,11 +15,11 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+
 import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.CreateUserRequest;
-import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.CreateUserRequest.*;
-import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.TokenExchangeResponse;
 
 import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.Role;
+import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.TokenExchangeResponse;
 import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.UserGroup;
 
 
@@ -84,7 +84,7 @@ public class IdamService {
 
 
     private CreateUserRequest userRequest(String email, String userGroup, String[] roles) {
-        return userRequestWith()
+        return CreateUserRequest.userRequestWith()
             .email(email)
             .password(testConfig.getTestUserPassword())
             .roles(Stream.of(roles)

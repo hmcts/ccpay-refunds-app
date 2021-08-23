@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.refunds.smoke.s2s;
 
-
 import feign.Feign;
+
 import feign.jackson.JacksonEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

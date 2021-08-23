@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.refunds.smoke;
 
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assume;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,9 +14,9 @@ import uk.gov.hmcts.reform.refunds.smoke.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.smoke.idam.IdamService;
 import uk.gov.hmcts.reform.refunds.smoke.s2s.S2sTokenService;
 
-
 import static io.restassured.RestAssured.expect;
 import static io.restassured.RestAssured.given;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
