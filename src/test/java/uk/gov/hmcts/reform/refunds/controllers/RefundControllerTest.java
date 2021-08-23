@@ -34,6 +34,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
@@ -121,6 +122,8 @@ public class RefundControllerTest {
         .ccdCaseNumber("1111222233334444")
         .build();
 
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -875,7 +878,36 @@ public class RefundControllerTest {
             .andReturn();
 
         assertTrue(result.getResponse().getContentAsString().equals("Refund status updated successfully"));
+    }
 
+    @Test
+    public void UpdateRefundStatusRejectedWithOutReason() throws Exception {
+        RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(RefundStatus.REJECTED).build();
+        refund.setRefundStatus(SENTTOMIDDLEOFFICE);
+
+        MvcResult result = mockMvc.perform(patch(
+            "/refund/{reference}",
+            "RF-1234-1234-1234-1234"
+        )
+                                               .content(asJsonString(refundStatusUpdateRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        ErrorResponse errorResponse = objectMapper.readValue(
+            result.getResponse().getContentAsByteArray(),
+            ErrorResponse.class
+        );
+
+
+        assertEquals(
+            "Refund status should be ACCEPTED or REJECTED/Refund rejection reason is missing",
+            errorResponse.getDetails().get(0)
+        );
     }
 
     @Test
