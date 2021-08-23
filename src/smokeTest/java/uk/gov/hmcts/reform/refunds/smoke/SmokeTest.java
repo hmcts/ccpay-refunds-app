@@ -43,7 +43,7 @@ public class SmokeTest {
 
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
-    private static boolean TOKENS_INITIALIZED = false;
+    private static boolean TOKENS_INITIALIZED;
 
     @BeforeAll
     public void setUp() throws Exception {

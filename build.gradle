@@ -101,14 +101,14 @@ tasks.withType(Test) {
   }
 }
 
-pmd {
+/*pmd {
   toolVersion = "6.18.0"
   sourceSets = [sourceSets.main, sourceSets.test,sourceSets.functionalTest, sourceSets.integrationTest, sourceSets.smokeTest]
   reportsDir = file("$project.buildDir/reports/pmd")
   // https://github.com/pmd/pmd/issues/876
   ruleSets = []
   ruleSetFiles = files("config/pmd/ruleset.xml")
-}
+}*/
 
 jacocoTestReport {
   executionData(test)
@@ -321,6 +321,7 @@ checkstyleMain.enabled(false)
 checkstyleTest.enabled(false)
 checkstyleIntegrationTest.enabled(false)
 pmdTest.enabled(false);
+pmdSmokeTest.enabled(false);
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL

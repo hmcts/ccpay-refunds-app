@@ -3,8 +3,6 @@ package uk.gov.hmcts.reform.refunds.smoke.idam;
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.refunds.smoke.config.TestConfigProperties;
@@ -15,9 +13,8 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-
+import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.AuthenticateUserResponse;
 import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.CreateUserRequest;
-
 import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.Role;
 import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.TokenExchangeResponse;
 import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.UserGroup;
@@ -25,7 +22,6 @@ import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.UserGroup;
 
 @Service
 public class IdamService {
-    private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
 
     public static final String CMC_CITIZEN_GROUP = "cmc-private-beta";
     public static final String CMC_CASE_WORKER_GROUP = "caseworker";
@@ -65,7 +61,7 @@ public class IdamService {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
 
-        IdamApi.AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
+       AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
             BASIC + base64Authorisation,
             CODE,
             testConfig.getOauth2().getClientId(),
