@@ -61,11 +61,12 @@ public class IdamService {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
 
-       AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
+        AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
             BASIC + base64Authorisation,
             CODE,
             testConfig.getOauth2().getClientId(),
-            testConfig.getOauth2().getRedirectUrl());
+            testConfig.getOauth2().getRedirectUrl()
+        );
 
         TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
             authenticateUserResponse.getCode(),
@@ -84,8 +85,8 @@ public class IdamService {
             .email(email)
             .password(testConfig.getTestUserPassword())
             .roles(Stream.of(roles)
-                .map(Role::new)
-                .collect(toList()))
+                       .map(Role::new)
+                       .collect(toList()))
             .userGroup(new UserGroup(userGroup))
             .build();
     }
