@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import feign.Response;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
@@ -40,7 +42,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        List<String> details = new ArrayList<>();
+        List<String> details = new LinkedList<>();
         for (ObjectError error : ex.getBindingResult().getAllErrors()) {
             details.add(error.getDefaultMessage());
         }
@@ -55,28 +57,24 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         LOG.warn("Data integrity violation", e);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({PaymentInvalidRequestException.class, ActionNotFoundException.class, ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
-    public String return400(Exception ex) {
-        return ex.getMessage();
+    public ResponseEntity return400(RuntimeException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler({RefundNotFoundException.class, PaymentReferenceNotFoundException.class})
-    public String return404(Exception ex) {
-        return ex.getMessage();
+    public ResponseEntity return400(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class, UserNotFoundException.class})
-    public String return500(Exception ex) {
-        return ex.getMessage();
+    public ResponseEntity return500(RuntimeException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
     @ExceptionHandler(GatewayTimeoutException.class)
-    public String return504(GatewayTimeoutException ex) {
-        return ex.getMessage();
+    public ResponseEntity return504(GatewayTimeoutException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
     }
 
 }
