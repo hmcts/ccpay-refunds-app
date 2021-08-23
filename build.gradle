@@ -321,6 +321,7 @@ checkstyle {
 checkstyleMain.enabled(false)
 checkstyleTest.enabled(false)
 checkstyleIntegrationTest.enabled(false)
+pmdMain.enabled(false);
 pmdTest.enabled(false);
 pmdIntegrationTest.enabled(false);
 pmdSmokeTest.enabled(false);
