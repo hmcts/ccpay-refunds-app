@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.dto;
+package uk.gov.hmcts.reform.refunds.dtos.requests;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -8,6 +8,7 @@ import javax.validation.constraints.AssertFalse;
 import javax.validation.constraints.NotNull;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
