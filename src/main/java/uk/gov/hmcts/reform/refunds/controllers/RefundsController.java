@@ -160,21 +160,7 @@ public class RefundsController {
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class})
-    public String return500(Exception ex) {
-    @ExceptionHandler({InvalidRefundRequestException.class})
-    public String return400(Exception ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({RefundNotFoundException.class, ActionNotFoundException.class})
-    public String return404(Exception ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({CheckDigitException.class, UserNotFoundException.class})
+    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class,UserNotFoundException.class})
     public String return500(Exception ex) {
         return ex.getMessage();
     }

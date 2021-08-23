@@ -21,7 +21,6 @@ import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.client.HttpClientErrorException;
@@ -70,7 +69,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -281,7 +279,7 @@ public class RefundControllerTest {
             .amount(refundRequest.getRefundAmount())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()).getCode())
-            .refundStatus(SUBMITTED)
+            .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .build();
 
