@@ -70,7 +70,7 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void fetchPaymentDetailsReturnsNotFoundException() throws ParseException {
+    public void fetchPaymentDetailsReturnsNotFoundException() throws Exception {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
