@@ -16,6 +16,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamFullNameRetrivalResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
@@ -26,11 +27,10 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID;
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
@@ -110,6 +110,20 @@ public class IdamServiceTest {
         )).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT, "Gateway timeout"));
         assertThrows(GatewayTimeoutException.class,() -> {
             idamService.getUserId(header);
+        });
+    }
+
+    @Test
+    public void testGetUserFullNameExceptionScenarios() {
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamFullNameRetrivalResponse.class)
+        )).thenThrow(new UserNotFoundException("User Not Found"));
+
+        assertThrows(UserNotFoundException.class, () -> {
+            idamService.getUserFullName(header, GET_REFUND_LIST_CCD_CASE_USER_ID);
         });
     }
 

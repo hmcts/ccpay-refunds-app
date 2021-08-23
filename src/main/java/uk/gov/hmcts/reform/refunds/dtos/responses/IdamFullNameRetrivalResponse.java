@@ -16,7 +16,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Builder(builderMethodName = "idamFullNameRetrivalResponse")
+@Builder(builderMethodName = "idamFullNameRetrivalResponseWith")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 public class IdamFullNameRetrivalResponse {

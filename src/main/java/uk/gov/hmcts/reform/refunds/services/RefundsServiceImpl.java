@@ -12,7 +12,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundEmptyException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
@@ -77,8 +77,8 @@ public class RefundsServiceImpl implements RefundsService {
         String uid = idamService.getUserId(headers);
         Optional<List<Refund>> refundList;
 
-        //Return Refund list based on ccdCaseNumber
-        if (ccdCaseNumber != null) {
+        //Return Refund list based on ccdCaseNumber if its not blank
+        if (ccdCaseNumber != null && !ccdCaseNumber.isBlank()) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
             return getRefundListDto(headers, refundList);
         }
@@ -105,7 +105,7 @@ public class RefundsServiceImpl implements RefundsService {
                 .refundList(getRefundResponseDtoList(headers, refundList.get()))
                 .build();
         } else {
-            throw new RefundEmptyException("Refund list is empty for given status");
+            throw new RefundListEmptyException("Refund list is empty for given criteria");
         }
     }
 
@@ -116,14 +116,14 @@ public class RefundsServiceImpl implements RefundsService {
             .collect(Collectors.toSet());
 
         //Map UID -> User full name
-        Map<String, String> userFullNameMap = new HashMap();
+        Map<String, String> userFullNameMap = new HashMap<>();
         distintUIDSet.forEach(userId -> userFullNameMap.put(
             userId,
             idamService.getUserFullName(headers, userId)
         ));
 
         //Create Refund response List
-        List<RefundListDto> refundListDtoList = new ArrayList();
+        List<RefundListDto> refundListDtoList = new ArrayList<>();
 
         //Update the user full name for created by
         refundList

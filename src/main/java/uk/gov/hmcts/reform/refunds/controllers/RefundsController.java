@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
@@ -82,7 +83,7 @@ public class RefundsController {
                 status,
                 headers,
                 ccdCaseNumber,
-                selfExclusive == null ? "true" : selfExclusive // default true
+                selfExclusive == null || selfExclusive.isBlank() ? "true" : selfExclusive // default true
             ),
             HttpStatus.OK
         );
@@ -121,4 +122,9 @@ public class RefundsController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(RefundListEmptyException.class)
+    public String return400(RefundListEmptyException ex) {
+        return ex.getMessage();
+    }
 }

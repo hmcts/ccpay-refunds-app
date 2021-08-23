@@ -29,9 +29,9 @@ public class IdamServiceImpl implements IdamService {
 
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
 
-    private static final String USERID_ENDPOINT = "/o/userinfo";
+    public static final String USERID_ENDPOINT = "/o/userinfo";
 
-    private static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
+    public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
 
     @Value("${idam.api.url}")
     private String idamBaseURL;

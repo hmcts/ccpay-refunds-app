@@ -13,6 +13,7 @@ public class RefundResponseMapper {
             .ccdCaseNumber(refund.getCcdCaseNumber())
             .amount(refund.getAmount())
             .reason(refund.getReason())
+            .refundStatus(refund.getRefundStatus())
             .refundReference(refund.getReference())
             .paymentReference(refund.getPaymentReference())
             .userFullName(userFullname)
