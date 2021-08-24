@@ -103,10 +103,9 @@ public class IdamServiceImpl implements IdamService {
                 getEntity(headers), IdamFullNameRetrivalResponse[].class
             );
 
-        IdamFullNameRetrivalResponse idamFullNameRetrivalResponse;
 
-        if (idamFullNameResEntity.getBody() != null) {
-            idamFullNameRetrivalResponse = idamFullNameResEntity.getBody()[0];
+        if (idamFullNameResEntity != null && idamFullNameResEntity.getBody() != null && idamFullNameResEntity.getBody()[0] != null) {
+            IdamFullNameRetrivalResponse idamFullNameRetrivalResponse = idamFullNameResEntity.getBody()[0];
             if (idamFullNameRetrivalResponse != null) {
                 return idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname();
             }
