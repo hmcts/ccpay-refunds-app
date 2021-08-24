@@ -8,6 +8,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder(builderMethodName = "refundStatusWith")
 @Table(name = "refund_status")
 public class RefundStatus {
 
