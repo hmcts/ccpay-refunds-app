@@ -78,7 +78,10 @@ public class IdamServiceImpl implements IdamService {
 
     private HttpEntity<String> getEntity(MultiValueMap<String, String> headers) {
         MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<>();
-        headerMultiValueMap.put("Content-Type", headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type"));
+        headerMultiValueMap.put(
+            "Content-Type",
+            headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type")
+        );
         String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
             "authorization").get(0);
         headerMultiValueMap.put(
@@ -104,9 +107,11 @@ public class IdamServiceImpl implements IdamService {
             );
 
 
-        if (idamFullNameResEntity != null && idamFullNameResEntity.getBody() != null && idamFullNameResEntity.getBody()[0] != null) {
-            IdamFullNameRetrivalResponse idamFullNameRetrivalResponse = idamFullNameResEntity.getBody()[0];
-            if (idamFullNameRetrivalResponse != null) {
+        if (idamFullNameResEntity != null && idamFullNameResEntity.getBody() != null) {
+            IdamFullNameRetrivalResponse[] idamArrayFullNameRetrievalResponse = idamFullNameResEntity.getBody();
+
+            if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
+                IdamFullNameRetrivalResponse idamFullNameRetrivalResponse = idamArrayFullNameRetrievalResponse[0];
                 return idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname();
             }
         }
