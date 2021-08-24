@@ -92,7 +92,7 @@ public class RefundsController {
     })
     @GetMapping("/refund")
     public ResponseEntity<RefundListDtoResponse> getRefundList(@RequestHeader(required = false) MultiValueMap<String, String> headers, @RequestParam String status
-        , @RequestParam String ccdCaseNumber, @RequestParam String selfExclusive) {
+        , @RequestParam(required = false)  String ccdCaseNumber, @RequestParam String selfExclusive) {
         return new ResponseEntity<>(
             refundsService.getRefundList(
                 status,
