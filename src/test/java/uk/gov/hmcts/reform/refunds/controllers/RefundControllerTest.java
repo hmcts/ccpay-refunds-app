@@ -156,7 +156,7 @@ public class RefundControllerTest {
         .amount(new BigDecimal(100))
         .paymentReference("RC-1111-2222-3333-4444")
         .reason("test-123")
-        .feeIds("FEE1234")
+        .feeIds("1")
         .refundStatus(SENTFORAPPROVAL)
         .reference("RF-1234-1234-1234-1234")
         .build();
@@ -166,7 +166,7 @@ public class RefundControllerTest {
         .refundAmount(new BigDecimal(100))
         .refundReason("RR002")
         .ccdCaseNumber("1111222233334444")
-        .feeIds("FEE1234")
+        .feeIds("1")
         .build();
     @Autowired
     private MockMvc mockMvc;
