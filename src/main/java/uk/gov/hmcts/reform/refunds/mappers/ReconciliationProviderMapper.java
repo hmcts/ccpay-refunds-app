@@ -42,10 +42,10 @@ public class ReconciliationProviderMapper {
         if(!refundFeeIds.isEmpty()){
             List<RemissionResponse> remissionsAppliedForRefund = paymentGroupResponse.getRemissions().stream().filter(remissionResponse -> refundFeeIds.contains(remissionResponse.getFeeId())).collect(
                 Collectors.toList());
-            if( refund.getReason().equals("RR004-Retrospective Remission") && !remissionsAppliedForRefund.isEmpty()){
+            if( refund.getReason().equals("RR004-Retrospective Remission")){
                 // create a constant and add the code
-                List<PaymentFeeResponse> feeResponses = getRetrospectiveRemissionAppliedFee(paymentGroupResponse, refundFeeIds);
                 validateRetrospectiveRemissions(remissionsAppliedForRefund,refund);
+                List<PaymentFeeResponse> feeResponses = getRetrospectiveRemissionAppliedFee(paymentGroupResponse, refundFeeIds);
                 return Arrays.asList(ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
                                          .version(feeResponses.get(0).getVersion())
                                          .code(feeResponses.get(0).getCode())

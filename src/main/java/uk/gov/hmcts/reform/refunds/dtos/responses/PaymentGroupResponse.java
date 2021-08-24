@@ -12,6 +12,7 @@ import java.util.List;
 @Builder(builderMethodName = "paymentGroupDtoWith")
 @AllArgsConstructor
 @Getter
+@Setter
 @NoArgsConstructor
 public class PaymentGroupResponse {
 
