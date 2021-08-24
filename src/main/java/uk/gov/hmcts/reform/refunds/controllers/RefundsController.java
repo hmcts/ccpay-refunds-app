@@ -20,10 +20,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
@@ -84,8 +87,30 @@ public class RefundsController {
         return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "GET /refund ", notes = "Get refund list based on status")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Success"),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "UnAuthorised"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 504, message = "Unable to retrieve service information")
 
-//    @PatchMapping("/refund/reference/{reference}")
+    })
+    @GetMapping("/refund")
+    public ResponseEntity<RefundListDtoResponse> getRefundList(@RequestHeader(required = false) MultiValueMap<String, String> headers, @RequestParam String status
+        , @RequestParam String ccdCaseNumber, @RequestParam String selfExclusive) {
+        return new ResponseEntity<>(
+            refundsService.getRefundList(
+                status,
+                headers,
+                ccdCaseNumber,
+                selfExclusive == null || selfExclusive.isBlank() ? "true" : selfExclusive // default true
+            ),
+            HttpStatus.OK
+        );
+    }
+
+    //    @PatchMapping("/refund/reference/{reference}")
 //    public HttpStatus reSubmitRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
 //                                     @PathVariable(value = "reference", required = true) String reference,
 //                                     @Valid @RequestBody RefundRequest refundRequest) {
@@ -141,4 +166,9 @@ public class RefundsController {
 
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(RefundListEmptyException.class)
+    public String return400(RefundListEmptyException ex) {
+        return ex.getMessage();
+    }
 }
