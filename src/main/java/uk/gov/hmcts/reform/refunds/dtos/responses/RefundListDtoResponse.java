@@ -17,5 +17,5 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 public class RefundListDtoResponse {
-    private List<RefundListDto> refundList;
+    private List<RefundDto> refundList;
 }

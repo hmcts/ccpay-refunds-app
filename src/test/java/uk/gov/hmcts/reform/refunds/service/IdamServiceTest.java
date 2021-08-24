@@ -128,7 +128,7 @@ public class IdamServiceTest {
         header.put("authorization", Collections.singletonList("Bearer 131313"));
 
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamFullNameRetrivalResponse.class)
+                                       eq(IdamFullNameRetrivalResponse[].class)
         )).thenThrow(new UserNotFoundException("User Not Found"));
 
         assertThrows(UserNotFoundException.class, () -> {

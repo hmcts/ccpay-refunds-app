@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
@@ -84,7 +84,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String selfExclusive) {
+    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String excludeCurrentUser) {
         //Get the userId
         String uid = idamService.getUserId(headers);
         Optional<List<Refund>> refundList;
@@ -98,7 +98,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
 
         //get the refund list except the self uid
-        refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(selfExclusive) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+        refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
             refundStatus,
             uid
         ) : refundsRepository.findByRefundStatus(refundStatus);
@@ -117,7 +117,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
-    public List<RefundListDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList) {
+    public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList) {
         //Distinct createdBy UID
         Set<String> distintUIDSet = refundList
             .stream().map(Refund::getCreatedBy)
@@ -131,17 +131,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         ));
 
         //Create Refund response List
-        List<RefundListDto> refundListDtoList = new ArrayList<>();
+        List<RefundDto> refundListDto = new ArrayList<>();
 
         //Update the user full name for created by
         refundList
             .forEach(refund ->
-                         refundListDtoList.add(refundResponseMapper.getRefundListDto(
+                         refundListDto.add(refundResponseMapper.getRefundListDto(
                              refund,
                              userFullNameMap.get(refund.getCreatedBy())
                          )));
 
-        return refundListDtoList;
+        return refundListDto;
     }
 
 
