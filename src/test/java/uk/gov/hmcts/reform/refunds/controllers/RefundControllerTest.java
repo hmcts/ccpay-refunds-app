@@ -36,7 +36,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.repository.RejectionReasonsRepository;
+import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
@@ -48,8 +48,13 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -57,7 +62,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.ACCEPTED;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTTOMIDDLEOFFICE;
 
 
 @SpringBootTest
@@ -85,7 +93,7 @@ public class RefundControllerTest {
         .amount(new BigDecimal(100))
         .paymentReference("RC-1111-2222-3333-4444")
         .reason("test-123")
-        .refundStatus(SUBMITTED)
+        .refundStatus(SENTFORAPPROVAL)
         .reference("RF-1234-1234-1234-1234")
         .build();
     private ObjectMapper mapper = new ObjectMapper();
@@ -106,7 +114,7 @@ public class RefundControllerTest {
     private RefundsRepository refundsRepository;
 
     @MockBean
-    private RejectionReasonsRepository rejectionReasonsRepository;
+    private RejectionReasonRepository rejectionReasonRepository;
 
     @Mock
     private IdamServiceImpl idamService;
@@ -145,6 +153,14 @@ public class RefundControllerTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private RejectionReason getRejectionReason() {
+        return RejectionReason
+            .rejectionReasonWith()
+            .code("RR0001")
+            .name("rejection name")
+            .build();
     }
 
     @BeforeEach
@@ -248,7 +264,7 @@ public class RefundControllerTest {
             .amount(refundRequest.getRefundAmount())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()).getCode())
-            .refundStatus(SUBMITTED)
+            .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .build();
 
@@ -370,7 +386,7 @@ public class RefundControllerTest {
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
-        when(rejectionReasonsRepository.findByCode(anyString())).thenReturn(Optional.of(RejectionReason
+        when(rejectionReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RejectionReason
                                                                                             .rejectionReasonWith()
                                                                                             .code("RR0001")
                                                                                             .name("rejection name")
@@ -719,7 +735,71 @@ public class RefundControllerTest {
     }
 
     @Test
+    public void retrieveActionsForSubmittedState() throws Exception {
+        refund.setRefundStatus(SENTFORAPPROVAL);
+        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "service")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(3)))
+            .andExpect(jsonPath("$.[0].code").value("Approve"))
+            .andExpect(jsonPath("$.[0].label").value("Send to middle office"))
+            .andExpect(jsonPath("$.[1].code").value("Reject"))
+            .andExpect(jsonPath("$.[2].code").value("Return to caseworker"));
+    }
+
+
+
+
+    @Test
+    public void retrieveActionsForNeedMoreInfoState() throws Exception {
+        refund.setRefundStatus(SENTBACK);
+        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1233/actions")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "service")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$.[0].code").value("Submit"))
+            .andExpect(jsonPath("$.[0].label").value("Send for approval"))
+            .andExpect(jsonPath("$.[1].code").value("Cancel"));
+    }
+
+    @Test
+    public void retrieveActionsForAcceptedState() throws Exception {
+        refund.setRefundStatus(ACCEPTED);
+        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1231/actions")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "service")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$").value("No actions to proceed further"));
+    }
+
+
+    @Test
+    public void retrieveActionsForApprovedState() throws Exception {
+        refund.setRefundStatus(SENTTOMIDDLEOFFICE);
+        when(refundsRepository.findByCodeOrThrow(any())).thenReturn(refund);
+        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "service")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$.[0].code").value("Accept"))
+            .andExpect(jsonPath("$.[0].label").value("Refund request accepted"))
+            .andExpect(jsonPath("$.[1].code").value("Reject"))
+            .andExpect(jsonPath("$.[1].label").value("There is no refund due"));
+    }
+
+
+    @Test
     void getRejectionReasonsList() throws Exception {
+
+        List<RejectionReason> mockRejectionreasons = new ArrayList<>(Arrays.asList(getRejectionReason()));
+        when(rejectionReasonRepository.findAll()).thenReturn(mockRejectionreasons);
         MvcResult mvcResult = mockMvc.perform(get("/refund/rejection-reasons")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
@@ -733,51 +813,11 @@ public class RefundControllerTest {
             new TypeReference<>() {
             }
         );
-        assertEquals(5, rejectionReasonList.size());
+        assertEquals(1, rejectionReasonList.size());
     }
 
-
-
-
-    private Refund getRefund(){
-        return  Refund.refundsWith()
-            .id(1)
-            .amount(BigDecimal.valueOf(100))
-            .reason("RR0001")
-            .reference("RF-1628-5241-9956-2215")
-            .paymentReference("RC-1628-5241-9956-2315")
-            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .refundStatus(SUBMITTED)
-            .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
-            .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
-            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                                               .id(1)
-                                               .status("submitted")
-                                               .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
-                                               .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-                                               .notes("Refund Initiated")
-                                               .build()))
-            .build();
-    }
-
-    private IdamUserIdResponse getIdamResponse(){
-         return IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
-            .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
-            .build();
-    }
-
-
-
-
-
-    private PaymentGroupResponse getPaymentGroupDto(){
-        return  PaymentGroupResponse.paymentGroupDtoWith()
+    private PaymentGroupResponse getPaymentGroupDto() {
+        return PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
             .dateCreated(Date.from(Instant.now()))
             .dateUpdated(Date.from(Instant.now()))
@@ -837,5 +877,39 @@ public class RefundControllerTest {
                     .amountDue(BigDecimal.valueOf(0))
                     .build()
             )).build();
+    }
+
+
+    private Refund getRefund() {
+        return Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .reason("RR0001")
+            .reference("RF-1628-5241-9956-2215")
+            .paymentReference("RC-1628-5241-9956-2315")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .refundStatus(SENTFORAPPROVAL)
+            .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                                               .id(1)
+                                               .status(SENTFORAPPROVAL.getName())
+                                               .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+                                               .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                               .notes("Refund Initiated")
+                                               .build()))
+            .build();
+    }
+
+    private IdamUserIdResponse getIdamResponse() {
+        return IdamUserIdResponse.idamUserIdResponseWith()
+            .familyName("VP")
+            .givenName("VP")
+            .name("VP")
+            .sub("V_P@gmail.com")
+            .roles(Arrays.asList("vp"))
+            .uid("986-erfg-kjhg-123")
+            .build();
     }
 }

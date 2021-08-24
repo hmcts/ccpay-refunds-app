@@ -87,7 +87,7 @@ public class IdamServiceTest {
                                        eq(IdamUserIdResponse.class)
         )).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND, "user not found"));
 
-        assertThrows(UserNotFoundException.class,() -> {
+        assertThrows(UserNotFoundException.class, () -> {
             idamService.getUserId(header);
         });
     }
@@ -103,7 +103,7 @@ public class IdamServiceTest {
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
-        assertThrows(UserNotFoundException.class,() -> {
+        assertThrows(UserNotFoundException.class, () -> {
             idamService.getUserId(header);
         });
     }
@@ -117,13 +117,13 @@ public class IdamServiceTest {
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                                        eq(IdamUserIdResponse.class)
         )).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT, "Gateway timeout"));
-        assertThrows(GatewayTimeoutException.class,() -> {
+        assertThrows(GatewayTimeoutException.class, () -> {
             idamService.getUserId(header);
         });
     }
 
     @Test
-    void validateResponseDto() throws Exception{
+    void validateResponseDto() throws Exception {
         IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
             .familyName("VP")
             .givenName("VP")
@@ -133,12 +133,12 @@ public class IdamServiceTest {
             .uid("986-erfg-kjhg-123")
             .build();
 
-        assertEquals(idamUserIdResponse.getFamilyName(),"VP");
-        assertEquals(idamUserIdResponse.getGivenName(),"VP");
-        assertEquals(idamUserIdResponse.getName(),"VP");
-        assertEquals(idamUserIdResponse.getRoles(),Arrays.asList("vp"));
-        assertEquals(idamUserIdResponse.getUid(),"986-erfg-kjhg-123");
-        assertEquals(idamUserIdResponse.getSub(),"V_P@gmail.com");
+        assertEquals(idamUserIdResponse.getFamilyName(), "VP");
+        assertEquals(idamUserIdResponse.getGivenName(), "VP");
+        assertEquals(idamUserIdResponse.getName(), "VP");
+        assertEquals(idamUserIdResponse.getRoles(), Arrays.asList("vp"));
+        assertEquals(idamUserIdResponse.getUid(), "986-erfg-kjhg-123");
+        assertEquals(idamUserIdResponse.getSub(), "V_P@gmail.com");
     }
 
 }

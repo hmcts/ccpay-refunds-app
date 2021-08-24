@@ -38,11 +38,12 @@ public class ReconciliationProviderMapper {
 
 
     private List<ReconcilitationProviderFeeRequest> getRefundRequestFees(Refund refund, PaymentGroupResponse paymentGroupResponse) {
-        List<Integer> refundFeeIds = Arrays.asList(50); // Replace with gettingFeeIds from Refund Table
+        List<Integer> refundFeeIds = Arrays.asList(50); // MOCK-Replace with gettingFeeIds from Refund Table
         if(!refundFeeIds.isEmpty()){
             List<RemissionResponse> remissionsAppliedForRefund = paymentGroupResponse.getRemissions().stream().filter(remissionResponse -> refundFeeIds.contains(remissionResponse.getFeeId())).collect(
                 Collectors.toList());
             if( refund.getReason().equals("RR004-Retrospective Remission") && !remissionsAppliedForRefund.isEmpty()){
+                // create a constant and add the code
                 List<PaymentFeeResponse> feeResponses = getRetrospectiveRemissionAppliedFee(paymentGroupResponse, refundFeeIds);
                 validateRetrospectiveRemissions(remissionsAppliedForRefund,refund);
                 return Arrays.asList(ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
@@ -71,11 +72,9 @@ public class ReconciliationProviderMapper {
         if(remissionsAppliedForRefund.isEmpty()){
             throw new RetrospectiveRemissionNotFoundException("Remission not found");
         }
-        System.out.println(remissionsAppliedForRefund.get(0).getHwfAmount());
-        System.out.println(refund.getAmount());
 
         if(!remissionsAppliedForRefund.isEmpty() && !remissionsAppliedForRefund.get(0).getHwfAmount().equals(refund.getAmount())){
-            throw new UnequalRemissionAmountWithRefundRaisedException("Remission not equal to refund amount");
+            throw new UnequalRemissionAmountWithRefundRaisedException("Remission amount not equal to refund amount");
         }
     }
 

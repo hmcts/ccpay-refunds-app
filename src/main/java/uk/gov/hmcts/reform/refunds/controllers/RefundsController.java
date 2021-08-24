@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import javax.validation.Valid;
@@ -96,23 +97,29 @@ public class RefundsController {
     @PatchMapping("/refund/{reference}/action/{reviewer-action}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> reviewRefund(
-                                   @RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                   @PathVariable(value = "reference", required = true) String reference,
-                                   @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
-                                   @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @PathVariable(value = "reference", required = true) String reference,
+        @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+        @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 
 
+    @GetMapping("/refunds/{reference}/actions")
+    public ResponseEntity<RefundEvent[]> retrieveActions(
+        @PathVariable(value = "reference", required = true) String reference) {
+        return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
+
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({PaymentInvalidRequestException.class, ReconciliationProviderInvalidRequestException.class,InvalidRefundRequestException.class,InvalidRefundReviewRequestException.class})
+    @ExceptionHandler({PaymentInvalidRequestException.class, ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
     public String return400(Exception ex) {
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({RefundNotFoundException.class,PaymentReferenceNotFoundException.class})
+    @ExceptionHandler({RefundNotFoundException.class, ActionNotFoundException.class, PaymentReferenceNotFoundException.class})
     public String return404(Exception ex) {
         return ex.getMessage();
     }

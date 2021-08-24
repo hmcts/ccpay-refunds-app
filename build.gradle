@@ -91,6 +91,7 @@ task smoke(type: Test) {
   description = "Runs Smoke Tests"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
+  testLogging.showStandardStreams = true
 }
 
 tasks.withType(Test) {
@@ -277,6 +278,15 @@ dependencies {
   testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
   testImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
   testImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
+
+  smokeTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
+  smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
+  smokeTestImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
+  smokeTestImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
+  smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
+  smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
+  smokeTestImplementation sourceSets.main.runtimeClasspath
+  smokeTestImplementation sourceSets.test.runtimeClasspath
 
   functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
   functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'

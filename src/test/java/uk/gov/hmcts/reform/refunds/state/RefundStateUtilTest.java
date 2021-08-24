@@ -12,7 +12,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-public class RefundStateTest {
+public class RefundStateUtilTest {
 
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
@@ -21,10 +21,10 @@ public class RefundStateTest {
     private JwtDecoder jwtDecoder;
 
     @Test
-    public void NextStateForSubmit() throws Exception {
+    public void NextStateForSubmitOrSentForApproval() throws Exception {
 
-        RefundState refundState = RefundState.SUBMITTED;
-        assertEquals(refundState.nextState(RefundEvent.APPROVE), RefundState.SENTTOLIBERATA);
+        RefundState refundState = RefundState.SENTFORAPPROVAL;
+        assertEquals(refundState.nextState(RefundEvent.APPROVE), RefundState.SENTTOMIDDLEOFFICE);
         assertEquals(refundState.nextState(RefundEvent.REJECT), RefundState.REJECTED);
         assertEquals(refundState.nextState(RefundEvent.SENDBACK), RefundState.NEEDMOREINFO);
     }
@@ -32,8 +32,8 @@ public class RefundStateTest {
     @Test
     public void NextStateForApprove() throws Exception {
 
-        RefundState refundState = RefundState.SENTTOLIBERATA;
-        assertEquals(refundState.nextState(RefundEvent.CANCEL), RefundState.REJECTED);
+        RefundState refundState = RefundState.SENTTOMIDDLEOFFICE;
+        assertEquals(refundState.nextState(RefundEvent.REJECT), RefundState.REJECTED);
         assertEquals(refundState.nextState(RefundEvent.ACCEPT), RefundState.ACCEPTED);
     }
 
@@ -41,7 +41,7 @@ public class RefundStateTest {
     public void NextStateForNEEDMOREINFO() throws Exception {
 
         RefundState refundState = RefundState.NEEDMOREINFO;
-        assertEquals(refundState.nextState(RefundEvent.SUBMIT), RefundState.SUBMITTED);
+        assertEquals(refundState.nextState(RefundEvent.SUBMIT), RefundState.SENTFORAPPROVAL);
         assertEquals(refundState.nextState(RefundEvent.CANCEL), RefundState.REJECTED);
     }
 

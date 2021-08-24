@@ -62,3 +62,14 @@ databaseChangeLog:
             splitStatements: true
             sql: >
               ALTER TABLE refunds DROP CONSTRAINT FK_1000042;
+
+  - changeSet:
+      id: 100004-5
+      author: Vignesh
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              UPDATE refund_status SET name = 'sent for approval' where name = 'submitted';
+              UPDATE refund_status SET name = 'sent to middle office' where name = 'sent to liberata';

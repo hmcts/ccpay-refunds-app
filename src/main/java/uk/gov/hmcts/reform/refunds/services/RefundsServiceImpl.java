@@ -17,7 +17,10 @@ import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
+import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,11 +28,11 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
-public class RefundsServiceImpl implements RefundsService {
+public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
@@ -43,6 +46,9 @@ public class RefundsServiceImpl implements RefundsService {
     private RefundsRepository refundsRepository;
 
     @Autowired
+    private RejectionReasonRepository rejectionReasonRepository;
+
+    @Autowired
     private ReferenceUtil referenceUtil;
 
     @Autowired
@@ -51,8 +57,12 @@ public class RefundsServiceImpl implements RefundsService {
     @Autowired
     private RefundReasonRepository refundReasonRepository;
 
-    @Autowired
-    private RejectionReasonRepository rejectionReasonRepository;
+    @Override
+    public RefundEvent[] retrieveActions(String reference) {
+        Refund refund = refundsRepository.findByCodeOrThrow(reference);
+        RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
+        return currentRefundState.nextValidEvents();
+    }
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
@@ -67,12 +77,12 @@ public class RefundsServiceImpl implements RefundsService {
     }
 
     @Override
-    public Refund getRefundForReference(String reference){
+    public Refund getRefundForReference(String reference) {
         Optional<Refund> refund = refundsRepository.findByReference(reference);
-        if(refund.isPresent()){
-            return  refund.get();
+        if (refund.isPresent()) {
+            return refund.get();
         }
-        throw new RefundNotFoundException("Refunds not found for "+ reference);
+        throw new RefundNotFoundException("Refunds not found for " + reference);
     }
 
 
@@ -151,7 +161,7 @@ public class RefundsServiceImpl implements RefundsService {
             .ccdCaseNumber(refundRequest.getCcdCaseNumber())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundRequest.getRefundReason())
-            .refundStatus(SUBMITTED)
+            .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .createdBy(uid)
             .updatedBy(uid)
@@ -159,12 +169,10 @@ public class RefundsServiceImpl implements RefundsService {
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
                                   .notes("Refund initiated")
-                                  .status(SUBMITTED.getName())
+                                  .status(SENTFORAPPROVAL.getName())
                                   .build()
                 )
             )
             .build();
     }
-
-
 }

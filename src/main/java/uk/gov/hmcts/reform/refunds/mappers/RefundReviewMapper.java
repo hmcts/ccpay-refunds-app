@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
-import uk.gov.hmcts.reform.refunds.repository.RejectionReasonsRepository;
+import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 
 import java.util.Optional;
@@ -14,7 +14,7 @@ import java.util.Optional;
 public class RefundReviewMapper {
 
     @Autowired
-    private RejectionReasonsRepository rejectionReasonsRepository;
+    private RejectionReasonRepository rejectionReasonRepository;
 
     public String getStatus(RefundEvent refundEvent){
         return  refundEvent.equals(RefundEvent.APPROVE)?"approved":refundEvent.equals(RefundEvent.REJECT)?"rejected":"sentback";
@@ -60,7 +60,7 @@ public class RefundReviewMapper {
 
 
     private RejectionReason validateRefundRejectionReason(String reasonCode){
-        Optional<RejectionReason> rejectionReasonObject = rejectionReasonsRepository.findByCode(reasonCode);
+        Optional<RejectionReason> rejectionReasonObject = rejectionReasonRepository.findByCode(reasonCode);
         if(!rejectionReasonObject.isPresent()){
             throw new InvalidRefundReviewRequestException("Reject reason is invalid");
         }
