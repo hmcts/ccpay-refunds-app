@@ -22,6 +22,11 @@
     <exclude name="PrematureDeclaration"/>
   </rule>
   <rule ref="category/java/design.xml/AvoidUncheckedExceptionsInSignatures" />
+  <rule ref="category/java/design.xml/TooManyFields">
+    <properties>
+      <property name="maxfields" value="22" />
+    </properties>
+  </rule>
   <rule ref="category/java/codestyle.xml/ClassNamingConventions">
     <properties>
       <!-- same as any other class -->

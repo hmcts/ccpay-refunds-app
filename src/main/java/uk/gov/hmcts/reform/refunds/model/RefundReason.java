@@ -11,11 +11,11 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Builder(builderMethodName = "refundReasonWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Table(name = "refund_reasons")
+@Builder(builderMethodName = "refundReasonWith")
 public class RefundReason {
     @Id
     @Column(name = "code", nullable = false)

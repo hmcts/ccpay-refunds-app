@@ -89,7 +89,7 @@ security:
 trusted:
   s2s:
     service:
-      names: ccpay_bubble,cmc,bulk_scan_payment_processor,api_gw,probate_frontend,divorce_frontend,ccd_gw,payment_app
+      names:  ccpay_bubble,internal,payment_app,refunds_api
 auth:
   idam:
     client:
@@ -129,6 +129,31 @@ launchDarkly:
   connectionTimeout: 3
   socketTimeout: 3
   flushInterval: 10
+
+payments:
+  api:
+    url: ${PAYMENT_API_URL:http://localhost:8095}
+
+
+reconciliation-provider:
+  api:
+    url: ${LIBERATA_BASE_URL:https://bpacustomerportal.liberata.com/pba/public}
+  refund-status-update-path: /api/v3/refund
+
+liberata:
+  oauth2:
+    client:
+      id: ${LIBERATA_OAUTH2_CLIENT_ID:id}
+      secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:abc}
+    username: ${LIBERATA_OAUTH2_USERNAME:username}
+    password: ${LIBERATA_OAUTH2_PASSWORD:password}
+    authorize:
+      url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
+    token:
+      url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
+
+
+
 
 
 
