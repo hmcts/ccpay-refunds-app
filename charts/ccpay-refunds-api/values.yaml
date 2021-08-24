@@ -15,11 +15,15 @@ java:
     ISSUER_URI: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net/o"
     OIDC_CLIENT_ID: "paybubble"
     OIDC_ISSUER: "https://forgerock-am.service.core-compute-idam-{{ .Values.global.environment }}.internal:8443/openam/oauth2/hmcts"
-    OIDC_S2S_MICROSERVICE_NAME: ccpay_bubble
+    OIDC_S2S_MICROSERVICE_NAME: payment_app
     OIDC_AUDIENCE_LIST: paybubble,cmc_citizen,ccd_gateway
     S2S_AUTHORISED_SERVICES: payment_app,ccpay_bubble,api_gw,ccd_gw
     IDAM_API_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
     LAUNCH_DARKLY_USER_NAME_PREFIX: '{{ .Values.global.environment }}'
+    PAYMENT_API_URL: "http://payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    LIBERATA_OAUTH2_AUTHORIZE_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/authorize"
+    LIBERATA_OAUTH2_TOKEN_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
+    LIBERATA_BASE_URL: "https://bpacustomerportal.liberata.com/pba/public"
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
@@ -34,3 +38,11 @@ java:
           alias: OIDC_CLIENT_SECRET
         - name: launch-darkly-sdk-key
           alias: LAUNCH_DARKLY_SDK_KEY
+        - name: liberata-keys-oauth2-client-id
+          alias: liberata.oauth2.client.id
+        - name: liberata-keys-oauth2-client-secret
+          alias: liberata.oauth2.client.secret
+        - name: liberata-keys-oauth2-username
+          alias: liberata.oauth2.username
+        - name: liberata-keys-oauth2-password
+          alias: liberata.oauth2.password
