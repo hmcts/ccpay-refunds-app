@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
@@ -79,6 +80,15 @@ public class RefundsController {
         return ok().body(refundsService.getRejectedReasons());
     }
 
+    /**
+     * API for Refunds Status History
+     *
+     * @return List of Refunds Status History
+     */
+    @GetMapping("/refund/reference/{reference}/status-history")
+    public ResponseEntity<List<StatusHistory>> getStatusHistory(@PathVariable("reference") int reference) {
+        return ok().body(refundsService.getStatusHistory(reference));
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidRefundRequestException.class)

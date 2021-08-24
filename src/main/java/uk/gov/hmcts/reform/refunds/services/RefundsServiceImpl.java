@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
+import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.util.Arrays;
@@ -52,6 +53,9 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Autowired
     private RejectionReasonRepository rejectionReasonRepository;
+
+    @Autowired
+    private StatusHistoryRepository statusHistoryRepository;
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
@@ -100,6 +104,14 @@ public class RefundsServiceImpl implements RefundsService {
         // Getting names from Rejection Reasons List object
         return rejectionReasonRepository.findAll().stream().map(r -> r.getName())
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<StatusHistory> getStatusHistory(int reference) {
+
+        List<StatusHistory> statusHistories = statusHistoryRepository.findByRefundsId(reference);
+
+        return statusHistories;
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {
