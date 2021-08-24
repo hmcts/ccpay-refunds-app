@@ -105,7 +105,7 @@ public class IdamServiceImpl implements IdamService {
 
         IdamFullNameRetrivalResponse idamFullNameRetrivalResponse;
 
-        if (idamFullNameResEntity.getBody() != null && idamFullNameResEntity.getBody().length > 0) {
+        if (idamFullNameResEntity.getBody() != null) {
             idamFullNameRetrivalResponse = idamFullNameResEntity.getBody()[0];
             if (idamFullNameRetrivalResponse != null) {
                 return idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname();
