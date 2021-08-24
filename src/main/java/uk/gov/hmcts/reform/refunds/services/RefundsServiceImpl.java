@@ -8,28 +8,41 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
+import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SUBMITTED;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
-public class RefundsServiceImpl implements RefundsService {
+public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
@@ -43,6 +56,9 @@ public class RefundsServiceImpl implements RefundsService {
     private RefundsRepository refundsRepository;
 
     @Autowired
+    private RejectionReasonRepository rejectionReasonRepository;
+
+    @Autowired
     private ReferenceUtil referenceUtil;
 
     @Autowired
@@ -50,9 +66,15 @@ public class RefundsServiceImpl implements RefundsService {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
-
     @Autowired
-    private RejectionReasonRepository rejectionReasonRepository;
+    private RefundResponseMapper refundResponseMapper;
+
+    @Override
+    public RefundEvent[] retrieveActions(String reference) {
+        Refund refund = refundsRepository.findByReferenceOrThrow(reference);
+        RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
+        return currentRefundState.nextValidEvents();
+    }
 
     @Autowired
     private StatusHistoryRepository statusHistoryRepository;
@@ -69,9 +91,80 @@ public class RefundsServiceImpl implements RefundsService {
             .build();
     }
 
+    @Override
+    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String selfExclusive) {
+        //Get the userId
+        String uid = idamService.getUserId(headers);
+        Optional<List<Refund>> refundList;
+
+        //Return Refund list based on ccdCaseNumber if its not blank
+        if (ccdCaseNumber != null && !ccdCaseNumber.isBlank()) {
+            refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
+            return getRefundListDto(headers, refundList);
+        }
+
+        RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
+
+        //get the refund list except the self uid
+        refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(selfExclusive) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+            refundStatus,
+            uid
+        ) : refundsRepository.findByRefundStatus(refundStatus);
+
+        return getRefundListDto(headers, refundList);
+    }
+
+    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList) {
+        if (refundList.isPresent() && refundList.get().size() > 0) {
+            return RefundListDtoResponse
+                .buildRefundListWith()
+                .refundList(getRefundResponseDtoList(headers, refundList.get()))
+                .build();
+        } else {
+            throw new RefundListEmptyException("Refund list is empty for given criteria");
+        }
+    }
+
+    public List<RefundListDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList) {
+        //Distinct createdBy UID
+        Set<String> distintUIDSet = refundList
+            .stream().map(Refund::getCreatedBy)
+            .collect(Collectors.toSet());
+
+        //Map UID -> User full name
+        Map<String, String> userFullNameMap = new ConcurrentHashMap<>();
+        distintUIDSet.forEach(userId -> userFullNameMap.put(
+            userId,
+            idamService.getUserFullName(headers, userId)
+        ));
+
+        //Create Refund response List
+        List<RefundListDto> refundListDtoList = new ArrayList<>();
+
+        //Update the user full name for created by
+        refundList
+            .forEach(refund ->
+                         refundListDtoList.add(refundResponseMapper.getRefundListDto(
+                             refund,
+                             userFullNameMap.get(refund.getCreatedBy())
+                         )));
+
+        return refundListDtoList;
+    }
+
 
     @Override
-    public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
+    public Refund getRefundForReference(String reference) {
+        Optional<Refund> refund = refundsRepository.findByReference(reference);
+        if (refund.isPresent()) {
+            return refund.get();
+        }
+        throw new RefundNotFoundException("Refunds not found for " + reference);
+    }
+
+
+//    @Override
+//    public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
 //        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
 //        if (refund.isPresent()) {
 
@@ -95,9 +188,9 @@ public class RefundsServiceImpl implements RefundsService {
 //            refund.get().setRefundStatus(SUBMITTED);
 
 //        }
-        return HttpStatus.ACCEPTED;
+//        return HttpStatus.ACCEPTED;
 
-    }
+//    }
 
     @Override
     public List<String> getRejectedReasons() {
@@ -153,7 +246,7 @@ public class RefundsServiceImpl implements RefundsService {
             .ccdCaseNumber(refundRequest.getCcdCaseNumber())
             .paymentReference(refundRequest.getPaymentReference())
             .reason(refundRequest.getRefundReason())
-            .refundStatus(SUBMITTED)
+            .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .createdBy(uid)
             .updatedBy(uid)
@@ -161,7 +254,7 @@ public class RefundsServiceImpl implements RefundsService {
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
                                   .notes("Refund initiated")
-                                  .status(SUBMITTED.getName())
+                                  .status(SENTFORAPPROVAL.getName())
                                   .build()
                 )
             )

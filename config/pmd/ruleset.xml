@@ -19,8 +19,14 @@
     <exclude name="TooManyStaticImports"/>
     <exclude name="DefaultPackage"/>
     <exclude name="CommentDefaultAccessModifier"/>
+    <exclude name="PrematureDeclaration"/>
   </rule>
   <rule ref="category/java/design.xml/AvoidUncheckedExceptionsInSignatures" />
+  <rule ref="category/java/design.xml/TooManyFields">
+    <properties>
+      <property name="maxfields" value="22" />
+    </properties>
+  </rule>
   <rule ref="category/java/codestyle.xml/ClassNamingConventions">
     <properties>
       <!-- same as any other class -->
@@ -66,6 +72,8 @@
   </rule>
   <rule ref="category/java/errorprone.xml">
     <exclude name="BeanMembersShouldSerialize"/>
+    <exclude name="UseLocaleWithCaseConversions"/>
+    <exclude name="DataflowAnomalyAnalysis"/>
   </rule>
   <rule ref="category/java/multithreading.xml"/>
   <rule ref="category/java/performance.xml"/>

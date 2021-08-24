@@ -19,8 +19,12 @@ public class RestTemplateConfiguration {
 
     @Bean("restTemplateIdam")
     public RestTemplate restTemplateIdam() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 
+    @Bean("restTemplatePayment")
+    public RestTemplate restTemplatePayment() {
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
 }
