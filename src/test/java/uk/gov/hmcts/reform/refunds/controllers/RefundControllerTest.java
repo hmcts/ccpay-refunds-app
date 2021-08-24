@@ -1099,8 +1099,8 @@ public class RefundControllerTest {
             Optional.of(getPaymentGroupDto())
 
         ));
-        when(restOperations.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class))).thenThrow(new ReconciliationProviderServerException(""));
+        doReturn(new ResponseEntity(HttpStatus.PERMANENT_REDIRECT)).when(restOperations).exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class));
 
         MvcResult result = mockMvc.perform(patch("/refund/{reference}/action/{reviewer-action}","RF-1628-5241-9956-2215","APPROVE")
                                                .content(asJsonString(refundReviewRequest))
@@ -1110,7 +1110,7 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isInternalServerError())
             .andReturn();
-        assertEquals("Reconciliation Provider Server Exception",result.getResponse().getContentAsString());
+        assertEquals("Reconciliation Provider: Permanent Redirect",result.getResponse().getContentAsString());
     }
 
     @Test

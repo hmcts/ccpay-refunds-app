@@ -102,14 +102,11 @@ public class IdamServiceImpl implements IdamService {
                 getEntity(headers), IdamFullNameRetrivalResponse.class
             );
 
-        IdamFullNameRetrivalResponse userFullName;
-
         if (idamFullNameResEntity.getBody() == null) {
             LOG.error("User name not found for given user id : " + uid);
             throw new UserNotFoundException("Internal Server error. Please, try again later");
         }
 
-        userFullName = idamFullNameResEntity.getBody();
-        return userFullName.getForename() + " " + userFullName.getSurname();
+        return idamFullNameResEntity.getBody().getForename() + " " + idamFullNameResEntity.getBody().getSurname();
     }
 }

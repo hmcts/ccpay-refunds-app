@@ -55,7 +55,7 @@ public class ReconciliationProviderMapper {
 
             return paymentGroupResponse.getFees().stream().map(paymentFeeResponse -> {
                 List<RemissionResponse> remissionForGivenFee = remissionsAppliedForRefund.stream().filter(remissionResponse ->
-                                                                                                            remissionResponse.getFeeId()==paymentFeeResponse.getId()).collect(
+                                                                                                            remissionResponse.getFeeId().equals(paymentFeeResponse.getId())).collect(
                     Collectors.toList());
                 BigDecimal refundAmount = remissionForGivenFee.isEmpty()?paymentFeeResponse.getApportionAmount():paymentFeeResponse.getApportionAmount().subtract(remissionForGivenFee.get(0).getHwfAmount());
                 return ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
@@ -78,7 +78,7 @@ public class ReconciliationProviderMapper {
     }
 
     private List<PaymentFeeResponse> getRetrospectiveRemissionAppliedFee(PaymentGroupResponse paymentGroupResponse, List<Integer> refundFeeIds ){
-        List<PaymentFeeResponse> feeResponses = paymentGroupResponse.getFees().stream().filter(feeResponse -> feeResponse.getId()==refundFeeIds.get(0)).collect(
+        List<PaymentFeeResponse> feeResponses = paymentGroupResponse.getFees().stream().filter(feeResponse -> feeResponse.getId().equals(refundFeeIds.get(0))).collect(
             Collectors.toList());
         if(feeResponses.isEmpty()){
             throw new RefundFeeNotFoundInPaymentException("Refund not found in payment");
