@@ -994,6 +994,49 @@ public class RefundControllerTest {
     }
 
     @Test
+    public void anyActionOnRetroSpectiveRefundWithoutRemissionSendsInternalServerError() throws Exception {
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
+
+        Refund refundWithRetroRemission = getRefund();
+        refundWithRetroRemission.setReason("RR004-Retrospective Remission");
+        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        PaymentGroupResponse paymentGroupResponse = getPaymentGroupDto();
+        paymentGroupResponse.setRemissions(Arrays.asList());
+
+        when(restTemplatePayment.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(paymentGroupResponse)
+
+        ));
+        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                                                   .amount(BigDecimal.valueOf(100))
+                                                   .refundReference("RF-1628-5241-9956-2215")
+                                                   .build()
+        ))).when(restOperations).exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class));
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+
+        MvcResult result = mockMvc.perform(patch("/refund/{reference}/action/{reviewer-action}","RF-1628-5241-9956-2215","APPROVE")
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+                                                .andExpect(status().isInternalServerError())
+                                                .andReturn();
+        assertEquals(result.getResponse().getContentAsString(),"Remission not found");
+    }
+
+    @Test
     public void anyActionOnRetroSpectiveRefundWithDifferentAmountThanRemissionSendsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
 
@@ -1030,8 +1073,8 @@ public class RefundControllerTest {
                                                .header("ServiceAuthorization", "Services")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .accept(MediaType.APPLICATION_JSON))
-                                                .andExpect(status().isInternalServerError())
-                                                .andReturn();
+            .andExpect(status().isInternalServerError())
+            .andReturn();
         assertEquals(result.getResponse().getContentAsString(),"Remission amount not equal to refund amount");
     }
 

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.mappers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconcilitationProviderFeeRequest;
@@ -11,6 +12,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentExceptio
 import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -19,6 +21,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class ReconciliationProviderMapper {
+
+    @Autowired
+    private RefundsService refundsService;
 
     public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund){
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
@@ -38,7 +43,7 @@ public class ReconciliationProviderMapper {
 
 
     private List<ReconcilitationProviderFeeRequest> getRefundRequestFees(Refund refund, PaymentGroupResponse paymentGroupResponse) {
-        List<Integer> refundFeeIds = Arrays.asList(50); // MOCK-Replace with gettingFeeIds from Refund Table
+        List<Integer> refundFeeIds = refundsService.getRefundIdsForGivenRefund(refund.getReference()); // MOCK-Replace with gettingFeeIds from Refund Table
         if(!refundFeeIds.isEmpty()){
             List<RemissionResponse> remissionsAppliedForRefund = paymentGroupResponse.getRemissions().stream().filter(remissionResponse -> refundFeeIds.contains(remissionResponse.getFeeId())).collect(
                 Collectors.toList());

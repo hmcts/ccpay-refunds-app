@@ -202,6 +202,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .collect(Collectors.toList());
     }
 
+    @Override
+    public List<Integer> getRefundIdsForGivenRefund(String reference) {
+        return Arrays.asList(50);
+    }
+
     private void validateRefundRequest(RefundRequest refundRequest) {
 
 //        if (isRefundEligibilityFlagged()) {
