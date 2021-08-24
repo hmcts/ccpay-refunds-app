@@ -27,9 +27,13 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -61,6 +65,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+    @Autowired
+    private RefundResponseMapper refundResponseMapper;
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {
@@ -68,9 +74,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         return currentRefundState.nextValidEvents();
     }
-
-    @Autowired
-    private RefundResponseMapper refundResponseMapper;
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
@@ -96,14 +99,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             return getRefundListDto(headers, refundList);
         }
 
-        RefundStatus refundStatus = RefundStatus
-            .refundStatusWith()
-            .name(status.toLowerCase())
-            .description(status.toLowerCase())
-            .build();
+        RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
 
         //get the refund list except the self uid
-        refundList = SUBMITTED.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(selfExclusive) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+        refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(selfExclusive) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
             refundStatus,
             uid
         ) : refundsRepository.findByRefundStatus(refundStatus);

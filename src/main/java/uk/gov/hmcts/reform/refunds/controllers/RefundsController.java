@@ -18,15 +18,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
@@ -166,9 +166,4 @@ public class RefundsController {
 
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(RefundListEmptyException.class)
-    public String return400(RefundListEmptyException ex) {
-        return ex.getMessage();
-    }
 }

@@ -63,7 +63,7 @@ public class RefundServiceImplTest {
         .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
         .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID)
         .reference("RF-1111-2234-1077-1123")
-        .refundStatus(RefundStatus.SUBMITTED)
+        .refundStatus(RefundStatus.SENTFORAPPROVAL)
         .reason("Duplicate Payment")
         .paymentReference("RC-1111-2234-1077-1123")
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
@@ -79,7 +79,7 @@ public class RefundServiceImplTest {
         .createdBy(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
         .updatedBy(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
         .reference("RF-2222-2234-1077-1123")
-        .refundStatus(RefundStatus.SUBMITTED)
+        .refundStatus(RefundStatus.SENTFORAPPROVAL)
         .reason("Other")
         .paymentReference("RC-2222-2234-1077-1123")
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
@@ -137,7 +137,7 @@ public class RefundServiceImplTest {
     @Test
     void testRefundListForRefundSubmittedStatusSelfExclusiveTrue() throws Exception {
         when(refundsRepository.findByRefundStatusAndCreatedByIsNot(
-            RefundStatus.SUBMITTED,
+            RefundStatus.SENTFORAPPROVAL,
             GET_REFUND_LIST_CCD_CASE_USER_ID
         ))
             .thenReturn(Optional.ofNullable(List.of(
@@ -148,7 +148,7 @@ public class RefundServiceImplTest {
             "ccd-full-name-for-submitted-status");
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
-            "submitted",
+            "sent for approval",
             map,
             "",
             "true"
@@ -156,7 +156,7 @@ public class RefundServiceImplTest {
 
         assertNotNull(refundListDtoResponse);
         assertEquals(1, refundListDtoResponse.getRefundList().size());
-        assertEquals(RefundStatus.SUBMITTED, refundListDtoResponse.getRefundList().get(0).getRefundStatus());
+        assertEquals(RefundStatus.SENTFORAPPROVAL, refundListDtoResponse.getRefundList().get(0).getRefundStatus());
         assertEquals(
             "ccd-full-name-for-submitted-status", refundListDtoResponse.getRefundList().get(0).getUserFullName()
         );
@@ -166,7 +166,7 @@ public class RefundServiceImplTest {
     @Test
     void testRefundListForRefundSubmittedStatusSelfExclusiveFalse() throws Exception {
         when(refundsRepository.findByRefundStatus(
-            RefundStatus.SUBMITTED
+            RefundStatus.SENTFORAPPROVAL
         ))
             .thenReturn(Optional.ofNullable(List.of(
                 refundListSupplierBasedOnCCDCaseNumber.get(),
@@ -181,7 +181,7 @@ public class RefundServiceImplTest {
             "ccd-full-name-for-submitted-status");
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
-            "submitted",
+            "sent for approval",
             map,
             "",
             "false"
@@ -189,7 +189,7 @@ public class RefundServiceImplTest {
 
         assertNotNull(refundListDtoResponse);
         assertEquals(2, refundListDtoResponse.getRefundList().size());
-        assertEquals(RefundStatus.SUBMITTED, refundListDtoResponse.getRefundList().get(0).getRefundStatus());
+        assertEquals(RefundStatus.SENTFORAPPROVAL, refundListDtoResponse.getRefundList().get(0).getRefundStatus());
 
         assertTrue(refundListDtoResponse.getRefundList().stream()
                        .anyMatch(refundListDto -> refundListDto.getUserFullName().equalsIgnoreCase("ccd-full-name")));

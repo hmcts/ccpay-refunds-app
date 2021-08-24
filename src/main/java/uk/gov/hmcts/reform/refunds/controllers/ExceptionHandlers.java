@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
@@ -57,18 +58,19 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 //        LOG.warn("Data integrity violation", e);
 //    }
 
-    @ExceptionHandler({PaymentInvalidRequestException.class, ActionNotFoundException.class, ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
-    public ResponseEntity return400(RuntimeException ex) {
+    @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
+        ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
+    public ResponseEntity return400(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({RefundNotFoundException.class, PaymentReferenceNotFoundException.class})
-    public ResponseEntity return400(Exception ex) {
+    public ResponseEntity return404(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class, UserNotFoundException.class})
-    public ResponseEntity return500(RuntimeException ex) {
+    public ResponseEntity return500(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
