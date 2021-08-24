@@ -20,16 +20,19 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.services.PaymentService;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -68,6 +71,27 @@ public class PaymentServiceTest {
             paymentService.fetchPaymentGroupResponse(headers, "RC-1628-5241-9956-2315");
 
         assertThat(paymentGroupResponse).usingRecursiveComparison().isEqualTo(getPaymentGroupDto());
+    }
+
+    @Test
+    public void fetchPaymentDetailsReturnsNotFoundException() throws Exception {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        PaymentGroupResponse paymentGroupResponse = PaymentGroupResponse.paymentGroupDtoWith()
+            .paymentGroupReference("payment-group-reference")
+            .dateCreated(formatter.parse("7-Jun-2013"))
+            .dateUpdated(formatter.parse("7-Jun-2013"))
+            .payments(Collections.emptyList()).build();
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(paymentGroupResponse))
+        );
+
+        assertThrows(PaymentReferenceNotFoundException.class, () -> {
+            paymentService.fetchPaymentGroupResponse(headers, "RC-1628-5241-9956-2315");
+        });
 
 
     }

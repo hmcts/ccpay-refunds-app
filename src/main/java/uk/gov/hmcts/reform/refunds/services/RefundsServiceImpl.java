@@ -182,6 +182,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 ////        }
 //        return HttpStatus.ACCEPTED;
 //
+//          request.setState(currentstate.nextState(currentEventFromRequest));
+
+//          if(RefundState.valueOf(refund.get().getRefundStatus().getName()).equals())
+//            refund.get().setPaymentReference(refundRequest.getPaymentReference());
+//            refund.get().setReason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get());
+//            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
+//            refund.get().setRefundStatus(SUBMITTED);
+
+//        }
+//        return HttpStatus.ACCEPTED;
+
 //    }
 
     @Override

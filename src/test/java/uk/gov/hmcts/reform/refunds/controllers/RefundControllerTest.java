@@ -124,6 +124,7 @@ public class RefundControllerTest {
         .surname("mock1-Surname")
         .roles(List.of("Refund-approver", "Refund-admin"))
         .build();
+
     public static final Supplier<IdamFullNameRetrivalResponse> idamFullNameSendBackRefundListSupplier = () -> IdamFullNameRetrivalResponse
         .idamFullNameRetrivalResponseWith()
         .id(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
@@ -132,6 +133,7 @@ public class RefundControllerTest {
         .surname("mock2-Surname")
         .roles(List.of("Refund-approver", "Refund-admin"))
         .build();
+
     public static final Supplier<IdamUserIdResponse> idamUserIDResponseSupplier = () -> IdamUserIdResponse.idamUserIdResponseWith()
         .familyName("mock-Surname")
         .givenName("mock-Surname")

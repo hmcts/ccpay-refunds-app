@@ -13,6 +13,8 @@ import java.util.List;
 @Builder(builderMethodName = "refundsWith")
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 @Data
 @Table(name = "refunds")
 public class Refund {
@@ -58,5 +60,6 @@ public class Refund {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
+
 
 }
