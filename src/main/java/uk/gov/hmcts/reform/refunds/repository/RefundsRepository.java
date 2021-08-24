@@ -4,6 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,8 +15,15 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer> {
 
     Optional<Refund> findByReference(String reference);
 
-    default Refund findByCodeOrThrow(String reference) {
+    default Refund findByReferenceOrThrow(String reference) {
         return findByReference(reference).orElseThrow(() -> new RefundNotFoundException(
             "Refund not found for given reference"));
     }
+
+    Optional<List<Refund>> findByRefundStatusAndCreatedByIsNot(RefundStatus refundStatus, String createdBy);
+
+    Optional<List<Refund>> findByRefundStatus(RefundStatus refundStatus);
+
+    Optional<List<Refund>> findByCcdCaseNumber(String ccdCaseNumber);
+
 }
