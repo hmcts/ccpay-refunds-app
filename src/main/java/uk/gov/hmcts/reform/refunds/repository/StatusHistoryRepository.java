@@ -1,15 +1,17 @@
 package uk.gov.hmcts.reform.refunds.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface StatusHistoryRepository extends JpaRepository<StatusHistory, Long> {
+public interface StatusHistoryRepository extends CrudRepository<StatusHistory, Long> {
 
-    List<StatusHistory> findByRefundsId(int refundsId);
+    Optional<List<StatusHistory>> findByRefund(Refund refund);
 
 }
 

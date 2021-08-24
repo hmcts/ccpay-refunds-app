@@ -5,9 +5,9 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryListDtoResponse;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 
 import java.util.List;
 
@@ -26,5 +26,5 @@ public interface RefundsService {
 
     List<String> getRejectedReasons();
 
-    List<StatusHistory> getStatusHistory(int reference);
+    StatusHistoryListDtoResponse getStatusHistory(String reference);
 }

@@ -4,17 +4,15 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
+import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
@@ -66,8 +64,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+
     @Autowired
     private RefundResponseMapper refundResponseMapper;
+
+    @Autowired
+    private StatusHistoryResponseMapper statusHistoryResponseMapper;
+
+    @Autowired
+    private StatusHistoryRepository statusHistoryRepository;
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {
@@ -75,9 +80,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         return currentRefundState.nextValidEvents();
     }
-
-    @Autowired
-    private StatusHistoryRepository statusHistoryRepository;
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
@@ -200,11 +202,37 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public List<StatusHistory> getStatusHistory(int reference) {
+    public StatusHistoryListDtoResponse getStatusHistory(String reference) {
 
-        List<StatusHistory> statusHistories = statusHistoryRepository.findByRefundsId(reference);
+        Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
-        return statusHistories;
+        Optional<List<StatusHistory>> statusHistories = statusHistoryRepository.findByRefund(refund);
+
+        return getStatusHistoryListDto(statusHistories);
+    }
+
+    public StatusHistoryListDtoResponse getStatusHistoryListDto(Optional<List<StatusHistory>> statusHistories) {
+        if (statusHistories.isPresent() && statusHistories.get().size() > 0) {
+            return StatusHistoryListDtoResponse
+                    .buildStatusHistoryListWith()
+                    .statusHistoryDtoList(getStatusHistoryDto(statusHistories.get()))
+                    .build();
+        } else {
+            throw new RefundListEmptyException("Refund list is empty for given criteria");
+        }
+    }
+
+    public List<StatusHistoryDto> getStatusHistoryDto(List<StatusHistory> statusHistories) {
+
+        List<StatusHistoryDto> statusHistoryDtos = new ArrayList<>();
+
+        statusHistories
+                .forEach(statusHistory ->
+                        statusHistoryDtos.add(statusHistoryResponseMapper.getStatusHistoryDto(
+                                statusHistory
+                        )));
+
+        return statusHistoryDtos;
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {
