@@ -48,9 +48,8 @@ public class SmokeTest {
     @BeforeAll
     public void setUp() throws Exception {
         RestAssured.baseURI = testUrl;
-        //Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
