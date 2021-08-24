@@ -106,30 +106,31 @@ import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USER_FULL_NAM
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RefundControllerTest {
 
-    public static final Supplier<IdamFullNameRetrivalResponse> idamFullNameCCDSearchRefundListSupplier = () -> IdamFullNameRetrivalResponse
+    public static final Supplier<IdamFullNameRetrivalResponse[]> idamFullNameCCDSearchRefundListSupplier = () -> new IdamFullNameRetrivalResponse[]{IdamFullNameRetrivalResponse
         .idamFullNameRetrivalResponseWith()
         .id(GET_REFUND_LIST_CCD_CASE_USER_ID)
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
         .roles(List.of("Refund-approver", "Refund-admin"))
-        .build();
-    public static final Supplier<IdamFullNameRetrivalResponse> idamFullNameSubmittedRefundListSupplier = () -> IdamFullNameRetrivalResponse
+        .build()};
+    public static final Supplier<IdamFullNameRetrivalResponse[]> idamFullNameSubmittedRefundListSupplier = () -> new IdamFullNameRetrivalResponse[]{IdamFullNameRetrivalResponse
         .idamFullNameRetrivalResponseWith()
         .id(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
         .email("mock1fullname@gmail.com")
         .forename("mock1-Forename")
         .surname("mock1-Surname")
         .roles(List.of("Refund-approver", "Refund-admin"))
-        .build();
-    public static final Supplier<IdamFullNameRetrivalResponse> idamFullNameSendBackRefundListSupplier = () -> IdamFullNameRetrivalResponse
+        .build()};
+
+    public static final Supplier<IdamFullNameRetrivalResponse[]> idamFullNameSendBackRefundListSupplier = () -> new IdamFullNameRetrivalResponse[]{IdamFullNameRetrivalResponse
         .idamFullNameRetrivalResponseWith()
         .id(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
         .email("mock2fullname@gmail.com")
         .forename("mock2-Forename")
         .surname("mock2-Surname")
         .roles(List.of("Refund-approver", "Refund-admin"))
-        .build();
+        .build()};
     public static final Supplier<IdamUserIdResponse> idamUserIDResponseSupplier = () -> IdamUserIdResponse.idamUserIdResponseWith()
         .familyName("mock-Surname")
         .givenName("mock-Surname")
@@ -257,7 +258,7 @@ public class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "submitted")
                                                   .queryParam("ccdCaseNumber", GET_REFUND_LIST_CCD_CASE_USER_ID)
-                                                  .queryParam("selfExclusive", " ")
+                                                  .queryParam("excludeCurrentUser", " ")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
 
@@ -295,7 +296,7 @@ public class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "sent for approval")
                                                   .queryParam("ccdCaseNumber", "")
-                                                  .queryParam("selfExclusive", " ")
+                                                  .queryParam("excludeCurrentUser", " ")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
 
@@ -336,7 +337,7 @@ public class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "sent for approval")
                                                   .queryParam("ccdCaseNumber", "")
-                                                  .queryParam("selfExclusive", "false")
+                                                  .queryParam("excludeCurrentUser", "false")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
 
@@ -383,7 +384,7 @@ public class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "sent back")
                                                   .queryParam("ccdCaseNumber", "")
-                                                  .queryParam("selfExclusive", "false")
+                                                  .queryParam("excludeCurrentUser", "false")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
 
@@ -400,14 +401,14 @@ public class RefundControllerTest {
     }
 
     public void mockIdamFullNameCall(String userId,
-                                     IdamFullNameRetrivalResponse idamFullNameRetrivalResponse) {
+                                     IdamFullNameRetrivalResponse[] idamFullNameRetrivalResponse) {
         UriComponentsBuilder builderCCDSearchURI = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
             .queryParam("query", "id:" + userId);
-        ResponseEntity<IdamFullNameRetrivalResponse> responseForFullNameCCDUserId =
+        ResponseEntity<IdamFullNameRetrivalResponse[]> responseForFullNameCCDUserId =
             new ResponseEntity<>(idamFullNameRetrivalResponse, HttpStatus.OK);
         when(restTemplateIdam.exchange(eq(builderCCDSearchURI.toUriString())
             , any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamFullNameRetrivalResponse.class)
+                                       eq(IdamFullNameRetrivalResponse[].class)
         )).thenReturn(responseForFullNameCCDUserId);
     }
 

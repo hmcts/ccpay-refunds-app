@@ -135,7 +135,7 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void testRefundListForRefundSubmittedStatusSelfExclusiveTrue() throws Exception {
+    void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() throws Exception {
         when(refundsRepository.findByRefundStatusAndCreatedByIsNot(
             RefundStatus.SENTFORAPPROVAL,
             GET_REFUND_LIST_CCD_CASE_USER_ID
@@ -164,7 +164,7 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void testRefundListForRefundSubmittedStatusSelfExclusiveFalse() throws Exception {
+    void testRefundListForRefundSubmittedStatusExcludeCurrentUserFalse() throws Exception {
         when(refundsRepository.findByRefundStatus(
             RefundStatus.SENTFORAPPROVAL
         ))
