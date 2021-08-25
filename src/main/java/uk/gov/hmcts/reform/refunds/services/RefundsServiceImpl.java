@@ -115,7 +115,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList) {
-        if (refundList.isPresent() && refundList.get().size() > 0) {
+        if (refundList.isPresent() && !refundList.get().isEmpty()) {
             return RefundListDtoResponse
                 .buildRefundListWith()
                 .refundList(getRefundResponseDtoList(headers, refundList.get()))
@@ -250,7 +250,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
-        if (matcher) {
+        if (Boolean.TRUE.equals(matcher)) {
             if (refundRequest.getRefundReason().length() > reasonPrefixLength) {
                 refundRequest.setRefundReason(refundRequest.getRefundReason().substring(reasonPrefixLength));
             } else {

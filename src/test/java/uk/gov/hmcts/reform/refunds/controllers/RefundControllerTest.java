@@ -22,7 +22,6 @@ import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.MultiValueMap;
@@ -106,7 +105,7 @@ import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USER_FULL_NAM
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class RefundControllerTest {
+class RefundControllerTest {
 
     public static final Supplier<IdamFullNameRetrivalResponse[]> idamFullNameCCDSearchRefundListSupplier = () -> new IdamFullNameRetrivalResponse[]{IdamFullNameRetrivalResponse
         .idamFullNameRetrivalResponseWith()
@@ -243,7 +242,7 @@ public class RefundControllerTest {
 
 
     @Test
-    public void testRefundListBasedOnCCDCaseNumber() throws Exception {
+    void testRefundListBasedOnCCDCaseNumber() throws Exception {
 
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
@@ -278,7 +277,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void testRefundListForSubmittedStatus() throws Exception {
+    void testRefundListForSubmittedStatus() throws Exception {
 
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
@@ -316,7 +315,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void testMultipleRefundsSubmittedStatus() throws Exception {
+    void testMultipleRefundsSubmittedStatus() throws Exception {
 
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
@@ -364,7 +363,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void testRefundsListSendBackStatus() throws Exception {
+    void testRefundsListSendBackStatus() throws Exception {
 
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
@@ -538,8 +537,7 @@ public class RefundControllerTest {
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        String ErrorMessage = result.getResponse().getContentAsString();
-        assertTrue(ErrorMessage.equals("Refund is already processed for this payment"));
+        assertEquals("Refund is already processed for this payment", result.getResponse().getContentAsString());
     }
 
 
@@ -562,13 +560,12 @@ public class RefundControllerTest {
             .andExpect(status().isGatewayTimeout())
             .andReturn();
 
-        String ErrorMessage = result.getResponse().getContentAsString();
-        assertTrue(ErrorMessage.equals("Unable to retrieve User information. Please try again later"));
+        assertEquals("Unable to retrieve User information. Please try again later", result.getResponse().getContentAsString());
     }
 
 
     @Test
-    public void approveRefundRequestReturnsSuccessResponse() throws Exception{
+    void approveRefundRequestReturnsSuccessResponse() throws Exception{
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
@@ -602,11 +599,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                .andExpect(status().isCreated())
                                                .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refund request reviewed successfully");
+        assertEquals("Refund request reviewed successfully", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void anyRefundReviewActionOnUnSubmittedRefundReturnsBadRequest() throws Exception{
+    void anyRefundReviewActionOnUnSubmittedRefundReturnsBadRequest() throws Exception{
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
         Refund unsubmittedRefund = getRefund();
         unsubmittedRefund.setRefundStatus(SENTBACK);
@@ -627,11 +624,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                 .andExpect(status().isBadRequest())
                                                 .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refund is not submitted");
+        assertEquals("Refund is not submitted", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void rejectRefundRequestReturnsSuccessResponse() throws Exception{
+    void rejectRefundRequestReturnsSuccessResponse() throws Exception{
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .code("RR0001")
                                                     .build();
@@ -658,11 +655,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                .andExpect(status().isCreated())
                                                .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refund request reviewed successfully");
+        assertEquals("Refund request reviewed successfully", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void sendbackRefundRequestReturnsSuccessResponse() throws Exception{
+    void sendbackRefundRequestReturnsSuccessResponse() throws Exception{
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .reason("send back reason")
                                                     .build();
@@ -682,12 +679,12 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                 .andExpect(status().isCreated())
                                                 .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refund request reviewed successfully");
+        assertEquals("Refund request reviewed successfully", result.getResponse().getContentAsString());
     }
 
 
     @Test
-    public void rejectRefundRequestWithoutReasonCodeReturnsBadRequest() throws Exception{
+    void rejectRefundRequestWithoutReasonCodeReturnsBadRequest() throws Exception{
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .reason("reason")
                                                     .build();
@@ -706,11 +703,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                 .andExpect(status().isBadRequest())
                                                 .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refund reject reason is required");
+        assertEquals("Refund reject reason is required", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void rejectRefundRequestWithOthersCodeAndWithoutReasonReturnsBadRequest() throws Exception{
+    void rejectRefundRequestWithOthersCodeAndWithoutReasonReturnsBadRequest() throws Exception{
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .code("RE005")
                                                     .build();
@@ -729,11 +726,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                .andExpect(status().isBadRequest())
                                                .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refund reject reason is required for others");
+        assertEquals("Refund reject reason is required for others", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void rejectRefundRequestWithOthersCodeAndWithReasonReturnsSuccessResponse() throws  Exception {
+    void rejectRefundRequestWithOthersCodeAndWithReasonReturnsSuccessResponse() throws  Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .code("RE005")
                                                     .reason("custom reason")
@@ -754,11 +751,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                .andExpect(status().isCreated())
                                                .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refund request reviewed successfully");
+        assertEquals("Refund request reviewed successfully", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void sendBackRefundRequestWithoutReasonReturnsBadRequest() throws  Exception {
+    void sendBackRefundRequestWithoutReasonReturnsBadRequest() throws  Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
                                                     .code("RR002")
                                                     .build();
@@ -778,12 +775,12 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                .andExpect(status().isBadRequest())
                                                .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Enter reason for sendback");
+        assertEquals("Enter reason for sendback", result.getResponse().getContentAsString());
 
     }
 
     @Test
-    public void approveRefundRequestForNotExistingPaymentReturnsBadRequest() throws Exception {
+    void approveRefundRequestForNotExistingPaymentReturnsBadRequest() throws Exception {
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR001","reason1");
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
@@ -808,11 +805,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                .andExpect(status().isNotFound())
                                                .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Payment Reference not found");
+        assertEquals("Payment Reference not found", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void approveRefundRequestPaymentServerIsUnAvailableReturnsInternalServerError() throws Exception {
+    void approveRefundRequestPaymentServerIsUnAvailableReturnsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
@@ -836,7 +833,7 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                 .andExpect(status().isInternalServerError())
                                                 .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Payment Server Exception");
+        assertEquals("Payment Server Exception", result.getResponse().getContentAsString());
     }
 
     @Test
@@ -864,11 +861,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                 .andExpect(status().isBadRequest())
                                                 .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Invalid Request: Payhub");
+        assertEquals("Invalid Request: Payhub", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void approveRefundRequestWhenSendingInvalidRequestToReconciliationProviderReturnsBadRequest() throws Exception {
+    void approveRefundRequestWhenSendingInvalidRequestToReconciliationProviderReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
@@ -898,11 +895,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                 .andExpect(status().isBadRequest())
                                                 .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Invalid Request: Reconciliation Provider");
+        assertEquals("Invalid Request: Reconciliation Provider", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void approveRefundRequestWhenReconciliationProviderIsUnavailableReturnsInternalServerError() throws Exception {
+    void approveRefundRequestWhenReconciliationProviderIsUnavailableReturnsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
@@ -932,11 +929,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                 .andExpect(status().isInternalServerError())
                                                 .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Reconciliation Provider Server Exception");
+        assertEquals("Reconciliation Provider Server Exception", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void approveRefundRequest_WhenRefundIsNotAvailable() throws Exception {
+    void approveRefundRequest_WhenRefundIsNotAvailable() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.ofNullable(null));
 
@@ -948,11 +945,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                             .andExpect(status().isNotFound())
                                             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refunds not found for RF-1628-5241-9956-2215");
+        assertEquals("Refunds not found for RF-1628-5241-9956-2215", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void approveRefundRequestWithRetrospectiveRemissionReturnsSuccessResponse() throws Exception {
+    void approveRefundRequestWithRetrospectiveRemissionReturnsSuccessResponse() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
 
         Refund refundWithRetroRemission = getRefund();
@@ -989,11 +986,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Refund request reviewed successfully");
+        assertEquals("Refund request reviewed successfully", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void anyActionOnRetroSpectiveRefundWithoutRemissionSendsInternalServerError() throws Exception {
+    void anyActionOnRetroSpectiveRefundWithoutRemissionSendsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
 
         Refund refundWithRetroRemission = getRefund();
@@ -1032,11 +1029,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
                                                 .andExpect(status().isInternalServerError())
                                                 .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Remission not found");
+        assertEquals("Remission not found", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void anyActionOnRetroSpectiveRefundWithDifferentAmountThanRemissionSendsInternalServerError() throws Exception {
+    void anyActionOnRetroSpectiveRefundWithDifferentAmountThanRemissionSendsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
 
         Refund refundWithRetroRemission = getRefund();
@@ -1074,11 +1071,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isInternalServerError())
             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(),"Remission amount not equal to refund amount");
+        assertEquals("Remission amount not equal to refund amount", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void approveRefundRequestWhenReconciliationProviderThrowsServerExceptionItSendsInternalServerError() throws Exception {
+    void approveRefundRequestWhenReconciliationProviderThrowsServerExceptionItSendsInternalServerError() throws Exception {
 
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
         Refund refundWithRetroRemission = getRefund();
@@ -1109,11 +1106,11 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isInternalServerError())
             .andReturn();
-        assertEquals("Reconciliation Provider: Permanent Redirect",result.getResponse().getContentAsString());
+        assertEquals("Reconciliation Provider: Permanent Redirect", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void retrieveActionsForSubmittedState() throws Exception {
+    void retrieveActionsForSubmittedState() throws Exception {
         refund.setRefundStatus(SENTFORAPPROVAL);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
         mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
@@ -1128,7 +1125,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void retrieveActionsForNeedMoreInfoState() throws Exception {
+    void retrieveActionsForNeedMoreInfoState() throws Exception {
         refund.setRefundStatus(SENTBACK);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
         mockMvc.perform(get("/refunds/RF-1234-1234-1234-1233/actions")
@@ -1142,7 +1139,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void retrieveActionsForAcceptedState() throws Exception {
+    void retrieveActionsForAcceptedState() throws Exception {
         refund.setRefundStatus(ACCEPTED);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
         mockMvc.perform(get("/refunds/RF-1234-1234-1234-1231/actions")
@@ -1155,7 +1152,7 @@ public class RefundControllerTest {
 
 
     @Test
-    public void retrieveActionsForApprovedState() throws Exception {
+    void retrieveActionsForApprovedState() throws Exception {
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
         mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
@@ -1190,7 +1187,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void UpdateRefundStatusAccepted() throws Exception {
+    void UpdateRefundStatusAccepted() throws Exception {
         RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith().status(
             RefundStatus.ACCEPTED).build();
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
@@ -1215,12 +1212,12 @@ public class RefundControllerTest {
             .andExpect(status().isNoContent())
             .andReturn();
 
-        assertTrue(result.getResponse().getContentAsString().equals("Refund status updated successfully"));
+        assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
 
     }
 
     @Test
-    public void UpdateRefundStatusRejected() throws Exception {
+    void UpdateRefundStatusRejected() throws Exception {
         RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
             "Refund rejected",
             RefundStatus.REJECTED
@@ -1247,11 +1244,11 @@ public class RefundControllerTest {
             .andExpect(status().isNoContent())
             .andReturn();
 
-        assertTrue(result.getResponse().getContentAsString().equals("Refund status updated successfully"));
+        assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
     }
 
     @Test
-    public void UpdateRefundStatusRejectedWithOutReason() throws Exception {
+    void UpdateRefundStatusRejectedWithOutReason() throws Exception {
         RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith()
             .status(RefundStatus.REJECTED).build();
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
@@ -1281,7 +1278,7 @@ public class RefundControllerTest {
     }
 
     @Test
-    public void UpdateRefundStatusNotAllowedWithCurrentStatus() throws Exception {
+    void UpdateRefundStatusNotAllowedWithCurrentStatus() throws Exception {
         RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
             "Refund rejected",
             RefundStatus.REJECTED
@@ -1308,7 +1305,7 @@ public class RefundControllerTest {
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertTrue(result.getResponse().getContentAsString().equals("Action not allowed to proceed"));
+        assertEquals("Action not allowed to proceed", result.getResponse().getContentAsString());
 
     }
 

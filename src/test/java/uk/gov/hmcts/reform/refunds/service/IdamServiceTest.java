@@ -37,7 +37,7 @@ import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFU
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-public class IdamServiceTest {
+class IdamServiceTest {
 
     @InjectMocks
     private IdamServiceImpl idamService;
@@ -74,7 +74,7 @@ public class IdamServiceTest {
         )).thenReturn(responseEntity);
 
         String idamUserIdResponse = idamService.getUserId(header);
-        assertEquals(idamUserIdResponse, mockIdamUserIdResponse.getUid());
+        assertEquals(mockIdamUserIdResponse.getUid(), idamUserIdResponse);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class IdamServiceTest {
     }
 
     @Test
-    public void testGetUserFullNameExceptionScenarios() {
+    void testGetUserFullNameExceptionScenarios() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
 
@@ -147,12 +147,12 @@ public class IdamServiceTest {
             .uid("986-erfg-kjhg-123")
             .build();
 
-        assertEquals(idamUserIdResponse.getFamilyName(), "VP");
-        assertEquals(idamUserIdResponse.getGivenName(), "VP");
-        assertEquals(idamUserIdResponse.getName(), "VP");
-        assertEquals(idamUserIdResponse.getRoles(), Arrays.asList("vp"));
-        assertEquals(idamUserIdResponse.getUid(), "986-erfg-kjhg-123");
-        assertEquals(idamUserIdResponse.getSub(), "V_P@gmail.com");
+        assertEquals("VP", idamUserIdResponse.getFamilyName());
+        assertEquals("VP", idamUserIdResponse.getGivenName());
+        assertEquals("VP", idamUserIdResponse.getName());
+        assertEquals(Arrays.asList("vp"), idamUserIdResponse.getRoles());
+        assertEquals("986-erfg-kjhg-123", idamUserIdResponse.getUid());
+        assertEquals("V_P@gmail.com", idamUserIdResponse.getSub());
     }
 
 }
