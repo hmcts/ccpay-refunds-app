@@ -33,6 +33,8 @@ public class RefundDto {
 
     private String userFullName;
 
+    private String emailId;
+
     private String dateCreated;
 
     private String dateUpdated;

@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamFullNameRetrivalResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
@@ -94,7 +95,7 @@ public class IdamServiceImpl implements IdamService {
 
 
     @Override
-    public String getUserFullName(MultiValueMap<String, String> headers, String uid) {
+    public UserIdentityDataDto getUserIdentityData(MultiValueMap<String, String> headers, String uid) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
             .queryParam("query", "id:" + uid);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
@@ -112,7 +113,10 @@ public class IdamServiceImpl implements IdamService {
 
             if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
                 IdamFullNameRetrivalResponse idamFullNameRetrivalResponse = idamArrayFullNameRetrievalResponse[0];
-                return idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname();
+                return UserIdentityDataDto.userIdentityDataWith()
+                        .emailId(idamFullNameRetrivalResponse.getEmail())
+                        .fullName(idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname())
+                        .build();
             }
         }
 
