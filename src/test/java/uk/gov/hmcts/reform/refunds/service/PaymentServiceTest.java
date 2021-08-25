@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.refunds.service;
 
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,27 +43,31 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = MOCK)
 public class PaymentServiceTest {
 
-    SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
     @Autowired
     private PaymentService paymentService;
+
     @MockBean
     @Qualifier("restTemplatePayment")
     private RestTemplate restTemplatePayment;
+
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
+    SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
+
+
     @Test
-    public void fetchPaymentDetailsReturnsValidResponse() throws ParseException {
+    public void fetchPaymentDetailsReturnsValidResponse() throws ParseException{
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", "auth");
-        headers.add("ServiceAuthorization", "service-auth");
+        headers.add("Authorization","auth");
+        headers.add("ServiceAuthorization","service-auth");
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
         ));
 
-        PaymentGroupResponse paymentGroupResponse =
+       PaymentGroupResponse paymentGroupResponse =
             paymentService.fetchPaymentGroupResponse(headers, "RC-1628-5241-9956-2315");
 
         assertThat(paymentGroupResponse).usingRecursiveComparison().isEqualTo(getPaymentGroupDto());
@@ -93,7 +97,7 @@ public class PaymentServiceTest {
     }
 
     private PaymentGroupResponse getPaymentGroupDto() throws ParseException {
-        return PaymentGroupResponse.paymentGroupDtoWith()
+        return  PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
             .dateCreated(formatter.parse("7-Jun-2013"))
             .dateUpdated(formatter.parse("7-Jun-2013"))

@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
 import uk.gov.hmcts.reform.refunds.mappers.RefundReviewMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -83,6 +84,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 );
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
+                }else{
+                    throw new ReconciliationProviderServerException("Reconciliation Provider: "+reconciliationProviderResponseResponse.getStatusCode().getReasonPhrase());
                 }
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);

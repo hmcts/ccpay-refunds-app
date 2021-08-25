@@ -4,7 +4,6 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -15,10 +14,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -161,19 +157,30 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
 //    @Override
 //    public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
-//        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-//        if (refund.isPresent()) {
-
-//            String status = refund.get().getRefundStatus().getName();
-//            List<String> nextValidEvents = Arrays.asList(RefundState.valueOf(status).nextValidEvents()).stream().map(
-//                refundEvent1 -> refundEvent1.toString()).collect(
-//                Collectors.toList());
-
-//            RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
-
-//            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
-//              return new ResponseEntity("Invalid refund event entered next valid refund events is/are : " + nextValidEvents, HttpStatus.BAD_REQUEST);
-//            }
+////        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
+////        if (refund.isPresent()) {
+//
+////            String status = refund.get().getRefundStatus().getName();
+////            List<String> nextValidEvents = Arrays.asList(RefundState.valueOf(status).nextValidEvents()).stream().map(
+////                refundEvent1 -> refundEvent1.toString()).collect(
+////                Collectors.toList());
+//
+////            RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
+//
+////            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
+////              return new ResponseEntity("Invalid refund event entered next valid refund events is/are : " + nextValidEvents, HttpStatus.BAD_REQUEST);
+////            }
+////
+////          request.setState(currentstate.nextState(currentEventFromRequest));
+//
+////          if(RefundState.valueOf(refund.get().getRefundStatus().getName()).equals())
+////            refund.get().setPaymentReference(refundRequest.getPaymentReference());
+////            refund.get().setReason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get());
+////            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
+////            refund.get().setRefundStatus(SUBMITTED);
+//
+////        }
+//        return HttpStatus.ACCEPTED;
 //
 //          request.setState(currentstate.nextState(currentEventFromRequest));
 

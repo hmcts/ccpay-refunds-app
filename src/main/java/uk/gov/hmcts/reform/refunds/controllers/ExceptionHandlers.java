@@ -1,10 +1,8 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
-import feign.Response;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,28 +10,15 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
-import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderInvalidRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.*;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.CONFLICT;
+
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked", "rawtypes"})
 @ControllerAdvice
@@ -69,7 +54,8 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class, UserNotFoundException.class})
+    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class, UserNotFoundException.class,
+        FeesNotFoundForRefundException.class, RefundFeeNotFoundInPaymentException.class, RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class})
     public ResponseEntity return500(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
