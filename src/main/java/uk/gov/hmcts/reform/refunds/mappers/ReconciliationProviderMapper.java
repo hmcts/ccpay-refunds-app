@@ -38,7 +38,8 @@ public class ReconciliationProviderMapper {
 
 
     private List<ReconcilitationProviderFeeRequest> getRefundRequestFees(Refund refund, PaymentGroupResponse paymentGroupResponse) {
-        List<Integer> refundFeeIds = Arrays.asList(50); // MOCK-Replace with gettingFeeIds from Refund Table
+        String feeIds = refund.getFeeIds();
+        List<Integer> refundFeeIds = getRefundFeeIds(feeIds);
         if(!refundFeeIds.isEmpty()){
             List<RemissionResponse> remissionsAppliedForRefund = paymentGroupResponse.getRemissions().stream().filter(remissionResponse -> refundFeeIds.contains(remissionResponse.getFeeId())).collect(
                 Collectors.toList());
@@ -66,6 +67,10 @@ public class ReconciliationProviderMapper {
             }).collect(Collectors.toList());
         }
         throw new FeesNotFoundForRefundException("Fee not found in Refund");
+    }
+
+    private List<Integer> getRefundFeeIds(String refundIds) {
+        return  Arrays.stream(refundIds.split(",")).map(feeId->Integer.parseInt(feeId)).collect(Collectors.toList());
     }
 
     private void validateRetrospectiveRemissions(List<RemissionResponse> remissionsAppliedForRefund, Refund refund ){

@@ -39,6 +39,9 @@ public class Refund {
     @Column(name = "reference")
     private String reference;
 
+    @Column(name = "fee_ids")
+    private String feeIds;
+
     @Column(name = "payment_reference")
     private String paymentReference;
 
