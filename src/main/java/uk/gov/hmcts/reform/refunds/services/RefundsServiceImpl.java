@@ -250,7 +250,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
-        if (Boolean.TRUE.equals(matcher)) {
+        if (matcher) {
             if (refundRequest.getRefundReason().length() > reasonPrefixLength) {
                 refundRequest.setRefundReason(refundRequest.getRefundReason().substring(reasonPrefixLength));
             } else {

@@ -29,7 +29,7 @@ public class RefundReviewMapper {
             notes = "Refund Approved";
         } else if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.SENDBACK)) {
 
-            if (refundEvent.REJECT.equals(refundEvent)) {
+            if (refundEvent.equals(refundEvent.REJECT)) {
                 notes = getRejectStatusNotes(refundReviewRequest);
             } else {
                 if (refundReviewRequest.getReason() == null || refundReviewRequest.getReason().isEmpty()) {
