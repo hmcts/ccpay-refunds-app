@@ -92,6 +92,7 @@ public class SpringSecurityConfiguration {
                     .logout().disable()
                     .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/refundstest")
+                    .antMatchers(HttpMethod.PATCH, "/refund/*")
                     .and()
                     .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
                     .authenticationEntryPoint(refundsAuthenticationEntryPoint);
@@ -167,7 +168,7 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
                     .antMatchers(HttpMethod.GET, "/refund/reasons").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
-                    .antMatchers(HttpMethod.PATCH, "/refund/*").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
+                    .antMatchers(HttpMethod.PATCH, "/refund/*/action/*").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()
                     .and()
