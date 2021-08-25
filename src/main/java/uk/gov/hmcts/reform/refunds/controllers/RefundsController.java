@@ -57,7 +57,7 @@ public class RefundsController {
      * @return List of Refund reasons
      */
     @GetMapping("/refund/reasons")
-    public ResponseEntity<List<RefundReason>> getRefundReason() {
+    public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
         return ok().body(refundReasonsService.findAll());
     }
 
@@ -72,7 +72,8 @@ public class RefundsController {
     })
     @PostMapping("/refund")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<RefundResponse> createRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
+    public ResponseEntity<RefundResponse> createRefund(@RequestHeader("Authorization") String authorization,
+                                                       @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                        @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException, InvalidRefundRequestException {
         return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
     }
@@ -87,8 +88,12 @@ public class RefundsController {
 
     })
     @GetMapping("/refund")
-    public ResponseEntity<RefundListDtoResponse> getRefundList(@RequestHeader(required = false) MultiValueMap<String, String> headers, @RequestParam(required = false) String status
-        , @RequestParam(required = false) String ccdCaseNumber, @RequestParam(required = false) String excludeCurrentUser) {
+    public ResponseEntity<RefundListDtoResponse> getRefundList(
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) String ccdCaseNumber,
+        @RequestParam(required = false) String excludeCurrentUser) {
         return new ResponseEntity<>(
             refundsService.getRefundList(
                 status,
@@ -114,7 +119,7 @@ public class RefundsController {
     }
 
     @GetMapping("/refund/rejection-reasons")
-    public ResponseEntity<List<String>> getRejectedReasons() {
+    public ResponseEntity<List<String>> getRejectedReasons(@RequestHeader("Authorization") String authorization) {
         return ok().body(refundsService.getRejectedReasons());
     }
 
@@ -143,6 +148,7 @@ public class RefundsController {
     @PatchMapping("/refund/{reference}/action/{reviewer-action}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> reviewRefund(
+        @RequestHeader("Authorization") String authorization,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @PathVariable(value = "reference", required = true) String reference,
         @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
@@ -153,6 +159,7 @@ public class RefundsController {
 
     @GetMapping("/refunds/{reference}/actions")
     public ResponseEntity<RefundEvent[]> retrieveActions(
+        @RequestHeader("Authorization") String authorization,
         @PathVariable(value = "reference", required = true) String reference) {
         return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
 
