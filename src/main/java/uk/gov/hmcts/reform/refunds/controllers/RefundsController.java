@@ -36,7 +36,7 @@ import static org.springframework.http.ResponseEntity.ok;
  */
 @RestController
 @Api(tags = {"Refund Journey group"})
-@SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")
+@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals"})
 public class RefundsController {
 
     @Autowired
