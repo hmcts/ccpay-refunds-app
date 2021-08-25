@@ -224,7 +224,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         List<StatusHistoryDto> statusHistoryDtos = new ArrayList<>();
 
-        if (!statusHistories.isEmpty() && statusHistories.size() > 0) {
+        if (null != statusHistories && statusHistories.size() > 0) {
             statusHistories
                     .forEach(statusHistory ->
                             statusHistoryDtos.add(statusHistoryResponseMapper.getStatusHistoryDto(

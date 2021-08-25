@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
