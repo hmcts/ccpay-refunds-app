@@ -199,9 +199,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public List<RejectionReasonResponse> getRejectedReasons() {
         // Getting names from Rejection Reasons List object
-        return rejectionReasonRepository.findAll().stream().map(r -> RejectionReasonResponse.rejectionReasonWith()
-                                                                    .code(r.getCode())
-                                                                    .name(r.getName())
+        return rejectionReasonRepository.findAll().stream().map(reason -> RejectionReasonResponse.rejectionReasonWith()
+                                                                    .code(reason.getCode())
+                                                                    .name(reason.getName())
                                                                     .build()
                                                                 )
             .collect(Collectors.toList());
