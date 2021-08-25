@@ -167,7 +167,6 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
                     .antMatchers(HttpMethod.GET, "/refund/reasons").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
-                    .antMatchers(HttpMethod.GET, "").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
                     .antMatchers(HttpMethod.PATCH, "/refund/*").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()
