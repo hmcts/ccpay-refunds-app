@@ -202,35 +202,26 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public StatusHistoryListDtoResponse getStatusHistory(String reference) {
+    public List<StatusHistoryDto> getStatusHistory(String reference) {
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
-        Optional<List<StatusHistory>> statusHistories = statusHistoryRepository.findByRefund(refund);
+        List<StatusHistory> statusHistories = statusHistoryRepository.findByRefund(refund);
 
-        return getStatusHistoryListDto(statusHistories);
+        return getStatusHistoryDto(statusHistories);
     }
 
-    public StatusHistoryListDtoResponse getStatusHistoryListDto(Optional<List<StatusHistory>> statusHistories) {
-        if (statusHistories.isPresent() && statusHistories.get().size() > 0) {
-            return StatusHistoryListDtoResponse
-                    .buildStatusHistoryListWith()
-                    .statusHistoryDtoList(getStatusHistoryDto(statusHistories.get()))
-                    .build();
-        } else {
-            throw new RefundListEmptyException("Refund list is empty for given criteria");
-        }
-    }
-
-    public List<StatusHistoryDto> getStatusHistoryDto(List<StatusHistory> statusHistories) {
+    private List<StatusHistoryDto> getStatusHistoryDto(List<StatusHistory> statusHistories) {
 
         List<StatusHistoryDto> statusHistoryDtos = new ArrayList<>();
 
-        statusHistories
-                .forEach(statusHistory ->
-                        statusHistoryDtos.add(statusHistoryResponseMapper.getStatusHistoryDto(
-                                statusHistory
-                        )));
+        if (!statusHistories.isEmpty() && statusHistories.size() > 0) {
+            statusHistories
+                    .forEach(statusHistory ->
+                            statusHistoryDtos.add(statusHistoryResponseMapper.getStatusHistoryDto(
+                                    statusHistory
+                            )));
+        }
 
         return statusHistoryDtos;
     }

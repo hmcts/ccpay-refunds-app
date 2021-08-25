@@ -18,7 +18,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
@@ -137,7 +137,7 @@ public class RefundsController {
      * @return List of Refunds Status History
      */
     @GetMapping("/refund/reference/{reference}/status-history")
-    public ResponseEntity<StatusHistoryListDtoResponse> getStatusHistory(
+    public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
             @PathVariable(value = "reference", required = true) String reference) {
         return new ResponseEntity<>(refundsService.getStatusHistory(reference), HttpStatus.OK);
     }
