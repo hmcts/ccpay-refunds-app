@@ -5,8 +5,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,8 +38,6 @@ import static org.springframework.http.ResponseEntity.ok;
 @Api(tags = {"Refund Journey group"})
 @SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")
 public class RefundsController {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RefundsController.class);
 
     @Autowired
     private RefundReasonsService refundReasonsService;
@@ -91,27 +87,18 @@ public class RefundsController {
 
     })
     @GetMapping("/refund")
-    public ResponseEntity<RefundListDtoResponse> getRefundList(@RequestHeader(required = false) MultiValueMap<String, String> headers, @RequestParam String status
-        , @RequestParam(required = false)  String ccdCaseNumber, @RequestParam String selfExclusive) {
+    public ResponseEntity<RefundListDtoResponse> getRefundList(@RequestHeader(required = false) MultiValueMap<String, String> headers, @RequestParam(required = false) String status
+        , @RequestParam(required = false) String ccdCaseNumber, @RequestParam(required = false) String excludeCurrentUser) {
         return new ResponseEntity<>(
             refundsService.getRefundList(
                 status,
                 headers,
                 ccdCaseNumber,
-                selfExclusive == null || selfExclusive.isBlank() ? "true" : selfExclusive // default true
+                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "true" : excludeCurrentUser // default true
             ),
             HttpStatus.OK
         );
     }
-
-    //    @PatchMapping("/refund/reference/{reference}")
-//    public HttpStatus reSubmitRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
-//                                     @PathVariable(value = "reference", required = true) String reference,
-//                                     @Valid @RequestBody RefundRequest refundRequest) {
-//
-//
-//        return refundsService.reSubmitRefund(headers, reference, refundRequest);
-//    }
 
     @ApiOperation(value = "Update refund status by refund reference", notes = "Update refund status by refund reference")
     @ApiResponses(value = {

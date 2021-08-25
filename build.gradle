@@ -101,14 +101,14 @@ tasks.withType(Test) {
   }
 }
 
-/*pmd {
+pmd {
   toolVersion = "6.18.0"
-  sourceSets = [sourceSets.main, sourceSets.test,sourceSets.functionalTest, sourceSets.integrationTest, sourceSets.smokeTest]
+  sourceSets = [sourceSets.main, sourceSets.test,sourceSets.functionalTest, sourceSets.integrationTest]
   reportsDir = file("$project.buildDir/reports/pmd")
   // https://github.com/pmd/pmd/issues/876
   ruleSets = []
   ruleSetFiles = files("config/pmd/ruleset.xml")
-}*/
+}
 
 jacocoTestReport {
   executionData(test)
@@ -117,6 +117,10 @@ jacocoTestReport {
     csv.enabled = false
     xml.destination file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
   }
+}
+task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
+  testClassesDirs = sourceSets.smokeTest.output.classesDirs
+  classpath = sourceSets.smokeTest.runtimeClasspath
 }
 
 
@@ -301,6 +305,9 @@ dependencies {
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
 
+  smokeTestImplementation sourceSets.main.runtimeClasspath
+  smokeTestImplementation sourceSets.test.runtimeClasspath
+  smokeTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 }
 
 mainClassName = 'uk.gov.hmcts.reform.refunds.RefundApplication'
@@ -318,15 +325,10 @@ bootJar {
 checkstyle {
   toolVersion "7.8.1"
 }
-
 checkstyleMain.enabled(false)
 checkstyleTest.enabled(false)
 checkstyleIntegrationTest.enabled(false)
-pmdMain.enabled(false);
 pmdTest.enabled(false);
-pmdIntegrationTest.enabled(false);
-pmdSmokeTest.enabled(false);
-pmdFunctionalTest.enabled(false);
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
