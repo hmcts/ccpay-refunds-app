@@ -62,6 +62,15 @@ databaseChangeLog:
             splitStatements: true
             sql: >
               ALTER TABLE refunds DROP CONSTRAINT FK_1000042;
+
+  - changeSet:
+      id: 100004-4
+      author: Vignesh
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
               ALTER TABLE refunds DROP CONSTRAINT FK_1000041;
 
   - changeSet:
