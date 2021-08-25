@@ -84,16 +84,16 @@ databaseChangeLog:
               UPDATE refund_status SET name = 'sent for approval' where name = 'submitted';
               UPDATE refund_status SET name = 'sent to middle office' where name = 'sent to liberata';
 
-#  - changeSet:
-#      id: 100004-6
-#      author: Vignesh
-#      failOnError: true
-#      changes:
-#        - addForeignKeyConstraint:
-#            baseColumnNames: refund_status
-#            baseTableName: refunds
-#            constraintName: FK_1000043
-#            deferrable: false
-#            initiallyDeferred: false
-#            referencedColumnNames: name
-#            referencedTableName: refund_status
+  - changeSet:
+      id: 100004-6
+      author: Vignesh
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: refund_status
+            baseTableName: refunds
+            constraintName: FK_1000043
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: refund_status
