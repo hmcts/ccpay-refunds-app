@@ -51,7 +51,7 @@ public class RefundRequest {
 
     @NotNull(message = "fee_ids cannot be null")
     @NotEmpty(message = "fee_ids cannot be blank")
-    @Pattern(regexp = "^(\\d)(,\\d)*$", message = "fee_ids is not in valid format")
+    @Pattern(regexp = "^([0-9]{1,10}(?:[\\.,]\\d{1,10}+)*)$", message = "fee_ids is not in valid format")
     private String feeIds;
 
 }
