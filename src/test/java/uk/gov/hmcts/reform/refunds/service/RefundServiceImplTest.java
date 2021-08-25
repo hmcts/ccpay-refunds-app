@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -119,7 +120,10 @@ public class RefundServiceImplTest {
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
             refundListSupplierBasedOnCCDCaseNumber.get())));
         when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID);
-        when(idamService.getUserFullName(map, GET_REFUND_LIST_CCD_CASE_USER_ID)).thenReturn("ccd-full-name");
+        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_CCD_CASE_USER_ID)).thenReturn(UserIdentityDataDto.userIdentityDataWith()
+                                                                                                    .fullName("ccd-full-name")
+                                                                                                    .emailId("j@mail.com")
+                                                                                                    .build());
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             null,
@@ -131,6 +135,7 @@ public class RefundServiceImplTest {
         assertNotNull(refundListDtoResponse);
         assertEquals(1, refundListDtoResponse.getRefundList().size());
         assertEquals("ccd-full-name", refundListDtoResponse.getRefundList().get(0).getUserFullName());
+        assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
 
     }
 
@@ -144,8 +149,8 @@ public class RefundServiceImplTest {
                 refundListSupplierForSubmittedStatus.get())));
 
         when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID);
-        when(idamService.getUserFullName(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
-            "ccd-full-name-for-submitted-status");
+        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
+            UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status").emailId("j@mail.com").build());
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             "sent for approval",
@@ -175,10 +180,11 @@ public class RefundServiceImplTest {
 
         when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID);
 
-        when(idamService.getUserFullName(map, GET_REFUND_LIST_CCD_CASE_USER_ID)).thenReturn(
-            "ccd-full-name");
-        when(idamService.getUserFullName(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
-            "ccd-full-name-for-submitted-status");
+        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_CCD_CASE_USER_ID)).thenReturn(
+            UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId("h@mail.com").build());
+        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
+            UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status").emailId("h@mail.com").build()
+            );
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             "sent for approval",

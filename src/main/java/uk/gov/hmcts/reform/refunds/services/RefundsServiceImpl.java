@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
@@ -125,10 +122,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .collect(Collectors.toSet());
 
         //Map UID -> User full name
-        Map<String, String> userFullNameMap = new ConcurrentHashMap<>();
+        Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
         distintUIDSet.forEach(userId -> userFullNameMap.put(
             userId,
-            idamService.getUserFullName(headers, userId)
+            idamService.getUserIdentityData(headers, userId)
         ));
 
         //Create Refund response List
