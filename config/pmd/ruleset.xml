@@ -8,6 +8,7 @@
 
   <rule ref="category/java/bestpractices.xml">
     <exclude name="GuardLogStatement"/>
+    <exclude name="UnusedPrivateMethod"/>
     <exclude name="JUnitTestContainsTooManyAsserts"/>
   </rule>
   <rule ref="category/java/codestyle.xml">

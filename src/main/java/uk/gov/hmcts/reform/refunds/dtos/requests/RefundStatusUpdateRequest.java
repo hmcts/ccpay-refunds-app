@@ -14,6 +14,7 @@ import javax.validation.constraints.AssertFalse;
 import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
@@ -31,7 +32,7 @@ public class RefundStatusUpdateRequest {
 
     @AssertFalse(message = "Refund status should be ACCEPTED or REJECTED/Refund rejection reason is missing")
     private boolean isReasonNotEmpty() {
-        return ((status == RefundStatus.REJECTED && StringUtils.isBlank(reason)));
+        return status == REJECTED && StringUtils.isBlank(reason);
     }
 
 }

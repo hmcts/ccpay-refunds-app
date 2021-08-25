@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
 import java.util.Collections;
+import java.util.List;
 
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
@@ -77,7 +78,10 @@ public class IdamServiceImpl implements IdamService {
 
     private HttpEntity<String> getEntity(MultiValueMap<String, String> headers) {
         MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<>();
-        headerMultiValueMap.put("Content-Type", headers.get("content-type"));
+        headerMultiValueMap.put(
+            "Content-Type",
+            headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type")
+        );
         String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
             "authorization").get(0);
         headerMultiValueMap.put(
@@ -95,21 +99,24 @@ public class IdamServiceImpl implements IdamService {
             .queryParam("query", "id:" + uid);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
-        ResponseEntity<IdamFullNameRetrivalResponse> idamFullNameResEntity = restTemplateIdam
+        ResponseEntity<IdamFullNameRetrivalResponse[]> idamFullNameResEntity = restTemplateIdam
             .exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
-                getEntity(headers), IdamFullNameRetrivalResponse.class
+                getEntity(headers), IdamFullNameRetrivalResponse[].class
             );
 
-        IdamFullNameRetrivalResponse userFullName;
 
-        if (idamFullNameResEntity.getBody() == null) {
-            LOG.error("User name not found for given user id : " + uid);
-            throw new UserNotFoundException("Internal Server error. Please, try again later");
-        } else {
-            userFullName = idamFullNameResEntity.getBody();
-            return userFullName != null ? userFullName.getForename() + " " + userFullName.getSurname() : null;
+        if (idamFullNameResEntity != null && idamFullNameResEntity.getBody() != null) {
+            IdamFullNameRetrivalResponse[] idamArrayFullNameRetrievalResponse = idamFullNameResEntity.getBody();
+
+            if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
+                IdamFullNameRetrivalResponse idamFullNameRetrivalResponse = idamArrayFullNameRetrievalResponse[0];
+                return idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname();
+            }
         }
+
+        LOG.error("User name not found for given user id : {}", uid);
+        throw new UserNotFoundException("Internal Server error. Please, try again later");
     }
 }

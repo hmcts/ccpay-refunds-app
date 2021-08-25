@@ -4,21 +4,17 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -88,7 +84,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String selfExclusive) {
+    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String excludeCurrentUser) {
         //Get the userId
         String uid = idamService.getUserId(headers);
         Optional<List<Refund>> refundList;
@@ -102,7 +98,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
 
         //get the refund list except the self uid
-        refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(selfExclusive) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+        refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
             refundStatus,
             uid
         ) : refundsRepository.findByRefundStatus(refundStatus);
@@ -121,7 +117,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
-    public List<RefundListDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList) {
+    public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList) {
         //Distinct createdBy UID
         Set<String> distintUIDSet = refundList
             .stream().map(Refund::getCreatedBy)
@@ -135,17 +131,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         ));
 
         //Create Refund response List
-        List<RefundListDto> refundListDtoList = new ArrayList<>();
+        List<RefundDto> refundListDto = new ArrayList<>();
 
         //Update the user full name for created by
         refundList
             .forEach(refund ->
-                         refundListDtoList.add(refundResponseMapper.getRefundListDto(
+                         refundListDto.add(refundResponseMapper.getRefundListDto(
                              refund,
                              userFullNameMap.get(refund.getCreatedBy())
                          )));
 
-        return refundListDtoList;
+        return refundListDto;
     }
 
 
@@ -161,19 +157,30 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
 //    @Override
 //    public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
-//        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-//        if (refund.isPresent()) {
-
-//            String status = refund.get().getRefundStatus().getName();
-//            List<String> nextValidEvents = Arrays.asList(RefundState.valueOf(status).nextValidEvents()).stream().map(
-//                refundEvent1 -> refundEvent1.toString()).collect(
-//                Collectors.toList());
-
-//            RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
-
-//            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
-//              return new ResponseEntity("Invalid refund event entered next valid refund events is/are : " + nextValidEvents, HttpStatus.BAD_REQUEST);
-//            }
+////        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
+////        if (refund.isPresent()) {
+//
+////            String status = refund.get().getRefundStatus().getName();
+////            List<String> nextValidEvents = Arrays.asList(RefundState.valueOf(status).nextValidEvents()).stream().map(
+////                refundEvent1 -> refundEvent1.toString()).collect(
+////                Collectors.toList());
+//
+////            RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
+//
+////            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
+////              return new ResponseEntity("Invalid refund event entered next valid refund events is/are : " + nextValidEvents, HttpStatus.BAD_REQUEST);
+////            }
+////
+////          request.setState(currentstate.nextState(currentEventFromRequest));
+//
+////          if(RefundState.valueOf(refund.get().getRefundStatus().getName()).equals())
+////            refund.get().setPaymentReference(refundRequest.getPaymentReference());
+////            refund.get().setReason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get());
+////            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
+////            refund.get().setRefundStatus(SUBMITTED);
+//
+////        }
+//        return HttpStatus.ACCEPTED;
 //
 //          request.setState(currentstate.nextState(currentEventFromRequest));
 

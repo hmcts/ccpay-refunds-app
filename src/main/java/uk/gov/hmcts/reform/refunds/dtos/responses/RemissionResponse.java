@@ -29,6 +29,8 @@ public class RemissionResponse {
 
     private String feeCode;
 
+    private Integer feeId;
+
     private Date dateCreated;
 
 }
