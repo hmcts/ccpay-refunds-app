@@ -62,6 +62,7 @@ databaseChangeLog:
             splitStatements: true
             sql: >
               ALTER TABLE refunds DROP CONSTRAINT FK_1000042;
+              ALTER TABLE refunds DROP CONSTRAINT FK_1000041;
 
   - changeSet:
       id: 100004-5
@@ -73,3 +74,17 @@ databaseChangeLog:
             sql: >
               UPDATE refund_status SET name = 'sent for approval' where name = 'submitted';
               UPDATE refund_status SET name = 'sent to middle office' where name = 'sent to liberata';
+
+  - changeSet:
+      id: 100004-6
+      author: Vignesh
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: refund_status
+            baseTableName: refunds
+            constraintName: FK_1000043
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: refund_status
