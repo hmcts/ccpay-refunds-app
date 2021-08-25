@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 @Setter
@@ -29,6 +28,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Builder(builderMethodName = "refundRequestWith")
 public class RefundRequest {
+
 
     @NotNull(message = "Payment Reference cannot be null")
     @NotEmpty(message = "Payment Reference cannot be blank")
@@ -43,8 +43,15 @@ public class RefundRequest {
     @Pattern(regexp = "^\\d{16}$", message = "ccd_case_number is not in valid format")
     private String ccdCaseNumber;
 
-    @DecimalMin(value = "0.01",message = "Amount must be greater than or equal to 0.01")
+    @DecimalMin(value = "0.01", message = "Amount must be greater than or equal to 0.01")
     @Positive(message = "Amount must be greater than 0")
     @Digits(integer = 10, fraction = 2, message = "Refund amount cannot have more than 2 decimal places")
     private BigDecimal refundAmount;
+
+
+    @NotNull(message = "fee_ids cannot be null")
+    @NotEmpty(message = "fee_ids cannot be blank")
+    @Pattern(regexp = "^([0-9]{1,10}(?:[\\.,]\\d{1,10}+)*+)$", message = "fee_ids is not in valid format")
+    private String feeIds;
+
 }

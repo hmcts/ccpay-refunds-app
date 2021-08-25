@@ -132,7 +132,7 @@ class IdamServiceTest {
         )).thenThrow(new UserNotFoundException("User Not Found"));
 
         assertThrows(UserNotFoundException.class, () -> {
-            idamService.getUserFullName(header, GET_REFUND_LIST_CCD_CASE_USER_ID);
+            idamService.getUserIdentityData(header, GET_REFUND_LIST_CCD_CASE_USER_ID);
         });
     }
 

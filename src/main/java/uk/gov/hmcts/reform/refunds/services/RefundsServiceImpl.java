@@ -7,19 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -29,7 +23,12 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -132,10 +131,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .collect(Collectors.toSet());
 
         //Map UID -> User full name
-        Map<String, String> userFullNameMap = new ConcurrentHashMap<>();
+        Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
         distintUIDSet.forEach(userId -> userFullNameMap.put(
             userId,
-            idamService.getUserFullName(headers, userId)
+            idamService.getUserIdentityData(headers, userId)
         ));
 
         //Create Refund response List
@@ -204,9 +203,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 //    }
 
     @Override
-    public List<String> getRejectedReasons() {
+    public List<RejectionReasonResponse> getRejectedReasons() {
         // Getting names from Rejection Reasons List object
-        return rejectionReasonRepository.findAll().stream().map(r -> r.getName())
+        return rejectionReasonRepository.findAll().stream().map(reason -> RejectionReasonResponse.rejectionReasonWith()
+                                                                    .code(reason.getCode())
+                                                                    .name(reason.getName())
+                                                                    .build()
+                                                                )
             .collect(Collectors.toList());
     }
 
@@ -276,6 +279,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .reason(refundRequest.getRefundReason())
             .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
+            .feeIds(refundRequest.getFeeIds())
             .createdBy(uid)
             .updatedBy(uid)
             .statusHistories(

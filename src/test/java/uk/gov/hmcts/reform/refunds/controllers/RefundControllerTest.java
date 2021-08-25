@@ -2,6 +2,10 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -13,11 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -30,25 +30,14 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamFullNameRetrivalResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
@@ -64,39 +53,21 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.ACCEPTED;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTTOMIDDLEOFFICE;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierForSendBackStatus;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierForSubmittedStatus;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.*;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.*;
 import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USERID_ENDPOINT;
 import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USER_FULL_NAME_ENDPOINT;
 
@@ -158,6 +129,7 @@ class RefundControllerTest {
         .amount(new BigDecimal(100))
         .paymentReference("RC-1111-2222-3333-4444")
         .reason("test-123")
+        .feeIds("1")
         .refundStatus(SENTFORAPPROVAL)
         .reference("RF-1234-1234-1234-1234")
         .build();
@@ -167,7 +139,16 @@ class RefundControllerTest {
         .refundAmount(new BigDecimal(100))
         .refundReason("RR002")
         .ccdCaseNumber("1111222233334444")
+        .feeIds("1")
         .build();
+    private StatusHistoryDto statusHistoryDto = StatusHistoryDto.buildStatusHistoryDtoWith()
+            .id(1)
+            .refundsId(1)
+            .status("AAA")
+            .notes("BBB")
+            .dateCreated("10/10/2021")
+            .createdBy("CCC")
+            .build();
 
     @Autowired
     private MockMvc mockMvc;
@@ -1113,7 +1094,7 @@ class RefundControllerTest {
     void retrieveActionsForSubmittedState() throws Exception {
         refund.setRefundStatus(SENTFORAPPROVAL);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+        mockMvc.perform(get("/refund/RF-1234-1234-1234-1234/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
@@ -1128,7 +1109,7 @@ class RefundControllerTest {
     void retrieveActionsForNeedMoreInfoState() throws Exception {
         refund.setRefundStatus(SENTBACK);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1233/actions")
+        mockMvc.perform(get("/refund/RF-1234-1234-1234-1233/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
@@ -1142,7 +1123,7 @@ class RefundControllerTest {
     void retrieveActionsForAcceptedState() throws Exception {
         refund.setRefundStatus(ACCEPTED);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1231/actions")
+        mockMvc.perform(get("/refund/RF-1234-1234-1234-1231/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
@@ -1155,7 +1136,7 @@ class RefundControllerTest {
     void retrieveActionsForApprovedState() throws Exception {
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+        mockMvc.perform(get("/refund/RF-1234-1234-1234-1234/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
@@ -1178,7 +1159,7 @@ class RefundControllerTest {
             .andReturn();
 
         ObjectMapper mapper = new ObjectMapper();
-        List<String> rejectionReasonList = mapper.readValue(
+        List<RejectionReasonResponse> rejectionReasonList = mapper.readValue(
             mvcResult.getResponse().getContentAsString(),
             new TypeReference<>() {
             }
@@ -1309,6 +1290,24 @@ class RefundControllerTest {
 
     }
 
+    @Test
+    public void givenUserDoesNotExists_whenUserInfoIsRetrieved_then404IsReceived()
+            throws Exception {
+
+        List<StatusHistoryDto> statusHistoryDtoList = new ArrayList<>();
+        statusHistoryDtoList.add(statusHistoryDto);
+
+        when(refundsService.getStatusHistory("12345")).thenReturn(statusHistoryDtoList);
+
+        mockMvc.perform(get("/refund/reference/12345/status-history")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.accountId").value(12345))
+                .andExpect(jsonPath("$.accountType").value("SAVINGS"))
+                .andExpect(jsonPath("$.balance").value(5000.0));
+    }
+
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
@@ -1385,6 +1384,7 @@ class RefundControllerTest {
             .refundStatus(SENTFORAPPROVAL)
             .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .feeIds("50")
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
                                                .status(SENTFORAPPROVAL.getName())
