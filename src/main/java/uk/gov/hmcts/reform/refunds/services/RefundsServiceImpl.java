@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
@@ -196,9 +197,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 //    }
 
     @Override
-    public List<String> getRejectedReasons() {
+    public List<RejectionReasonResponse> getRejectedReasons() {
         // Getting names from Rejection Reasons List object
-        return rejectionReasonRepository.findAll().stream().map(r -> r.getName())
+        return rejectionReasonRepository.findAll().stream().map(reason -> RejectionReasonResponse.rejectionReasonWith()
+                                                                    .code(reason.getCode())
+                                                                    .name(reason.getName())
+                                                                    .build()
+                                                                )
             .collect(Collectors.toList());
     }
 

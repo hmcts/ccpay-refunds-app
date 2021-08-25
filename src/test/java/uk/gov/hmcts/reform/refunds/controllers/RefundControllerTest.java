@@ -37,18 +37,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamFullNameRetrivalResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
@@ -1183,7 +1172,7 @@ public class RefundControllerTest {
             .andReturn();
 
         ObjectMapper mapper = new ObjectMapper();
-        List<String> rejectionReasonList = mapper.readValue(
+        List<RejectionReasonResponse> rejectionReasonList = mapper.readValue(
             mvcResult.getResponse().getContentAsString(),
             new TypeReference<>() {
             }
