@@ -145,7 +145,7 @@ public class RefundsController {
     }
 
 
-    @GetMapping("/refunds/{reference}/actions")
+    @GetMapping("/refund/{reference}/actions")
     public ResponseEntity<RefundEvent[]> retrieveActions(
         @RequestHeader("Authorization") String authorization,
         @PathVariable(value = "reference", required = true) String reference) {

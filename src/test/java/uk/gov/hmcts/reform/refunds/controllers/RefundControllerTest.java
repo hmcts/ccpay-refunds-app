@@ -1107,7 +1107,7 @@ public class RefundControllerTest {
     public void retrieveActionsForSubmittedState() throws Exception {
         refund.setRefundStatus(SENTFORAPPROVAL);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+        mockMvc.perform(get("/refund/RF-1234-1234-1234-1234/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
@@ -1122,7 +1122,7 @@ public class RefundControllerTest {
     public void retrieveActionsForNeedMoreInfoState() throws Exception {
         refund.setRefundStatus(SENTBACK);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1233/actions")
+        mockMvc.perform(get("/refund/RF-1234-1234-1234-1233/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
@@ -1136,7 +1136,7 @@ public class RefundControllerTest {
     public void retrieveActionsForAcceptedState() throws Exception {
         refund.setRefundStatus(ACCEPTED);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1231/actions")
+        mockMvc.perform(get("/refund/RF-1234-1234-1234-1231/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
@@ -1149,7 +1149,7 @@ public class RefundControllerTest {
     public void retrieveActionsForApprovedState() throws Exception {
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
         when(refundsRepository.findByReferenceOrThrow(any())).thenReturn(refund);
-        mockMvc.perform(get("/refunds/RF-1234-1234-1234-1234/actions")
+        mockMvc.perform(get("/refund/RF-1234-1234-1234-1234/actions")
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
