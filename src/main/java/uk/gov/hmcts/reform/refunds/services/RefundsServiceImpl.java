@@ -215,10 +215,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public List<StatusHistoryDto> getStatusHistory(String reference) {
+        List<StatusHistory> statusHistories = null;
+        if (null != reference) {
 
-        Refund refund = refundsRepository.findByReferenceOrThrow(reference);
+            Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
-        List<StatusHistory> statusHistories = statusHistoryRepository.findByRefund(refund);
+            statusHistories = statusHistoryRepository.findByRefund(refund);
+        }
 
         return getStatusHistoryDto(statusHistories);
     }
