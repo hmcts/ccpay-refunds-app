@@ -150,8 +150,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         return refundListDto;
     }
-
-
+    
     @Override
     public Refund getRefundForReference(String reference) {
         Optional<Refund> refund = refundsRepository.findByReference(reference);
