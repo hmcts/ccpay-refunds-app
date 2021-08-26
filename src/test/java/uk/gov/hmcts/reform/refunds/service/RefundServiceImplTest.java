@@ -228,7 +228,7 @@ public class RefundServiceImplTest {
     @Test
     void givenReferenceIsNull_whenGetStatusHistory_thenNullIsReceived() {
         List<StatusHistoryDto> statusHistoryDtoList = refundsService.getStatusHistory(null);
-        assertNull(statusHistoryDtoList);
+        assertEquals(new ArrayList<>(), statusHistoryDtoList);
     }
 
     @Test
