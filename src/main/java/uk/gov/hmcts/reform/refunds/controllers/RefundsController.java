@@ -98,7 +98,7 @@ public class RefundsController {
                 status,
                 headers,
                 ccdCaseNumber,
-                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "true" : excludeCurrentUser // default true
+                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser // default false
             ),
             HttpStatus.OK
         );
