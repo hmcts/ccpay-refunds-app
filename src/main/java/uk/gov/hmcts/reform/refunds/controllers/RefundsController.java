@@ -90,7 +90,7 @@ public class RefundsController {
     public ResponseEntity<RefundListDtoResponse> getRefundList(
         @RequestHeader("Authorization") String authorization,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @RequestParam String status,
+        @RequestParam(required = false) String status,
         @RequestParam(required = false) String ccdCaseNumber,
         @RequestParam(required = false) String excludeCurrentUser) {
         return new ResponseEntity<>(
