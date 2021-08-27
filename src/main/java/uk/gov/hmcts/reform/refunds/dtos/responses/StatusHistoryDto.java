@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
+import java.sql.Timestamp;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @Builder(builderMethodName = "buildStatusHistoryDtoWith")
@@ -14,7 +16,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-public class StatusHistoryDto {
+public class StatusHistoryDto implements Comparable<StatusHistoryDto> {
 
     private int id;
 
@@ -22,9 +24,14 @@ public class StatusHistoryDto {
 
     private String createdBy;
 
-    private String dateCreated;
+    private Timestamp dateCreated;
 
     private String status;
 
     private String notes;
+
+    @Override
+    public int compareTo(StatusHistoryDto dto) {
+        return getDateCreated().compareTo(dto.getDateCreated());
+    }
 }

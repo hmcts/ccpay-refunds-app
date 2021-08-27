@@ -2,10 +2,6 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -30,7 +26,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -38,7 +33,6 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
@@ -53,8 +47,6 @@ import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -63,11 +55,11 @@ import java.util.function.Supplier;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.*;
 import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.*;
@@ -145,14 +137,6 @@ class RefundControllerTest {
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
         .build();
-    private StatusHistoryDto statusHistoryDto = StatusHistoryDto.buildStatusHistoryDtoWith()
-            .id(1)
-            .refundsId(1)
-            .status("AAA")
-            .notes("BBB")
-            .dateCreated("10-10-2021 10:10:10")
-            .createdBy("CCC")
-            .build();
 
     @Autowired
     private MockMvc mockMvc;
@@ -1297,58 +1281,40 @@ class RefundControllerTest {
     }
 
     @Test
-    public void givenStatusHistoryExists_whenGetStatusHistory_then200IsReceived()
-            throws Exception {
+    void testGetStatusHistory()
+    {
+        // given
+        StatusHistoryDto statusHistoryDto = StatusHistoryDto.buildStatusHistoryDtoWith()
+                .id(1)
+                .refundsId(1)
+                .status("AAA")
+                .notes("BBB")
+                .dateCreated(Timestamp.valueOf("2021-10-10 10:10:10"))
+                .createdBy("CCC")
+                .build();
 
         List<StatusHistoryDto> statusHistoryDtoList = new ArrayList<>();
         statusHistoryDtoList.add(statusHistoryDto);
 
-        StatusHistory statusHistory = StatusHistory.statusHistoryWith()
-                .id(1)
-                .refund(refund)
-                .status("AAA")
-                .notes("BBB")
-                .dateCreated(Timestamp.valueOf(getDate()))
-                .createdBy("CCC")
-                .build();
-        List<StatusHistory> statusHistories = new ArrayList<>();
-        statusHistories.add(statusHistory);
+        when(refundsService.getStatusHistory(any(), anyString())).thenReturn(statusHistoryDtoList);
 
-        when(refundsService.getStatusHistory(anyString())).thenReturn(statusHistoryDtoList);
-        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
-        when(statusHistoryRepository.findByRefund(any())).thenReturn(statusHistories);
+        // when
+        ResponseEntity<List<StatusHistoryDto>> result = refundsController.getStatusHistory(null, null, "reference");
 
-        mockMvc.perform(get("/refund/reference/12345/status-history")
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.[0].id").value(1))
-                .andExpect(jsonPath("$.[0].refunds_id").value(1))
-                .andExpect(jsonPath("$.[0].created_by").value("CCC"))
-                .andExpect(jsonPath("$.[0].date_created").value("2021-10-10 10:10:10.0"))
-                .andExpect(jsonPath("$.[0].status").value("AAA"))
-                .andExpect(jsonPath("$.[0].notes").value("BBB"));
+        // then
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(200, result.getStatusCodeValue());
+        assertNotNull(result.getBody());
+        assertEquals(1, result.getBody().size());
+        assertEquals(statusHistoryDto, result.getBody().get(0));
+        assertEquals(1, result.getBody().get(0).getId());
+        assertEquals(1, result.getBody().get(0).getRefundsId());
+        assertEquals("AAA", result.getBody().get(0).getStatus());
+        assertEquals("BBB", result.getBody().get(0).getNotes());
+        assertEquals(Timestamp.valueOf("2021-10-10 10:10:10"), result.getBody().get(0).getDateCreated());
+        assertEquals("CCC", result.getBody().get(0).getCreatedBy());
+
     }
-
-    /*@Test
-    public void givenStatusHistoryDoesNotExist_whenGetStatusHistory_then404IsReceived()
-            throws Exception {
-
-
-//        when(refundsService.getStatusHistory(anyString())).thenThrow(RefundNotFoundException.class);
-        when(refundsRepository.findByReferenceOrThrow(anyString())).thenThrow(RefundNotFoundException.class);
-//        when(statusHistoryRepository.findByRefund(any())).thenReturn(null);
-
-        MvcResult result = mockMvc.perform(get("/refund/reference/1111/status-history")
-                .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isNotFound())
-                .andReturn();
-
-        assertEquals(
-                "Refund not found for given reference",
-                result.getResponse().getContentAsString()
-        );
-    }*/
 
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()
@@ -1446,11 +1412,5 @@ class RefundControllerTest {
             .roles(Arrays.asList("vp"))
             .uid("986-erfg-kjhg-123")
             .build();
-    }
-
-    private String getDate() throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        Date date = sdf.parse("2021-10-10 10:10:10");
-        return sdf.format(date);
     }
 }

@@ -27,5 +27,5 @@ public interface RefundsService {
 
     List<RejectionReasonResponse> getRejectedReasons();
 
-    List<StatusHistoryDto> getStatusHistory(String reference);
+    List<StatusHistoryDto> getStatusHistory(MultiValueMap<String, String> headers, String reference);
 }

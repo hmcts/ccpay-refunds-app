@@ -58,7 +58,7 @@ public class RefundServiceImplTest {
     @Mock
     private StatusHistoryRepository statusHistoryRepository;
 
-    @Mock
+    @Spy
     private StatusHistoryResponseMapper statusHistoryResponseMapper;
 
     @Spy
@@ -227,14 +227,14 @@ public class RefundServiceImplTest {
 
     @Test
     void givenReferenceIsNull_whenGetStatusHistory_thenNullIsReceived() {
-        List<StatusHistoryDto> statusHistoryDtoList = refundsService.getStatusHistory(null);
+        List<StatusHistoryDto> statusHistoryDtoList = refundsService.getStatusHistory(null, null);
         assertEquals(new ArrayList<>(), statusHistoryDtoList);
     }
 
     @Test
     void givenRefundIsNotFound_whenGetStatusHistory_thenRefundNotFoundExceptionIsReceived() {
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenThrow(RefundNotFoundException.class);
-        assertThrows(RefundNotFoundException.class, () -> refundsService.getStatusHistory("123"));
+        assertThrows(RefundNotFoundException.class, () -> refundsService.getStatusHistory(null, "123"));
     }
 
     @Test
@@ -251,17 +251,70 @@ public class RefundServiceImplTest {
                 .build();
         List<StatusHistory> statusHistories = new ArrayList<>();
         statusHistories.add(statusHistory);
+        UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
+        userIdentityDataDto.setFullName("Forename Surname");
+
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber.get());
         when(statusHistoryRepository.findByRefund(any())).thenReturn(statusHistories);
+        when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
 
-        List<StatusHistoryDto> statusHistoryDtoList = refundsService.getStatusHistory("123");
+        List<StatusHistoryDto> statusHistoryDtoList = refundsService.getStatusHistory(null, "123");
 
-        assertEquals(1, statusHistories.size());
-        assertEquals(Integer.valueOf(1), statusHistories.get(0).getId());
-        assertEquals(Integer.valueOf(1), statusHistories.get(0).getRefund().getId());
-        assertEquals("AAA", statusHistories.get(0).getStatus());
-        assertEquals("BBB", statusHistories.get(0).getNotes());
-        assertEquals("2021-10-10 10:10:10.0", statusHistories.get(0).getDateCreated().toString());
-        assertEquals("CCC", statusHistories.get(0).getCreatedBy());
+        assertEquals(1, statusHistoryDtoList.size());
+        assertEquals(1, statusHistoryDtoList.get(0).getId());
+        assertEquals(1, statusHistoryDtoList.get(0).getRefundsId());
+        assertEquals("AAA", statusHistoryDtoList.get(0).getStatus());
+        assertEquals("BBB", statusHistoryDtoList.get(0).getNotes());
+        assertEquals(Timestamp.valueOf("2021-10-10 10:10:10.0"), statusHistoryDtoList.get(0).getDateCreated());
+        assertEquals("Forename Surname", statusHistoryDtoList.get(0).getCreatedBy());
+    }
+
+    @Test
+    void givenStatusHistoriesAreFound_whenGetStatusHistory_thenSortedStatusHistoryDtoListIsReceived() {
+
+        StatusHistory statusHistory1 = StatusHistory.statusHistoryWith()
+                .id(1)
+                .refund(
+                        refundListSupplierBasedOnCCDCaseNumber.get())
+                .status("AAA")
+                .notes("BBB")
+                .dateCreated(Timestamp.valueOf("2021-10-10 10:10:10"))
+                .createdBy("CCC")
+                .build();
+        StatusHistory statusHistory2 = StatusHistory.statusHistoryWith()
+                .id(2)
+                .refund(
+                        refundListSupplierBasedOnCCDCaseNumber.get())
+                .status("DDD")
+                .notes("EEE")
+                .dateCreated(Timestamp.valueOf("2021-09-09 10:10:10"))
+                .createdBy("FFF")
+                .build();
+        List<StatusHistory> statusHistories = new ArrayList<>();
+        statusHistories.add(statusHistory1);
+        statusHistories.add(statusHistory2);
+
+        UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
+        userIdentityDataDto.setFullName("Forename Surname");
+
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber.get());
+        when(statusHistoryRepository.findByRefund(any())).thenReturn(statusHistories);
+        when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
+
+        List<StatusHistoryDto> statusHistoryDtoList = refundsService.getStatusHistory(null, "123");
+
+        assertEquals(2, statusHistoryDtoList.size());
+        assertEquals(2, statusHistoryDtoList.get(0).getId());
+        assertEquals(1, statusHistoryDtoList.get(0).getRefundsId());
+        assertEquals("DDD", statusHistoryDtoList.get(0).getStatus());
+        assertEquals("EEE", statusHistoryDtoList.get(0).getNotes());
+        assertEquals(Timestamp.valueOf("2021-09-09 10:10:10.0"), statusHistoryDtoList.get(0).getDateCreated());
+        assertEquals("Forename Surname", statusHistoryDtoList.get(0).getCreatedBy());
+        assertEquals(1, statusHistoryDtoList.get(1).getId());
+        assertEquals(1, statusHistoryDtoList.get(1).getRefundsId());
+        assertEquals("AAA", statusHistoryDtoList.get(1).getStatus());
+        assertEquals("BBB", statusHistoryDtoList.get(1).getNotes());
+        assertEquals(Timestamp.valueOf("2021-10-10 10:10:10.0"), statusHistoryDtoList.get(1).getDateCreated());
+        assertEquals("Forename Surname", statusHistoryDtoList.get(1).getCreatedBy());
     }
 }

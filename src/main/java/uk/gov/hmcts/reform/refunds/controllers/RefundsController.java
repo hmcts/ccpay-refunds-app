@@ -131,8 +131,10 @@ public class RefundsController {
      */
     @GetMapping("/refund/reference/{reference}/status-history")
     public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable(value = "reference", required = true) String reference) {
-        return new ResponseEntity<>(refundsService.getStatusHistory(reference), HttpStatus.OK);
+        return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
     @ApiOperation(value = "PATCH refund/{reference}/action/{reviewer-action} ", notes = "Review Refund Request")

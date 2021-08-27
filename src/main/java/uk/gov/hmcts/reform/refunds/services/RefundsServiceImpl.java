@@ -13,7 +13,10 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
-import uk.gov.hmcts.reform.refunds.model.*;
+import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
+import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -23,12 +26,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -131,11 +129,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .collect(Collectors.toSet());
 
         //Map UID -> User full name
-        Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
-        distintUIDSet.forEach(userId -> userFullNameMap.put(
-            userId,
-            idamService.getUserIdentityData(headers, userId)
-        ));
+        Map<String, UserIdentityDataDto> userFullNameMap = getIdamUserDetails(headers, distintUIDSet);
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
@@ -213,7 +207,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public List<StatusHistoryDto> getStatusHistory(String reference) {
+    public List<StatusHistoryDto> getStatusHistory(MultiValueMap<String, String> headers, String reference) {
         List<StatusHistory> statusHistories = null;
         if (null != reference) {
 
@@ -222,22 +216,40 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             statusHistories = statusHistoryRepository.findByRefund(refund);
         }
 
-        return getStatusHistoryDto(statusHistories);
+        return getStatusHistoryDto(headers, statusHistories);
     }
 
-    private List<StatusHistoryDto> getStatusHistoryDto(List<StatusHistory> statusHistories) {
+    private List<StatusHistoryDto> getStatusHistoryDto(MultiValueMap<String, String> headers, List<StatusHistory> statusHistories) {
 
         List<StatusHistoryDto> statusHistoryDtos = new ArrayList<>();
 
         if (null != statusHistories && !statusHistories.isEmpty()) {
+            //Distinct createdBy UID
+            Set<String> distintUIDSet = statusHistories
+                    .stream().map(StatusHistory::getCreatedBy)
+                    .collect(Collectors.toSet());
+
+            //Map UID -> User full name
+            Map<String, UserIdentityDataDto> userFullNameMap = getIdamUserDetails(headers, distintUIDSet);
+
             statusHistories
                     .forEach(statusHistory ->
                             statusHistoryDtos.add(statusHistoryResponseMapper.getStatusHistoryDto(
-                                    statusHistory
+                                    statusHistory,
+                                    userFullNameMap.get(statusHistory.getCreatedBy())
                             )));
+            Collections.sort(statusHistoryDtos);
         }
-
         return statusHistoryDtos;
+    }
+
+    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet){
+        Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
+        distintUIDSet.forEach(userId -> userFullNameMap.put(
+                userId,
+                idamService.getUserIdentityData(headers, userId)
+        ));
+        return userFullNameMap;
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {
