@@ -594,7 +594,7 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(), "Refund request reviewed successfully");
+        assertEquals(result.getResponse().getContentAsString(), "Refund approved");
     }
 
     @Test
@@ -658,7 +658,7 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(), "Refund request reviewed successfully");
+        assertEquals(result.getResponse().getContentAsString(), "Refund rejected");
     }
 
     @Test
@@ -686,7 +686,7 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(), "Refund request reviewed successfully");
+        assertEquals(result.getResponse().getContentAsString(), "Refund returned to caseworker");
     }
 
 
@@ -770,7 +770,7 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(), "Refund request reviewed successfully");
+        assertEquals(result.getResponse().getContentAsString(), "Refund rejected");
     }
 
     @Test
@@ -1037,7 +1037,7 @@ public class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals(result.getResponse().getContentAsString(), "Refund request reviewed successfully");
+        assertEquals(result.getResponse().getContentAsString(), "Refund approved");
     }
 
     @Test
