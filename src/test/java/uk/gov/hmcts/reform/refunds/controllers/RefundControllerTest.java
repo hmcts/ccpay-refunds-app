@@ -290,7 +290,7 @@ public class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "sent for approval")
                                                   .queryParam("ccdCaseNumber", "")
-                                                  .queryParam("excludeCurrentUser", " ")
+                                                  .queryParam("excludeCurrentUser", "true")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
 
@@ -425,7 +425,7 @@ public class RefundControllerTest {
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].code").value("RR001"))
-            .andExpect(jsonPath("$[0].name").value("Duplicate Payment"))
+            .andExpect(jsonPath("$[0].name").value("Amended claim"))
             .andReturn();
 
         List<RefundReason> refundReasonList = mapper.readValue(
@@ -433,7 +433,7 @@ public class RefundControllerTest {
             new TypeReference<>() {
             }
         );
-        assertEquals(4, refundReasonList.size());
+        assertEquals(31, refundReasonList.size());
     }
 
     @Test

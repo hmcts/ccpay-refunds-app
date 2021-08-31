@@ -8,7 +8,7 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/refunds
+    url: jdbc:postgresql://localhost:5432/refunds1
     username: refunds
     password: refunds
     properties:

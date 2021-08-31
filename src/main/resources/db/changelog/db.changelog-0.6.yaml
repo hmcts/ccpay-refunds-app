@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100006
+      author: Jennings
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              UPDATE refund_reasons SET
+                name = 'Amended claim',
+                description = 'The court is amended' WHERE code = 'RR001';
+              UPDATE refund_reasons SET
+                name = 'Amended court',
+                description = 'The application is rejected' WHERE code = 'RR002';
+              UPDATE refund_reasons SET
+                name = 'Application/Case withdrawn',
+                description = 'The case is withdrawn' WHERE code = 'RR003';
+              UPDATE refund_reasons SET
+                name = 'Claim Issued in error (court error)',
+                description = 'The claim issued with court error' WHERE code = 'RR004';
+              INSERT INTO refund_reasons (code, name, description)
+                VALUES
+                  ('RR005', 'Claim Issued in error (customer error)', 'The claim issued with customer error'),
+                  ('RR006', 'Court discretion', 'Based on court decision'),
+                  ('RR007', 'Court error', 'Due to some error in court'),
+                  ('RR008', 'Duplicate fee (court error)', 'Fee got duplicated due to court error'),
+                  ('RR009', 'Duplicate fee (customer error)', 'Fee got duplicated due to customer error'),
+                  ('RR010', 'Excess fee paid', 'Excess fee paid'),
+                  ('RR011', 'Following appeal', 'Following appeal'),
+                  ('RR012', 'Full Help with Fees / Full Fee Remission', 'Full Help with Fees / Full Fee Remission'),
+                  ('RR013', 'Incorrect fee taken/Wrong Fee Selected', 'Incorrect fee taken/Wrong Fee Selected'),
+                  ('RR014', 'Incorrect PBA reference supplied', 'Incorrect PBA reference supplied'),
+                  ('RR015', 'Judge''s order', 'Judge''s order'),
+                  ('RR016', 'Missing/Incorrect Documents', 'Missing/Incorrect Documents'),
+                  ('RR017', 'Part Help with Fees / Part Fee Remission', 'Part Help with Fees / Part Fee Remission'),
+                  ('RR018', 'Return of hearing fee', 'Return of hearing fee'),
+                  ('RR019', 'Trial fees (on settlements)', 'Trial fees (on settlements)'),
+                  ('RR020', 'Unused warrant', 'Unused warrant'),
+                  ('RR021', 'Unpaid cheque', 'Unpaid cheque'),
+                  ('RR022', 'Application rejected', 'Application rejected'),
+                  ('RR023', 'Other - RCJ', 'Other - RCJ'),
+                  ('RR024', 'Other - County', 'Other - County'),
+                  ('RR025', 'Other - Divorce', 'Other - Divorce'),
+                  ('RR026', 'Other - Probate', 'Other - Probate'),
+                  ('RR027', 'Other - Private Law', 'Other - Private Law'),
+                  ('RR028', 'Other - Public Law', 'Other - Public Law'),
+                  ('RR029', 'Other - Family', 'Other - Family'),
+                  ('RR030', 'Other - CoP', 'Other - CoP'),
+                  ('RR031', 'Other - Tribunals', 'Other - Tribunals');
+
+
