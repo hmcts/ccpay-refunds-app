@@ -238,7 +238,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                     statusHistory,
                                     userFullNameMap.get(statusHistory.getCreatedBy())
                             )));
-            Collections.sort(statusHistoryDtos);
+            statusHistoryDtos.sort(Comparator.comparing(StatusHistoryDto::getDateCreated));
         }
         return statusHistoryDtos;
     }

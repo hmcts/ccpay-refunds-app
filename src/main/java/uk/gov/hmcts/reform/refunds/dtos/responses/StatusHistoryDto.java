@@ -16,7 +16,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-public class StatusHistoryDto implements Comparable<StatusHistoryDto> {
+public class StatusHistoryDto {
 
     private int id;
 
@@ -30,8 +30,4 @@ public class StatusHistoryDto implements Comparable<StatusHistoryDto> {
 
     private String notes;
 
-    @Override
-    public int compareTo(StatusHistoryDto dto) {
-        return getDateCreated().compareTo(dto.getDateCreated());
-    }
 }
