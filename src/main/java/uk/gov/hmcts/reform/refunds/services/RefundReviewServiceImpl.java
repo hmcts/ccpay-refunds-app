@@ -66,7 +66,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                                 .notes(refundReviewMapper.getStatusNotes(refundEvent, refundReviewRequest))
                                 .build());
         refundForGivenReference.setStatusHistories(statusHistories);
-
+        String statusMessage="";
         if (refundEvent.equals(RefundEvent.APPROVE)) {
             boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
             if (isRefundLiberata) {
@@ -90,12 +90,14 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
             }
+            statusMessage = "Refund approved";
         }
 
         if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.SENDBACK)) {
             updateRefundStatus(refundForGivenReference, refundEvent);
+            statusMessage = refundEvent.equals(RefundEvent.REJECT)?"Refund rejected":"Refund returned to caseworker";
         }
-        return new ResponseEntity<>("Refund request reviewed successfully", HttpStatus.CREATED);
+        return new ResponseEntity<>(statusMessage, HttpStatus.CREATED);
     }
 
     private Refund validatedAndGetRefundForGivenReference(String reference) {
