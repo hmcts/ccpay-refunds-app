@@ -408,7 +408,7 @@ class RefundControllerTest {
             new TypeReference<>() {
             }
         );
-        assertEquals(31, refundReasonList.size());
+        assertEquals(35, refundReasonList.size());
     }
 
     @Test

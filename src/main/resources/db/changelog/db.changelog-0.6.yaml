@@ -8,44 +8,48 @@ databaseChangeLog:
             sql: >
               UPDATE refund_reasons SET
                 name = 'Amended claim',
-                description = 'The court is amended' WHERE code = 'RR001';
+                description = 'The claim is amended' WHERE code = 'RR001';
               UPDATE refund_reasons SET
                 name = 'Amended court',
-                description = 'The application is rejected' WHERE code = 'RR002';
+                description = 'The court is amended' WHERE code = 'RR002';
+              UPDATE refund_reasons SET
+                name = 'Application rejected',
+                description = 'The application is rejected' WHERE code = 'RR003';
               UPDATE refund_reasons SET
                 name = 'Application/Case withdrawn',
-                description = 'The case is withdrawn' WHERE code = 'RR003';
-              UPDATE refund_reasons SET
-                name = 'Claim Issued in error (court error)',
-                description = 'The claim issued with court error' WHERE code = 'RR004';
+                description = 'The case is withdrawn' WHERE code = 'RR004';
               INSERT INTO refund_reasons (code, name, description)
                 VALUES
-                  ('RR005', 'Claim Issued in error (customer error)', 'The claim issued with customer error'),
-                  ('RR006', 'Court discretion', 'Based on court decision'),
-                  ('RR007', 'Court error', 'Due to some error in court'),
-                  ('RR008', 'Duplicate fee (court error)', 'Fee got duplicated due to court error'),
-                  ('RR009', 'Duplicate fee (customer error)', 'Fee got duplicated due to customer error'),
-                  ('RR010', 'Excess fee paid', 'Excess fee paid'),
-                  ('RR011', 'Following appeal', 'Following appeal'),
-                  ('RR012', 'Full Help with Fees / Full Fee Remission', 'Full Help with Fees / Full Fee Remission'),
-                  ('RR013', 'Incorrect fee taken/Wrong Fee Selected', 'Incorrect fee taken/Wrong Fee Selected'),
-                  ('RR014', 'Incorrect PBA reference supplied', 'Incorrect PBA reference supplied'),
-                  ('RR015', 'Judge''s order', 'Judge''s order'),
-                  ('RR016', 'Missing/Incorrect Documents', 'Missing/Incorrect Documents'),
-                  ('RR017', 'Part Help with Fees / Part Fee Remission', 'Part Help with Fees / Part Fee Remission'),
-                  ('RR018', 'Return of hearing fee', 'Return of hearing fee'),
-                  ('RR019', 'Trial fees (on settlements)', 'Trial fees (on settlements)'),
-                  ('RR020', 'Unused warrant', 'Unused warrant'),
-                  ('RR021', 'Unpaid cheque', 'Unpaid cheque'),
-                  ('RR022', 'Application rejected', 'Application rejected'),
-                  ('RR023', 'Other - RCJ', 'Other - RCJ'),
-                  ('RR024', 'Other - County', 'Other - County'),
-                  ('RR025', 'Other - Divorce', 'Other - Divorce'),
-                  ('RR026', 'Other - Probate', 'Other - Probate'),
-                  ('RR027', 'Other - Private Law', 'Other - Private Law'),
-                  ('RR028', 'Other - Public Law', 'Other - Public Law'),
-                  ('RR029', 'Other - Family', 'Other - Family'),
-                  ('RR030', 'Other - CoP', 'Other - CoP'),
-                  ('RR031', 'Other - Tribunals', 'Other - Tribunals');
+                  ('RR005', 'Claim Issued in error (court error)', 'Claim Issued in error (court error)'),
+                  ('RR006', 'Claim Issued in error (customer error)', 'Claim Issued in error (customer error)'),
+                  ('RR007', 'Court discretion', 'Court discretion'),
+                  ('RR008', 'Court error', 'Due to some error in court'),
+                  ('RR009', 'Duplicate fee (court error)', 'Fee got duplicated due to court error'),
+                  ('RR010', 'Duplicate fee (customer error)', 'Fee got duplicated due to customer error'),
+                  ('RR011', 'Excess fee paid', 'Excess fee paid'),
+                  ('RR012', 'Following appeal', 'Following appeal'),
+                  ('RR013', 'Full Help with Fees / Full Fee Remission', 'Full Help with Fees / Full Fee Remission'),
+                  ('RR014', 'Incorrect fee taken/Wrong Fee Selected', 'Incorrect fee taken/Wrong Fee Selected'),
+                  ('RR015', 'Incorrect PBA reference supplied', 'Incorrect PBA reference supplied'),
+                  ('RR016', 'Judge''s order', 'Judge''s order'),
+                  ('RR017', 'Missing/Incorrect Documents', 'Missing/Incorrect Documents'),
+                  ('RR018', 'Part Help with Fees / Part Fee Remission', 'Part Help with Fees / Part Fee Remission'),
+                  ('RR019', 'Return of hearing fee', 'Return of hearing fee'),
+                  ('RR020', 'Trial fees (on settlements)', 'Trial fees (on settlements)'),
+                  ('RR021', 'Unused warrant', 'Unused warrant'),
+                  ('RR022', 'Unpaid cheque', 'Unpaid cheque'),
+                  ('RR023', 'Fee not due (court error)', 'Fee not due (court error)'),
+                  ('RR024', 'System error / Technical error', 'System error / Technical error'),
+                  ('RR025', 'Legal correction - Legislation Revised', 'Legal correction - Legislation Revised'),
+                  ('RR026', 'Legal correction - Legislation Reinterpretation', 'Legal correction - Legislation Reinterpretation'),
+                  ('RR027', 'Other - RCJ', 'Other - RCJ'),
+                  ('RR028', 'Other - County', 'Other - County'),
+                  ('RR029', 'Other - Divorce', 'Other - Divorce'),
+                  ('RR030', 'Other - Probate', 'Other - Probate'),
+                  ('RR031', 'Other - Private Law', 'Other - Private Law'),
+                  ('RR032', 'Other - Public Law', 'Other - Public Law'),
+                  ('RR033', 'Other - Family', 'Other - Family'),
+                  ('RR034', 'Other - CoP', 'Other - CoP'),
+                  ('RR035', 'Other - Tribunals', 'Other - Tribunals');
 
 
