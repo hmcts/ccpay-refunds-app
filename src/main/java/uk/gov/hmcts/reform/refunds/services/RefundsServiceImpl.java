@@ -7,12 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
@@ -31,13 +26,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Arrays;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -155,7 +144,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         return refundListDto;
     }
-    
+
     @Override
     public Refund getRefundForReference(String reference) {
         Optional<Refund> refund = refundsRepository.findByReference(reference);
