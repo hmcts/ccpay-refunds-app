@@ -129,7 +129,7 @@ public class RefundsController {
      *
      * @return List of Refunds Status History
      */
-    @GetMapping("/refund/reference/{reference}/status-history")
+    @GetMapping("/refund/{reference}/status-history")
     public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
