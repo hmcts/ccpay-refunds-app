@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.refunds.state;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -9,15 +8,13 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import javax.validation.constraints.Null;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-public class RefundStateUtilTest extends StateUtil {
+class RefundStateUtilTest extends StateUtil {
 
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
@@ -26,42 +23,42 @@ public class RefundStateUtilTest extends StateUtil {
     private JwtDecoder jwtDecoder;
 
     @Test
-    public void NextStateForSubmitOrSentForApproval() throws Exception {
+    void NextStateForSubmitOrSentForApproval() throws Exception {
 
         RefundState refundState = RefundState.SENTFORAPPROVAL;
-        assertEquals(refundState.nextState(RefundEvent.APPROVE), RefundState.SENTTOMIDDLEOFFICE);
-        assertEquals(refundState.nextState(RefundEvent.REJECT), RefundState.REJECTED);
-        assertEquals(refundState.nextState(RefundEvent.SENDBACK), RefundState.NEEDMOREINFO);
+        assertEquals(RefundState.SENTTOMIDDLEOFFICE, refundState.nextState(RefundEvent.APPROVE));
+        assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.REJECT));
+        assertEquals(RefundState.NEEDMOREINFO, refundState.nextState(RefundEvent.SENDBACK));
     }
 
     @Test
-    public void NextStateForApprove() throws Exception {
+    void NextStateForApprove() throws Exception {
 
         RefundState refundState = RefundState.SENTTOMIDDLEOFFICE;
-        assertEquals(refundState.nextState(RefundEvent.REJECT), RefundState.REJECTED);
-        assertEquals(refundState.nextState(RefundEvent.ACCEPT), RefundState.ACCEPTED);
+        assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.REJECT));
+        assertEquals(RefundState.ACCEPTED, refundState.nextState(RefundEvent.ACCEPT));
     }
 
     @Test
-    public void NextStateForNEEDMOREINFO() throws Exception {
+    void NextStateForNEEDMOREINFO() throws Exception {
 
         RefundState refundState = RefundState.NEEDMOREINFO;
-        assertEquals(refundState.nextState(RefundEvent.SUBMIT), RefundState.SENTFORAPPROVAL);
-        assertEquals(refundState.nextState(RefundEvent.CANCEL), RefundState.REJECTED);
+        assertEquals(RefundState.SENTFORAPPROVAL, refundState.nextState(RefundEvent.SUBMIT));
+        assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.CANCEL));
     }
 
     @Test
-    public void NextStateForAccept() throws Exception {
+    void NextStateForAccept() throws Exception {
 
         RefundState refundState = RefundState.ACCEPTED;
-        assertEquals(refundState.nextState(RefundEvent.SUBMIT), RefundState.ACCEPTED);
+        assertEquals(RefundState.ACCEPTED, refundState.nextState(RefundEvent.SUBMIT));
     }
 
     @Test
-    public void NextStateForReject() throws Exception {
+    void NextStateForReject() throws Exception {
 
         RefundState refundState = RefundState.REJECTED;
-        assertEquals(refundState.nextState(RefundEvent.SUBMIT), RefundState.REJECTED);
+        assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.SUBMIT));
     }
 
 

@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
@@ -41,11 +42,12 @@ public class RefundsController {
 
     @Autowired
     private RefundReasonsService refundReasonsService;
+
     @Autowired
     private RefundsService refundsService;
+
     @Autowired
     private RefundStatusService refundStatusService;
-
 
     @Autowired
     private RefundReviewService refundReviewService;
@@ -120,6 +122,19 @@ public class RefundsController {
     @GetMapping("/refund/rejection-reasons")
     public ResponseEntity<List<RejectionReasonResponse>> getRejectedReasons(@RequestHeader("Authorization") String authorization) {
         return ok().body(refundsService.getRejectedReasons());
+    }
+
+    /**
+     * API for Refunds Status History
+     *
+     * @return List of Refunds Status History
+     */
+    @GetMapping("/refund/reference/{reference}/status-history")
+    public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @PathVariable(value = "reference", required = true) String reference) {
+        return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
     @ApiOperation(value = "PATCH refund/{reference}/action/{reviewer-action} ", notes = "Review Refund Request")
