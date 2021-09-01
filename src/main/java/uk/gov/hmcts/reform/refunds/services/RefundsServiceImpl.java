@@ -39,9 +39,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
-    private static final Pattern REASONPATTERN = Pattern.compile("(^RR00[0-9]-[a-zA-Z]+)");
+    private static final Pattern REASONPATTERN = Pattern.compile("(^RR0[0-9][0-9]-[a-zA-Z]+)");
 
     private static final Pattern STATUSPATTERN = Pattern.compile("[^rejected]");
+
+    private static final String OTHERREASONPATTERN = "Other - ";
 
     private static int reasonPrefixLength = 6;
 
@@ -268,13 +270,21 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
         if (matcher) {
-            if (refundRequest.getRefundReason().length() > reasonPrefixLength) {
-                refundRequest.setRefundReason(refundRequest.getRefundReason().substring(reasonPrefixLength));
-            } else {
-                throw new InvalidRefundRequestException("Invalid reason selected");
-            }
+                String reasonCode = refundRequest.getRefundReason().split("-")[0];
+                RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
+                if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+                    refundRequest.setRefundReason(
+                        refundReason.getName().split(OTHERREASONPATTERN)[0]+"-"+refundRequest.getRefundReason().substring(reasonPrefixLength)
+                    );
+                } else {
+                    throw new InvalidRefundRequestException("Invalid reason selected");
+                }
+
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason());
+            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+                throw new InvalidRefundRequestException("reason required");
+            }
             refundRequest.setRefundReason(refundReason.getCode());
         }
 

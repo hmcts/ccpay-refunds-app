@@ -13,11 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -57,31 +53,16 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.ACCEPTED;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTTOMIDDLEOFFICE;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierForSendBackStatus;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierForSubmittedStatus;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.*;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.*;
 import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USERID_ENDPOINT;
 import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USER_FULL_NAME_ENDPOINT;
 
@@ -127,9 +108,9 @@ class RefundControllerTest {
         .build();
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
     private RefundReason refundReason = RefundReason.refundReasonWith().
-        code("RR002")
+        code("RR031")
         .description("No comments")
-        .name("reason1")
+        .name("Other - divorce")
         .build();
     private IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
         .familyName("VP")
@@ -467,7 +448,7 @@ class RefundControllerTest {
     @Test
     void createRefundWithOtherReason() throws Exception {
 
-        refundRequest.setRefundReason("RR004-Other");
+        refundRequest.setRefundReason("RR031-Other");
 
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
@@ -547,13 +528,16 @@ class RefundControllerTest {
             .andExpect(status().isGatewayTimeout())
             .andReturn();
 
-        assertEquals("Unable to retrieve User information. Please try again later", result.getResponse().getContentAsString());
+        assertEquals(
+            "Unable to retrieve User information. Please try again later",
+            result.getResponse().getContentAsString()
+        );
     }
 
 
     @Test
-    void approveRefundRequestReturnsSuccessResponse() throws Exception{
-        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001","reason1");
+    void approveRefundRequestReturnsSuccessResponse() throws Exception {
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
@@ -590,7 +574,7 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Refund approved",result.getResponse().getContentAsString());
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
     @Test
@@ -623,7 +607,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void rejectRefundRequestReturnsSuccessResponse() throws Exception{
+    void rejectRefundRequestReturnsSuccessResponse() throws Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
             .code("RR0001")
             .build();
@@ -658,7 +642,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void sendbackRefundRequestReturnsSuccessResponse() throws Exception{
+    void sendbackRefundRequestReturnsSuccessResponse() throws Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
             .reason("send back reason")
             .build();
@@ -687,7 +671,7 @@ class RefundControllerTest {
 
 
     @Test
-    void rejectRefundRequestWithoutReasonCodeReturnsBadRequest() throws Exception{
+    void rejectRefundRequestWithoutReasonCodeReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
             .reason("reason")
             .build();
@@ -714,7 +698,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void rejectRefundRequestWithOthersCodeAndWithoutReasonReturnsBadRequest() throws Exception{
+    void rejectRefundRequestWithOthersCodeAndWithoutReasonReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
             .code("RE005")
             .build();
@@ -741,7 +725,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void rejectRefundRequestWithOthersCodeAndWithReasonReturnsSuccessResponse() throws  Exception {
+    void rejectRefundRequestWithOthersCodeAndWithReasonReturnsSuccessResponse() throws Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
             .code("RE005")
             .reason("custom reason")
@@ -770,7 +754,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void sendBackRefundRequestWithoutReasonReturnsBadRequest() throws  Exception {
+    void sendBackRefundRequestWithoutReasonReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
             .code("RR002")
             .build();
@@ -1374,8 +1358,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void testGetStatusHistory()
-    {
+    void testGetStatusHistory() {
         // given
         StatusHistoryDto statusHistoryDto = StatusHistoryDto.buildStatusHistoryDtoWith()
             .id(1)
