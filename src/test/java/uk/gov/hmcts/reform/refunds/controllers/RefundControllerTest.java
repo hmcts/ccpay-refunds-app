@@ -416,7 +416,10 @@ class RefundControllerTest {
 
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
-        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
+                                                                                    .code("RR002")
+                                                                                    .name("Amended court")
+                                                                                   .build());
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
 
@@ -442,6 +445,40 @@ class RefundControllerTest {
         );
         assertTrue(refundResponse.getRefundReference().matches(REFUND_REFERENCE_REGEX));
 
+    }
+
+    @Test
+    void createRefundWithOtherCodeWithoutReason() throws Exception {
+
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
+
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
+                                                                                   .code("RR031")
+                                                                                   .name("Other - Tribunals")
+                                                                                   .build());
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        RefundRequest refundRequest = RefundRequest.refundRequestWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .refundAmount(new BigDecimal(100))
+            .refundReason("RR031")
+            .ccdCaseNumber("1111222233334444")
+            .feeIds("1")
+            .build();
+
+        MvcResult result = mockMvc.perform(post("/refund")
+                                               .content(asJsonString(refundRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 
 
