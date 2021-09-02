@@ -255,7 +255,7 @@ public class RefundServiceImplTest {
         userIdentityDataDto.setFullName("Forename Surname");
 
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber.get());
-        when(statusHistoryRepository.findByRefund(any())).thenReturn(statusHistories);
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(any())).thenReturn(statusHistories);
         when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
 
         List<StatusHistoryDto> statusHistoryDtoList = refundsService.getStatusHistory(null, "123");
@@ -298,23 +298,23 @@ public class RefundServiceImplTest {
         userIdentityDataDto.setFullName("Forename Surname");
 
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber.get());
-        when(statusHistoryRepository.findByRefund(any())).thenReturn(statusHistories);
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(any())).thenReturn(statusHistories);
         when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
 
         List<StatusHistoryDto> statusHistoryDtoList = refundsService.getStatusHistory(null, "123");
 
         assertEquals(2, statusHistoryDtoList.size());
-        assertEquals(2, statusHistoryDtoList.get(0).getId());
-        assertEquals(1, statusHistoryDtoList.get(0).getRefundsId());
-        assertEquals("DDD", statusHistoryDtoList.get(0).getStatus());
-        assertEquals("EEE", statusHistoryDtoList.get(0).getNotes());
-        assertEquals(Timestamp.valueOf("2021-09-09 10:10:10.0"), statusHistoryDtoList.get(0).getDateCreated());
-        assertEquals("Forename Surname", statusHistoryDtoList.get(0).getCreatedBy());
-        assertEquals(1, statusHistoryDtoList.get(1).getId());
+        assertEquals(2, statusHistoryDtoList.get(1).getId());
         assertEquals(1, statusHistoryDtoList.get(1).getRefundsId());
-        assertEquals("AAA", statusHistoryDtoList.get(1).getStatus());
-        assertEquals("BBB", statusHistoryDtoList.get(1).getNotes());
-        assertEquals(Timestamp.valueOf("2021-10-10 10:10:10.0"), statusHistoryDtoList.get(1).getDateCreated());
-        assertEquals("Forename Surname", statusHistoryDtoList.get(1).getCreatedBy());
+        assertEquals("DDD", statusHistoryDtoList.get(1).getStatus());
+        assertEquals("EEE", statusHistoryDtoList.get(1).getNotes());
+        assertEquals(Timestamp.valueOf("2021-09-09 10:10:10.0"), statusHistoryDtoList.get(1).getDateCreated());
+        assertEquals("Forename Surname", statusHistoryDtoList.get(0).getCreatedBy());
+        assertEquals(1, statusHistoryDtoList.get(0).getId());
+        assertEquals(1, statusHistoryDtoList.get(0).getRefundsId());
+        assertEquals("AAA", statusHistoryDtoList.get(0).getStatus());
+        assertEquals("BBB", statusHistoryDtoList.get(0).getNotes());
+        assertEquals(Timestamp.valueOf("2021-10-10 10:10:10.0"), statusHistoryDtoList.get(0).getDateCreated());
+        assertEquals("Forename Surname", statusHistoryDtoList.get(0).getCreatedBy());
     }
 }
