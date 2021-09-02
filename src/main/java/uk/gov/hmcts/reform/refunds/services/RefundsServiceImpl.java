@@ -274,7 +274,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
                 if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
                     refundRequest.setRefundReason(
-                        refundReason.getName().split(OTHERREASONPATTERN)[0]+"-"+refundRequest.getRefundReason().substring(reasonPrefixLength)
+                        refundReason.getName().split(OTHERREASONPATTERN)[1]+"-"+refundRequest.getRefundReason().substring(reasonPrefixLength)
                     );
                 } else {
                     throw new InvalidRefundRequestException("Invalid reason selected");
