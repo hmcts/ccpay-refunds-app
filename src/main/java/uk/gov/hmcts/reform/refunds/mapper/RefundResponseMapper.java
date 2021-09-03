@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 
@@ -32,7 +33,10 @@ public class RefundResponseMapper {
 
     private String getRefundReason(String rawReason){
         if(rawReason.startsWith("RR")) {
-            return refundReasonRepository.findByCode(rawReason).get().getName();
+            if(refundReasonRepository.findByCode(rawReason).isPresent()){
+                return refundReasonRepository.findByCode(rawReason).get().getName();
+            }
+           throw new RefundReasonNotFoundException(rawReason);
         }
         return rawReason;
     }
