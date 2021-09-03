@@ -4,10 +4,14 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
@@ -217,6 +221,66 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
 
         return getStatusHistoryDto(headers, statusHistories);
+    }
+
+    @Override
+    public ResponseEntity resubmitRefund(String reference, ResubmitRefundRequest request,
+                                         MultiValueMap<String, String> headers) {
+
+        Refund refund = refundsRepository.findByReferenceOrThrow(reference);
+
+        RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
+
+        if (currentRefundState.getRefundStatus().getName().equals("sent back")) {
+            String uid = idamService.getUserId(headers);
+            refund.setRefundStatus(SENTFORAPPROVAL);
+            refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+                    uid,
+                    SENTFORAPPROVAL,
+                    request.getReason()
+                    )
+            ));
+            refund.setAmount(request.getAmount());
+            refund.setUpdatedBy(uid);
+            refund.setReason(request.getReason());
+        } else {
+            throw new ActionNotFoundException("Action not allowed to proceed");
+        }
+
+        /*RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
+        if (currentRefundState.getRefundStatus().getName().equals("sent back")) {
+            String uid = idamService.getUserId(headers);
+            if (statusUpdateRequest.getStatus().getCode().equals("accepted")) {
+                refund.setRefundStatus(RefundStatus.ACCEPTED);
+                refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+                        uid,
+                        RefundStatus.ACCEPTED,
+                        statusUpdateRequest.getReason()
+                        )
+                ));
+            } else {
+                refund.setRefundStatus(RefundStatus.REJECTED);
+                refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+                        uid,
+                        RefundStatus.REJECTED,
+                        statusUpdateRequest.getReason()
+                        )
+                ));
+            }
+            refund.setUpdatedBy(uid);
+            refund.setReason(statusUpdateRequest.getReason());
+        } else {
+            throw new ActionNotFoundException("Action not allowed to proceed");
+        }*/
+        return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
+    }
+
+    private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
+        return StatusHistory.statusHistoryWith()
+                .createdBy(uid)
+                .notes(reason)
+                .status(refundStatus.getName())
+                .build();
     }
 
     private List<StatusHistoryDto> getStatusHistoryDto(MultiValueMap<String, String> headers, List<StatusHistory> statusHistories) {

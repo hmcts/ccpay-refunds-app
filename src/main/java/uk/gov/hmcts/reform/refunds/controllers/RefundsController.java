@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -117,6 +118,20 @@ public class RefundsController {
                                              @PathVariable("reference") String reference,
                                              @RequestBody @Valid RefundStatusUpdateRequest request) {
         return refundStatusService.updateRefundStatus(reference, request, headers);
+    }
+
+    @ApiOperation(value = "Update refund reason and amount by refund reference", notes = "Update refund reason and amount by refund reference")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "No content"),
+            @ApiResponse(code = 404, message = "Refund details not found")
+    })
+    @PatchMapping("/refund/reference/{reference}")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity resubmitRefund(@RequestHeader("Authorization") String authorization,
+                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                         @PathVariable("reference") String reference,
+                                         @RequestBody @Valid ResubmitRefundRequest request) {
+        return refundsService.resubmitRefund(reference, request, headers);
     }
 
     @GetMapping("/refund/rejection-reasons")
