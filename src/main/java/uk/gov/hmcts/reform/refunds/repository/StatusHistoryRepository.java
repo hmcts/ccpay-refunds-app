@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface StatusHistoryRepository extends CrudRepository<StatusHistory, Long> {
 
-    List<StatusHistory> findByRefund(Refund refund);
+    List<StatusHistory> findByRefundOrderByDateCreatedDesc(Refund refund);
 
 }
 

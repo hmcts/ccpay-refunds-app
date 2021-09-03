@@ -201,10 +201,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public List<RejectionReasonResponse> getRejectedReasons() {
         // Getting names from Rejection Reasons List object
         return rejectionReasonRepository.findAll().stream().map(reason -> RejectionReasonResponse.rejectionReasonWith()
-                                                                    .code(reason.getCode())
-                                                                    .name(reason.getName())
-                                                                    .build()
-                                                                )
+            .code(reason.getCode())
+            .name(reason.getName())
+            .build()
+        )
             .collect(Collectors.toList());
     }
 
@@ -215,7 +215,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
-            statusHistories = statusHistoryRepository.findByRefund(refund);
+            statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund);
         }
 
         return getStatusHistoryDto(headers, statusHistories);
@@ -228,28 +228,27 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (null != statusHistories && !statusHistories.isEmpty()) {
             //Distinct createdBy UID
             Set<String> distintUIDSet = statusHistories
-                    .stream().map(StatusHistory::getCreatedBy)
-                    .collect(Collectors.toSet());
+                .stream().map(StatusHistory::getCreatedBy)
+                .collect(Collectors.toSet());
 
             //Map UID -> User full name
             Map<String, UserIdentityDataDto> userFullNameMap = getIdamUserDetails(headers, distintUIDSet);
 
             statusHistories
-                    .forEach(statusHistory ->
-                            statusHistoryDtos.add(statusHistoryResponseMapper.getStatusHistoryDto(
-                                    statusHistory,
-                                    userFullNameMap.get(statusHistory.getCreatedBy())
-                            )));
-            statusHistoryDtos.sort(Comparator.comparing(StatusHistoryDto::getDateCreated));
+                .forEach(statusHistory ->
+                             statusHistoryDtos.add(statusHistoryResponseMapper.getStatusHistoryDto(
+                                 statusHistory,
+                                 userFullNameMap.get(statusHistory.getCreatedBy())
+                             )));
         }
         return statusHistoryDtos;
     }
 
-    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet){
+    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet) {
         Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
         distintUIDSet.forEach(userId -> userFullNameMap.put(
-                userId,
-                idamService.getUserIdentityData(headers, userId)
+            userId,
+            idamService.getUserIdentityData(headers, userId)
         ));
         return userFullNameMap;
     }

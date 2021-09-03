@@ -17,7 +17,7 @@ public class RefundReviewMapper {
     private RejectionReasonRepository rejectionReasonRepository;
 
     public String getStatus(RefundEvent refundEvent){
-        return  refundEvent.equals(RefundEvent.APPROVE)?"approved":refundEvent.equals(RefundEvent.REJECT)?"rejected":"sentback";
+        return  refundEvent.equals(RefundEvent.APPROVE)?"sent to middle office":refundEvent.equals(RefundEvent.REJECT)?"rejected":"sentback";
     }
 
     public String getStatusNotes(RefundEvent refundEvent, RefundReviewRequest refundReviewRequest){
