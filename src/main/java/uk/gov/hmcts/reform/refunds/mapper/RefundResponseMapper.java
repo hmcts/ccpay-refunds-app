@@ -8,12 +8,13 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 @Component
 public class RefundResponseMapper {
 
-    public RefundDto getRefundListDto(Refund refund, UserIdentityDataDto userData) {
+
+    public RefundDto getRefundListDto(Refund refund, UserIdentityDataDto userData,String reason) {
         return RefundDto
             .buildRefundListDtoWith()
             .ccdCaseNumber(refund.getCcdCaseNumber())
             .amount(refund.getAmount())
-            .reason(refund.getReason())
+            .reason(reason)
             .refundStatus(refund.getRefundStatus())
             .refundReference(refund.getReference())
             .paymentReference(refund.getPaymentReference())
@@ -24,4 +25,6 @@ public class RefundResponseMapper {
             .build();
 
     }
+
+
 }

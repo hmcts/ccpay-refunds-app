@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -18,8 +19,10 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
@@ -58,6 +61,10 @@ public class RefundServiceImplTest {
     @Mock
     private StatusHistoryRepository statusHistoryRepository;
 
+    @Mock
+    private RefundReasonRepository refundReasonRepository;
+
+
     @Spy
     private StatusHistoryResponseMapper statusHistoryResponseMapper;
 
@@ -80,7 +87,7 @@ public class RefundServiceImplTest {
         .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID)
         .reference("RF-1111-2234-1077-1123")
         .refundStatus(RefundStatus.SENTFORAPPROVAL)
-        .reason("Duplicate Payment")
+        .reason("RR001")
         .paymentReference("RC-1111-2234-1077-1123")
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
         .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
@@ -143,6 +150,7 @@ public class RefundServiceImplTest {
                                                                                                     .fullName("ccd-full-name")
                                                                                                     .emailId("j@mail.com")
                                                                                                     .build());
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             null,
@@ -204,6 +212,8 @@ public class RefundServiceImplTest {
         when(idamService.getUserIdentityData(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
             UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status").emailId("h@mail.com").build()
             );
+
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             "sent for approval",

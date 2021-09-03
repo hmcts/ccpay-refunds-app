@@ -44,7 +44,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                     uid,
                     RefundStatus.ACCEPTED,
-                    statusUpdateRequest.getReason()
+                    "Approved by middle office"
                                                         )
                 ));
             } else {

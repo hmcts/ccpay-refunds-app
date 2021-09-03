@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -39,9 +40,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
-    private static final Pattern REASONPATTERN = Pattern.compile("(^RR004-[a-zA-Z]+)|(RR004$)");
+    private static final Pattern REASONPATTERN = Pattern.compile("(^RR0[0-9][0-9]-[a-zA-Z]+)");
 
     private static final Pattern STATUSPATTERN = Pattern.compile("[^rejected]");
+
+    private static final String OTHERREASONPATTERN = "Other - ";
 
     private static int reasonPrefixLength = 6;
 
@@ -136,11 +139,16 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         //Update the user full name for created by
         refundList
-            .forEach(refund ->
-                         refundListDto.add(refundResponseMapper.getRefundListDto(
-                             refund,
-                             userFullNameMap.get(refund.getCreatedBy())
-                         )));
+            .forEach(refund -> {
+                String reason  = getRefundReason(refund.getReason());
+                refundListDto.add(refundResponseMapper.getRefundListDto(
+                    refund,
+                    userFullNameMap.get(refund.getCreatedBy()),reason
+                ));
+                     }
+
+
+            );
 
         return refundListDto;
     }
@@ -267,13 +275,21 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
         if (matcher) {
-            if (refundRequest.getRefundReason().length() > reasonPrefixLength) {
-                refundRequest.setRefundReason(refundRequest.getRefundReason().substring(reasonPrefixLength));
-            } else {
-                throw new InvalidRefundRequestException("Invalid reason selected");
-            }
+                String reasonCode = refundRequest.getRefundReason().split("-")[0];
+                RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
+                if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+                    refundRequest.setRefundReason(
+                        refundReason.getName().split(OTHERREASONPATTERN)[1]+"-"+refundRequest.getRefundReason().substring(reasonPrefixLength)
+                    );
+                } else {
+                    throw new InvalidRefundRequestException("Invalid reason selected");
+                }
+
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason());
+            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+                throw new InvalidRefundRequestException("reason required");
+            }
             refundRequest.setRefundReason(refundReason.getCode());
         }
 
@@ -305,4 +321,16 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             )
             .build();
     }
+
+    private String getRefundReason(String rawReason){
+        if(rawReason.startsWith("RR")) {
+            Optional<RefundReason> refundReasonOptional = refundReasonRepository.findByCode(rawReason);
+            if(refundReasonOptional.isPresent()){
+                return refundReasonOptional.get().getName();
+            }
+            throw new RefundReasonNotFoundException(rawReason);
+        }
+        return rawReason;
+    }
+
 }
