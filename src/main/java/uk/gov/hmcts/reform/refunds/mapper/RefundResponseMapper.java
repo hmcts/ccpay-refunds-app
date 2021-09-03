@@ -1,25 +1,20 @@
 package uk.gov.hmcts.reform.refunds.mapper;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 
 @Component
 public class RefundResponseMapper {
 
-    @Autowired
-    private RefundReasonRepository refundReasonRepository;
 
-    public RefundDto getRefundListDto(Refund refund, UserIdentityDataDto userData) {
+    public RefundDto getRefundListDto(Refund refund, UserIdentityDataDto userData,String reason) {
         return RefundDto
             .buildRefundListDtoWith()
             .ccdCaseNumber(refund.getCcdCaseNumber())
             .amount(refund.getAmount())
-            .reason(getRefundReason(refund.getReason()))
+            .reason(reason)
             .refundStatus(refund.getRefundStatus())
             .refundReference(refund.getReference())
             .paymentReference(refund.getPaymentReference())
@@ -31,14 +26,5 @@ public class RefundResponseMapper {
 
     }
 
-    private String getRefundReason(String rawReason){
-        if(rawReason.startsWith("RR")) {
-            if(refundReasonRepository.findByCode(rawReason).isPresent()){
-                return refundReasonRepository.findByCode(rawReason).get().getName();
-            }
-           throw new RefundReasonNotFoundException(rawReason);
-        }
-        return rawReason;
-    }
 
 }
