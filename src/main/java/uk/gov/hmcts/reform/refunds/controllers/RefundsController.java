@@ -125,7 +125,7 @@ public class RefundsController {
             @ApiResponse(code = 204, message = "No content"),
             @ApiResponse(code = 404, message = "Refund details not found")
     })
-    @PatchMapping("/refund/reference/{reference}")
+    @PatchMapping("/refund/resubmit/{reference}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity resubmitRefund(@RequestHeader("Authorization") String authorization,
                                          @RequestHeader(required = false) MultiValueMap<String, String> headers,
@@ -148,7 +148,7 @@ public class RefundsController {
     public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable(value = "reference", required = true) String reference) {
+            @PathVariable(value = "reference") String reference) {
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 

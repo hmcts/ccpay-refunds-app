@@ -8,32 +8,36 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
+import uk.gov.hmcts.reform.refunds.exceptions.*;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
+import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -58,6 +62,12 @@ public class RefundServiceImplTest {
     @Mock
     private StatusHistoryRepository statusHistoryRepository;
 
+    @Mock
+    private RefundReasonRepository refundReasonRepository;
+
+    @Mock
+    private PaymentService paymentService;
+
     @Spy
     private StatusHistoryResponseMapper statusHistoryResponseMapper;
 
@@ -72,6 +82,12 @@ public class RefundServiceImplTest {
 
     public static final String GET_REFUND_LIST_SENDBACK_REFUND_STATUS = "3333-3333-3333-4444";
     public static final String GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID = "3f2b7025-0f91-4737-92c6-b7a9baef14c6";
+
+    public static final Supplier<StatusHistory> STATUS_HISTORY_SUPPLIER = () -> StatusHistory.statusHistoryWith()
+            .id(1)
+            .status(RefundStatus.SENTBACK.getName())
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .build();
 
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber = () -> Refund.refundsWith()
         .id(1)
@@ -114,7 +130,19 @@ public class RefundServiceImplTest {
         .paymentReference("RC-3333-2234-1077-1123")
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
         .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+        .statusHistories(Arrays.asList(STATUS_HISTORY_SUPPLIER.get()))
         .build();
+
+    public static final Supplier<PaymentResponse> PAYMENT_RESPONSE_SUPPLIER = () -> PaymentResponse.paymentResponseWith()
+            .amount(BigDecimal.valueOf(100))
+            .build();
+
+    public static final Supplier<PaymentGroupResponse> PAYMENT_GROUP_RESPONSE = () -> PaymentGroupResponse.paymentGroupDtoWith()
+            .paymentGroupReference("RF-3333-2234-1077-1123")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .payments(Arrays.asList(PAYMENT_RESPONSE_SUPPLIER.get()))
+            .build();
+
 
     @Before
     public void init() {
@@ -316,5 +344,136 @@ public class RefundServiceImplTest {
         assertEquals("BBB", statusHistoryDtoList.get(0).getNotes());
         assertEquals(Timestamp.valueOf("2021-10-10 10:10:10.0"), statusHistoryDtoList.get(0).getDateCreated());
         assertEquals("Forename Surname", statusHistoryDtoList.get(0).getCreatedBy());
+    }
+
+    @Test
+    void givenRefundIsNotFound_whenResubmitRefund_thenRefundNotFoundExceptionIsReceived() {
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenThrow(RefundNotFoundException.class);
+
+        assertThrows(RefundNotFoundException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", new ResubmitRefundRequest(), null));
+    }
+
+    @Test
+    void givenPaymentNotFound_whenResubmitRefund_thenPaymentReferenceNotFoundExceptionIsReceived() {
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenThrow(PaymentReferenceNotFoundException.class);
+
+        Exception exception = assertThrows(PaymentReferenceNotFoundException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", new ResubmitRefundRequest(), null));
+    }
+
+    @Test
+    void givenPaymentNotFound_whenResubmitRefund_thenPaymentInvalidRequestExceptionIsReceived() {
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenThrow(PaymentInvalidRequestException.class);
+
+        Exception exception = assertThrows(PaymentInvalidRequestException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", new ResubmitRefundRequest(), null));
+    }
+
+    @Test
+    void givenHigherRefundAmount_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setAmount(BigDecimal.valueOf(400));
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+
+        Exception exception = assertThrows(InvalidRefundRequestException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Amount should not be more than Payment amount"));
+    }
+
+    @Test
+    void givenReasonTypeNotFound_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
+        resubmitRefundRequest.setRefundReason("Reason");
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenThrow(InvalidRefundRequestException.class);
+
+        assertThrows(InvalidRefundRequestException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+    }
+
+    @Test
+    void givenInalidReason_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
+        resubmitRefundRequest.setRefundReason("Other - ");
+        RefundReason refundReason =
+                RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+
+        Exception exception = assertThrows(InvalidRefundRequestException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("reason required"));
+    }
+
+    @Test
+    void givenUserIdNotFound_whenResubmitRefund_thenUserNotFoundExceptionIsReceived() {
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
+        resubmitRefundRequest.setRefundReason("AAA");
+        RefundReason refundReason =
+                RefundReason.refundReasonWith().code("BBB").description("CCC").name("DDD").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(idamService.getUserId(any())).thenThrow(UserNotFoundException.class);
+
+        assertThrows(UserNotFoundException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+    }
+
+    @Test
+    void givenValidInput_whenResubmitRefund_thenRefundStatusUpdated() {
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
+        resubmitRefundRequest.setRefundReason("AAA");
+        RefundReason refundReason =
+                RefundReason.refundReasonWith().code("BBB").description("CCC").name("DDD").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(idamService.getUserId(any())).thenReturn("ID123");
+
+        ResponseEntity responseEntity =
+                refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
+
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        assertEquals("Refund status updated successfully", responseEntity.getBody().toString());
+    }
+
+    @Test
+    void givenUserIdFound_whenResubmitRefund_thenActionNotFoundExceptionIsReceived() {
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSubmittedStatus.get());
+
+        Exception exception = assertThrows(ActionNotFoundException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", new ResubmitRefundRequest(), null));
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Action not allowed to proceed"));
     }
 }

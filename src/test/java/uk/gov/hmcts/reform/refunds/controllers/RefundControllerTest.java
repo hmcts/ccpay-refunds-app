@@ -24,6 +24,9 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -32,10 +35,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.*;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
@@ -57,15 +57,12 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -1374,8 +1371,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void testGetStatusHistory()
-    {
+    void testGetStatusHistory() {
         // given
         StatusHistoryDto statusHistoryDto = StatusHistoryDto.buildStatusHistoryDtoWith()
                 .id(1)
@@ -1407,6 +1403,16 @@ class RefundControllerTest {
         assertEquals(Timestamp.valueOf("2021-10-10 10:10:10"), result.getBody().get(0).getDateCreated());
         assertEquals("CCC", result.getBody().get(0).getCreatedBy());
 
+    }
+
+    @Test
+    void testResubmitRefund() throws Exception {
+
+        when(refundsService.resubmitRefund(anyString(), any(), any())).thenReturn(new ResponseEntity(HttpStatus.OK));
+
+        ResponseEntity responseEntity = refundsController.resubmitRefund(null, null, null, null);
+        verify(refundsService, times(1)).resubmitRefund(null, null, null);
+        assertNull(responseEntity);
     }
 
     private PaymentGroupResponse getPaymentGroupDto() {

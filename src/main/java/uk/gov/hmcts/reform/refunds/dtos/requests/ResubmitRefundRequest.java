@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
+import org.apache.commons.lang.StringUtils;
 
+import javax.validation.constraints.AssertFalse;
 import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -18,8 +20,13 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Getter
 public class ResubmitRefundRequest {
 
-    private String reason;
+    private String refundReason;
 
     private BigDecimal amount;
+
+    @AssertFalse(message = "Refund amount should not be null or Refund reason is missing")
+    private boolean isRequestEmpty() {
+        return amount != null && StringUtils.isBlank(refundReason);
+    }
 
 }
