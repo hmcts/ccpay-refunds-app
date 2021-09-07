@@ -39,7 +39,7 @@ public class PaymentServiceImpl implements PaymentService{
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
-    private static Logger LOG = LoggerFactory.getLogger(PaymentServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
 
     @Override
@@ -66,13 +66,14 @@ public class PaymentServiceImpl implements PaymentService{
         inputHeaders.put("content-type",headers.get("content-type"));
         inputHeaders.put("Authorization", headers.get("Authorization"));
         inputHeaders.put("ServiceAuthorization", Arrays.asList(authTokenGenerator.generate()));
-        LOG.info("Authorization", headers.get("Authorization"));
-        LOG.info(" Service Auth Authorization", Arrays.asList(authTokenGenerator.generate()));
+        logger.info("Auth", headers.get("Authorization"));
+        logger.info(" Service Auth Authorization", Arrays.asList(authTokenGenerator.generate()));
         return new HttpEntity<>(inputHeaders);
     }
 
     private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
+        logger.info("URI ",builder.toUriString());
         return  restTemplatePayment
             .exchange(
                 builder.toUriString(),
