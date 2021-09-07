@@ -40,6 +40,7 @@ public class PaymentServiceImpl implements PaymentService{
     @Value("${idam.s2s-auth.microservice}") private String microservice;
 
     @Autowired
+    @Qualifier("serviceauthTokenGenerator")
     private AuthTokenGenerator serviceauthTokenGenerator;
 
     private static Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
