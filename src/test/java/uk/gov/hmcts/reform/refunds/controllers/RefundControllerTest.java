@@ -175,6 +175,7 @@ class RefundControllerTest {
     private OAuth2RestOperations restOperations;
 
     @MockBean
+    @Qualifier("serviceauthTokenGenerator")
     private AuthTokenGenerator authTokenGenerator;
 
     @MockBean
