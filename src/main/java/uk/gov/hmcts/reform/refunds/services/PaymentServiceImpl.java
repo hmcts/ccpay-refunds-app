@@ -65,10 +65,11 @@ public class PaymentServiceImpl implements PaymentService{
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("content-type",headers.get("content-type"));
         List<String> authtoken = headers.get("Authorization");
+        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
         inputHeaders.put("Authorization",authtoken);
-        inputHeaders.put("ServiceAuthorization", Arrays.asList(authTokenGenerator.generate()));
+        inputHeaders.put("ServiceAuthorization", servauthtoken);
         logger.info("Auth {}", authtoken);
-        logger.info(" Service Auth Authorization {}", Arrays.asList(authTokenGenerator.generate()));
+        logger.info(" Service Auth Authorization {}", servauthtoken);
         return new HttpEntity<>(inputHeaders);
     }
 
