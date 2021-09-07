@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.model;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Builder;
@@ -16,6 +18,7 @@ import javax.persistence.Table;
 @Data
 @Table(name = "refund_reasons")
 @Builder(builderMethodName = "refundReasonWith")
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class RefundReason {
     @Id
     @Column(name = "code", nullable = false)
@@ -26,4 +29,7 @@ public class RefundReason {
 
     @Column(name = "description")
     String description;
+
+    @Column(name = "recently_used")
+    Boolean recentlyUsed;
 }

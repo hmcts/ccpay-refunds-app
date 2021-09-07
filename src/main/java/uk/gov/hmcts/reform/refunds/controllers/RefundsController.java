@@ -146,9 +146,8 @@ public class RefundsController {
      */
     @GetMapping("/refund/{reference}/status-history")
     public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
-            @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable(value = "reference") String reference) {
+            @PathVariable String reference) {
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
@@ -168,8 +167,8 @@ public class RefundsController {
     public ResponseEntity<String> reviewRefund(
         @RequestHeader("Authorization") String authorization,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @PathVariable(value = "reference", required = true) String reference,
-        @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+        @PathVariable String reference,
+        @PathVariable ReviewerAction reviewerAction,
         @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
@@ -178,7 +177,7 @@ public class RefundsController {
     @GetMapping("/refund/{reference}/actions")
     public ResponseEntity<RefundEvent[]> retrieveActions(
         @RequestHeader("Authorization") String authorization,
-        @PathVariable(value = "reference", required = true) String reference) {
+        @PathVariable String reference) {
         return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
 
     }

@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100006
+      author: Jennings
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE refund_reasons ADD COLUMN recently_used BOOLEAN DEFAULT FALSE;
+  - changeSet:
+      id: 100006-1
+      author: Jennings
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              UPDATE refund_reasons SET
+                name = 'Amended claim',
+                description = 'The claim is amended', recently_used=TRUE WHERE code = 'RR001';
+              UPDATE refund_reasons SET
+                name = 'Amended court',
+                description = 'The court is amended', recently_used=FALSE WHERE code = 'RR002';
+              UPDATE refund_reasons SET
+                name = 'Application rejected',
+                description = 'The application is rejected', recently_used=TRUE WHERE code = 'RR003';
+              UPDATE refund_reasons SET
+                name = 'Application/Case withdrawn',
+                description = 'The case is withdrawn', recently_used=TRUE WHERE code = 'RR004';
+              INSERT INTO refund_reasons (code, name, description, recently_used)
+                VALUES
+                  ('RR005', 'Claim Issued in error (court error)', 'Claim Issued in error (court error)',FALSE),
+                  ('RR006', 'Claim Issued in error (customer error)', 'Claim Issued in error (customer error)',FALSE),
+                  ('RR007', 'Court discretion', 'Court discretion', TRUE),
+                  ('RR008', 'Court error', 'Due to some error in court',FALSE),
+                  ('RR009', 'Duplicate fee (court error)', 'Fee got duplicated due to court error', TRUE),
+                  ('RR010', 'Duplicate fee (customer error)', 'Fee got duplicated due to customer error', TRUE),
+                  ('RR011', 'Excess fee paid', 'Excess fee paid',FALSE),
+                  ('RR012', 'Following appeal', 'Following appeal',FALSE),
+                  ('RR013', 'Full Help with Fees / Full Fee Remission', 'Full Help with Fees / Full Fee Remission', TRUE),
+                  ('RR014', 'Incorrect fee taken/Wrong Fee Selected', 'Incorrect fee taken/Wrong Fee Selected',FALSE),
+                  ('RR015', 'Incorrect PBA reference supplied', 'Incorrect PBA reference supplied',FALSE),
+                  ('RR016', 'Judge''s order', 'Judge''s order',FALSE),
+                  ('RR017', 'Missing/Incorrect Documents', 'Missing/Incorrect Documents',FALSE),
+                  ('RR018', 'Part Help with Fees / Part Fee Remission', 'Part Help with Fees / Part Fee Remission', TRUE),
+                  ('RR019', 'Return of hearing fee', 'Return of hearing fee',FALSE),
+                  ('RR020', 'Trial fees (on settlements)', 'Trial fees (on settlements)',FALSE),
+                  ('RR021', 'Unused warrant', 'Unused warrant',FALSE),
+                  ('RR022', 'Unpaid cheque', 'Unpaid cheque',FALSE),
+                  ('RR023', 'Fee not due (court error)', 'Fee not due (court error)', TRUE),
+                  ('RR024', 'System error / Technical error', 'System error / Technical error', TRUE),
+                  ('RR025', 'Legal correction - Legislation Revised', 'Legal correction - Legislation Revised',FALSE),
+                  ('RR026', 'Legal correction - Legislation Reinterpretation', 'Legal correction - Legislation Reinterpretation',FALSE),
+                  ('RR027', 'Other - RCJ', 'Other - RCJ',FALSE),
+                  ('RR028', 'Other - County', 'Other - County',FALSE),
+                  ('RR029', 'Other - Divorce', 'Other - Divorce',FALSE),
+                  ('RR030', 'Other - Probate', 'Other - Probate',FALSE),
+                  ('RR031', 'Other - Private Law', 'Other - Private Law',FALSE),
+                  ('RR032', 'Other - Public Law', 'Other - Public Law',FALSE),
+                  ('RR033', 'Other - Family', 'Other - Family',FALSE),
+                  ('RR034', 'Other - CoP', 'Other - CoP',FALSE),
+                  ('RR035', 'Other - Tribunals', 'Other - Tribunals',FALSE);
+
+
