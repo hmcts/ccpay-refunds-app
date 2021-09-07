@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
@@ -95,12 +97,19 @@ public class RefundsController {
         @RequestParam(required = false) String status,
         @RequestParam(required = false) String ccdCaseNumber,
         @RequestParam(required = false) String excludeCurrentUser) {
+
+        if (StringUtils.isBlank(status) && StringUtils.isBlank(ccdCaseNumber)) {
+            throw new RefundListEmptyException(
+                "Please provide criteria to fetch refunds i.e. Refund status or ccd case number");
+        }
+
         return new ResponseEntity<>(
             refundsService.getRefundList(
                 status,
                 headers,
                 ccdCaseNumber,
-                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser // default false
+                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser
+                // default false
             ),
             HttpStatus.OK
         );

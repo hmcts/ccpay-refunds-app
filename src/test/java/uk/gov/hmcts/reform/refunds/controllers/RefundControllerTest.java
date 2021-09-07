@@ -281,6 +281,42 @@ class RefundControllerTest {
         assertEquals(SENTFORAPPROVAL, refundListDtoResponse.getRefundList().get(0).getRefundStatus());
     }
 
+
+    @Test
+    void testInvalidInputException() throws  Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/refund")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .queryParam("status", "")
+                                                  .queryParam("ccdCaseNumber", "")
+                                                  .queryParam("excludeCurrentUser", "")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest()).andReturn();
+
+        String ErrorMessage = mvcResult.getResponse().getContentAsString();
+        assertTrue(ErrorMessage.equals("Please provide criteria to fetch refunds i.e. Refund status or ccd case number"));
+
+    }
+
+    @Test
+    void testInvalidRefundReasonException() throws  Exception {
+        //mock userinfo call
+        mockUserinfoCall(idamUserIDResponseSupplier.get());
+
+        MvcResult mvcResult = mockMvc.perform(get("/refund")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .queryParam("status", "Invalid status")
+                                                  .queryParam("ccdCaseNumber", "")
+                                                  .queryParam("excludeCurrentUser", "")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest()).andReturn();
+
+        String ErrorMessage = mvcResult.getResponse().getContentAsString();
+        assertTrue(ErrorMessage.equals("Invalid Refund status"));
+
+    }
+
     @Test
     void testMultipleRefundsSubmittedStatus() throws Exception {
 

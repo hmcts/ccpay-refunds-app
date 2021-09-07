@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,21 +96,20 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String excludeCurrentUser) {
         //Get the userId
         String uid = idamService.getUserId(headers);
-        Optional<List<Refund>> refundList;
+        Optional<List<Refund>> refundList = null;
 
         //Return Refund list based on ccdCaseNumber if its not blank
-        if (ccdCaseNumber != null && !ccdCaseNumber.isBlank()) {
+        if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
-            return getRefundListDto(headers, refundList);
+        } else if (StringUtils.isNotBlank(status)) {
+            RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
+            //get the refund list except the self uid
+            refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
+                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+                refundStatus,
+                uid
+            ) : refundsRepository.findByRefundStatus(refundStatus);
         }
-
-        RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
-
-        //get the refund list except the self uid
-        refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
-            refundStatus,
-            uid
-        ) : refundsRepository.findByRefundStatus(refundStatus);
 
         return getRefundListDto(headers, refundList);
     }
