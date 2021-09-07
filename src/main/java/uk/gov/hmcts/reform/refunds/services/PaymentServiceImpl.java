@@ -84,6 +84,12 @@ public class PaymentServiceImpl implements PaymentService{
     private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
         getHeadersEntity(headers);
+        logger.info("length {}",headers.size());
+        headers.forEach((key,value)->{
+            logger.info("key {}", key);
+            logger.info("value {}", value);
+
+        });
         logger.info("URI {}",builder.toUriString());
         return  restTemplatePayment
             .exchange(
