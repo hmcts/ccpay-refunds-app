@@ -40,8 +40,7 @@ public class PaymentServiceImpl implements PaymentService{
     @Value("${idam.s2s-auth.microservice}") private String microservice;
 
     @Autowired
-    @Qualifier("serviceauthTokenGenerator")
-    private AuthTokenGenerator serviceauthTokenGenerator;
+    private AuthTokenGenerator authTokenGenerator;
 
     private static Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
@@ -74,7 +73,7 @@ public class PaymentServiceImpl implements PaymentService{
         });
         logger.info("authTokenGenerator.generate()");
         try{
-            logger.info(serviceauthTokenGenerator.generate());
+            logger.info(authTokenGenerator.generate());
         }catch (Exception e){
             logger.info(e.toString());
         }
@@ -82,7 +81,7 @@ public class PaymentServiceImpl implements PaymentService{
         logger.info("microservice"+microservice);
 
         List<String> authtoken = headers.get("authorization");
-        List<String> servauthtoken = Arrays.asList(serviceauthTokenGenerator.generate());
+        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
         logger.info("Auth {}", authtoken);
         logger.info(" Service Auth Authorization {}", servauthtoken);
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
