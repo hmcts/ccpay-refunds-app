@@ -4,7 +4,6 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +22,7 @@ import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -77,7 +77,7 @@ public class RootFunctionalTest {
             .when()
             .get("/refundstest");
 
-        Assert.assertNotNull(response.andReturn().asString());
+        assertNotNull(response.andReturn().asString());
     }
 
     @Test
@@ -88,6 +88,6 @@ public class RootFunctionalTest {
             .contentType(ContentType.JSON)
             .when()
             .post("/refunds");
-        Assert.assertNotNull(response.andReturn().asString());
+        assertNotNull(response.andReturn().asString());
     }
 }

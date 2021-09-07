@@ -165,11 +165,11 @@ public class RefundsController {
     @PatchMapping("/refund/{reference}/action/{reviewer-action}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> reviewRefund(
-        @RequestHeader("Authorization") String authorization,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @PathVariable String reference,
-        @PathVariable ReviewerAction reviewerAction,
-        @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @PathVariable String reference,
+            @PathVariable(value = "reviewer-action") ReviewerAction reviewerAction,
+            @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 
