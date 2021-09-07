@@ -62,20 +62,23 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
-        MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
-        inputHeaders.put("content-type",headers.get("content-type"));
         List<String> authtoken = headers.get("Authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
-        inputHeaders.put("Authorization",authtoken);
-        inputHeaders.put("ServiceAuthorization", servauthtoken);
         logger.info("Auth {}", authtoken);
         logger.info(" Service Auth Authorization {}", servauthtoken);
+        MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.put("content-type",headers.get("content-type"));
+
+        inputHeaders.put("Authorization",authtoken);
+        inputHeaders.put("ServiceAuthorization", servauthtoken);
+
         return new HttpEntity<>(inputHeaders);
     }
 
     private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
         logger.info("URI {}",builder.toUriString());
+        getHeadersEntity(headers);
         return  restTemplatePayment
             .exchange(
                 builder.toUriString(),
