@@ -27,10 +27,10 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
         return StatusHistory.statusHistoryWith()
-            .createdBy(uid)
-            .notes(reason)
-            .status(refundStatus.getName())
-            .build();
+                .createdBy(uid)
+                .notes(reason)
+                .status(refundStatus.getName())
+                .build();
     }
 
     @Override
@@ -42,18 +42,18 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             if (statusUpdateRequest.getStatus().getCode().equals("accepted")) {
                 refund.setRefundStatus(RefundStatus.ACCEPTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                    uid,
-                    RefundStatus.ACCEPTED,
-                    statusUpdateRequest.getReason()
-                                                        )
+                        uid,
+                        RefundStatus.ACCEPTED,
+                        "Approved by middle office"
+                        )
                 ));
             } else {
                 refund.setRefundStatus(RefundStatus.REJECTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                    uid,
-                    RefundStatus.REJECTED,
-                    statusUpdateRequest.getReason()
-                                                        )
+                        uid,
+                        RefundStatus.REJECTED,
+                        statusUpdateRequest.getReason()
+                        )
                 ));
             }
             refund.setUpdatedBy(uid);
