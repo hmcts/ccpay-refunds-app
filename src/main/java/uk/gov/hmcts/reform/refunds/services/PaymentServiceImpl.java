@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,8 @@ public class PaymentServiceImpl implements PaymentService{
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
+    private static Logger LOG = LoggerFactory.getLogger(PaymentServiceImpl.class);
+
 
     @Override
     public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
@@ -62,6 +66,8 @@ public class PaymentServiceImpl implements PaymentService{
         inputHeaders.put("content-type",headers.get("content-type"));
         inputHeaders.put("Authorization", headers.get("Authorization"));
         inputHeaders.put("ServiceAuthorization", Arrays.asList(authTokenGenerator.generate()));
+        LOG.info("Authorization", headers.get("Authorization"));
+        LOG.info(" Service Auth Authorization", Arrays.asList(authTokenGenerator.generate()));
         return new HttpEntity<>(inputHeaders);
     }
 
