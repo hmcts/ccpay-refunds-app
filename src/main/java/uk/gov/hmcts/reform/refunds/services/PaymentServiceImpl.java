@@ -62,6 +62,12 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
+        logger.info("reached get headers entity");
+        headers.forEach((key,value)->{
+            logger.info("key {}", key);
+            logger.info("value {}", value);
+
+        });
         List<String> authtoken = headers.get("Authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
         logger.info("Auth {}", authtoken);
@@ -77,8 +83,8 @@ public class PaymentServiceImpl implements PaymentService{
 
     private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
-        logger.info("URI {}",builder.toUriString());
         getHeadersEntity(headers);
+        logger.info("URI {}",builder.toUriString());
         return  restTemplatePayment
             .exchange(
                 builder.toUriString(),
