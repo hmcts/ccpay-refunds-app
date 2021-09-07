@@ -36,6 +36,9 @@ public class PaymentServiceImpl implements PaymentService{
     @Value("${payments.api.url}")
     private String paymentApiUrl;
 
+    @Value("${idam.s2s-auth.totp_secret}") private String secret;
+    @Value("${idam.s2s-auth.microservice}") private String microservice;
+
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
@@ -69,6 +72,8 @@ public class PaymentServiceImpl implements PaymentService{
 
         });
         logger.info("authTokenGenerator.generate()");
+        logger.info("secret"+secret);
+        logger.info("microservice"+microservice);
         logger.info(authTokenGenerator.generate());
         List<String> authtoken = headers.get("Authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
