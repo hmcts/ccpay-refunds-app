@@ -176,8 +176,8 @@ public class RefundsController {
     public ResponseEntity<String> reviewRefund(
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable String reference,
-            @PathVariable(value = "reviewer-action") ReviewerAction reviewerAction,
+            @PathVariable(value = "reference", required = true) String reference,
+            @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
             @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
