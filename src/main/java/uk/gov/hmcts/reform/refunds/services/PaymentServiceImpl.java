@@ -73,9 +73,14 @@ public class PaymentServiceImpl implements PaymentService{
 
         });
         logger.info("authTokenGenerator.generate()");
+        try{
+            logger.info(serviceauthTokenGenerator.generate());
+        }catch (Exception e){
+            logger.info(e.toString());
+        }
         logger.info("secret"+secret);
         logger.info("microservice"+microservice);
-        logger.info(serviceauthTokenGenerator.generate());
+
         List<String> authtoken = headers.get("authorization");
         List<String> servauthtoken = Arrays.asList(serviceauthTokenGenerator.generate());
         logger.info("Auth {}", authtoken);
