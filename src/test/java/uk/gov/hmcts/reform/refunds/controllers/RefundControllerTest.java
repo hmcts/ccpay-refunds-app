@@ -13,7 +13,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -53,16 +57,31 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.*;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.*;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.ACCEPTED;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTTOMIDDLEOFFICE;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierForSendBackStatus;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierForSubmittedStatus;
 import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USERID_ENDPOINT;
 import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USER_FULL_NAME_ENDPOINT;
 
@@ -210,7 +229,6 @@ class RefundControllerTest {
         mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
-
     @Test
     void testRefundListBasedOnCCDCaseNumber() throws Exception {
 
@@ -247,7 +265,7 @@ class RefundControllerTest {
     }
 
     @Test
-    public void testRefundListForSubmittedStatus() throws Exception {
+    void testRefundListForSubmittedStatus() throws Exception {
 
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
@@ -280,7 +298,6 @@ class RefundControllerTest {
         assertEquals("mock-Forename mock-Surname", refundListDtoResponse.getRefundList().get(0).getUserFullName());
         assertEquals(SENTFORAPPROVAL, refundListDtoResponse.getRefundList().get(0).getRefundStatus());
     }
-
 
     @Test
     void testInvalidInputException() throws  Exception {
@@ -517,7 +534,6 @@ class RefundControllerTest {
             .andReturn();
     }
 
-
     @Test
     void createRefundWithOtherReason() throws Exception {
 
@@ -581,7 +597,6 @@ class RefundControllerTest {
         assertTrue(ErrorMessage.equals("Refund is already processed for this payment"));
     }
 
-
     @Test
     void createRefundReturns504ForGatewayTimeout() throws Exception {
 
@@ -606,7 +621,6 @@ class RefundControllerTest {
             result.getResponse().getContentAsString()
         );
     }
-
 
     @Test
     void approveRefundRequestReturnsSuccessResponse() throws Exception {
@@ -742,7 +756,6 @@ class RefundControllerTest {
         assertEquals("Refund returned to caseworker", result.getResponse().getContentAsString());
     }
 
-
     @Test
     void rejectRefundRequestWithoutReasonCodeReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
@@ -836,7 +849,7 @@ class RefundControllerTest {
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamUserIdResponse.class)
+                eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
         MvcResult result = mockMvc.perform(patch(
@@ -1271,7 +1284,6 @@ class RefundControllerTest {
             .andExpect(jsonPath("$").value("No actions to proceed further"));
     }
 
-
     @Test
     void retrieveActionsForApprovedState() throws Exception {
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
@@ -1286,7 +1298,6 @@ class RefundControllerTest {
             .andExpect(jsonPath("$.[1].code").value("Reject"))
             .andExpect(jsonPath("$.[1].label").value("There is no refund due"));
     }
-
 
     @Test
     void getRejectionReasonsList() throws Exception {
@@ -1465,6 +1476,48 @@ class RefundControllerTest {
 
     }
 
+    @Test
+    void testResubmitRefund() throws Exception {
+
+        when(refundsService.resubmitRefund(anyString(), any(), any())).thenReturn(new ResponseEntity(HttpStatus.OK));
+
+        ResponseEntity responseEntity = refundsController.resubmitRefund(null, null, null, null);
+        verify(refundsService, times(1)).resubmitRefund(null, null, null);
+        assertNull(responseEntity);
+    }
+
+    /*@Test
+    void givenNullAmount_whenResubmitRefund_thenBadRequestStatusIsReceived() throws Exception {
+        ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
+                .amount(null).build();
+        refund.setRefundStatus(SENTTOMIDDLEOFFICE);
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+
+        MvcResult result = mockMvc.perform(patch(
+                "/refund/resubmit/{reference}",
+                "RF-1234-1234-1234-1234"
+        )
+                .content(asJsonString(resubmitRefundRequest))
+                .header("Authorization", "user")
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        ErrorResponse errorResponse = objectMapper.readValue(
+                result.getResponse().getContentAsByteArray(),
+                ErrorResponse.class
+        );
+
+
+        assertEquals(
+                "Refund amount should not be null or Refund reason is missing",
+                errorResponse.getDetails().get(0)
+        );
+    }*/
+
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
@@ -1527,7 +1580,6 @@ class RefundControllerTest {
                     .build()
             )).build();
     }
-
 
     private Refund getRefund() {
         return Refund.refundsWith()

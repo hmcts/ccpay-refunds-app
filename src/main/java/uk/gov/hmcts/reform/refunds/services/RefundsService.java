@@ -1,12 +1,14 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 
@@ -28,4 +30,6 @@ public interface RefundsService {
     List<RejectionReasonResponse> getRejectedReasons();
 
     List<StatusHistoryDto> getStatusHistory(MultiValueMap<String, String> headers, String reference);
+
+    ResponseEntity resubmitRefund(String reference, ResubmitRefundRequest request, MultiValueMap<String, String> headers);
 }

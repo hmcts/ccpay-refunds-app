@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -128,6 +129,20 @@ public class RefundsController {
         return refundStatusService.updateRefundStatus(reference, request, headers);
     }
 
+    @ApiOperation(value = "Update refund reason and amount by refund reference", notes = "Update refund reason and amount by refund reference")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "No content"),
+            @ApiResponse(code = 404, message = "Refund details not found")
+    })
+    @PatchMapping("/refund/resubmit/{reference}")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity resubmitRefund(@RequestHeader("Authorization") String authorization,
+                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                         @PathVariable("reference") String reference,
+                                         @RequestBody @Valid ResubmitRefundRequest request) {
+        return refundsService.resubmitRefund(reference, request, headers);
+    }
+
     @GetMapping("/refund/rejection-reasons")
     public ResponseEntity<List<RejectionReasonResponse>> getRejectedReasons(@RequestHeader("Authorization") String authorization) {
         return ok().body(refundsService.getRejectedReasons());
@@ -142,7 +157,7 @@ public class RefundsController {
     public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable(value = "reference", required = true) String reference) {
+            @PathVariable String reference) {
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
@@ -160,11 +175,11 @@ public class RefundsController {
     @PatchMapping("/refund/{reference}/action/{reviewer-action}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> reviewRefund(
-        @RequestHeader("Authorization") String authorization,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @PathVariable(value = "reference", required = true) String reference,
-        @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
-        @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @PathVariable(value = "reference", required = true) String reference,
+            @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+            @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 
@@ -172,7 +187,7 @@ public class RefundsController {
     @GetMapping("/refund/{reference}/actions")
     public ResponseEntity<RefundEvent[]> retrieveActions(
         @RequestHeader("Authorization") String authorization,
-        @PathVariable(value = "reference", required = true) String reference) {
+        @PathVariable String reference) {
         return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
 
     }
