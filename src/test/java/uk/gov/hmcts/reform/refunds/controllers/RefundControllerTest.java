@@ -1492,7 +1492,7 @@ class RefundControllerTest {
 
         when(refundsService.resubmitRefund(anyString(), any(), any())).thenReturn(new ResponseEntity(HttpStatus.OK));
 
-        ResponseEntity responseEntity = refundsController.resubmitRefund(null, null, null, null);
+        ResponseEntity responseEntity = refundsController.resubmitRefund(null, null, null);
         verify(refundsService, times(1)).resubmitRefund(null, null, null);
         assertNull(responseEntity);
     }

@@ -381,7 +381,7 @@ public class RefundServiceImplTest {
 
     @Test
     void givenHigherRefundAmount_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
-        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("", BigDecimal.valueOf(400));
         resubmitRefundRequest.setAmount(BigDecimal.valueOf(400));
         when(refundsRepository.findByReferenceOrThrow(anyString()))
                 .thenReturn(refundListSupplierForSendBackStatus.get());
@@ -397,9 +397,7 @@ public class RefundServiceImplTest {
 
     @Test
     void givenReasonTypeNotFound_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
-        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
-        resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
-        resubmitRefundRequest.setRefundReason("Reason");
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("Reason", BigDecimal.valueOf(100));
         when(refundsRepository.findByReferenceOrThrow(anyString()))
                 .thenReturn(refundListSupplierForSendBackStatus.get());
         when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
@@ -411,10 +409,8 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void givenInalidReason_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
-        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
-        resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
-        resubmitRefundRequest.setRefundReason("Other - ");
+    void givenInvalidReason_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("Other - ", BigDecimal.valueOf(100));
         RefundReason refundReason =
                 RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
         when(refundsRepository.findByReferenceOrThrow(anyString()))
@@ -430,10 +426,42 @@ public class RefundServiceImplTest {
     }
 
     @Test
+    void givenValidReasonOther_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("RR035-ABCDEG", BigDecimal.valueOf(100));
+        RefundReason refundReason =
+                RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+
+        ResponseEntity responseEntity = refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
+
+        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        assertEquals("Refund status updated successfully", responseEntity.getBody().toString());
+    }
+
+    @Test
+    void givenValidReasonRR_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("RR035-ABCDEG", BigDecimal.valueOf(100));
+        RefundReason refundReason =
+                RefundReason.refundReasonWith().code("RR001").description("Amended claim").name("The claim is amended").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+                .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+
+        Exception exception = assertThrows(InvalidRefundRequestException.class,
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Invalid reason selected"));
+    }
+
+    @Test
     void givenUserIdNotFound_whenResubmitRefund_thenUserNotFoundExceptionIsReceived() {
-        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
-        resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
-        resubmitRefundRequest.setRefundReason("AAA");
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("AAA", BigDecimal.valueOf(100));
         RefundReason refundReason =
                 RefundReason.refundReasonWith().code("BBB").description("CCC").name("DDD").build();
         when(refundsRepository.findByReferenceOrThrow(anyString()))
@@ -449,7 +477,7 @@ public class RefundServiceImplTest {
 
     @Test
     void givenValidInput_whenResubmitRefund_thenRefundStatusUpdated() {
-        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("AAA", BigDecimal.valueOf(100));
         resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
         resubmitRefundRequest.setRefundReason("AAA");
         RefundReason refundReason =
@@ -478,5 +506,9 @@ public class RefundServiceImplTest {
                 () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", new ResubmitRefundRequest(), null));
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("Action not allowed to proceed"));
+    }
+
+    private ResubmitRefundRequest buildResubmitRefundRequest(String refundReason, BigDecimal amount) {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason(refundReason).amount(amount).build();
     }
 }
