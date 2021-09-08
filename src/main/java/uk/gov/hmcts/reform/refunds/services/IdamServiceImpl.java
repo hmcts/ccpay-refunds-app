@@ -29,11 +29,10 @@ import java.util.List;
 @SuppressWarnings("PMD.PreserveStackTrace")
 public class IdamServiceImpl implements IdamService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
-
     public static final String USERID_ENDPOINT = "/o/userinfo";
-
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
+    private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
+    static private final String LIBERATA_NAME = "Middle office provider";
 
     @Value("${idam.api.url}")
     private String idamBaseURL;
@@ -100,6 +99,12 @@ public class IdamServiceImpl implements IdamService {
             .queryParam("query", "id:" + uid);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
+        if (uid == LIBERATA_NAME) {
+            return UserIdentityDataDto.userIdentityDataWith()
+                .fullName(uid)
+                .build();
+        }
+
         ResponseEntity<IdamFullNameRetrivalResponse[]> idamFullNameResEntity = restTemplateIdam
             .exchange(
                 builder.toUriString(),
@@ -114,9 +119,9 @@ public class IdamServiceImpl implements IdamService {
             if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
                 IdamFullNameRetrivalResponse idamFullNameRetrivalResponse = idamArrayFullNameRetrievalResponse[0];
                 return UserIdentityDataDto.userIdentityDataWith()
-                        .emailId(idamFullNameRetrivalResponse.getEmail())
-                        .fullName(idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname())
-                        .build();
+                    .emailId(idamFullNameRetrivalResponse.getEmail())
+                    .fullName(idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname())
+                    .build();
             }
         }
 
