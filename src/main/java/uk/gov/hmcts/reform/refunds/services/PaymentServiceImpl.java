@@ -58,50 +58,26 @@ public class PaymentServiceImpl implements PaymentService{
             if(e.getStatusCode().equals(HttpStatus.NOT_FOUND)){
                 throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
             }
+            logger.info(e.getMessage());
             throw new PaymentInvalidRequestException("Invalid Request: Payhub", e);
         } catch ( Exception e){
+            logger.info(e.getMessage());
             throw new PaymentServerException("Payment Server Exception", e);
         }
     }
 
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
-        logger.info("reached get headers entity");
-        headers.forEach((key,value)->{
-            logger.info("key {}", key);
-            logger.info("value {}", value);
-
-        });
-        logger.info("authTokenGenerator.generate()");
-        try{
-            logger.info(authTokenGenerator.generate());
-        }catch (Exception e){
-            logger.info(e.getMessage());
-        }
-        logger.info("secret"+secret);
-        logger.info("microservice"+microservice);
-
         List<String> authtoken = headers.get("authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
-        logger.info("Auth {}", authtoken);
-        logger.info(" Service Auth Authorization {}", servauthtoken);
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("content-type",headers.get("content-type"));
-
         inputHeaders.put("Authorization",authtoken);
         inputHeaders.put("ServiceAuthorization", servauthtoken);
-
         return new HttpEntity<>(inputHeaders);
     }
 
     private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
-        getHeadersEntity(headers);
-        logger.info("length {}",headers.size());
-        headers.forEach((key,value)->{
-            logger.info("key {}", key);
-            logger.info("value {}", value);
-
-        });
         logger.info("URI {}",builder.toUriString());
         return  restTemplatePayment
             .exchange(
