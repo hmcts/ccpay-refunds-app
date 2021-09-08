@@ -115,7 +115,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String excludeCurrentUser) {
         //Get the userId
         String uid = idamService.getUserId(headers);
-        Optional<List<Refund>> refundList = null;
+        Optional<List<Refund>> refundList = Optional.empty();
 
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {

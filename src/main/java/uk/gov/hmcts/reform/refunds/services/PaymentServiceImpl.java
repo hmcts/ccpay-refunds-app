@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,8 @@ public class PaymentServiceImpl implements PaymentService{
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
+    private static Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
+
 
     @Override
     public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
@@ -58,15 +62,18 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
+        List<String> authtoken = headers.get("authorization");
+        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("content-type",headers.get("content-type"));
-        inputHeaders.put("Authorization", headers.get("Authorization"));
-        inputHeaders.put("ServiceAuthorization", Arrays.asList(authTokenGenerator.generate()));
+        inputHeaders.put("Authorization",authtoken);
+        inputHeaders.put("ServiceAuthorization", servauthtoken);
         return new HttpEntity<>(inputHeaders);
     }
 
     private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
+        logger.info("URI {}",builder.toUriString());
         return  restTemplatePayment
             .exchange(
                 builder.toUriString(),
