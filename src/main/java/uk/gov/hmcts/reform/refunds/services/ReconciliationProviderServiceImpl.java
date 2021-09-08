@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.refunds.services;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -29,7 +27,6 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     @Autowired
     private OAuth2RestOperations restTemplate;
 
-    private static Logger logger = LoggerFactory.getLogger(ReconciliationProviderServiceImpl.class);
 
     @Override
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest){
@@ -41,10 +38,8 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
                 new HttpEntity<>(reconciliationProviderRequest, headers), ReconciliationProviderResponse.class
             );
         } catch (HttpClientErrorException e){
-            logger.info(e.getMessage());
             throw new ReconciliationProviderInvalidRequestException("Invalid Request: Reconciliation Provider", e);
         } catch ( Exception e){
-            logger.info(e.getMessage());
             throw new ReconciliationProviderServerException("Reconciliation Provider Server Exception", e);
         }
     }

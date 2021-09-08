@@ -55,10 +55,8 @@ public class PaymentServiceImpl implements PaymentService{
             if(e.getStatusCode().equals(HttpStatus.NOT_FOUND)){
                 throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
             }
-            logger.info(e.getMessage());
             throw new PaymentInvalidRequestException("Invalid Request: Payhub", e);
         } catch ( Exception e){
-            logger.info(e.getMessage());
             throw new PaymentServerException("Payment Server Exception", e);
         }
     }
