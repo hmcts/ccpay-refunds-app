@@ -136,7 +136,8 @@ public class RefundsController {
     })
     @PatchMapping("/refund/resubmit/{reference}")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity resubmitRefund(@RequestHeader(required = false) MultiValueMap<String, String> headers,
+    public ResponseEntity resubmitRefund(@RequestHeader("Authorization") String authorization,
+                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                          @PathVariable("reference") String reference,
                                          @RequestBody @Valid ResubmitRefundRequest request) {
         return refundsService.resubmitRefund(reference, request, headers);
@@ -154,6 +155,7 @@ public class RefundsController {
      */
     @GetMapping("/refund/{reference}/status-history")
     public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
+            @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable String reference) {
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);

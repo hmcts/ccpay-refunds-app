@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.refunds.service;
 
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -144,7 +144,7 @@ public class RefundServiceImplTest {
             .build();
 
 
-    @Before
+    @BeforeEach
     public void init() {
         MockitoAnnotations.initMocks(this);
     }

@@ -24,9 +24,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -232,7 +229,6 @@ class RefundControllerTest {
         mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
-
     @Test
     void testRefundListBasedOnCCDCaseNumber() throws Exception {
 
@@ -269,7 +265,7 @@ class RefundControllerTest {
     }
 
     @Test
-    public void testRefundListForSubmittedStatus() throws Exception {
+    void testRefundListForSubmittedStatus() throws Exception {
 
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
@@ -302,7 +298,6 @@ class RefundControllerTest {
         assertEquals("mock-Forename mock-Surname", refundListDtoResponse.getRefundList().get(0).getUserFullName());
         assertEquals(SENTFORAPPROVAL, refundListDtoResponse.getRefundList().get(0).getRefundStatus());
     }
-
 
     @Test
     void testInvalidInputException() throws  Exception {
@@ -539,7 +534,6 @@ class RefundControllerTest {
             .andReturn();
     }
 
-
     @Test
     void createRefundWithOtherReason() throws Exception {
 
@@ -603,7 +597,6 @@ class RefundControllerTest {
         assertTrue(ErrorMessage.equals("Refund is already processed for this payment"));
     }
 
-
     @Test
     void createRefundReturns504ForGatewayTimeout() throws Exception {
 
@@ -628,7 +621,6 @@ class RefundControllerTest {
             result.getResponse().getContentAsString()
         );
     }
-
 
     @Test
     void approveRefundRequestReturnsSuccessResponse() throws Exception {
@@ -763,7 +755,6 @@ class RefundControllerTest {
             .andReturn();
         assertEquals("Refund returned to caseworker", result.getResponse().getContentAsString());
     }
-
 
     @Test
     void rejectRefundRequestWithoutReasonCodeReturnsBadRequest() throws Exception {
@@ -1293,7 +1284,6 @@ class RefundControllerTest {
             .andExpect(jsonPath("$").value("No actions to proceed further"));
     }
 
-
     @Test
     void retrieveActionsForApprovedState() throws Exception {
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
@@ -1308,7 +1298,6 @@ class RefundControllerTest {
             .andExpect(jsonPath("$.[1].code").value("Reject"))
             .andExpect(jsonPath("$.[1].label").value("There is no refund due"));
     }
-
 
     @Test
     void getRejectionReasonsList() throws Exception {
@@ -1470,7 +1459,7 @@ class RefundControllerTest {
         when(refundsService.getStatusHistory(any(), anyString())).thenReturn(statusHistoryDtoList);
 
         // when
-        ResponseEntity<List<StatusHistoryDto>> result = refundsController.getStatusHistory(null, "reference");
+        ResponseEntity<List<StatusHistoryDto>> result = refundsController.getStatusHistory(null, null, "reference");
 
         // then
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -1492,10 +1481,42 @@ class RefundControllerTest {
 
         when(refundsService.resubmitRefund(anyString(), any(), any())).thenReturn(new ResponseEntity(HttpStatus.OK));
 
-        ResponseEntity responseEntity = refundsController.resubmitRefund(null, null, null);
+        ResponseEntity responseEntity = refundsController.resubmitRefund(null, null, null, null);
         verify(refundsService, times(1)).resubmitRefund(null, null, null);
         assertNull(responseEntity);
     }
+
+    /*@Test
+    void givenNullAmount_whenResubmitRefund_thenBadRequestStatusIsReceived() throws Exception {
+        ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
+                .amount(null).build();
+        refund.setRefundStatus(SENTTOMIDDLEOFFICE);
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+                .thenReturn(refundListSupplierForSendBackStatus.get());
+
+        MvcResult result = mockMvc.perform(patch(
+                "/refund/resubmit/{reference}",
+                "RF-1234-1234-1234-1234"
+        )
+                .content(asJsonString(resubmitRefundRequest))
+                .header("Authorization", "user")
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        ErrorResponse errorResponse = objectMapper.readValue(
+                result.getResponse().getContentAsByteArray(),
+                ErrorResponse.class
+        );
+
+
+        assertEquals(
+                "Refund amount should not be null or Refund reason is missing",
+                errorResponse.getDetails().get(0)
+        );
+    }*/
 
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()
@@ -1559,7 +1580,6 @@ class RefundControllerTest {
                     .build()
             )).build();
     }
-
 
     private Refund getRefund() {
         return Refund.refundsWith()

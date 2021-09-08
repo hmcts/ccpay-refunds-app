@@ -261,7 +261,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             // Refund Reason Validation
             if (null != request.getRefundReason()) {
-                validateRefundReason(refund, request);
+                refund.setReason(validateRefundReason(request.getRefundReason()));
             }
 
             // Update Status History table
@@ -272,6 +272,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             statusHistories.add(StatusHistory.statusHistoryWith()
                     .createdBy(userId)
                     .status(SENTFORAPPROVAL.getName())
+                    .notes("Refund initiated")
                     .build());
             refund.setStatusHistories(statusHistories);
             refund.setRefundStatus(SENTFORAPPROVAL);
@@ -299,30 +300,24 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return refund;
     }
 
-    private Refund validateRefundReason(Refund refund, ResubmitRefundRequest request) {
-        Boolean matcher = REASONPATTERN.matcher(request.getRefundReason()).find();
+    private String validateRefundReason(String reason) {
+        Boolean matcher = REASONPATTERN.matcher(reason).find();
         if (matcher) {
-            String reasonCode = request.getRefundReason().split("-")[0];
+            String reasonCode = reason.split("-")[0];
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
-            if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
-                refund.setReason(
-                        refundReason.getName().split(OTHERREASONPATTERN)[1] + "-" +
-                                request.getRefundReason().substring(reasonPrefixLength)
-                );
+            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+                return refundReason.getName().split(OTHERREASONPATTERN)[1]+"-"+reason.substring(reasonPrefixLength);
             } else {
                 throw new InvalidRefundRequestException("Invalid reason selected");
             }
 
         } else {
-            RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(request.getRefundReason());
-            if (null != refundReason) {
-                if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
-                    throw new InvalidRefundRequestException("reason required");
-                }
-                refund.setReason(refundReason.getCode());
+            RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reason);
+            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+                throw new InvalidRefundRequestException("reason required");
             }
+            return refundReason.getCode();
         }
-        return refund;
     }
 
     private List<StatusHistoryDto> getStatusHistoryDto(MultiValueMap<String, String> headers, List<StatusHistory> statusHistories) {
@@ -371,27 +366,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             throw new InvalidRefundRequestException("Refund is already processed for this payment");
         }
 
-        Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
-        if (matcher) {
-                String reasonCode = refundRequest.getRefundReason().split("-")[0];
-                RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
-                if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
-                    refundRequest.setRefundReason(
-                        refundReason.getName().split(OTHERREASONPATTERN)[1]+"-"+refundRequest.getRefundReason().substring(reasonPrefixLength)
-                    );
-                } else {
-                    throw new InvalidRefundRequestException("Invalid reason selected");
-                }
-
-        } else {
-            RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason());
-            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
-                throw new InvalidRefundRequestException("reason required");
-            }
-            refundRequest.setRefundReason(refundReason.getCode());
-        }
+        refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
 
     }
+
 //
 //    private boolean isRefundEligibilityFlagged() {
 //        // Actual logic is coming
