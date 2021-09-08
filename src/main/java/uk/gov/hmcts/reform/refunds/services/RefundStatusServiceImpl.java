@@ -19,9 +19,9 @@ import java.util.Arrays;
 @Service
 public class RefundStatusServiceImpl extends StateUtil implements RefundStatusService {
 
+    static private final String LIBERATA_NAME = "Middle office provider";
     @Autowired
     private RefundsRepository refundsRepository;
-
     @Autowired
     private IdamService idamService;
 
@@ -42,7 +42,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             if (statusUpdateRequest.getStatus().getCode().equals("accepted")) {
                 refund.setRefundStatus(RefundStatus.ACCEPTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                    uid,
+                    LIBERATA_NAME,
                     RefundStatus.ACCEPTED,
                     "Approved by middle office"
                                                         )
@@ -50,13 +50,13 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             } else {
                 refund.setRefundStatus(RefundStatus.REJECTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                    uid,
+                    LIBERATA_NAME,
                     RefundStatus.REJECTED,
                     statusUpdateRequest.getReason()
                                                         )
                 ));
             }
-            refund.setUpdatedBy(uid);
+            refund.setUpdatedBy(LIBERATA_NAME);
             refund.setReason(statusUpdateRequest.getReason());
         } else {
             throw new ActionNotFoundException("Action not allowed to proceed");
