@@ -75,7 +75,7 @@ public class PaymentServiceImpl implements PaymentService{
         try{
             logger.info(authTokenGenerator.generate());
         }catch (Exception e){
-            logger.info(e.toString());
+            logger.info(e.getMessage());
         }
         logger.info("secret"+secret);
         logger.info("microservice"+microservice);
