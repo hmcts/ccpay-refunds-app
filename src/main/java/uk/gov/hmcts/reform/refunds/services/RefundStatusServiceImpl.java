@@ -22,8 +22,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     static private final String LIBERATA_NAME = "Middle office provider";
     @Autowired
     private RefundsRepository refundsRepository;
-    @Autowired
-    private IdamService idamService;
 
     private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
         return StatusHistory.statusHistoryWith()
@@ -38,7 +36,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         if (currentRefundState.getRefundStatus().getName().equals("sent to middle office")) {
-            String uid = idamService.getUserId(headers);
             if (statusUpdateRequest.getStatus().getCode().equals("accepted")) {
                 refund.setRefundStatus(RefundStatus.ACCEPTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
