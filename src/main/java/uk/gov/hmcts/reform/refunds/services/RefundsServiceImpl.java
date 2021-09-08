@@ -5,10 +5,20 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.*;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
@@ -28,15 +38,21 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 @Service
-@SuppressWarnings("PMD.PreserveStackTrace")
+@SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports"})
 public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
@@ -60,6 +76,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Autowired
     private IdamService idamService;
+
+    @Autowired
+    private PaymentService paymentService;
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
@@ -227,6 +246,80 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return getStatusHistoryDto(headers, statusHistories);
     }
 
+    @Override
+    public ResponseEntity resubmitRefund(String reference, ResubmitRefundRequest request,
+                                         MultiValueMap<String, String> headers) {
+
+        Refund refund = refundsRepository.findByReferenceOrThrow(reference);
+
+        RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
+
+        if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
+
+            // Amount Validation
+            validateRefundAmount(refund, request, headers);
+
+            // Refund Reason Validation
+            if (null != request.getRefundReason()) {
+                refund.setReason(validateRefundReason(request.getRefundReason()));
+            }
+
+            // Update Status History table
+            String userId = idamService.getUserId(headers);
+            refund.setUpdatedBy(userId);
+            List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
+            refund.setUpdatedBy(userId);
+            statusHistories.add(StatusHistory.statusHistoryWith()
+                    .createdBy(userId)
+                    .status(SENTFORAPPROVAL.getName())
+                    .notes("Refund initiated")
+                    .build());
+            refund.setStatusHistories(statusHistories);
+            refund.setRefundStatus(SENTFORAPPROVAL);
+
+            // Update Refunds table
+            refundsRepository.save(refund);
+
+        } else {
+            throw new ActionNotFoundException("Action not allowed to proceed");
+        }
+
+        return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
+    }
+
+    private Refund validateRefundAmount(Refund refund, ResubmitRefundRequest request,
+                                        MultiValueMap<String, String> headers) {
+        PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
+                headers,
+                refund.getPaymentReference()
+        );
+        if (paymentData.getPayments().get(0).getAmount().compareTo(request.getAmount()) < 0) {
+            throw new InvalidRefundRequestException("Amount should not be more than Payment amount");
+        }
+        refund.setAmount(request.getAmount());
+        return refund;
+    }
+
+    private String validateRefundReason(String reason) {
+        Boolean matcher = REASONPATTERN.matcher(reason).find();
+        if (matcher) {
+            String reasonCode = reason.split("-")[0];
+            RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
+            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+                return refundReason.getName().split(OTHERREASONPATTERN)[1]+"-"+reason.substring(reasonPrefixLength);
+            } else {
+                throw new InvalidRefundRequestException("Invalid reason selected");
+            }
+
+        } else {
+            RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reason);
+            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+                throw new InvalidRefundRequestException("reason required");
+            }
+            return refundReason.getCode();
+        }
+    }
+
     private List<StatusHistoryDto> getStatusHistoryDto(MultiValueMap<String, String> headers, List<StatusHistory> statusHistories) {
 
         List<StatusHistoryDto> statusHistoryDtos = new ArrayList<>();
@@ -273,27 +366,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             throw new InvalidRefundRequestException("Refund is already processed for this payment");
         }
 
-        Boolean matcher = REASONPATTERN.matcher(refundRequest.getRefundReason()).find();
-        if (matcher) {
-                String reasonCode = refundRequest.getRefundReason().split("-")[0];
-                RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
-                if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
-                    refundRequest.setRefundReason(
-                        refundReason.getName().split(OTHERREASONPATTERN)[1]+"-"+refundRequest.getRefundReason().substring(reasonPrefixLength)
-                    );
-                } else {
-                    throw new InvalidRefundRequestException("Invalid reason selected");
-                }
-
-        } else {
-            RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason());
-            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
-                throw new InvalidRefundRequestException("reason required");
-            }
-            refundRequest.setRefundReason(refundReason.getCode());
-        }
+        refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
 
     }
+
 //
 //    private boolean isRefundEligibilityFlagged() {
 //        // Actual logic is coming

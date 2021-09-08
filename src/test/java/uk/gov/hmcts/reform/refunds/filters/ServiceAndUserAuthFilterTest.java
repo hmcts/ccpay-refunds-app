@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.refunds.filters;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -78,7 +78,7 @@ public class ServiceAndUserAuthFilterTest {
 
         filter.doFilterInternal(request, response, filterChain);
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN.value());
-        Assert.assertTrue(StringUtils.containsIgnoreCase(((MockHttpServletResponse)response).getErrorMessage(),
+        assertTrue(StringUtils.containsIgnoreCase(((MockHttpServletResponse)response).getErrorMessage(),
                                                          "Access Denied Current user roles are : [payments-invalid-role]"));
     }
 
@@ -90,7 +90,7 @@ public class ServiceAndUserAuthFilterTest {
 
         filter.doFilterInternal(request, response, filterChain);
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN.value());
-        Assert.assertTrue(StringUtils.containsIgnoreCase(((MockHttpServletResponse)response).getErrorMessage(),
+        assertTrue(StringUtils.containsIgnoreCase(((MockHttpServletResponse)response).getErrorMessage(),
                                                          "Access Denied Current user roles are : [null]"));
     }
 

@@ -1,11 +1,9 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -17,7 +15,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -54,7 +52,7 @@ public class RootControllerTest {
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
-        Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
+        assertEquals(200, resultActions.andReturn().getResponse().getStatus());
         assertEquals("Welcome to refunds with feature enabled", resultActions.andReturn().getResponse().getContentAsString());
     }
 
@@ -65,7 +63,7 @@ public class RootControllerTest {
                                                           .header("Authorization", "user")
                                                           .header("ServiceAuthorization", "service")
                                                           .accept(MediaType.APPLICATION_JSON));
-        Assert.assertEquals(200, resultActions.andReturn().getResponse().getStatus());
+        assertEquals(200, resultActions.andReturn().getResponse().getStatus());
         assertEquals(
             "Welcome to refunds with feature false",
             resultActions.andReturn().getResponse().getContentAsString()
