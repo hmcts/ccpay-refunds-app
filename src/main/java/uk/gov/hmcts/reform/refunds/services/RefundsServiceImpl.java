@@ -317,7 +317,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reason);
-            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+            if(refundReason.getName().startsWith(OTHERREASONPATTERN)||refundReason.getName().equals(RETROSPECTIVE_REASON)){
                 throw new InvalidRefundRequestException("reason required");
             }
             return refundReason.getCode();
