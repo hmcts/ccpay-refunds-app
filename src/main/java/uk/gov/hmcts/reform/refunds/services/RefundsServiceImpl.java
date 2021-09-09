@@ -119,7 +119,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         // Filter Refunds List based on Service Type
         List<String> roles = new ArrayList<>();
-        roles.add("payments-refund");
+        roles.add("caseworker-damage");
         Set<String> distintUserIDSet = idamService.getUserIdSetForService(headers, roles);
 
         refundList.ifPresent(list -> list.stream()

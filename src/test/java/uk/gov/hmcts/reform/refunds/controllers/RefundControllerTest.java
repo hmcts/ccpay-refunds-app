@@ -106,7 +106,7 @@ class RefundControllerTest {
         .email("mock1fullname@gmail.com")
         .forename("mock1-Forename")
         .surname("mock1-Surname")
-        .roles(List.of("Refund-approver", "Refund-admin"))
+        .roles(List.of("Refund-approver", "caseworker-damage"))
         .build()};
 
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameSendBackRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
@@ -125,6 +125,9 @@ class RefundControllerTest {
         .roles(List.of("Refund-approver", "Refund-admin"))
         .uid(GET_REFUND_LIST_CCD_CASE_USER_ID)
         .build();
+    public static final Supplier<IdamUserListResponse> IDAM_USER_LIST_RESPONSE_SUPPLIER =
+            () -> IdamUserListResponse.idamUserListResponseWith()
+                    .idamUserInfoResponseList(Arrays.asList(idamFullNameSubmittedRefundListSupplier.get())).build();
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
     private RefundReason refundReason = RefundReason.refundReasonWith().
         code("RR031")
@@ -354,6 +357,11 @@ class RefundControllerTest {
             idamFullNameSubmittedRefundListSupplier.get()
         );
 
+//        Set<String> distintUserIDSet = new HashSet<>();
+//        distintUserIDSet.add("3f2b7025-0f91-4737-92c6-b7a9baef14c6");
+//        when(idamService.getUserIdSetForService(any(), any())).thenReturn(distintUserIDSet);
+        mockIdamUserIdSetForServiceCall(Arrays.asList("damage"),IDAM_USER_LIST_RESPONSE_SUPPLIER.get());
+
         //mock repository call
         when(refundsRepository.findByRefundStatus(
             SENTFORAPPROVAL
@@ -438,6 +446,19 @@ class RefundControllerTest {
         when(restTemplateIdam.exchange(eq(builderCCDSearchURI.toUriString())
             , any(HttpMethod.class), any(HttpEntity.class),
                                        eq(IdamUserInfoResponse[].class)
+        )).thenReturn(responseForFullNameCCDUserId);
+    }
+
+    public void mockIdamUserIdSetForServiceCall(List<String> roles,
+                                                IdamUserListResponse idamUserListResponse) {
+        UriComponentsBuilder builderIdamURI = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+                .queryParam("query", "(roles:" + roles + ") AND lastModified:>now-720d")
+                .queryParam("size", 100);
+        ResponseEntity<IdamUserListResponse> responseForFullNameCCDUserId =
+                new ResponseEntity<>(idamUserListResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(eq(builderIdamURI.toUriString())
+                , any(HttpMethod.class), any(HttpEntity.class),
+                eq(IdamUserListResponse.class)
         )).thenReturn(responseForFullNameCCDUserId);
     }
 
