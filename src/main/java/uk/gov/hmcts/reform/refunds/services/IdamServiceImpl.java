@@ -141,8 +141,7 @@ public class IdamServiceImpl implements IdamService {
         users.add("asdfghjk-kjhgfds-dfghj-sdfghjk");
         return users;*/
 
-        String roleRegex = "^.*" + roles.get(0) + ".*$";
-        Pattern rolePattern = Pattern.compile(roleRegex);
+//        Pattern rolePattern = Pattern.compile("^.*damage.*$");
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
                 .queryParam("query", "(roles:" + roles + ") AND lastModified:" + LAST_MODIFIED_TIME)
@@ -162,7 +161,7 @@ public class IdamServiceImpl implements IdamService {
             if (idamUserListResponse != null && idamUserListResponse.getIdamUserInfoResponseList().size() > 0) {
 
                 return idamUserListResponse.getIdamUserInfoResponseList().stream()
-                        .filter(pr -> pr.getRoles().stream().anyMatch(s -> rolePattern.matcher(s).matches()))
+//                        .filter(pr -> pr.getRoles().stream().anyMatch(s -> rolePattern.matcher(s).matches()))
                         .map(IdamUserInfoResponse::getId)
                         .collect(Collectors.toSet());
             }
