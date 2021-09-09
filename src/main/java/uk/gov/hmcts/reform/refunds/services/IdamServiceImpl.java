@@ -141,7 +141,8 @@ public class IdamServiceImpl implements IdamService {
         users.add("asdfghjk-kjhgfds-dfghj-sdfghjk");
         return users;*/
 
-        Pattern rolePattern = Pattern.compile("^.*" + roles.get(0) + ".*$");
+        String roleRegex = "^.*" + roles.get(0) + ".*$";
+        Pattern rolePattern = Pattern.compile(roleRegex);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
                 .queryParam("query", "(roles:" + roles + ") AND lastModified:" + LAST_MODIFIED_TIME)
@@ -167,7 +168,7 @@ public class IdamServiceImpl implements IdamService {
             }
         }
 
-        LOG.error("User id list not found for given service : {}", roles);
+        LOG.error("User id list not found for given service");
         throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
     }
 }
