@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Builder(builderMethodName = "userIdentityDataWith")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,4 +16,5 @@ import lombok.Setter;
 public class UserIdentityDataDto {
     private String fullName;
     private String emailId;
+    private Set<String> id;
 }

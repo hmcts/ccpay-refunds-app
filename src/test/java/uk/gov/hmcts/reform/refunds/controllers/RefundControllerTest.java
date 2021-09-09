@@ -92,7 +92,7 @@ import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USER_FULL_NAM
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RefundControllerTest {
 
-    public static final Supplier<IdamFullNameRetrivalResponse[]> idamFullNameCCDSearchRefundListSupplier = () -> new IdamFullNameRetrivalResponse[]{IdamFullNameRetrivalResponse
+    public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
         .id(GET_REFUND_LIST_CCD_CASE_USER_ID)
         .email("mockfullname@gmail.com")
@@ -100,7 +100,7 @@ class RefundControllerTest {
         .surname("mock-Surname")
         .roles(List.of("Refund-approver", "Refund-admin"))
         .build()};
-    public static final Supplier<IdamFullNameRetrivalResponse[]> idamFullNameSubmittedRefundListSupplier = () -> new IdamFullNameRetrivalResponse[]{IdamFullNameRetrivalResponse
+    public static final Supplier<IdamUserInfoResponse[]> idamFullNameSubmittedRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
         .id(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
         .email("mock1fullname@gmail.com")
@@ -109,7 +109,7 @@ class RefundControllerTest {
         .roles(List.of("Refund-approver", "Refund-admin"))
         .build()};
 
-    public static final Supplier<IdamFullNameRetrivalResponse[]> idamFullNameSendBackRefundListSupplier = () -> new IdamFullNameRetrivalResponse[]{IdamFullNameRetrivalResponse
+    public static final Supplier<IdamUserInfoResponse[]> idamFullNameSendBackRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
         .id(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
         .email("mock2fullname@gmail.com")
@@ -423,14 +423,14 @@ class RefundControllerTest {
     }
 
     public void mockIdamFullNameCall(String userId,
-                                     IdamFullNameRetrivalResponse[] idamFullNameRetrivalResponse) {
+                                     IdamUserInfoResponse[] idamUserInfoResponse) {
         UriComponentsBuilder builderCCDSearchURI = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
             .queryParam("query", "id:" + userId);
-        ResponseEntity<IdamFullNameRetrivalResponse[]> responseForFullNameCCDUserId =
-            new ResponseEntity<>(idamFullNameRetrivalResponse, HttpStatus.OK);
+        ResponseEntity<IdamUserInfoResponse[]> responseForFullNameCCDUserId =
+            new ResponseEntity<>(idamUserInfoResponse, HttpStatus.OK);
         when(restTemplateIdam.exchange(eq(builderCCDSearchURI.toUriString())
             , any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamFullNameRetrivalResponse[].class)
+                                       eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseForFullNameCCDUserId);
     }
 

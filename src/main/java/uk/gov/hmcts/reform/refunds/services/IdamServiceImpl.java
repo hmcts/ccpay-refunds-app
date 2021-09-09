@@ -16,7 +16,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamFullNameRetrivalResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
@@ -24,6 +25,9 @@ import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
@@ -33,6 +37,8 @@ public class IdamServiceImpl implements IdamService {
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
     static private final String LIBERATA_NAME = "Middle office provider";
+    private static final String INTERNAL_SERVER_ERROR = "Internal Server error. Please, try again later";
+    private static final Pattern ROLEPATTERN = Pattern.compile("^.*damage.*$");
 
     @Value("${idam.api.url}")
     private String idamBaseURL;
@@ -55,10 +61,10 @@ public class IdamServiceImpl implements IdamService {
                 }
             }
             LOG.error("Parse error user not found");
-            throw new UserNotFoundException("Internal Server error. Please, try again later");
+            throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
-            throw new UserNotFoundException("Internal Server error. Please, try again later");
+            throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
         } catch (HttpServerErrorException e) {
             LOG.error("server err ", e);
             throw new GatewayTimeoutException("Unable to retrieve User information. Please try again later");
@@ -105,27 +111,56 @@ public class IdamServiceImpl implements IdamService {
                 .build();
         }
 
-        ResponseEntity<IdamFullNameRetrivalResponse[]> idamFullNameResEntity = restTemplateIdam
+        ResponseEntity<IdamUserInfoResponse[]> idamFullNameResEntity = restTemplateIdam
             .exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
-                getEntity(headers), IdamFullNameRetrivalResponse[].class
+                getEntity(headers), IdamUserInfoResponse[].class
             );
 
-
         if (idamFullNameResEntity != null && idamFullNameResEntity.getBody() != null) {
-            IdamFullNameRetrivalResponse[] idamArrayFullNameRetrievalResponse = idamFullNameResEntity.getBody();
+            IdamUserInfoResponse[] idamArrayFullNameRetrievalResponse = idamFullNameResEntity.getBody();
 
             if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
-                IdamFullNameRetrivalResponse idamFullNameRetrivalResponse = idamArrayFullNameRetrievalResponse[0];
+                IdamUserInfoResponse idamUserInfoResponse = idamArrayFullNameRetrievalResponse[0];
                 return UserIdentityDataDto.userIdentityDataWith()
-                    .emailId(idamFullNameRetrivalResponse.getEmail())
-                    .fullName(idamFullNameRetrivalResponse.getForename() + " " + idamFullNameRetrivalResponse.getSurname())
+                    .emailId(idamUserInfoResponse.getEmail())
+                    .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
                     .build();
             }
         }
 
         LOG.error("User name not found for given user id : {}", uid);
-        throw new UserNotFoundException("Internal Server error. Please, try again later");
+        throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public Set<String> getUserIdSetForService(MultiValueMap<String, String> headers, List<String> roles) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+                .queryParam("query", "(roles:" + roles + ") AND lastModified:>now-720d")
+                .queryParam("size", 100);
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+
+        ResponseEntity<IdamUserListResponse> idamUserListResponseEntity = restTemplateIdam
+                .exchange(
+                        builder.toUriString(),
+                        HttpMethod.GET,
+                        getEntity(headers), IdamUserListResponse.class
+                );
+
+        if (idamUserListResponseEntity != null && idamUserListResponseEntity.getBody() != null) {
+            IdamUserListResponse idamUserListResponse = idamUserListResponseEntity.getBody();
+
+            if (idamUserListResponse != null && idamUserListResponse.getIdamUserInfoResponseList().size() > 0) {
+
+                return idamUserListResponse.getIdamUserInfoResponseList().stream()
+                        .filter(pr -> pr.getRoles().stream().anyMatch(s -> ROLEPATTERN.matcher(s).matches()))
+                        .map(IdamUserInfoResponse::getId)
+                        .collect(Collectors.toSet());
+            }
+        }
+
+        LOG.error("User name not found for given user id : {}", roles);
+        throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
     }
 }

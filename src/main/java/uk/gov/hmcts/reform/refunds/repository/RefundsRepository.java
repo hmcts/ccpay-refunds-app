@@ -26,4 +26,6 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer> {
 
     Optional<List<Refund>> findByCcdCaseNumber(String ccdCaseNumber);
 
+    Optional<List<Refund>> findByCcdCaseNumberAndCreatedBy(String ccdCaseNumber, String createdBy);
+
 }
