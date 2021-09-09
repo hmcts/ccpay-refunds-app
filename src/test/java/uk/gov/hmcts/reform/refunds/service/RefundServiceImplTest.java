@@ -466,10 +466,10 @@ public class RefundServiceImplTest {
                 .thenReturn(PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
 
-        ResponseEntity responseEntity = refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
+        ResubmitRefundResponseDto response = refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
 
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
-        assertEquals("Refund status updated successfully", responseEntity.getBody().toString());
+        assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
+        assertEquals(BigDecimal.valueOf(100), response.getRefundAmount());
     }
 
     @Test
@@ -519,12 +519,12 @@ public class RefundServiceImplTest {
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
         when(idamService.getUserId(any())).thenReturn("ID123");
 
-        ResponseEntity responseEntity =
+        ResubmitRefundResponseDto response =
                 refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
 
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
-        assertEquals("Refund status updated successfully", responseEntity.getBody().toString());
+        assertNotNull(response);
+        assertEquals(BigDecimal.valueOf(100), response.getRefundAmount());
+        assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
 
     @Test

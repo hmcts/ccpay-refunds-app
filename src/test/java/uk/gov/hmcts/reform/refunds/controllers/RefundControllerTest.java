@@ -28,10 +28,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.*;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
@@ -1512,13 +1509,27 @@ class RefundControllerTest {
     }
 
     @Test
-    void testResubmitRefund() throws Exception {
+    void testResubmitRefund() {
 
-        when(refundsService.resubmitRefund(anyString(), any(), any())).thenReturn(new ResponseEntity(HttpStatus.OK));
+        ResubmitRefundRequest
+                resubmitRefundRequest =
+                ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason("WWW").amount(BigDecimal.valueOf(333))
+                        .build();
+        ResubmitRefundResponseDto resubmitRefundResponseDto =
+                ResubmitRefundResponseDto.buildResubmitRefundResponseDtoWith()
+                        .refundReference("RF-1111-1111-1111-1111")
+                        .refundAmount(resubmitRefundRequest.getAmount()).build();
 
-        ResponseEntity responseEntity = refundsController.resubmitRefund(null, null, null, null);
-        verify(refundsService, times(1)).resubmitRefund(null, null, null);
-        assertNull(responseEntity);
+        when(refundsService.resubmitRefund(anyString(), any(), any()))
+                .thenReturn(resubmitRefundResponseDto);
+
+        ResponseEntity<ResubmitRefundResponseDto> responseEntity =
+                refundsController.resubmitRefund(null, null, "RF-1111-1111-1111-1111", resubmitRefundRequest);
+        verify(refundsService, times(1)).resubmitRefund("RF-1111-1111-1111-1111", resubmitRefundRequest, null);
+        assertNotNull(responseEntity.getBody());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(BigDecimal.valueOf(333), responseEntity.getBody().getRefundAmount());
+        assertEquals("RF-1111-1111-1111-1111", responseEntity.getBody().getRefundReference());
     }
 
     /*@Test

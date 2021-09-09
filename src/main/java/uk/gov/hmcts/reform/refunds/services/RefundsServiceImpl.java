@@ -5,8 +5,6 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -260,7 +258,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public ResponseEntity resubmitRefund(String reference, ResubmitRefundRequest request,
+    public ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request,
                                          MultiValueMap<String, String> headers) {
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -293,11 +291,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             // Update Refunds table
             refundsRepository.save(refund);
 
-        } else {
-            throw new ActionNotFoundException("Action not allowed to proceed");
-        }
+            return
+                    ResubmitRefundResponseDto.buildResubmitRefundResponseDtoWith()
+                            .refundReference(refund.getReference())
+                            .refundAmount(refund.getAmount()).build();
 
-        return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
+        }
+        throw new ActionNotFoundException("Action not allowed to proceed");
+
     }
 
     private Refund validateRefundAmount(Refund refund, ResubmitRefundRequest request,
