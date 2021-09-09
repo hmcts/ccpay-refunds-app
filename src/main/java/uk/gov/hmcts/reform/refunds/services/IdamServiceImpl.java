@@ -16,9 +16,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
@@ -38,7 +38,8 @@ public class IdamServiceImpl implements IdamService {
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
     static private final String LIBERATA_NAME = "Middle office provider";
     private static final String INTERNAL_SERVER_ERROR = "Internal Server error. Please, try again later";
-    private static final Pattern ROLEPATTERN = Pattern.compile("^.*damage.*$");
+    private static final int USER_INFO_SIZE = 100;
+    static private final String LAST_MODIFIED_TIME = ">now-720d";
 
     @Value("${idam.api.url}")
     private String idamBaseURL;
@@ -136,9 +137,15 @@ public class IdamServiceImpl implements IdamService {
 
     @Override
     public Set<String> getUserIdSetForService(MultiValueMap<String, String> headers, List<String> roles) {
+        /*Set<String> users = new HashSet<>();
+        users.add("asdfghjk-kjhgfds-dfghj-sdfghjk");
+        return users;*/
+
+        Pattern rolePattern = Pattern.compile("^.*" + roles.get(0) + ".*$");
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .queryParam("query", "(roles:" + roles + ") AND lastModified:>now-720d")
-                .queryParam("size", 100);
+                .queryParam("query", "(roles:" + roles + ") AND lastModified:" + LAST_MODIFIED_TIME)
+                .queryParam("size", USER_INFO_SIZE);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
         ResponseEntity<IdamUserListResponse> idamUserListResponseEntity = restTemplateIdam
@@ -154,13 +161,13 @@ public class IdamServiceImpl implements IdamService {
             if (idamUserListResponse != null && idamUserListResponse.getIdamUserInfoResponseList().size() > 0) {
 
                 return idamUserListResponse.getIdamUserInfoResponseList().stream()
-                        .filter(pr -> pr.getRoles().stream().anyMatch(s -> ROLEPATTERN.matcher(s).matches()))
+                        .filter(pr -> pr.getRoles().stream().anyMatch(s -> rolePattern.matcher(s).matches()))
                         .map(IdamUserInfoResponse::getId)
                         .collect(Collectors.toSet());
             }
         }
 
-        LOG.error("User name not found for given user id : {}", roles);
+        LOG.error("User id list not found for given service : {}", roles);
         throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
     }
 }

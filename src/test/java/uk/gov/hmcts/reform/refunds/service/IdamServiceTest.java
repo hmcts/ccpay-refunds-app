@@ -34,7 +34,7 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1;
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
@@ -133,7 +133,7 @@ class IdamServiceTest {
         )).thenThrow(new UserNotFoundException("User Not Found"));
 
         assertThrows(UserNotFoundException.class, () -> {
-            idamService.getUserIdentityData(header, GET_REFUND_LIST_CCD_CASE_USER_ID);
+            idamService.getUserIdentityData(header, GET_REFUND_LIST_CCD_CASE_USER_ID1);
         });
     }
 
@@ -174,7 +174,7 @@ class IdamServiceTest {
 
     @Test
     void givenIDAMResponse_whenGetUserIdSetForService_thenDistinctUserIdSetIsReceived() {
-        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
         roles.add("damage");

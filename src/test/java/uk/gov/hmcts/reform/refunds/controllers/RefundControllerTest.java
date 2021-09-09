@@ -13,11 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -57,31 +53,15 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.ACCEPTED;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTTOMIDDLEOFFICE;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierForSendBackStatus;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.refundListSupplierForSubmittedStatus;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.*;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.*;
 import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USERID_ENDPOINT;
 import static uk.gov.hmcts.reform.refunds.services.IdamServiceImpl.USER_FULL_NAME_ENDPOINT;
 
@@ -94,7 +74,7 @@ class RefundControllerTest {
 
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
-        .id(GET_REFUND_LIST_CCD_CASE_USER_ID)
+        .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
@@ -123,7 +103,7 @@ class RefundControllerTest {
         .name("mock-ForeName")
         .sub("mockfullname@gmail.com")
         .roles(List.of("Refund-approver", "Refund-admin"))
-        .uid(GET_REFUND_LIST_CCD_CASE_USER_ID)
+        .uid(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .build();
     public static final Supplier<IdamUserListResponse> IDAM_USER_LIST_RESPONSE_SUPPLIER =
             () -> IdamUserListResponse.idamUserListResponseWith()
@@ -246,26 +226,26 @@ class RefundControllerTest {
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
-        mockIdamFullNameCall(GET_REFUND_LIST_CCD_CASE_USER_ID, idamFullNameCCDSearchRefundListSupplier.get());
+        mockIdamFullNameCall(GET_REFUND_LIST_CCD_CASE_USER_ID1, idamFullNameCCDSearchRefundListSupplier.get());
 
         //mock repository call
-        when(refundsRepository.findByCcdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID))
-            .thenReturn(Optional.ofNullable(List.of(
-                refundListSupplierBasedOnCCDCaseNumber.get())));
+        when(refundsRepository.findByCcdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1))
+                .thenReturn(Optional.ofNullable(List.of(
+                        refundListSupplierBasedOnCCDCaseNumber1.get())));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
-                                                  .header("Authorization", "user")
-                                                  .header("ServiceAuthorization", "Services")
-                                                  .queryParam("status", "submitted")
-                                                  .queryParam("ccdCaseNumber", GET_REFUND_LIST_CCD_CASE_USER_ID)
-                                                  .queryParam("excludeCurrentUser", " ")
-                                                  .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk()).andReturn();
+                .header("Authorization", "user")
+                .header("ServiceAuthorization", "Services")
+                .queryParam("status", "submitted")
+                .queryParam("ccdCaseNumber", GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                .queryParam("excludeCurrentUser", " ")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
 
         RefundListDtoResponse refundListDtoResponse = mapper.readValue(
-            mvcResult.getResponse().getContentAsString(),
-            new TypeReference<>() {
-            }
+                mvcResult.getResponse().getContentAsString(),
+                new TypeReference<>() {
+                }
         );
 
         assertNotNull(refundListDtoResponse);
@@ -281,14 +261,14 @@ class RefundControllerTest {
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
-        mockIdamFullNameCall(GET_REFUND_LIST_CCD_CASE_USER_ID, idamFullNameCCDSearchRefundListSupplier.get());
+        mockIdamFullNameCall(GET_REFUND_LIST_CCD_CASE_USER_ID1, idamFullNameCCDSearchRefundListSupplier.get());
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
             SENTFORAPPROVAL
         ))
             .thenReturn(Optional.ofNullable(List.of(
-                refundListSupplierBasedOnCCDCaseNumber.get())));
+                refundListSupplierBasedOnCCDCaseNumber1.get())));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
@@ -351,23 +331,18 @@ class RefundControllerTest {
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
-        mockIdamFullNameCall(GET_REFUND_LIST_CCD_CASE_USER_ID, idamFullNameCCDSearchRefundListSupplier.get());
+        mockIdamFullNameCall(GET_REFUND_LIST_CCD_CASE_USER_ID1, idamFullNameCCDSearchRefundListSupplier.get());
         mockIdamFullNameCall(
             GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID,
             idamFullNameSubmittedRefundListSupplier.get()
         );
-
-//        Set<String> distintUserIDSet = new HashSet<>();
-//        distintUserIDSet.add("3f2b7025-0f91-4737-92c6-b7a9baef14c6");
-//        when(idamService.getUserIdSetForService(any(), any())).thenReturn(distintUserIDSet);
-        mockIdamUserIdSetForServiceCall(Arrays.asList("damage"),IDAM_USER_LIST_RESPONSE_SUPPLIER.get());
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
             SENTFORAPPROVAL
         ))
             .thenReturn(Optional.ofNullable(List.of(
-                refundListSupplierBasedOnCCDCaseNumber.get(), refundListSupplierForSubmittedStatus.get())));
+                refundListSupplierBasedOnCCDCaseNumber1.get(), refundListSupplierForSubmittedStatus.get())));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
@@ -449,14 +424,11 @@ class RefundControllerTest {
         )).thenReturn(responseForFullNameCCDUserId);
     }
 
-    public void mockIdamUserIdSetForServiceCall(List<String> roles,
+    public void mockIdamUserIdSetForServiceCall(
                                                 IdamUserListResponse idamUserListResponse) {
-        UriComponentsBuilder builderIdamURI = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .queryParam("query", "(roles:" + roles + ") AND lastModified:>now-720d")
-                .queryParam("size", 100);
         ResponseEntity<IdamUserListResponse> responseForFullNameCCDUserId =
                 new ResponseEntity<>(idamUserListResponse, HttpStatus.OK);
-        when(restTemplateIdam.exchange(eq(builderIdamURI.toUriString())
+        when(restTemplateIdam.exchange(anyString()
                 , any(HttpMethod.class), any(HttpEntity.class),
                 eq(IdamUserListResponse.class)
         )).thenReturn(responseForFullNameCCDUserId);

@@ -99,7 +99,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String excludeCurrentUser) {
+    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers,
+                                               String ccdCaseNumber, String excludeCurrentUser, List<String> roles) {
         //Get the userId
         String uid = idamService.getUserId(headers);
         Optional<List<Refund>> refundList = Optional.empty();
@@ -111,22 +112,37 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
-                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
-                refundStatus,
-                uid
+                    excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+                    refundStatus,
+                    uid
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
         // Filter Refunds List based on Service Type
-        List<String> roles = new ArrayList<>();
-        roles.add("caseworker-damage");
-        Set<String> distintUserIDSet = idamService.getUserIdSetForService(headers, roles);
-
-        refundList.ifPresent(list -> list.stream()
-                .filter(refunds -> distintUserIDSet.contains(refunds.getCreatedBy()))
-                .collect(Collectors.toList()));
+        if (null != roles && !roles.isEmpty()) {
+            refundList = filterRefundList(refundList, headers, roles);
+        }
 
         return getRefundListDto(headers, refundList);
+    }
+
+    private Optional<List<Refund>> filterRefundList(Optional<List<Refund>> refundList, MultiValueMap<String, String> headers,
+                                                    List<String> roles) {
+        Set<String> distintUserIDSet = idamService.getUserIdSetForService(headers, roles);
+
+        /*refundList.ifPresent(list -> list.stream()
+                .filter(refunds -> distintUserIDSet.contains(refunds.getCreatedBy()))
+                .collect(Collectors.toList()));*/
+
+        List<Refund> finalList = new ArrayList<>();
+        if (refundList.isPresent()) {
+            for (Refund refund : refundList.get()) {
+                if (distintUserIDSet.contains(refund.getCreatedBy())) {
+                    finalList.add(refund);
+                }
+            }
+        }
+        return Optional.of(finalList);
     }
 
     public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList) {
