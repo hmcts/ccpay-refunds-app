@@ -155,6 +155,13 @@ class RefundControllerTest {
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
         .build();
+    private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
+        .paymentReference("RC-1234-1234-1234-1234")
+        .refundAmount(new BigDecimal(100))
+        .refundReason("RR036-Retrospective remission")
+        .ccdCaseNumber("1111222233334444")
+        .feeIds("1")
+        .build();
 
     @Autowired
     private MockMvc mockMvc;
@@ -461,7 +468,7 @@ class RefundControllerTest {
             new TypeReference<>() {
             }
         );
-        assertEquals(35, refundReasonList.size());
+        assertEquals(36, refundReasonList.size());
     }
 
     @Test
@@ -482,6 +489,41 @@ class RefundControllerTest {
 
         MvcResult result = mockMvc.perform(post("/refund")
                                                .content(asJsonString(refundRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        RefundResponse refundResponse = mapper.readValue(
+            result.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
+
+        );
+        assertTrue(refundResponse.getRefundReference().matches(REFUND_REFERENCE_REGEX));
+
+    }
+ @Test
+    void createRefundForRetroRemission() throws Exception {
+
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
+
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
+                                                                                    .code("RR036")
+                                                                                    .name("Retrospective remission")
+                                                                                   .build());
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        MvcResult result = mockMvc.perform(post("/refund")
+                                               .content(asJsonString(refundForRetroRequest))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
                                                .contentType(MediaType.APPLICATION_JSON)
@@ -1066,7 +1108,7 @@ class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
 
         Refund refundWithRetroRemission = getRefund();
-        refundWithRetroRemission.setReason("RR004-Retrospective Remission");
+        refundWithRetroRemission.setReason("RR036-Retrospective remission");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
@@ -1111,7 +1153,7 @@ class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
 
         Refund refundWithRetroRemission = getRefund();
-        refundWithRetroRemission.setReason("RR004-Retrospective Remission");
+        refundWithRetroRemission.setReason("RR036-Retrospective remission");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
@@ -1158,7 +1200,7 @@ class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
 
         Refund refundWithRetroRemission = getRefund();
-        refundWithRetroRemission.setReason("RR004-Retrospective Remission");
+        refundWithRetroRemission.setReason("RR036-Retrospective remission");
         refundWithRetroRemission.setAmount(BigDecimal.valueOf(10));
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
@@ -1204,7 +1246,7 @@ class RefundControllerTest {
 
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         Refund refundWithRetroRemission = getRefund();
-        refundWithRetroRemission.setReason("RR004-Retrospective Remission");
+        refundWithRetroRemission.setReason("RR036-Retrospective remission");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 

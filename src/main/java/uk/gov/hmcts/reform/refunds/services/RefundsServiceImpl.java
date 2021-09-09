@@ -48,6 +48,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String OTHERREASONPATTERN = "Other - ";
 
+    private static final String RETROSPECTIVE_REASON = "Retrospective remission";
+;
     private static int reasonPrefixLength = 6;
 
     @Autowired
@@ -300,7 +302,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (matcher) {
             String reasonCode = reason.split("-")[0];
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
-            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+            if(refundReason.getName().equals(RETROSPECTIVE_REASON)){
+                return reasonCode+"-"+refundReason.getName();
+            }else if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
                 return refundReason.getName().split(OTHERREASONPATTERN)[1]+"-"+reason.substring(reasonPrefixLength);
             } else {
                 throw new InvalidRefundRequestException("Invalid reason selected");
@@ -308,7 +312,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reason);
-            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+            if(refundReason.getName().startsWith(OTHERREASONPATTERN)||refundReason.getName().equals(RETROSPECTIVE_REASON)){
                 throw new InvalidRefundRequestException("reason required");
             }
             return refundReason.getCode();

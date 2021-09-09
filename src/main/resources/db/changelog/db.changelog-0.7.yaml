@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100007
+      author: Jennings
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_reasons (code, name, description, recently_used)
+                VALUES
+              ('RR036', 'Retrospective remission', 'Retrospective remission',FALSE);
