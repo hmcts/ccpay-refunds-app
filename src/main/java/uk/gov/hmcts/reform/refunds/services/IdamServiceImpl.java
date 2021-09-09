@@ -26,7 +26,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
