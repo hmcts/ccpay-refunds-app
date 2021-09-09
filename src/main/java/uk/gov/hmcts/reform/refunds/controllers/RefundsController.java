@@ -16,10 +16,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
@@ -136,11 +133,12 @@ public class RefundsController {
     })
     @PatchMapping("/refund/resubmit/{reference}")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity resubmitRefund(@RequestHeader("Authorization") String authorization,
-                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                         @PathVariable("reference") String reference,
-                                         @RequestBody @Valid ResubmitRefundRequest request) {
-        return refundsService.resubmitRefund(reference, request, headers);
+    public ResponseEntity<ResubmitRefundResponseDto> resubmitRefund(
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @PathVariable("reference") String reference,
+            @RequestBody @Valid ResubmitRefundRequest request) {
+        return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.OK);
     }
 
     @GetMapping("/refund/rejection-reasons")

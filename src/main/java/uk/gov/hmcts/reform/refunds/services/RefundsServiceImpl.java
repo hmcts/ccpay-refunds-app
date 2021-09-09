@@ -5,24 +5,12 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
+import uk.gov.hmcts.reform.refunds.exceptions.*;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -38,12 +26,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -249,7 +232,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public ResponseEntity resubmitRefund(String reference, ResubmitRefundRequest request,
+    public ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request,
                                          MultiValueMap<String, String> headers) {
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -282,11 +265,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             // Update Refunds table
             refundsRepository.save(refund);
 
-        } else {
-            throw new ActionNotFoundException("Action not allowed to proceed");
-        }
+            return
+                    ResubmitRefundResponseDto.buildResubmitRefundResponseDtoWith()
+                            .refundReference(refund.getReference())
+                            .refundAmount(refund.getAmount()).build();
 
-        return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
+        }
+        throw new ActionNotFoundException("Action not allowed to proceed");
+
     }
 
     private Refund validateRefundAmount(Refund refund, ResubmitRefundRequest request,
