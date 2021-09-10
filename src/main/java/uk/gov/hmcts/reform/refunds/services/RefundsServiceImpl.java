@@ -97,9 +97,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String excludeCurrentUser) {
-        //Get the userId
-        String uid = idamService.getUserId(headers);
+    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers,
+                                               String ccdCaseNumber, String excludeCurrentUser, List<String> roles) {
+
         Optional<List<Refund>> refundList = Optional.empty();
 
         //Return Refund list based on ccdCaseNumber if its not blank
@@ -107,18 +107,41 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
         } else if (StringUtils.isNotBlank(status)) {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
+
+            //Get the userId
+            String uid = idamService.getUserId(headers);
+
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
-                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
-                refundStatus,
-                uid
+                    excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+                    refundStatus,
+                    uid
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
+        // Filter Refunds List based on Service Type
+        if (null != roles && !roles.isEmpty() && !refundList.isEmpty()) {
+            refundList = filterRefundList(refundList, headers, roles);
+        }
         return getRefundListDto(headers, refundList);
     }
 
+    private Optional<List<Refund>> filterRefundList(Optional<List<Refund>> optionalRefundList, MultiValueMap<String, String> headers,
+                                                    List<String> roles) {
+        Set<String> distintUserIDSet = idamService.getUserIdSetForRoles(headers, roles);
+
+        if (optionalRefundList.isPresent()) {
+            List<Refund> refundList = optionalRefundList.get();
+            refundList = refundList.stream()
+                    .filter(refunds -> distintUserIDSet.contains(refunds.getCreatedBy()))
+                    .collect(Collectors.toList());
+            return Optional.of(refundList);
+        }
+        throw new RefundListEmptyException("Refund list is empty for given criteria");
+    }
+
     public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList) {
+
         if (refundList.isPresent() && !refundList.get().isEmpty()) {
             return RefundListDtoResponse
                 .buildRefundListWith()

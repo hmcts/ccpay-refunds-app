@@ -8,8 +8,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -31,10 +29,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -75,7 +70,9 @@ public class RefundServiceImplTest {
     private RefundResponseMapper refundResponseMapper;
 
     public static final String GET_REFUND_LIST_CCD_CASE_NUMBER = "1111-2222-3333-4444";
-    public static final String GET_REFUND_LIST_CCD_CASE_USER_ID = "1f2b7025-0f91-4737-92c6-b7a9baef14c6";
+    public static final String GET_REFUND_LIST_CCD_CASE_USER_ID1 = "1f2b7025-0f91-4737-92c6-b7a9baef14c6";
+    public static final String GET_REFUND_LIST_CCD_CASE_USER_ID2 = "userId2";
+    public static final String GET_REFUND_LIST_CCD_CASE_USER_ID3 = "userId3";
 
     public static final String GET_REFUND_LIST_SUBMITTED_REFUND_STATUS = "2222-2222-3333-4444";
     public static final String GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID = "2f2b7025-0f91-4737-92c6-b7a9baef14c6";
@@ -89,20 +86,47 @@ public class RefundServiceImplTest {
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .build();
 
-    public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber = () -> Refund.refundsWith()
+    public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber1 = () -> Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
             .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
-            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID)
+            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
             .reference("RF-1111-2234-1077-1123")
             .refundStatus(RefundStatus.SENTFORAPPROVAL)
             .reason("RR001")
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID)
+            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
             .build();
 
+    public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber2 = () -> Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
+            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .reference("RF-1111-2234-1077-1123")
+            .refundStatus(RefundStatus.SENTFORAPPROVAL)
+            .reason("RR001")
+            .paymentReference("RC-1111-2234-1077-1123")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .build();
+
+    public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber3 = () -> Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
+            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
+            .reference("RF-1111-2234-1077-1123")
+            .refundStatus(RefundStatus.SENTFORAPPROVAL)
+            .reason("RR001")
+            .paymentReference("RC-1111-2234-1077-1123")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
+            .build();
 
     public static final Supplier<Refund> refundListSupplierForSubmittedStatus = () -> Refund.refundsWith()
             .id(2)
@@ -157,17 +181,18 @@ public class RefundServiceImplTest {
                 null,
                 map,
                 GET_REFUND_LIST_CCD_CASE_NUMBER,
-                "true"
+                "true",
+                null
         ));
     }
 
     @Test
-    void testRefundListForGivenCCDCaseNumber() throws Exception {
+    void testRefundListForGivenCCDCaseNumber() {
 
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
-                refundListSupplierBasedOnCCDCaseNumber.get())));
-        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID);
-        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_CCD_CASE_USER_ID)).thenReturn(UserIdentityDataDto.userIdentityDataWith()
+                refundListSupplierBasedOnCCDCaseNumber1.get())));
+        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID1);
+        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_CCD_CASE_USER_ID1)).thenReturn(UserIdentityDataDto.userIdentityDataWith()
                 .fullName("ccd-full-name")
                 .emailId("j@mail.com")
                 .build());
@@ -177,7 +202,8 @@ public class RefundServiceImplTest {
                 null,
                 map,
                 GET_REFUND_LIST_CCD_CASE_NUMBER,
-                "true"
+                "true",
+                Arrays.asList()
         );
 
         assertNotNull(refundListDtoResponse);
@@ -188,15 +214,15 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() throws Exception {
+    void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() {
         when(refundsRepository.findByRefundStatusAndCreatedByIsNot(
                 RefundStatus.SENTFORAPPROVAL,
-                GET_REFUND_LIST_CCD_CASE_USER_ID
+                GET_REFUND_LIST_CCD_CASE_USER_ID1
         ))
                 .thenReturn(Optional.ofNullable(List.of(
                         refundListSupplierForSubmittedStatus.get())));
 
-        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID);
+        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID1);
         when(idamService.getUserIdentityData(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
                 UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status").emailId("j@mail.com").build());
 
@@ -204,7 +230,8 @@ public class RefundServiceImplTest {
                 "sent for approval",
                 map,
                 "",
-                "true"
+                "true",
+                null
         );
 
         assertNotNull(refundListDtoResponse);
@@ -217,18 +244,18 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void testRefundListForRefundSubmittedStatusExcludeCurrentUserFalse() throws Exception {
+    void testRefundListForRefundSubmittedStatusExcludeCurrentUserFalse() {
         when(refundsRepository.findByRefundStatus(
                 RefundStatus.SENTFORAPPROVAL
         ))
                 .thenReturn(Optional.ofNullable(List.of(
-                        refundListSupplierBasedOnCCDCaseNumber.get(),
+                        refundListSupplierBasedOnCCDCaseNumber1.get(),
                         refundListSupplierForSubmittedStatus.get()
                 )));
 
-        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID);
+        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID1);
 
-        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_CCD_CASE_USER_ID)).thenReturn(
+        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_CCD_CASE_USER_ID1)).thenReturn(
                 UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId("h@mail.com").build());
         when(idamService.getUserIdentityData(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
                 UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status").emailId("h@mail.com").build()
@@ -240,7 +267,8 @@ public class RefundServiceImplTest {
                 "sent for approval",
                 map,
                 "",
-                "false"
+                "false",
+                null
         );
 
         assertNotNull(refundListDtoResponse);
@@ -274,7 +302,7 @@ public class RefundServiceImplTest {
         StatusHistory statusHistory = StatusHistory.statusHistoryWith()
                 .id(1)
                 .refund(
-                        refundListSupplierBasedOnCCDCaseNumber.get())
+                        refundListSupplierBasedOnCCDCaseNumber1.get())
                 .status("AAA")
                 .notes("BBB")
                 .dateCreated(Timestamp.valueOf("2021-10-10 10:10:10"))
@@ -285,7 +313,7 @@ public class RefundServiceImplTest {
         UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
         userIdentityDataDto.setFullName("Forename Surname");
 
-        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber.get());
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber1.get());
         when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(any())).thenReturn(statusHistories);
         when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
 
@@ -306,7 +334,7 @@ public class RefundServiceImplTest {
         StatusHistory statusHistory1 = StatusHistory.statusHistoryWith()
                 .id(1)
                 .refund(
-                        refundListSupplierBasedOnCCDCaseNumber.get())
+                        refundListSupplierBasedOnCCDCaseNumber1.get())
                 .status("AAA")
                 .notes("BBB")
                 .dateCreated(Timestamp.valueOf("2021-10-10 10:10:10"))
@@ -315,7 +343,7 @@ public class RefundServiceImplTest {
         StatusHistory statusHistory2 = StatusHistory.statusHistoryWith()
                 .id(2)
                 .refund(
-                        refundListSupplierBasedOnCCDCaseNumber.get())
+                        refundListSupplierBasedOnCCDCaseNumber1.get())
                 .status("DDD")
                 .notes("EEE")
                 .dateCreated(Timestamp.valueOf("2021-09-09 10:10:10"))
@@ -328,7 +356,7 @@ public class RefundServiceImplTest {
         UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
         userIdentityDataDto.setFullName("Forename Surname");
 
-        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber.get());
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber1.get());
         when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(any())).thenReturn(statusHistories);
         when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
 
@@ -511,4 +539,53 @@ public class RefundServiceImplTest {
     private ResubmitRefundRequest buildResubmitRefundRequest(String refundReason, BigDecimal amount) {
         return ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason(refundReason).amount(amount).build();
     }
+
+    @Test
+    void givenValidRole_whenGetRefundList_thenFilteredRefundsListIsReceived() {
+
+        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
+                refundListSupplierBasedOnCCDCaseNumber1.get(), refundListSupplierBasedOnCCDCaseNumber2.get(),
+                refundListSupplierBasedOnCCDCaseNumber3.get())));
+        when(idamService.getUserId(any())).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID1);
+        when(idamService.getUserIdentityData(any(), anyString()))
+                .thenReturn(UserIdentityDataDto.userIdentityDataWith()
+                        .fullName("ccd-full-name")
+                        .emailId("j@mail.com")
+                        .build());
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(
+                Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
+        Set<String> users = new HashSet<>();
+        users.add(GET_REFUND_LIST_CCD_CASE_USER_ID3);
+        when(idamService.getUserIdSetForRoles(any(), any())).thenReturn(users);
+
+        RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
+                null,
+                map,
+                GET_REFUND_LIST_CCD_CASE_NUMBER,
+                "true",
+                Arrays.asList("damage")
+        );
+
+        assertNotNull(refundListDtoResponse);
+        assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals("ccd-full-name", refundListDtoResponse.getRefundList().get(0).getUserFullName());
+        assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
+    }
+
+    @Test
+    void givenEmptyRefundList_whenGetRefundList_thenRefundListEmptyExceptionIsReceived() {
+
+        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RefundListEmptyException.class,
+                () -> refundsService.getRefundList(
+                        null,
+                        map,
+                        GET_REFUND_LIST_CCD_CASE_NUMBER,
+                        "",
+                        Arrays.asList("damage")));
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Refund list is empty for given criteria"));
+    }
+
 }

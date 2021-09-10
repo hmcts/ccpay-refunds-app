@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.refunds.dtos.responses;
 
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -16,16 +15,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Builder(builderMethodName = "idamFullNameRetrivalResponseWith")
+@Builder(builderMethodName = "idamUserListResponseWith")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-public class IdamFullNameRetrivalResponse {
-
-    private String id;
-    private String forename;
-    private String surname;
-    private String email;
-    private boolean active;
-    private List<String> roles;
-    private String lastModified;
+public class IdamUserListResponse {
+    private List<IdamUserInfoResponse> idamUserInfoResponseList;
 }
