@@ -87,7 +87,7 @@ class IdamServiceTest {
     private JwtDecoder jwtDecoder;
 
     @Test
-    void getResponseOnValidToken() throws Exception {
+    void getResponseOnValidToken() {
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
@@ -112,7 +112,7 @@ class IdamServiceTest {
     }
 
     @Test
-    void getExceptionOnInvalidToken() throws Exception {
+    void getExceptionOnInvalidToken() {
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
@@ -127,7 +127,7 @@ class IdamServiceTest {
     }
 
     @Test
-    void getExceptionOnTokenReturnsNullResponse() throws Exception {
+    void getExceptionOnTokenReturnsNullResponse() {
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
@@ -190,7 +190,7 @@ class IdamServiceTest {
     }
 
     @Test
-    void validateResponseDto() throws Exception {
+    void validateResponseDto() {
         IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
             .familyName("VP")
             .givenName("VP")

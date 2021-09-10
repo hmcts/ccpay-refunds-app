@@ -66,7 +66,7 @@ public class IdamServiceImpl implements IdamService {
                 }
             }
             LOG.error("Parse error user not found");
-            throw new UserNotFoundException(INTERNAL_SERVER_ERROR_MSG);
+            throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
             throw new UserNotFoundException(INTERNAL_SERVER_ERROR_MSG);
@@ -136,7 +136,7 @@ public class IdamServiceImpl implements IdamService {
         }
 
         LOG.error("User name not found for given user id : {}", uid);
-        throw new UserNotFoundException(INTERNAL_SERVER_ERROR_MSG);
+        throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
     }
 
     @Override
