@@ -124,23 +124,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return getRefundListDto(headers, refundList);
     }
 
-    private Optional<List<Refund>> filterRefundList(Optional<List<Refund>> refundList, MultiValueMap<String, String> headers,
+    private Optional<List<Refund>> filterRefundList(Optional<List<Refund>> optionalRefundList, MultiValueMap<String, String> headers,
                                                     List<String> roles) {
         Set<String> distintUserIDSet = idamService.getUserIdSetForService(headers, roles);
 
-        /*refundList.ifPresent(list -> list.stream()
-                .filter(refunds -> distintUserIDSet.contains(refunds.getCreatedBy()))
-                .collect(Collectors.toList()));*/
-
-        List<Refund> finalList = new ArrayList<>();
-        if (refundList.isPresent()) {
-            for (Refund refund : refundList.get()) {
-                if (distintUserIDSet.contains(refund.getCreatedBy())) {
-                    finalList.add(refund);
-                }
-            }
+        if (optionalRefundList.isPresent()) {
+            List<Refund> refundList = optionalRefundList.get();
+            refundList = refundList.stream()
+                    .filter(refunds -> distintUserIDSet.contains(refunds.getCreatedBy()))
+                    .collect(Collectors.toList());
+            return Optional.of(refundList);
         }
-        return Optional.of(finalList);
+        throw new RefundListEmptyException("Refund list is empty for given criteria");
     }
 
     public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList) {

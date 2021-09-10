@@ -152,7 +152,10 @@ liberata:
     token:
       url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
 
-
+user:
+  info:
+    size: ${USER_INFO_SIZE:300}
+  lastModifiedTime: ${LAST_MODIFIED_TIME:720d}
 
 
 

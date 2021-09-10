@@ -36,12 +36,17 @@ public class IdamServiceImpl implements IdamService {
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
     static private final String LIBERATA_NAME = "Middle office provider";
-    private static final String INTERNAL_SERVER_ERROR = "Internal Server error. Please, try again later";
-    private static final int USER_INFO_SIZE = 100;
-    static private final String LAST_MODIFIED_TIME = ">now-720d";
+    private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
+    private static final String USER_DETAILS_NOT_FOUND_ERROR_MSG = "User details not found for these roles in IDAM";
 
     @Value("${idam.api.url}")
     private String idamBaseURL;
+
+    @Value("${user.info.size}")
+    private String userInfoSize;
+
+    @Value("${user.lastModifiedTime}")
+    private String lastModifiedTime;
 
     @Autowired()
     @Qualifier("restTemplateIdam")
@@ -61,10 +66,10 @@ public class IdamServiceImpl implements IdamService {
                 }
             }
             LOG.error("Parse error user not found");
-            throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
+            throw new UserNotFoundException(INTERNAL_SERVER_ERROR_MSG);
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
-            throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
+            throw new UserNotFoundException(INTERNAL_SERVER_ERROR_MSG);
         } catch (HttpServerErrorException e) {
             LOG.error("server err ", e);
             throw new GatewayTimeoutException("Unable to retrieve User information. Please try again later");
@@ -131,7 +136,7 @@ public class IdamServiceImpl implements IdamService {
         }
 
         LOG.error("User name not found for given user id : {}", uid);
-        throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
+        throw new UserNotFoundException(INTERNAL_SERVER_ERROR_MSG);
     }
 
     @Override
@@ -140,11 +145,9 @@ public class IdamServiceImpl implements IdamService {
         users.add("asdfghjk-kjhgfds-dfghj-sdfghjk");
         return users;*/
 
-//        Pattern rolePattern = Pattern.compile("^.*damage.*$");
-
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .queryParam("query", "(roles:" + roles + ") AND lastModified:" + LAST_MODIFIED_TIME)
-                .queryParam("size", USER_INFO_SIZE);
+                .queryParam("query", "(roles:" + roles + ") AND lastModified:>now-" + lastModifiedTime)
+                .queryParam("size", userInfoSize);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
         ResponseEntity<IdamUserListResponse> idamUserListResponseEntity = restTemplateIdam
@@ -166,7 +169,7 @@ public class IdamServiceImpl implements IdamService {
             }
         }
 
-        LOG.error("User id list not found for given service");
-        throw new UserNotFoundException(INTERNAL_SERVER_ERROR);
+        LOG.error(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+        throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
     }
 }
