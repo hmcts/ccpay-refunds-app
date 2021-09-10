@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.*;
@@ -264,38 +265,45 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
 
-            // Amount Validation
-            validateRefundAmount(refund, request, headers);
-
             // Refund Reason Validation
             if (null != request.getRefundReason()) {
                 refund.setReason(validateRefundReason(request.getRefundReason()));
             }
 
-            // Update Status History table
-            String userId = idamService.getUserId(headers);
-            refund.setUpdatedBy(userId);
-            List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
-            refund.setUpdatedBy(userId);
-            statusHistories.add(StatusHistory.statusHistoryWith()
-                    .createdBy(userId)
-                    .status(SENTFORAPPROVAL.getName())
-                    .notes("Refund initiated")
-                    .build());
-            refund.setStatusHistories(statusHistories);
-            refund.setRefundStatus(SENTFORAPPROVAL);
+            // Remission update in payhub
+            RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
+                .refundResubmitRequestPayhubWith()
+                .refundReason(request.getRefundReason())
+                .amount(request.getAmount())
+                .build();
 
-            // Update Refunds table
-            refundsRepository.save(refund);
+            boolean payhubRemissionUpdateResponse = paymentService.
+                updateRemissionAmountInPayhub(headers, refund.getPaymentReference(), refundResubmitPayhubRequest);
 
-            return
+            if (payhubRemissionUpdateResponse) {
+                // Update Status History table
+                String userId = idamService.getUserId(headers);
+                refund.setUpdatedBy(userId);
+                List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
+                refund.setUpdatedBy(userId);
+                statusHistories.add(StatusHistory.statusHistoryWith()
+                                        .createdBy(userId)
+                                        .status(SENTFORAPPROVAL.getName())
+                                        .notes("Refund initiated")
+                                        .build());
+                refund.setStatusHistories(statusHistories);
+                refund.setRefundStatus(SENTFORAPPROVAL);
+
+                // Update Refunds table
+                refundsRepository.save(refund);
+
+                return
                     ResubmitRefundResponseDto.buildResubmitRefundResponseDtoWith()
-                            .refundReference(refund.getReference())
-                            .refundAmount(refund.getAmount()).build();
-
+                        .refundReference(refund.getReference())
+                        .refundAmount(refund.getAmount()).build();
+            }
         }
         throw new ActionNotFoundException("Action not allowed to proceed");
-
     }
 
     private Refund validateRefundAmount(Refund refund, ResubmitRefundRequest request,

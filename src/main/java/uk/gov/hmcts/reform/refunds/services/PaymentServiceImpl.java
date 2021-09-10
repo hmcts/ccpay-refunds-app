@@ -16,8 +16,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 @Service
 public class PaymentServiceImpl implements PaymentService{
 
+    public static final String CONTENT_TYPE = "content-type";
     @Qualifier("restTemplatePayment")
     @Autowired()
     private RestTemplate restTemplatePayment;
@@ -65,7 +68,7 @@ public class PaymentServiceImpl implements PaymentService{
         List<String> authtoken = headers.get("authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
-        inputHeaders.put("content-type",headers.get("content-type"));
+        inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
         inputHeaders.put("Authorization",authtoken);
         inputHeaders.put("ServiceAuthorization", servauthtoken);
         return new HttpEntity<>(inputHeaders);
@@ -90,5 +93,49 @@ public class PaymentServiceImpl implements PaymentService{
         }
     }
 
+    @Override
+    public boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference, RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
+        try {
+            ResponseEntity<String> updateRemissionAmountPatchApi = updateRemissionAmountInPaymentApi(
+                headers,
+                paymentReference,
+                refundResubmitPayhubRequest
+            );
+
+            if (updateRemissionAmountPatchApi.getStatusCode().is2xxSuccessful()) {
+                return true;
+            } else if (updateRemissionAmountPatchApi.getStatusCode().is4xxClientError()) {
+                throw new InvalidRefundRequestException(updateRemissionAmountPatchApi.getBody());
+            }
+
+        } catch (Exception exception) {
+            throw new PaymentServerException("Exception occurred while calling payment api ", exception);
+        }
+        return false;
+    }
+
+
+    private ResponseEntity<String> updateRemissionAmountInPaymentApi(MultiValueMap<String, String> headers, String paymentReference, RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append(
+            "/refund/resubmit/").append(paymentReference).toString());
+        logger.info("URI {}", builder.toUriString());
+        return restTemplatePayment
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.PATCH,
+                getHTTPEntityForResubmitRefundsPatch(headers, refundResubmitPayhubRequest),
+                String.class
+            );
+    }
+
+    private HttpEntity<RefundResubmitPayhubRequest> getHTTPEntityForResubmitRefundsPatch(MultiValueMap<String, String> headers, RefundResubmitPayhubRequest request) {
+        List<String> authtoken = headers.get("authorization");
+        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
+        inputHeaders.put("Authorization", authtoken);
+        inputHeaders.put("ServiceAuthorization", servauthtoken);
+        return new HttpEntity<>(request, inputHeaders);
+    }
 
 }
