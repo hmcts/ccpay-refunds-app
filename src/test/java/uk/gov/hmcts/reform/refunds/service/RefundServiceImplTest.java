@@ -8,8 +8,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -189,7 +187,7 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void testRefundListForGivenCCDCaseNumber() throws Exception {
+    void testRefundListForGivenCCDCaseNumber() {
 
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
                 refundListSupplierBasedOnCCDCaseNumber1.get())));
@@ -205,7 +203,7 @@ public class RefundServiceImplTest {
                 map,
                 GET_REFUND_LIST_CCD_CASE_NUMBER,
                 "true",
-                null
+                Arrays.asList()
         );
 
         assertNotNull(refundListDtoResponse);
@@ -216,7 +214,7 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() throws Exception {
+    void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() {
         when(refundsRepository.findByRefundStatusAndCreatedByIsNot(
                 RefundStatus.SENTFORAPPROVAL,
                 GET_REFUND_LIST_CCD_CASE_USER_ID1
@@ -246,7 +244,7 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void testRefundListForRefundSubmittedStatusExcludeCurrentUserFalse() throws Exception {
+    void testRefundListForRefundSubmittedStatusExcludeCurrentUserFalse() {
         when(refundsRepository.findByRefundStatus(
                 RefundStatus.SENTFORAPPROVAL
         ))
@@ -543,7 +541,7 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void givenServicType_whenGetRefundList_thenFilteredRefundsListIsReceived() {
+    void givenValidRole_whenGetRefundList_thenFilteredRefundsListIsReceived() {
 
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
                 refundListSupplierBasedOnCCDCaseNumber1.get(), refundListSupplierBasedOnCCDCaseNumber2.get(),
@@ -558,7 +556,7 @@ public class RefundServiceImplTest {
                 Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
         Set<String> users = new HashSet<>();
         users.add(GET_REFUND_LIST_CCD_CASE_USER_ID3);
-        when(idamService.getUserIdSetForService(any(), any())).thenReturn(users);
+        when(idamService.getUserIdSetForRoles(any(), any())).thenReturn(users);
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
                 null,
@@ -570,8 +568,24 @@ public class RefundServiceImplTest {
 
         assertNotNull(refundListDtoResponse);
         assertEquals(1, refundListDtoResponse.getRefundList().size());
-//        assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).get());
         assertEquals("ccd-full-name", refundListDtoResponse.getRefundList().get(0).getUserFullName());
         assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
     }
+
+    @Test
+    void givenEmptyRefundList_whenGetRefundList_thenRefundListEmptyExceptionIsReceived() {
+
+        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RefundListEmptyException.class,
+                () -> refundsService.getRefundList(
+                        null,
+                        map,
+                        GET_REFUND_LIST_CCD_CASE_NUMBER,
+                        "",
+                        Arrays.asList("damage")));
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Refund list is empty for given criteria"));
+    }
+
 }

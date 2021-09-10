@@ -140,7 +140,7 @@ public class IdamServiceImpl implements IdamService {
     }
 
     @Override
-    public Set<String> getUserIdSetForService(MultiValueMap<String, String> headers, List<String> roles) {
+    public Set<String> getUserIdSetForRoles(MultiValueMap<String, String> headers, List<String> roles) {
         /*Set<String> users = new HashSet<>();
         users.add("asdfghjk-kjhgfds-dfghj-sdfghjk");
         return users;*/
@@ -160,7 +160,7 @@ public class IdamServiceImpl implements IdamService {
         if (idamUserListResponseEntity != null && idamUserListResponseEntity.getBody() != null) {
             IdamUserListResponse idamUserListResponse = idamUserListResponseEntity.getBody();
 
-            if (idamUserListResponse != null && idamUserListResponse.getIdamUserInfoResponseList().size() > 0) {
+            if (idamUserListResponse != null && !idamUserListResponse.getIdamUserInfoResponseList().isEmpty()) {
 
                 return idamUserListResponse.getIdamUserInfoResponseList().stream()
 //                        .filter(pr -> pr.getRoles().stream().anyMatch(s -> rolePattern.matcher(s).matches()))

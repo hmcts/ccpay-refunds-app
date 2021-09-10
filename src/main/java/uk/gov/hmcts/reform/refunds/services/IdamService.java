@@ -12,5 +12,5 @@ public interface IdamService {
 
     UserIdentityDataDto getUserIdentityData(MultiValueMap<String, String> headers, String uid);
 
-    Set<String> getUserIdSetForService(MultiValueMap<String, String> headers, List<String> roles);
+    Set<String> getUserIdSetForRoles(MultiValueMap<String, String> headers, List<String> roles);
 }

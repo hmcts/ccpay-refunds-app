@@ -99,8 +99,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers,
                                                String ccdCaseNumber, String excludeCurrentUser, List<String> roles) {
-        //Get the userId
-        String uid = idamService.getUserId(headers);
+
         Optional<List<Refund>> refundList = Optional.empty();
 
         //Return Refund list based on ccdCaseNumber if its not blank
@@ -108,6 +107,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
         } else if (StringUtils.isNotBlank(status)) {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
+
+            //Get the userId
+            String uid = idamService.getUserId(headers);
+
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
                     excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
@@ -117,16 +120,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
 
         // Filter Refunds List based on Service Type
-        if (null != roles && !roles.isEmpty()) {
+        if (null != roles && !roles.isEmpty() && !refundList.isEmpty()) {
             refundList = filterRefundList(refundList, headers, roles);
         }
-
         return getRefundListDto(headers, refundList);
     }
 
     private Optional<List<Refund>> filterRefundList(Optional<List<Refund>> optionalRefundList, MultiValueMap<String, String> headers,
                                                     List<String> roles) {
-        Set<String> distintUserIDSet = idamService.getUserIdSetForService(headers, roles);
+        Set<String> distintUserIDSet = idamService.getUserIdSetForRoles(headers, roles);
 
         if (optionalRefundList.isPresent()) {
             List<Refund> refundList = optionalRefundList.get();

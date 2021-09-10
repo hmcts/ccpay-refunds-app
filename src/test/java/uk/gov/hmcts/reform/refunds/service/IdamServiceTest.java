@@ -23,11 +23,13 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -39,6 +41,37 @@ import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFU
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
 class IdamServiceTest {
+
+    public static final Supplier<IdamUserInfoResponse> USER1 = () -> IdamUserInfoResponse
+            .idamFullNameRetrivalResponseWith()
+            .id("AA")
+            .email("aa@gmail.com")
+            .forename("AAA")
+            .surname("BBB")
+            .roles(List.of("caseworker-probate", "caseworker-damage"))
+            .active(true)
+            .lastModified("2021-02-20T11:03:08.067Z")
+            .build();
+    public static final Supplier<IdamUserInfoResponse> USER2 = () -> IdamUserInfoResponse
+            .idamFullNameRetrivalResponseWith()
+            .id("BB")
+            .email("bb@gmail.com")
+            .forename("BBB")
+            .surname("CCC")
+            .roles(List.of("caseworker-probate", "payments-refund"))
+            .active(true)
+            .lastModified("2021-03-20T11:03:08.067Z")
+            .build();
+    public static final Supplier<IdamUserInfoResponse> USER3 = () -> IdamUserInfoResponse
+            .idamFullNameRetrivalResponseWith()
+            .id("CC")
+            .email("cc@gmail.com")
+            .forename("CCC")
+            .surname("DDD")
+            .roles(List.of("payments-refund", "caseworker-damage"))
+            .active(true)
+            .lastModified("2021-04-20T11:03:08.067Z")
+            .build();
 
     @InjectMocks
     private IdamServiceImpl idamService;
@@ -138,6 +171,25 @@ class IdamServiceTest {
     }
 
     @Test
+    void givenIDAMResponse_whenGetUserIdentityData_thenDistinctUserIdSetIsReceived() {
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+        List<String> roles = new ArrayList<>();
+        roles.add("damage");
+
+        final IdamUserInfoResponse[] responses = new IdamUserInfoResponse[1];
+        responses[0] = USER1.get();
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(responses, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(IdamUserInfoResponse[].class)
+        )).thenReturn(responseEntity);
+
+        UserIdentityDataDto resultDto = idamService.getUserIdentityData(header, "Middle office provider");
+
+        Assertions.assertTrue(resultDto.getFullName().contains("Middle office provider"));
+    }
+
+    @Test
     void validateResponseDto() throws Exception {
         IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
             .familyName("VP")
@@ -168,7 +220,7 @@ class IdamServiceTest {
         )).thenReturn(responseEntity);
 
         Assertions.assertThrows(UserNotFoundException.class,
-                () -> idamService.getUserIdSetForService(header, roles));
+                () -> idamService.getUserIdSetForRoles(header, roles));
 
     }
 
@@ -178,20 +230,15 @@ class IdamServiceTest {
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
         roles.add("damage");
-        IdamUserInfoResponse user1 = IdamUserInfoResponse.idamFullNameRetrivalResponseWith().id("AA")
-                .roles(Arrays.asList("caseworker-probate", "caseworker-damage")).build();
-        IdamUserInfoResponse user2 = IdamUserInfoResponse.idamFullNameRetrivalResponseWith().id("BB")
-                .roles(Arrays.asList("caseworker-probate", "payments-refund")).build();
-        IdamUserInfoResponse user3 = IdamUserInfoResponse.idamFullNameRetrivalResponseWith().id("CC")
-                .roles(Arrays.asList("payments-refund", "caseworker-damage")).build();
+
         IdamUserListResponse response = IdamUserListResponse.idamUserListResponseWith()
-                .idamUserInfoResponseList(Arrays.asList(user1, user2, user3)).build();
+                .idamUserInfoResponseList(Arrays.asList(USER1.get(), USER2.get(), USER3.get())).build();
         ResponseEntity<IdamUserListResponse> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                 eq(IdamUserListResponse.class)
         )).thenReturn(responseEntity);
 
-        Set<String> users = idamService.getUserIdSetForService(header, roles);
+        Set<String> users = idamService.getUserIdSetForRoles(header, roles);
 
         Assertions.assertTrue(users.contains("AA"));
         Assertions.assertTrue(users.contains("CC"));
