@@ -256,7 +256,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request,
                                          MultiValueMap<String, String> headers) {
-
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
@@ -302,19 +301,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             }
         }
         throw new ActionNotFoundException("Action not allowed to proceed");
-    }
-
-    private Refund validateRefundAmount(Refund refund, ResubmitRefundRequest request,
-                                        MultiValueMap<String, String> headers) {
-        PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
-                headers,
-                refund.getPaymentReference()
-        );
-        if (paymentData.getPayments().get(0).getAmount().compareTo(request.getAmount()) < 0) {
-            throw new InvalidRefundRequestException("Amount should not be more than Payment amount");
-        }
-        refund.setAmount(request.getAmount());
-        return refund;
     }
 
     private String validateRefundReason(String reason) {

@@ -386,41 +386,33 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void givenPaymentNotFound_whenResubmitRefund_thenPaymentReferenceNotFoundExceptionIsReceived() {
+    void givenPaymentNotFound_whenResubmitRefund_thenActionNotFoundExceptionIsReceived() {
         when(refundsRepository.findByReferenceOrThrow(anyString()))
                 .thenReturn(refundListSupplierForSendBackStatus.get());
-        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
-                .thenThrow(PaymentReferenceNotFoundException.class);
 
-        Exception exception = assertThrows(PaymentReferenceNotFoundException.class,
+        Exception exception = assertThrows(ActionNotFoundException.class,
                 () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", new ResubmitRefundRequest(), null));
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Action not allowed to proceed"));
     }
 
     @Test
-    void givenPaymentNotFound_whenResubmitRefund_thenPaymentInvalidRequestExceptionIsReceived() {
-        when(refundsRepository.findByReferenceOrThrow(anyString()))
-                .thenReturn(refundListSupplierForSendBackStatus.get());
-        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
-                .thenThrow(PaymentInvalidRequestException.class);
-
-        Exception exception = assertThrows(PaymentInvalidRequestException.class,
-                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", new ResubmitRefundRequest(), null));
-    }
-
-    @Test
-    void givenHigherRefundAmount_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+    void givenFalsePayhubRemissionUpdateResponse_whenResubmitRefund_thenInvalidActionNotFoundExceptionIsReceived() {
         ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("", BigDecimal.valueOf(400));
         resubmitRefundRequest.setAmount(BigDecimal.valueOf(400));
         when(refundsRepository.findByReferenceOrThrow(anyString()))
                 .thenReturn(refundListSupplierForSendBackStatus.get());
         when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
                 .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(false);
+        when(refundReasonRepository.findByCodeOrThrow(anyString()))
+                .thenReturn(RefundReason.refundReasonWith().name("RR001").build());
 
-        Exception exception = assertThrows(InvalidRefundRequestException.class,
+        Exception exception = assertThrows(ActionNotFoundException.class,
                 () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
 
         String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("Amount should not be more than Payment amount"));
+        assertTrue(actualMessage.contains("Action not allowed to proceed"));
     }
 
     @Test
@@ -454,7 +446,7 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void givenValidReasonOther_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+    void givenValidReasonOther_whenResubmitRefund_thenValidResponseIsReceived() {
         ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("RR035-ABCDEG", BigDecimal.valueOf(100));
         RefundReason refundReason =
                 RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
@@ -463,11 +455,14 @@ public class RefundServiceImplTest {
         when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
                 .thenReturn(PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+        when(idamService.getUserId(any())).thenReturn("UserID");
 
         ResubmitRefundResponseDto response = refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
 
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
-        assertEquals(BigDecimal.valueOf(100), response.getRefundAmount());
+        assertEquals(BigDecimal.valueOf(300), response.getRefundAmount());
+        assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
 
     @Test
@@ -488,22 +483,6 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void givenUserIdNotFound_whenResubmitRefund_thenUserNotFoundExceptionIsReceived() {
-        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("AAA", BigDecimal.valueOf(100));
-        RefundReason refundReason =
-                RefundReason.refundReasonWith().code("BBB").description("CCC").name("DDD").build();
-        when(refundsRepository.findByReferenceOrThrow(anyString()))
-                .thenReturn(refundListSupplierForSendBackStatus.get());
-        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
-                .thenReturn(PAYMENT_GROUP_RESPONSE.get());
-        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
-        when(idamService.getUserId(any())).thenThrow(UserNotFoundException.class);
-
-        assertThrows(UserNotFoundException.class,
-                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
-    }
-
-    @Test
     void givenValidInput_whenResubmitRefund_thenRefundStatusUpdated() {
         ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("AAA", BigDecimal.valueOf(100));
         resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
@@ -516,12 +495,13 @@ public class RefundServiceImplTest {
                 .thenReturn(PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
         when(idamService.getUserId(any())).thenReturn("ID123");
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
 
         ResubmitRefundResponseDto response =
                 refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
 
         assertNotNull(response);
-        assertEquals(BigDecimal.valueOf(100), response.getRefundAmount());
+        assertEquals(BigDecimal.valueOf(300), response.getRefundAmount());
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
 
