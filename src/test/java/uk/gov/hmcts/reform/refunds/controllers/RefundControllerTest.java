@@ -145,7 +145,7 @@ class RefundControllerTest {
     private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundAmount(new BigDecimal(100))
-        .refundReason("RR036-Retrospective remission")
+        .refundReason("RR036")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
         .build();
@@ -1099,7 +1099,7 @@ class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
 
         Refund refundWithRetroRemission = getRefund();
-        refundWithRetroRemission.setReason("RR036-Retrospective remission");
+        refundWithRetroRemission.setReason("RR036");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
@@ -1144,7 +1144,7 @@ class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
 
         Refund refundWithRetroRemission = getRefund();
-        refundWithRetroRemission.setReason("RR036-Retrospective remission");
+        refundWithRetroRemission.setReason("RR036");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
@@ -1191,7 +1191,7 @@ class RefundControllerTest {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
 
         Refund refundWithRetroRemission = getRefund();
-        refundWithRetroRemission.setReason("RR036-Retrospective remission");
+        refundWithRetroRemission.setReason("RR036");
         refundWithRetroRemission.setAmount(BigDecimal.valueOf(10));
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
@@ -1237,7 +1237,7 @@ class RefundControllerTest {
 
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         Refund refundWithRetroRemission = getRefund();
-        refundWithRetroRemission.setReason("RR036-Retrospective remission");
+        refundWithRetroRemission.setReason("RR036");
         when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
