@@ -261,6 +261,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
+        if(!RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) && (request.getRefundReason()==null || request.getRefundReason().isBlank())
+        ){
+            throw new InvalidRefundRequestException("Refund reason is required");
+        }
 
         if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
 
