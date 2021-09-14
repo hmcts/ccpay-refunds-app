@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.refunds.service;
 
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,7 +37,9 @@ import java.util.Locale;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -63,7 +64,7 @@ public class PaymentServiceImplTest {
 
 
     @Test
-    public void fetchPaymentDetailsReturnsValidResponse() throws ParseException{
+    void fetchPaymentDetailsReturnsValidResponse() throws ParseException{
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization","auth");
         headers.add("ServiceAuthorization","service-auth");
@@ -80,7 +81,7 @@ public class PaymentServiceImplTest {
     }
 
     @Test
-    public void fetchPaymentDetailsReturnsNotFoundException() throws Exception {
+    void fetchPaymentDetailsReturnsNotFoundException() throws Exception {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -96,8 +97,6 @@ public class PaymentServiceImplTest {
         assertThrows(PaymentReferenceNotFoundException.class, () -> {
             paymentService.fetchPaymentGroupResponse(headers, "RC-1628-5241-9956-2315");
         });
-
-
     }
 
     @Test
@@ -149,6 +148,36 @@ public class PaymentServiceImplTest {
         assertThrows(PaymentServerException.class, () -> {
             paymentService.updateRemissionAmountInPayhub(headers,"RC-1234-1234-1234-1234",refundResubmitPayhubRequest);
         });
+    }
+
+    @Test
+    void givenPaymentAPIFailed_whenUpdateRemissionAmountInPayhub_thenFalseIsReceived(){
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest.refundResubmitRequestPayhubWith()
+                .amount(BigDecimal.valueOf(10))
+                .refundReason("RR003")
+                .build();
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+                String.class))).thenReturn(ResponseEntity.notFound().build());
+        Boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,"RC-1234-1234-1234-1234",refundResubmitPayhubRequest);
+        assertFalse(updateResult);
+    }
+
+    @Test
+    void givenNullRefundReason_whenUpdateRemissionAmountInPayhub_thenFalseIsReceived(){
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest.refundResubmitRequestPayhubWith()
+                .amount(BigDecimal.valueOf(10))
+                .refundReason(null)
+                .build();
+        Boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,"RC-1234-1234-1234-1234",refundResubmitPayhubRequest);
+        assertFalse(updateResult);
     }
 
     private PaymentGroupResponse getPaymentGroupDto() throws ParseException {

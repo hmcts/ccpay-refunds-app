@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class PaymentServiceImpl implements PaymentService{
+public class PaymentServiceImpl implements PaymentService {
 
     public static final String CONTENT_TYPE = "content-type";
     @Qualifier("restTemplatePayment")
@@ -42,44 +42,48 @@ public class PaymentServiceImpl implements PaymentService{
 
     private static Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
-
     @Override
-    public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
-        try{
-            ResponseEntity<PaymentGroupResponse> paymentGroupResponse = fetchPaymentGroupDataFromPayhub(headers, paymentReference);
+    public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers,
+                                                          String paymentReference) {
+        try {
+            ResponseEntity<PaymentGroupResponse> paymentGroupResponse =
+                    fetchPaymentGroupDataFromPayhub(headers, paymentReference);
             return paymentGroupResponse.getBody();
-        } catch (HttpClientErrorException e){
-            if(e.getStatusCode().equals(HttpStatus.NOT_FOUND)){
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
             }
             throw new PaymentInvalidRequestException("Invalid Request: Payhub", e);
-        } catch ( Exception e){
+        } catch (Exception e) {
             throw new PaymentServerException("Payment Server Exception", e);
         }
     }
 
-    private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
+    private HttpEntity<String> getHeadersEntity(MultiValueMap<String, String> headers) {
         return new HttpEntity<>(getFormatedHeaders(headers));
     }
 
-    private MultiValueMap<String,String> getFormatedHeaders(MultiValueMap<String,String> headers){
+    private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {
         List<String> authtoken = headers.get("authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
-        MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
-        inputHeaders.put("Authorization",authtoken);
+        inputHeaders.put("Authorization", authtoken);
         inputHeaders.put("ServiceAuthorization", servauthtoken);
         return inputHeaders;
     }
 
-    private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference).toString());
-        logger.info("URI {}",builder.toUriString());
-        return  restTemplatePayment
-            .exchange(
-                builder.toUriString(),
-                HttpMethod.GET,
-                getHeadersEntity(headers), PaymentGroupResponse.class);
+    private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String, String> headers,
+                                                                                 String paymentReference) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
+                new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference)
+                        .toString());
+        logger.info("URI {}", builder.toUriString());
+        return restTemplatePayment
+                .exchange(
+                        builder.toUriString(),
+                        HttpMethod.GET,
+                        getHeadersEntity(headers), PaymentGroupResponse.class);
     }
 
 //    private void checkPaymentReference(PaymentGroupResponse paymentGroupResponse, String paymentReference){
@@ -92,20 +96,21 @@ public class PaymentServiceImpl implements PaymentService{
 //    }
 
     @Override
-    public boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference, RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
+    public boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference,
+                                                 RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
         try {
             ResponseEntity<String> updateRemissionAmountPatchApi = updateRemissionAmountInPaymentApi(
-                headers,
-                paymentReference,
-                refundResubmitPayhubRequest
+                    headers,
+                    paymentReference,
+                    refundResubmitPayhubRequest
             );
 
-            if (updateRemissionAmountPatchApi.getStatusCode().is2xxSuccessful()) {
+            if (null != updateRemissionAmountPatchApi && updateRemissionAmountPatchApi.getStatusCode().is2xxSuccessful()) {
                 return true;
             }
 
-        } catch (HttpClientErrorException exception){
-            throw new InvalidRefundRequestException("Invalid resubmit request",exception);
+        } catch (HttpClientErrorException exception) {
+            throw new InvalidRefundRequestException("Invalid resubmit request", exception);
         } catch (Exception exception) {
             throw new PaymentServerException("Exception occurred while calling payment api ", exception);
         }
@@ -113,20 +118,23 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
 
-    private ResponseEntity<String> updateRemissionAmountInPaymentApi(MultiValueMap<String, String> headers, String paymentReference, RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
+    private ResponseEntity<String> updateRemissionAmountInPaymentApi(MultiValueMap<String, String> headers,
+                                                                     String paymentReference,
+                                                                     RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(paymentApiUrl).append(
-            "/refund/resubmit/").append(paymentReference).toString());
+                "/refund/resubmit/").append(paymentReference).toString());
         logger.info("URI {}", builder.toUriString());
         return restTemplatePayment
-            .exchange(
-                builder.toUriString(),
-                HttpMethod.PATCH,
-                getHTTPEntityForResubmitRefundsPatch(headers, refundResubmitPayhubRequest),
-                String.class
-            );
+                .exchange(
+                        builder.toUriString(),
+                        HttpMethod.PATCH,
+                        getHTTPEntityForResubmitRefundsPatch(headers, refundResubmitPayhubRequest),
+                        String.class
+                );
     }
 
-    private HttpEntity<RefundResubmitPayhubRequest> getHTTPEntityForResubmitRefundsPatch(MultiValueMap<String, String> headers, RefundResubmitPayhubRequest request) {
+    private HttpEntity<RefundResubmitPayhubRequest> getHTTPEntityForResubmitRefundsPatch(
+            MultiValueMap<String, String> headers, RefundResubmitPayhubRequest request) {
         return new HttpEntity<>(request, getFormatedHeaders(headers));
     }
 
