@@ -390,9 +390,11 @@ public class RefundServiceImplTest {
     void givenPaymentNotFound_whenResubmitRefund_thenActionNotFoundExceptionIsReceived() {
         when(refundsRepository.findByReferenceOrThrow(anyString()))
                 .thenReturn(refundListSupplierForSendBackStatus.get());
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
 
         Exception exception = assertThrows(ActionNotFoundException.class,
-                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", new ResubmitRefundRequest(), null));
+                () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("Action not allowed to proceed"));
     }

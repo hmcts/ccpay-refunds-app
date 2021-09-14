@@ -48,7 +48,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-public class PaymentServiceImplTest {
+class PaymentServiceImplTest {
 
     @Autowired
     private PaymentService paymentService;
@@ -60,8 +60,7 @@ public class PaymentServiceImplTest {
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
-    SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
-
+    private SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
 
     @Test
     void fetchPaymentDetailsReturnsValidResponse() throws ParseException{
@@ -113,7 +112,6 @@ public class PaymentServiceImplTest {
             String.class))).thenReturn(ResponseEntity.ok(null));
         Boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,"RC-1234-1234-1234-1234",refundResubmitPayhubRequest);
         assertTrue(updateResult);
-
     }
 
     @Test

@@ -13,7 +13,7 @@ java:
     SPRING_LIQUIBASE_ENABLED: true
     OIDC_ISSUER: https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/hmcts
     LAUNCH_DARKLY_USER_NAME_PREFIX: aat
-    PAYMENT_API_URL: "http://payment-api-pr-972.service.core-compute-preview.internal"
+    PAYMENT_API_URL: "http://payment-api-pr-997.service.core-compute-preview.internal"
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
