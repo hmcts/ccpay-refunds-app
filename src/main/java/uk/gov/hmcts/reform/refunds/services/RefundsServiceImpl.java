@@ -261,10 +261,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
-        if(!RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) && (request.getRefundReason()==null || request.getRefundReason().isBlank())
-        ){
-            throw new InvalidRefundRequestException("Refund reason is required");
-        }
+
+        refundReasonValidationForResubmitRefund(request.getRefundReason(),refund);
 
         if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
 
@@ -307,6 +305,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             }
         }
         throw new ActionNotFoundException("Action not allowed to proceed");
+    }
+
+    private void refundReasonValidationForResubmitRefund(String reason, Refund refund){
+        if(!RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) &&
+            (reason==null ||reason.isBlank())){
+            throw new InvalidRefundRequestException("Refund reason is required");
+        }
+
     }
 
     private String validateRefundReason(String reason) {
