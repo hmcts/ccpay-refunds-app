@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.AssertFalse;
 import java.math.BigDecimal;
