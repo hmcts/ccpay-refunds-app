@@ -49,6 +49,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static int reasonPrefixLength = 6;
 
+    private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
+
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -263,7 +265,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
 
             // Refund Reason Validation
-            if (null != request.getRefundReason()) {
+            if (null != request.getRefundReason() && !RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason())) {
                 refund.setReason(validateRefundReason(request.getRefundReason()));
             }
 

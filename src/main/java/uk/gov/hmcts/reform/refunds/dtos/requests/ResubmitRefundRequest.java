@@ -24,9 +24,9 @@ public class ResubmitRefundRequest {
 
     private BigDecimal amount;
 
-    @AssertFalse(message = "Refund amount should not be null or Refund reason is missing")
+    @AssertFalse(message = "Refund amount should not be null")
     private boolean isRequestEmpty() {
-        return amount != null && StringUtils.isBlank(refundReason);
+        return amount != null;
     }
 
 }
