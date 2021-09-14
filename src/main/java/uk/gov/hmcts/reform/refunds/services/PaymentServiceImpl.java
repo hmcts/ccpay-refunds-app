@@ -18,7 +18,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
@@ -26,7 +25,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PaymentServiceImpl implements PaymentService{
@@ -49,11 +47,7 @@ public class PaymentServiceImpl implements PaymentService{
     public PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference) {
         try{
             ResponseEntity<PaymentGroupResponse> paymentGroupResponse = fetchPaymentGroupDataFromPayhub(headers, paymentReference);
-            if(paymentGroupResponse.getBody()!=null){
-                checkPaymentReference(paymentGroupResponse.getBody(),  paymentReference);
-                return paymentGroupResponse.getBody();
-            }
-            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
+            return paymentGroupResponse.getBody();
         } catch (HttpClientErrorException e){
             if(e.getStatusCode().equals(HttpStatus.NOT_FOUND)){
                 throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
@@ -65,13 +59,17 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     private HttpEntity<String> getHeadersEntity(MultiValueMap<String,String> headers){
+        return new HttpEntity<>(getFormatedHeaders(headers));
+    }
+
+    private MultiValueMap<String,String> getFormatedHeaders(MultiValueMap<String,String> headers){
         List<String> authtoken = headers.get("authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
         MultiValueMap<String,String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
         inputHeaders.put("Authorization",authtoken);
         inputHeaders.put("ServiceAuthorization", servauthtoken);
-        return new HttpEntity<>(inputHeaders);
+        return inputHeaders;
     }
 
     private ResponseEntity<PaymentGroupResponse> fetchPaymentGroupDataFromPayhub(MultiValueMap<String,String> headers, String paymentReference){
@@ -84,14 +82,14 @@ public class PaymentServiceImpl implements PaymentService{
                 getHeadersEntity(headers), PaymentGroupResponse.class);
     }
 
-    private void checkPaymentReference(PaymentGroupResponse paymentGroupResponse, String paymentReference){
-        List<PaymentResponse> paymentResponseList = paymentGroupResponse.getPayments()
-            .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
-            .collect(Collectors.toList());
-        if(paymentResponseList.isEmpty()){
-            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
-        }
-    }
+//    private void checkPaymentReference(PaymentGroupResponse paymentGroupResponse, String paymentReference){
+//        List<PaymentResponse> paymentResponseList = paymentGroupResponse.getPayments()
+//            .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
+//            .collect(Collectors.toList());
+//        if(paymentResponseList.isEmpty()){
+//            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
+//        }
+//    }
 
     @Override
     public boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference, RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
@@ -104,10 +102,10 @@ public class PaymentServiceImpl implements PaymentService{
 
             if (updateRemissionAmountPatchApi.getStatusCode().is2xxSuccessful()) {
                 return true;
-            } else if (updateRemissionAmountPatchApi.getStatusCode().is4xxClientError()) {
-                throw new InvalidRefundRequestException(updateRemissionAmountPatchApi.getBody());
             }
 
+        } catch (HttpClientErrorException exception){
+            throw new InvalidRefundRequestException("Invalid resubmit request",exception);
         } catch (Exception exception) {
             throw new PaymentServerException("Exception occurred while calling payment api ", exception);
         }
@@ -129,13 +127,7 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     private HttpEntity<RefundResubmitPayhubRequest> getHTTPEntityForResubmitRefundsPatch(MultiValueMap<String, String> headers, RefundResubmitPayhubRequest request) {
-        List<String> authtoken = headers.get("authorization");
-        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
-        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
-        inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
-        inputHeaders.put("Authorization", authtoken);
-        inputHeaders.put("ServiceAuthorization", servauthtoken);
-        return new HttpEntity<>(request, inputHeaders);
+        return new HttpEntity<>(request, getFormatedHeaders(headers));
     }
 
 }

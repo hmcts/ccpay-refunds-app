@@ -1,25 +1,29 @@
 package uk.gov.hmcts.reform.refunds.service;
 
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.services.PaymentService;
 
@@ -32,7 +36,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,7 +45,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-public class PaymentServiceTest {
+public class PaymentServiceImplTest {
 
     @Autowired
     private PaymentService paymentService;
@@ -85,14 +89,47 @@ public class PaymentServiceTest {
             .dateUpdated(formatter.parse("7-Jun-2013"))
             .payments(Collections.emptyList()).build();
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(paymentGroupResponse))
-        );
+            PaymentGroupResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         assertThrows(PaymentReferenceNotFoundException.class, () -> {
             paymentService.fetchPaymentGroupResponse(headers, "RC-1628-5241-9956-2315");
         });
 
+
+    }
+
+    @Test
+    void testUpdateRemissionAmountInPayhub(){
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest.refundResubmitRequestPayhubWith()
+                                                                    .amount(BigDecimal.valueOf(10))
+                                                                    .refundReason("RR003")
+                                                                    .build();
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            String.class))).thenReturn(ResponseEntity.ok(null));
+        Boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,"RC-1234-1234-1234-1234",refundResubmitPayhubRequest);
+        assertTrue(updateResult);
+
+    }
+
+    @Test
+    void testUpdateRemissionAmountInPayhub_ServerThrowsBadrequestException(){
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest.refundResubmitRequestPayhubWith()
+            .amount(BigDecimal.valueOf(10))
+            .refundReason("RR003")
+            .build();
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            String.class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        assertThrows(InvalidRefundRequestException.class, () -> {
+            paymentService.updateRemissionAmountInPayhub(headers,"RC-1234-1234-1234-1234",refundResubmitPayhubRequest);
+        });
 
     }
 
