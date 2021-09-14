@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 import uk.gov.hmcts.reform.refunds.services.PaymentService;
 
 import java.math.BigDecimal;
@@ -130,7 +132,23 @@ public class PaymentServiceImplTest {
         assertThrows(InvalidRefundRequestException.class, () -> {
             paymentService.updateRemissionAmountInPayhub(headers,"RC-1234-1234-1234-1234",refundResubmitPayhubRequest);
         });
+    }
 
+    @Test
+    void testUpdateRemissionAmountInPayhub_ServerThrowsServerUnavailableException(){
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "auth");
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest.refundResubmitRequestPayhubWith()
+            .amount(BigDecimal.valueOf(10))
+            .refundReason("RR003")
+            .build();
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            String.class))).thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
+        assertThrows(PaymentServerException.class, () -> {
+            paymentService.updateRemissionAmountInPayhub(headers,"RC-1234-1234-1234-1234",refundResubmitPayhubRequest);
+        });
     }
 
     private PaymentGroupResponse getPaymentGroupDto() throws ParseException {

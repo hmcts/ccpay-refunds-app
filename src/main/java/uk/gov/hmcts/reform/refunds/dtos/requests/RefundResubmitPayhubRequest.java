@@ -12,10 +12,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @With
 @JsonInclude(NON_NULL)
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(builderMethodName = "refundResubmitRequestPayhubWith")
+@Setter
+@Getter
 public class RefundResubmitPayhubRequest {
 
     @NotNull
