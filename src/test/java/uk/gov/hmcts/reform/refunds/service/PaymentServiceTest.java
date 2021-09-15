@@ -48,7 +48,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-class PaymentServiceImplTest {
+public class PaymentServiceTest {
 
     @Autowired
     private PaymentService paymentService;
