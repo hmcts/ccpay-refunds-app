@@ -298,7 +298,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
-                refund.setAmount(request.getAmount());
 
                 // Update Refunds table
                 refundsRepository.save(refund);
