@@ -268,14 +268,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
 
             // Refund Reason Validation
-            if (null != request.getRefundReason() && !RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason())) {
-                refund.setReason(validateRefundReason(request.getRefundReason()));
-            }
+            String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason())?RETROSPECTIVE_REMISSION_REASON:validateRefundReason(
+                request.getRefundReason());
+
+            refund.setReason(refundReason);
 
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
                 .refundResubmitRequestPayhubWith()
-                .refundReason(request.getRefundReason())
+                .refundReason(refundReason)
                 .amount(request.getAmount())
                 .build();
 
@@ -295,6 +296,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
+                refund.setAmount(request.getAmount());
 
                 // Update Refunds table
                 refundsRepository.save(refund);

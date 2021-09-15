@@ -520,7 +520,7 @@ public class RefundServiceImplTest {
         ResubmitRefundResponseDto response = refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
 
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
-        assertEquals(BigDecimal.valueOf(300), response.getRefundAmount());
+        assertEquals(BigDecimal.valueOf(100), response.getRefundAmount());
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
 
@@ -560,7 +560,7 @@ public class RefundServiceImplTest {
                 refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
 
         assertNotNull(response);
-        assertEquals(BigDecimal.valueOf(300), response.getRefundAmount());
+        assertEquals(BigDecimal.valueOf(100), response.getRefundAmount());
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
 
