@@ -25,7 +25,7 @@ public class ResubmitRefundRequest {
 
     @AssertTrue(message = "Refund amount should not be null")
     private boolean isRequestEmpty() {
-        return amount != null || !amount.equals("");
+        return amount != null || !"".equals(amount);
     }
 
 }
