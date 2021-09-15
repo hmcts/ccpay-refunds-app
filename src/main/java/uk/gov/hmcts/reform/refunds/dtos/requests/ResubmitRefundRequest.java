@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
-import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.AssertFalse;
 import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -23,9 +23,9 @@ public class ResubmitRefundRequest {
 
     private BigDecimal amount;
 
-    @AssertTrue(message = "Refund amount should not be null")
+    @AssertFalse(message = "Refund amount should not be null")
     private boolean isRequestEmpty() {
-        return amount != null || !"".equals(amount);
+        return amount != null;
     }
 
 }
