@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -258,7 +259,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request,
                                          MultiValueMap<String, String> headers) {
-        validateResubmitRefund(request);
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
@@ -271,13 +271,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason())?RETROSPECTIVE_REMISSION_REASON:validateRefundReason(
                 request.getRefundReason());
 
-            refund.setReason(refundReason);
+            BigDecimal refundAmount = request.getAmount()==null?refund.getAmount():request.getAmount();
 
+            refund.setReason(refundReason);
+            refund.setAmount(refundAmount);
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
                 .refundResubmitRequestPayhubWith()
                 .refundReason(refundReason)
-                .amount(request.getAmount())
+                .amount(refundAmount)
                 .build();
 
             boolean payhubRemissionUpdateResponse = paymentService.
@@ -310,18 +312,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         throw new ActionNotFoundException("Action not allowed to proceed");
     }
 
-    private void validateResubmitRefund(ResubmitRefundRequest resubmitRefundRequest){
-        if(resubmitRefundRequest.getRefundReason()==null ||resubmitRefundRequest.getRefundReason().isBlank()){
+    private String validateRefundReason(String reason) {
+
+        if(reason==null || reason.isBlank()){
             throw new InvalidRefundRequestException("Refund reason is required");
         }
-
-        if(resubmitRefundRequest.getAmount()==null ||resubmitRefundRequest.getRefundReason().isBlank()){
-            throw new InvalidRefundRequestException("Refund amount is required");
-        }
-
-    }
-
-    private String validateRefundReason(String reason) {
         Boolean matcher = REASONPATTERN.matcher(reason).find();
         if (matcher) {
             String reasonCode = reason.split("-")[0];

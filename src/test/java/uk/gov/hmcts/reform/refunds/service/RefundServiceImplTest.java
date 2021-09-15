@@ -405,26 +405,10 @@ public class RefundServiceImplTest {
         assertTrue(actualMessage.contains("Action not allowed to proceed"));
     }
 
-
-    @Test
-    void givenRefundWithSentForApprovalStateAndWithoutAmountInResubmitRequestThrowsInvalidRefundRequestException(){
-        when(refundsRepository.findByReferenceOrThrow(anyString()))
-            .thenReturn(refundListSupplierForSubmittedStatus.get());
-        ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
-            .refundReason("new reason")
-            .build();
-
-        Exception exception = assertThrows(InvalidRefundRequestException.class,
-                                           () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
-
-        String actualMessage = exception.getMessage();
-        System.out.println(actualMessage);
-        assertTrue(actualMessage.contains("Refund amount is required"));
-    }
     @Test
     void givenRefundWithSentForApprovalStateAndWithoutReasonInResubmitRequestThrowsInvalidRefundRequestException(){
         when(refundsRepository.findByReferenceOrThrow(anyString()))
-            .thenReturn(refundListSupplierForSubmittedStatus.get());
+            .thenReturn(refundListSupplierForSendBackStatus.get());
         ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(BigDecimal.valueOf(10))
             .build();
@@ -433,7 +417,6 @@ public class RefundServiceImplTest {
                                            () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
 
         String actualMessage = exception.getMessage();
-        System.out.println(actualMessage);
         assertTrue(actualMessage.contains("Refund reason is required"));
     }
 
@@ -487,21 +470,6 @@ public class RefundServiceImplTest {
                 () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("reason required"));
-    }
-    @Test
-    void givenRefundRaisedNotForRetroRemission_whenChangingReason_thenInvalidRefundResponseThrown(){
-        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest("", BigDecimal.valueOf(400));
-        resubmitRefundRequest.setAmount(BigDecimal.valueOf(400));
-        Refund existingRefund = refundListSupplierForSendBackStatus.get();
-        existingRefund.setReason("RR006");
-        when(refundsRepository.findByReferenceOrThrow(anyString()))
-            .thenReturn(existingRefund);
-
-        Exception exception = assertThrows(InvalidRefundRequestException.class,
-                                           () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
-
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("Refund reason is required"));
     }
 
     @Test
