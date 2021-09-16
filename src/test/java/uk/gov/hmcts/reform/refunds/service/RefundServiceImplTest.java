@@ -566,7 +566,7 @@ public class RefundServiceImplTest {
         UserIdentityDataDto dto = UserIdentityDataDto.userIdentityDataWith()
                 .fullName("ccd-full-name")
                 .emailId("j@mail.com")
-                .id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
                 .build();
         when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(dto));
 
