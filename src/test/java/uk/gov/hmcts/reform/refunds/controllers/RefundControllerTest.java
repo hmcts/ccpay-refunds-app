@@ -1556,11 +1556,10 @@ class RefundControllerTest {
         assertEquals(BigDecimal.valueOf(333), responseEntity.getBody().getRefundAmount());
         assertEquals("RF-1111-1111-1111-1111", responseEntity.getBody().getRefundReference());
     }
-
-    /*@Test
+    @Test
     void givenNullAmount_whenResubmitRefund_thenBadRequestStatusIsReceived() throws Exception {
         ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
-                .amount(null).build();
+                .refundReason("RR003").build();
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
         when(refundsRepository.findByReferenceOrThrow(anyString()))
                 .thenReturn(refundListSupplierForSendBackStatus.get());
@@ -1576,18 +1575,7 @@ class RefundControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andReturn();
-
-        ErrorResponse errorResponse = objectMapper.readValue(
-                result.getResponse().getContentAsByteArray(),
-                ErrorResponse.class
-        );
-
-
-        assertEquals(
-                "Refund amount should not be null or Refund reason is missing",
-                errorResponse.getDetails().get(0)
-        );
-    }*/
+    }
 
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()

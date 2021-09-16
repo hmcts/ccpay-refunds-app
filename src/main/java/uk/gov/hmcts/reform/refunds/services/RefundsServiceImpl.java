@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.*;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -49,6 +51,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
 
     private static int reasonPrefixLength = 6;
+
+    private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -172,15 +176,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return refundListDto;
     }
 
-    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet) {
-        Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
-        distintUIDSet.forEach(userId -> userFullNameMap.put(
-                userId,
-                idamService.getUserIdentityData(headers, userId)
-        ));
-        return userFullNameMap;
-    }
-
     @Override
     public Refund getRefundForReference(String reference) {
         Optional<Refund> refund = refundsRepository.findByReference(reference);
@@ -222,56 +217,58 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
 
+
         if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
 
-            // Amount Validation
-            validateRefundAmount(refund, request, headers);
-
             // Refund Reason Validation
-            if (null != request.getRefundReason()) {
-                refund.setReason(validateRefundReason(request.getRefundReason()));
-            }
+            String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason())?RETROSPECTIVE_REMISSION_REASON:validateRefundReason(
+                request.getRefundReason());
 
-            // Update Status History table
-            IdamUserIdResponse userId = idamService.getUserId(headers);
-            refund.setUpdatedBy(userId.getUid());
-            List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
-            refund.setUpdatedBy(userId.getUid());
-            statusHistories.add(StatusHistory.statusHistoryWith()
-                    .createdBy(userId.getUid())
-                    .status(SENTFORAPPROVAL.getName())
-                    .notes("Refund initiated")
-                    .build());
-            refund.setStatusHistories(statusHistories);
-            refund.setRefundStatus(SENTFORAPPROVAL);
+            BigDecimal refundAmount = request.getAmount()==null?refund.getAmount():request.getAmount();
 
-            // Update Refunds table
-            refundsRepository.save(refund);
+            refund.setReason(refundReason);
+            refund.setAmount(refundAmount);
+            // Remission update in payhub
+            RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
+                .refundResubmitRequestPayhubWith()
+                .refundReason(refundReason)
+                .amount(refundAmount)
+                .build();
 
-            return
+            boolean payhubRemissionUpdateResponse = paymentService.
+                updateRemissionAmountInPayhub(headers, refund.getPaymentReference(), refundResubmitPayhubRequest);
+
+            if (payhubRemissionUpdateResponse) {
+                // Update Status History table
+                IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
+                refund.setUpdatedBy(idamUserIdResponse.getUid());
+                List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
+                refund.setUpdatedBy(idamUserIdResponse.getUid());
+                statusHistories.add(StatusHistory.statusHistoryWith()
+                                        .createdBy(idamUserIdResponse.getUid())
+                                        .status(SENTFORAPPROVAL.getName())
+                                        .notes("Refund initiated")
+                                        .build());
+                refund.setStatusHistories(statusHistories);
+                refund.setRefundStatus(SENTFORAPPROVAL);
+
+                // Update Refunds table
+                refundsRepository.save(refund);
+
+                return
                     ResubmitRefundResponseDto.buildResubmitRefundResponseDtoWith()
-                            .refundReference(refund.getReference())
-                            .refundAmount(refund.getAmount()).build();
-
+                        .refundReference(refund.getReference())
+                        .refundAmount(refund.getAmount()).build();
+            }
         }
         throw new ActionNotFoundException("Action not allowed to proceed");
-
-    }
-
-    private Refund validateRefundAmount(Refund refund, ResubmitRefundRequest request,
-                                        MultiValueMap<String, String> headers) {
-        PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
-                headers,
-                refund.getPaymentReference()
-        );
-        if (paymentData.getPayments().get(0).getAmount().compareTo(request.getAmount()) < 0) {
-            throw new InvalidRefundRequestException("Amount should not be more than Payment amount");
-        }
-        refund.setAmount(request.getAmount());
-        return refund;
     }
 
     private String validateRefundReason(String reason) {
+
+        if(reason==null || reason.isBlank()){
+            throw new InvalidRefundRequestException("Refund reason is required");
+        }
         Boolean matcher = REASONPATTERN.matcher(reason).find();
         if (matcher) {
             String reasonCode = reason.split("-")[0];
@@ -312,6 +309,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                              )));
         }
         return statusHistoryDtos;
+    }
+
+    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet) {
+        Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
+        distintUIDSet.forEach(userId -> userFullNameMap.put(
+            userId,
+            idamService.getUserIdentityData(headers, userId)
+        ));
+        return userFullNameMap;
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {
