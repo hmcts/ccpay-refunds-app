@@ -124,12 +124,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
 
         // Get Refunds related Roles from logged in user
-        List<String> roles = new ArrayList<>();
-        for (String role: idamUserIdResponse.getRoles()) {
-            if (ROLEPATTERN.matcher(role).find()) {
-                roles.add(role);
-            }
-        }
+        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
+                .collect(Collectors.toList());
         return getRefundListDto(headers, refundList, roles);
     }
 
