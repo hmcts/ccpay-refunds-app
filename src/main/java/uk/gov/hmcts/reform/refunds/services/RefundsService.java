@@ -19,7 +19,7 @@ public interface RefundsService {
     Refund getRefundForReference(String reference);
 
     RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber,
-                                    String excludeCurrentUser, List<String> roles);
+                                    String excludeCurrentUser);
 
     List<RejectionReasonResponse> getRejectedReasons();
 

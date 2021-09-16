@@ -23,10 +23,9 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
@@ -53,16 +52,14 @@ public class IdamServiceImpl implements IdamService {
     private RestTemplate restTemplateIdam;
 
     @Override
-    public String getUserId(MultiValueMap<String, String> headers) {
+    public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
 
-//         to test locally
-//         return "asdfghjk-kjhgfds-dfghj-sdfghjk";
         try {
             ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
             if (responseEntity != null) {
                 IdamUserIdResponse idamUserIdResponse = responseEntity.getBody();
                 if (idamUserIdResponse != null) {
-                    return idamUserIdResponse.getUid();
+                    return idamUserIdResponse;
                 }
             }
             LOG.error("Parse error user not found");
@@ -140,13 +137,12 @@ public class IdamServiceImpl implements IdamService {
     }
 
     @Override
-    public Set<String> getUserIdSetForRoles(MultiValueMap<String, String> headers, List<String> roles) {
-        /*Set<String> users = new HashSet<>();
-        users.add("asdfghjk-kjhgfds-dfghj-sdfghjk");
-        return users;*/
+    public List<UserIdentityDataDto> getUsersForRoles(MultiValueMap<String, String> headers, List<String> roles) {
+
+        List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .queryParam("query", "(roles:" + roles + ") AND lastModified:>now-" + lastModifiedTime)
+                .queryParam("query", getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime)
                 .queryParam("size", userInfoSize);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
@@ -162,14 +158,31 @@ public class IdamServiceImpl implements IdamService {
 
             if (idamUserListResponse != null && !idamUserListResponse.getIdamUserInfoResponseList().isEmpty()) {
 
-                return idamUserListResponse.getIdamUserInfoResponseList().stream()
-//                        .filter(pr -> pr.getRoles().stream().anyMatch(s -> rolePattern.matcher(s).matches()))
-                        .map(IdamUserInfoResponse::getId)
-                        .collect(Collectors.toSet());
+                for (IdamUserInfoResponse idamUserInfoResponse: idamUserListResponse.getIdamUserInfoResponseList()) {
+
+                    userIdentityDataDtoList.add(UserIdentityDataDto.userIdentityDataWith()
+                            .id(idamUserInfoResponse.getId())
+                            .emailId(idamUserInfoResponse.getEmail())
+                            .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
+                            .build());
+                }
+
+               return userIdentityDataDtoList;
             }
         }
 
         LOG.error(USER_DETAILS_NOT_FOUND_ERROR_MSG);
         throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+    }
+
+    private StringBuilder getRoles(List<String> roles) {
+        StringBuilder rolesValue = new StringBuilder("(");
+        if (!roles.isEmpty()) {
+            for (String role : roles) {
+                rolesValue.append("roles:").append(role).append(" OR ");
+            }
+            return rolesValue.replace(rolesValue.length() - 4, rolesValue.length(),"");
+        }
+        return new StringBuilder("");
     }
 }

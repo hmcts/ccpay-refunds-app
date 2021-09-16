@@ -9,7 +9,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
@@ -30,7 +29,10 @@ import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -168,6 +170,10 @@ public class RefundServiceImplTest {
             .payments(Arrays.asList(PAYMENT_RESPONSE_SUPPLIER.get()))
             .build();
 
+    private static final IdamUserIdResponse IDAM_USER_ID_RESPONSE =
+            IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
+                    .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ").
+                    build();
 
     @BeforeEach
     public void init() {
@@ -176,14 +182,14 @@ public class RefundServiceImplTest {
 
     @Test
     void testRefundListEmptyForCritieria() {
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
 
         assertThrows(RefundListEmptyException.class, () -> refundsService.getRefundList(
                 null,
                 map,
                 GET_REFUND_LIST_CCD_CASE_NUMBER,
-                "true",
-                null
+                "true"
         ));
     }
 
@@ -192,19 +198,19 @@ public class RefundServiceImplTest {
 
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
                 refundListSupplierBasedOnCCDCaseNumber1.get())));
-        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID1);
-        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_CCD_CASE_USER_ID1)).thenReturn(UserIdentityDataDto.userIdentityDataWith()
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
                 .fullName("ccd-full-name")
                 .emailId("j@mail.com")
-                .build());
+                .id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                .build()));
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
                 null,
                 map,
                 GET_REFUND_LIST_CCD_CASE_NUMBER,
-                "true",
-                Arrays.asList()
+                "true"
         );
 
         assertNotNull(refundListDtoResponse);
@@ -216,23 +222,24 @@ public class RefundServiceImplTest {
 
     @Test
     void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() {
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(refundsRepository.findByRefundStatusAndCreatedByIsNot(
-                RefundStatus.SENTFORAPPROVAL,
-                GET_REFUND_LIST_CCD_CASE_USER_ID1
+                any(),
+                anyString()
         ))
                 .thenReturn(Optional.ofNullable(List.of(
                         refundListSupplierForSubmittedStatus.get())));
-
-        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID1);
-        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
-                UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status").emailId("j@mail.com").build());
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
+                .fullName("ccd-full-name-for-submitted-status")
+                .emailId("j@mail.com")
+                .id("2f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                .build()));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
                 "sent for approval",
                 map,
                 "",
-                "true",
-                null
+                "true"
         );
 
         assertNotNull(refundListDtoResponse);
@@ -254,22 +261,22 @@ public class RefundServiceImplTest {
                         refundListSupplierForSubmittedStatus.get()
                 )));
 
-        when(idamService.getUserId(map)).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID1);
+        when(idamService.getUserId(map)).thenReturn(IDAM_USER_ID_RESPONSE);
 
-        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_CCD_CASE_USER_ID1)).thenReturn(
-                UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId("h@mail.com").build());
-        when(idamService.getUserIdentityData(map, GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)).thenReturn(
-                UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status").emailId("h@mail.com").build()
-        );
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(
+                UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId("h@mail.com")
+                        .id(GET_REFUND_LIST_CCD_CASE_USER_ID1).build(),
+                UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status")
+                        .emailId("h@mail.com").id(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID).build()));
 
-        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(
+                Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
                 "sent for approval",
                 map,
                 "",
-                "false",
-                null
+                "false"
         );
 
         assertNotNull(refundListDtoResponse);
@@ -483,7 +490,7 @@ public class RefundServiceImplTest {
                 .thenReturn(PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
         when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
-        when(idamService.getUserId(any())).thenReturn("UserID");
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
 
         ResubmitRefundResponseDto response = refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
 
@@ -521,7 +528,7 @@ public class RefundServiceImplTest {
         when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
                 .thenReturn(PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
-        when(idamService.getUserId(any())).thenReturn("ID123");
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
 
         ResubmitRefundResponseDto response =
@@ -553,24 +560,21 @@ public class RefundServiceImplTest {
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
                 refundListSupplierBasedOnCCDCaseNumber1.get(), refundListSupplierBasedOnCCDCaseNumber2.get(),
                 refundListSupplierBasedOnCCDCaseNumber3.get())));
-        when(idamService.getUserId(any())).thenReturn(GET_REFUND_LIST_CCD_CASE_USER_ID1);
-        when(idamService.getUserIdentityData(any(), anyString()))
-                .thenReturn(UserIdentityDataDto.userIdentityDataWith()
-                        .fullName("ccd-full-name")
-                        .emailId("j@mail.com")
-                        .build());
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(refundReasonRepository.findByCode(anyString())).thenReturn(
                 Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
-        Set<String> users = new HashSet<>();
-        users.add(GET_REFUND_LIST_CCD_CASE_USER_ID3);
-        when(idamService.getUserIdSetForRoles(any(), any())).thenReturn(users);
+        UserIdentityDataDto dto = UserIdentityDataDto.userIdentityDataWith()
+                .fullName("ccd-full-name")
+                .emailId("j@mail.com")
+                .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                .build();
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(dto));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
                 null,
                 map,
                 GET_REFUND_LIST_CCD_CASE_NUMBER,
-                "true",
-                Arrays.asList("damage")
+                "true"
         );
 
         assertNotNull(refundListDtoResponse);
@@ -582,6 +586,7 @@ public class RefundServiceImplTest {
     @Test
     void givenEmptyRefundList_whenGetRefundList_thenRefundListEmptyExceptionIsReceived() {
 
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(RefundListEmptyException.class,
@@ -589,11 +594,9 @@ public class RefundServiceImplTest {
                         null,
                         map,
                         GET_REFUND_LIST_CCD_CASE_NUMBER,
-                        "",
-                        Arrays.asList("damage")));
+                        ""));
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("Refund list is empty for given criteria"));
     }
-
 
 }

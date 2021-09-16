@@ -94,8 +94,7 @@ public class RefundsController {
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @RequestParam(required = false) String status,
         @RequestParam(required = false) String ccdCaseNumber,
-        @RequestParam(required = false) String excludeCurrentUser,
-        @RequestParam(required = false) List<String> roles) {
+        @RequestParam(required = false) String excludeCurrentUser) {
 
         if (StringUtils.isBlank(status) && StringUtils.isBlank(ccdCaseNumber)) {
             throw new RefundListEmptyException(
@@ -107,9 +106,8 @@ public class RefundsController {
                 status,
                 headers,
                 ccdCaseNumber,
-                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser,
+                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser
                 // default false
-                roles
             ),
             HttpStatus.OK
         );

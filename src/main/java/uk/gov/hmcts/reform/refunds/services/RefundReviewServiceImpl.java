@@ -8,6 +8,7 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
@@ -57,11 +58,11 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference);
 
-        String userId = idamService.getUserId(headers);
+        IdamUserIdResponse userId = idamService.getUserId(headers);
         List<StatusHistory> statusHistories = new ArrayList<>(refundForGivenReference.getStatusHistories());
-        refundForGivenReference.setUpdatedBy(userId);
+        refundForGivenReference.setUpdatedBy(userId.getUid());
         statusHistories.add(StatusHistory.statusHistoryWith()
-                                .createdBy(userId)
+                                .createdBy(userId.getUid())
                                 .status(refundReviewMapper.getStatus(refundEvent))
                                 .notes(refundReviewMapper.getStatusNotes(refundEvent, refundReviewRequest))
                                 .build());
