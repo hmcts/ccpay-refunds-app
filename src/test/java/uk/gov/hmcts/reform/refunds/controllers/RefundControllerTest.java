@@ -612,6 +612,7 @@ class RefundControllerTest {
             .reason(refundReasonRepository.findByCodeOrThrow(refundRequest.getRefundReason()).getCode())
             .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
+            .feeIds("1")
             .build();
 
         List<Refund> refunds = Collections.singletonList(refund);
@@ -627,7 +628,7 @@ class RefundControllerTest {
             .andReturn();
 
         String ErrorMessage = result.getResponse().getContentAsString();
-        assertTrue(ErrorMessage.equals("Refund is already processed for this payment"));
+        assertTrue(ErrorMessage.equals("Refund is already requested for this payment"));
     }
 
     @Test
