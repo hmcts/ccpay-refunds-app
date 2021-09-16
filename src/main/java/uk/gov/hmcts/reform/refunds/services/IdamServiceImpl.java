@@ -57,7 +57,7 @@ public class IdamServiceImpl implements IdamService {
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
 
 //         to test locally
-//         return "asdfghjk-kjhgfds-dfghj-sdfghjk";
+//         return IdamUserIdResponse.idamUserIdResponseWith().uid("aaa").build();
         try {
             ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
             if (responseEntity != null) {
@@ -179,8 +179,8 @@ public class IdamServiceImpl implements IdamService {
         throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
     }
 
-    private StringBuffer getRoles(List<String> roles) {
-        StringBuffer rolesValue = new StringBuffer("(");
+    private StringBuilder getRoles(List<String> roles) {
+        StringBuilder rolesValue = new StringBuilder("(");
         if (!roles.isEmpty()) {
             if (roles.size() > MIN_VALUE) {
                 for (String role : roles) {
@@ -191,6 +191,6 @@ public class IdamServiceImpl implements IdamService {
                 return rolesValue.append(roles.get(0));
             }
         }
-        return new StringBuffer("");
+        return new StringBuilder("");
     }
 }
