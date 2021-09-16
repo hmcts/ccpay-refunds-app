@@ -110,7 +110,7 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
         } catch (HttpClientErrorException exception) {
-            throw new InvalidRefundRequestException("Invalid resubmit request", exception);
+            throw new InvalidRefundRequestException(exception.getResponseBodyAsString(), exception);
         } catch (Exception exception) {
             throw new PaymentServerException("Exception occurred while calling payment api ", exception);
         }
