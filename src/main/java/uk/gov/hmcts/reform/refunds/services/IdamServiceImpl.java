@@ -51,13 +51,9 @@ public class IdamServiceImpl implements IdamService {
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
-    private static final int MIN_VALUE = 1;
-
     @Override
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
 
-//         to test locally
-//         return IdamUserIdResponse.idamUserIdResponseWith().uid("aaa").build();
         try {
             ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
             if (responseEntity != null) {
@@ -182,14 +178,10 @@ public class IdamServiceImpl implements IdamService {
     private StringBuilder getRoles(List<String> roles) {
         StringBuilder rolesValue = new StringBuilder("(");
         if (!roles.isEmpty()) {
-            if (roles.size() > MIN_VALUE) {
-                for (String role : roles) {
-                    rolesValue.append("roles:" + role + " OR ");
-                }
-                return rolesValue.replace(rolesValue.length() - 4, rolesValue.length(),"");
-            } else {
-                return rolesValue.append(roles.get(0));
+            for (String role : roles) {
+                rolesValue.append("roles:").append(role).append(" OR ");
             }
+            return rolesValue.replace(rolesValue.length() - 4, rolesValue.length(),"");
         }
         return new StringBuilder("");
     }
