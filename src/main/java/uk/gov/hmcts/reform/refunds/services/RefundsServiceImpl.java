@@ -46,6 +46,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String OTHERREASONPATTERN = "Other - ";
 
+    private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
+
     private static int reasonPrefixLength = 6;
 
     @Autowired
@@ -85,8 +87,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundRequest(refundRequest);
-        String uid = idamService.getUserId(headers);
-        Refund refund = initiateRefundEntity(refundRequest, uid);
+        IdamUserIdResponse uid = idamService.getUserId(headers);
+        Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -96,9 +98,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers,
-                                               String ccdCaseNumber, String excludeCurrentUser, List<String> roles) {
+                                               String ccdCaseNumber, String excludeCurrentUser) {
 
         Optional<List<Refund>> refundList = Optional.empty();
+
+        //Get the userId
+        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
 
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
@@ -106,76 +111,74 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         } else if (StringUtils.isNotBlank(status)) {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
 
-            //Get the userId
-            String uid = idamService.getUserId(headers);
-
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
                     excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
                     refundStatus,
-                    uid
+                    idamUserIdResponse.getUid()
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        // Filter Refunds List based on Service Type
-        if (null != roles && !roles.isEmpty() && !refundList.isEmpty()) {
-            refundList = filterRefundList(refundList, headers, roles);
+        // Get Refunds related Roles from logged in user
+        List<String> roles = new ArrayList<>();
+        for (String role: idamUserIdResponse.getRoles()) {
+            if (ROLEPATTERN.matcher(role).find()) {
+                roles.add(role);
+            }
         }
-        return getRefundListDto(headers, refundList);
+        return getRefundListDto(headers, refundList, roles);
     }
 
-    private Optional<List<Refund>> filterRefundList(Optional<List<Refund>> optionalRefundList, MultiValueMap<String, String> headers,
-                                                    List<String> roles) {
-        Set<String> distintUserIDSet = idamService.getUserIdSetForRoles(headers, roles);
-
-        if (optionalRefundList.isPresent()) {
-            List<Refund> refundList = optionalRefundList.get();
-            refundList = refundList.stream()
-                    .filter(refunds -> distintUserIDSet.contains(refunds.getCreatedBy()))
-                    .collect(Collectors.toList());
-            return Optional.of(refundList);
-        }
-        throw new RefundListEmptyException("Refund list is empty for given criteria");
-    }
-
-    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList) {
+    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList, List<String> roles) {
 
         if (refundList.isPresent() && !refundList.get().isEmpty()) {
             return RefundListDtoResponse
                 .buildRefundListWith()
-                .refundList(getRefundResponseDtoList(headers, refundList.get()))
+                .refundList(getRefundResponseDtoList(headers, refundList.get(), roles))
                 .build();
         } else {
             throw new RefundListEmptyException("Refund list is empty for given criteria");
         }
     }
 
-    public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList) {
-        //Distinct createdBy UID
-        Set<String> distintUIDSet = refundList
-            .stream().map(Refund::getCreatedBy)
-            .collect(Collectors.toSet());
-
-        //Map UID -> User full name
-        Map<String, UserIdentityDataDto> userFullNameMap = getIdamUserDetails(headers, distintUIDSet);
+    public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
 
-        //Update the user full name for created by
-        refundList
-            .forEach(refund -> {
-                String reason  = getRefundReason(refund.getReason());
-                refundListDto.add(refundResponseMapper.getRefundListDto(
-                    refund,
-                    userFullNameMap.get(refund.getCreatedBy()),reason
-                ));
-                     }
+        // Filter Refunds List based on Refunds Roles
+        if (!roles.isEmpty()) {
+            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
 
+            refundList =
+                    refundList.stream()
+                            .filter(e -> userIdentityDataDtoList.stream().map(UserIdentityDataDto::getId).anyMatch(id -> id.equals(e.getCreatedBy())))
+                            .collect(Collectors.toList());
 
-            );
+            // Update the user full name for created by
+            refundList
+                    .forEach(refund -> {
+                        String reason = getRefundReason(refund.getReason());
+                        refundListDto.add(refundResponseMapper.getRefundListDto(
+                                refund,
+                                userIdentityDataDtoList.stream()
+                                        .filter(dto -> refund.getCreatedBy().equals(dto.getId()))
+                                        .findAny().get(),
+                                reason
+                        ));
+                    });
+        }
 
         return refundListDto;
+    }
+
+    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet) {
+        Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
+        distintUIDSet.forEach(userId -> userFullNameMap.put(
+                userId,
+                idamService.getUserIdentityData(headers, userId)
+        ));
+        return userFullNameMap;
     }
 
     @Override
@@ -186,47 +189,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
         throw new RefundNotFoundException("Refunds not found for " + reference);
     }
-
-
-//    @Override
-//    public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
-////        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-////        if (refund.isPresent()) {
-//
-////            String status = refund.get().getRefundStatus().getName();
-////            List<String> nextValidEvents = Arrays.asList(RefundState.valueOf(status).nextValidEvents()).stream().map(
-////                refundEvent1 -> refundEvent1.toString()).collect(
-////                Collectors.toList());
-//
-////            RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
-//
-////            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
-////              return new ResponseEntity("Invalid refund event entered next valid refund events is/are : " + nextValidEvents, HttpStatus.BAD_REQUEST);
-////            }
-////
-////          request.setState(currentstate.nextState(currentEventFromRequest));
-//
-////          if(RefundState.valueOf(refund.get().getRefundStatus().getName()).equals())
-////            refund.get().setPaymentReference(refundRequest.getPaymentReference());
-////            refund.get().setReason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get());
-////            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
-////            refund.get().setRefundStatus(SUBMITTED);
-//
-////        }
-//        return HttpStatus.ACCEPTED;
-//
-//          request.setState(currentstate.nextState(currentEventFromRequest));
-
-//          if(RefundState.valueOf(refund.get().getRefundStatus().getName()).equals())
-//            refund.get().setPaymentReference(refundRequest.getPaymentReference());
-//            refund.get().setReason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get());
-//            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
-//            refund.get().setRefundStatus(SUBMITTED);
-
-//        }
-//        return HttpStatus.ACCEPTED;
-
-//    }
 
     @Override
     public List<RejectionReasonResponse> getRejectedReasons() {
@@ -271,12 +233,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             }
 
             // Update Status History table
-            String userId = idamService.getUserId(headers);
-            refund.setUpdatedBy(userId);
+            IdamUserIdResponse userId = idamService.getUserId(headers);
+            refund.setUpdatedBy(userId.getUid());
             List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
-            refund.setUpdatedBy(userId);
+            refund.setUpdatedBy(userId.getUid());
             statusHistories.add(StatusHistory.statusHistoryWith()
-                    .createdBy(userId)
+                    .createdBy(userId.getUid())
                     .status(SENTFORAPPROVAL.getName())
                     .notes("Refund initiated")
                     .build());
@@ -350,15 +312,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                              )));
         }
         return statusHistoryDtos;
-    }
-
-    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet) {
-        Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
-        distintUIDSet.forEach(userId -> userFullNameMap.put(
-            userId,
-            idamService.getUserIdentityData(headers, userId)
-        ));
-        return userFullNameMap;
     }
 
     private void validateRefundRequest(RefundRequest refundRequest) {

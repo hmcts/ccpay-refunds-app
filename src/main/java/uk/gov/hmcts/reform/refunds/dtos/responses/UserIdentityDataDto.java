@@ -16,5 +16,5 @@ import java.util.Set;
 public class UserIdentityDataDto {
     private String fullName;
     private String emailId;
-    private Set<String> id;
+    private String id;
 }
