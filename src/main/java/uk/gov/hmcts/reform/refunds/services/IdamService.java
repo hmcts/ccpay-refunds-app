@@ -5,7 +5,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 
 import java.util.List;
-import java.util.Set;
 
 public interface IdamService {
 

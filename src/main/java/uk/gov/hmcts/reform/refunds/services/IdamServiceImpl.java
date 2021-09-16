@@ -51,6 +51,8 @@ public class IdamServiceImpl implements IdamService {
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
+    private static final int MIN_VALUE = 1;
+
     @Override
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
 
@@ -143,20 +145,8 @@ public class IdamServiceImpl implements IdamService {
 
         List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
-        StringBuffer rolesValue = new StringBuffer("(");
-        if (!roles.isEmpty()) {
-            if (roles.size() > 1) {
-                for (String role : roles) {
-                    rolesValue.append("roles:" + role + " OR ");
-                }
-                rolesValue.replace(rolesValue.length() - 4, rolesValue.length(),"");
-            } else {
-                rolesValue.append(roles.get(0));
-            }
-        }
-
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .queryParam("query", rolesValue + ") AND lastModified:>now-" + lastModifiedTime)
+                .queryParam("query", getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime)
                 .queryParam("size", userInfoSize);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
@@ -187,5 +177,20 @@ public class IdamServiceImpl implements IdamService {
 
         LOG.error(USER_DETAILS_NOT_FOUND_ERROR_MSG);
         throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+    }
+
+    private StringBuffer getRoles(List<String> roles) {
+        StringBuffer rolesValue = new StringBuffer("(");
+        if (!roles.isEmpty()) {
+            if (roles.size() > MIN_VALUE) {
+                for (String role : roles) {
+                    rolesValue.append("roles:" + role + " OR ");
+                }
+                return rolesValue.replace(rolesValue.length() - 4, rolesValue.length(),"");
+            } else {
+                return rolesValue.append(roles.get(0));
+            }
+        }
+        return new StringBuffer("");
     }
 }

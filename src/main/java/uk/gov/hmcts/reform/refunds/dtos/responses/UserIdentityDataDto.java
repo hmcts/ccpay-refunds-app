@@ -1,12 +1,6 @@
 package uk.gov.hmcts.reform.refunds.dtos.responses;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.Set;
+import lombok.*;
 
 @Builder(builderMethodName = "userIdentityDataWith")
 @AllArgsConstructor
