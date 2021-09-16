@@ -44,8 +44,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Pattern REASONPATTERN = Pattern.compile("(^RR0[0-9][0-9]-[a-zA-Z]+)");
 
-    private static final Pattern STATUSPATTERN = Pattern.compile("[^rejected]");
-
     private static final String OTHERREASONPATTERN = "Other - ";
 
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
@@ -315,27 +313,29 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private void validateRefundRequest(RefundRequest refundRequest) {
 
-//        if (isRefundEligibilityFlagged()) {
-//            throw new InvalidRefundRequestException("Refund Eligibility flag is unflagged");
-//        }
-
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-        long refundProcessingCount = refundsList.isPresent() ? refundsList.get().stream().map(refund -> STATUSPATTERN.matcher(
-            refund.getRefundStatus().getName()).find()).count() : 0;
 
-        if (refundProcessingCount > 0) {
-            throw new InvalidRefundRequestException("Refund is already processed for this payment");
+        if(refundsList.isPresent()){
+             List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(RefundStatus.REJECTED))
+                                        .map(Refund::getFeeIds)
+                                        .collect(Collectors.toList());
+
+            List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",")? Arrays.stream(refundRequest.getFeeIds().split(
+               ",")).collect(Collectors.toList()):Arrays.asList(refundRequest.getFeeIds());
+
+            feeIdsofRequestedRefund.forEach(feeId->{
+                nonRejectedFeeList.forEach(nonRejectFee->{
+                    if(nonRejectFee.contains(feeId)){
+                        throw new InvalidRefundRequestException("Refund is already requested for this payment");
+                    }
+                });
+
+            });
         }
 
         refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
 
     }
-
-//
-//    private boolean isRefundEligibilityFlagged() {
-//        // Actual logic is coming
-//        return false;
-//    }
 
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()
