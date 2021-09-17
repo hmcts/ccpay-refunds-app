@@ -106,7 +106,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         //Get the userId
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
-
+        LOG.info("idamUserIdResponse: {}", idamUserIdResponse);
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
@@ -121,9 +121,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
+        LOG.info("refundList: {}" + refundList);
         // Get Refunds related Roles from logged in user
         List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
                 .collect(Collectors.toList());
+        LOG.info("roles: {}", roles);
         return getRefundListDto(headers, refundList, roles);
     }
 
@@ -146,6 +148,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (!roles.isEmpty()) {
             List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
+            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
 
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             refundList.stream()
@@ -154,6 +157,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     .collect(Collectors.toList())
                     .forEach(refund -> {
                         String reason = getRefundReason(refund.getReason());
+                        LOG.info("refund: {}", refund);
                         refundListDto.add(refundResponseMapper.getRefundListDto(
                                 refund,
                                 userIdentityDataDtoList.stream()
@@ -164,6 +168,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     });
         }
 
+        LOG.info("refundListDto: {}", refundListDto);
         return refundListDto;
     }
 
