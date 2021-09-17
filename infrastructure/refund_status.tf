@@ -16,7 +16,7 @@ module "ccpay-refund-status-api" {
   service_url   = local.refunds_api_url
   product_id    = module.ccpay-refund-status-product.product_id
   name          = join("-", [var.product_name, "api"])
-  display_name  = "refunds-status API"
+  display_name  = "Refund Status API"
   path          = "refunds-api"
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-status.json"
 }
