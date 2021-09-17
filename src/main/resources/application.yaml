@@ -157,7 +157,12 @@ user:
     size: ${USER_INFO_SIZE:300}
   lastModifiedTime: ${LAST_MODIFIED_TIME:720d}
 
-
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+      hibernate: ERROR
 
 
 
