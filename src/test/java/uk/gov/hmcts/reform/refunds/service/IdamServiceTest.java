@@ -53,6 +53,8 @@ class IdamServiceTest {
             .roles(List.of("caseworker-refund", "caseworker-damage"))
             .active(true)
             .lastModified("2021-02-20T11:03:08.067Z")
+            .stale(false)
+            .createDate("2021-01-20T11:03:08.067Z")
             .build();
     public static final IdamUserInfoResponse USER2 = IdamUserInfoResponse
             .idamFullNameRetrivalResponseWith()
@@ -63,6 +65,8 @@ class IdamServiceTest {
             .roles(List.of("caseworker-probate", "payments-refund"))
             .active(true)
             .lastModified("2021-03-20T11:03:08.067Z")
+            .stale(false)
+            .createDate("2021-01-20T11:03:08.067Z")
             .build();
     public static final IdamUserInfoResponse USER3 = IdamUserInfoResponse
             .idamFullNameRetrivalResponseWith()
@@ -73,6 +77,8 @@ class IdamServiceTest {
             .roles(List.of("payments-refund", "caseworker-damage"))
             .active(true)
             .lastModified("2021-04-20T11:03:08.067Z")
+            .stale(false)
+            .createDate("2021-01-20T11:03:08.067Z")
             .build();
 
     @InjectMocks
@@ -298,6 +304,27 @@ class IdamServiceTest {
         )).thenReturn(responseEntity);
 
         List <UserIdentityDataDto> users = idamService.getUsersForRoles(header, roles);
+
+        assertEquals(3, users.size());
+        assertEquals("AAA BBB", users.get(0).getFullName());
+
+    }
+
+    @Test
+    void givenNoRoles_whenGetUsersForRoles_thenDistinctUserIdSetIsReceived() {
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+        List<String> roles = new ArrayList<>();
+        roles.add("caseworker-damage");
+        roles.add("caseworker-probate");
+
+        IdamUserInfoResponse[] response = {USER1, USER2, USER3};
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(IdamUserInfoResponse[].class)
+        )).thenReturn(responseEntity);
+
+        List <UserIdentityDataDto> users = idamService.getUsersForRoles(header, Arrays.asList());
 
         assertEquals(3, users.size());
         assertEquals("AAA BBB", users.get(0).getFullName());
