@@ -203,7 +203,20 @@ class IdamServiceTest {
         List<String> roles = new ArrayList<>();
         roles.add("damage");
 
-        final IdamUserInfoResponse[] responses = {USER1};
+        IdamUserInfoResponse user = IdamUserInfoResponse
+                .idamFullNameRetrivalResponseWith()
+                .id("AA")
+                .email("aa@gmail.com")
+                .forename("AAA")
+                .surname("BBB")
+                .roles(List.of("caseworker-refund", "caseworker-damage"))
+                .active(true)
+                .lastModified("2021-02-20T11:03:08.067Z")
+                .stale(false)
+                .createDate("2021-01-20T11:03:08.067Z")
+                .build();
+
+        final IdamUserInfoResponse[] responses = {user};
         ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(responses, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                 eq(IdamUserInfoResponse[].class)
@@ -263,9 +276,10 @@ class IdamServiceTest {
                 eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
-        Assertions.assertThrows(UserNotFoundException.class,
+        Exception exception = Assertions.assertThrows(UserNotFoundException.class,
                 () -> idamService.getUsersForRoles(header, roles));
-
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("User details not found for these roles in IDAM"));
     }
 
     @Test
