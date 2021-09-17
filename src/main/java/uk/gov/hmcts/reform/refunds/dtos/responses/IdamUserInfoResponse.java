@@ -28,4 +28,6 @@ public class IdamUserInfoResponse {
     private boolean active;
     private List<String> roles;
     private String lastModified;
+    private String createDate;
+    private boolean stale;
 }
