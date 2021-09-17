@@ -162,11 +162,10 @@ public class IdamServiceImpl implements IdamService {
                         HttpMethod.GET,
                         getEntity(headers), IdamUserInfoResponse[].class
                 );
-        
-        LOG.info("idamUserListResponseEntity: {}", idamUserListResponseEntity.getBody());
-        
+        LOG.info("idamUserListResponseEntity: {}", idamUserListResponseEntity);
         if (idamUserListResponseEntity != null && idamUserListResponseEntity.getBody() != null) {
             IdamUserInfoResponse[] idamUserListResponse = idamUserListResponseEntity.getBody();
+            LOG.info("idamUserListResponse: {}", idamUserListResponse);
 
                 for (IdamUserInfoResponse idamUserInfoResponse: idamUserListResponse) {
 
