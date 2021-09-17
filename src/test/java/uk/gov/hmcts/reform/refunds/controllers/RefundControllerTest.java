@@ -25,6 +25,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
@@ -43,7 +44,9 @@ import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -260,7 +263,7 @@ class RefundControllerTest {
 
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
-        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), IDAM_USER_LIST_RESPONSE_SUPPLIER.get());
+        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), idamFullNameCCDSearchRefundListSupplier.get());
 
         //mock repository call
         when(refundsRepository.findByCcdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1))
@@ -295,7 +298,7 @@ class RefundControllerTest {
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
-        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), IDAM_USER_LIST_RESPONSE_SUPPLIER.get());
+        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), idamFullNameCCDSearchRefundListSupplier.get());
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -365,7 +368,8 @@ class RefundControllerTest {
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
-        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), IDAM_USER_LIST_RESPONSE_SUPPLIER1.get());
+        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), idamFullNameCCDSearchRefundListSupplier1.get());
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id("a").fullName("a").emailId("a").build()));
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -410,9 +414,8 @@ class RefundControllerTest {
 
         //mock idam userFullName call
         mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"),
-                IdamUserListResponse.idamUserListResponseWith()
-                        .idamUserInfoResponseList(Arrays.asList(idamFullNameSendBackRefundListSupplier.get()))
-                        .build());
+                idamFullNameSendBackRefundListSupplier.get()
+                        );
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -453,16 +456,23 @@ class RefundControllerTest {
         )).thenReturn(responseEntity);
     }
 
-    public void mockGetUsersForRolesCall(List<String> roles, IdamUserListResponse idamUserListResponse) {
-        UriComponentsBuilder builderForUserInfo = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .queryParam("query", "(roles:refund-approver OR roles:refund-admin) AND lastModified:>now-720d")
-                .queryParam("size", 300);
-        ResponseEntity<IdamUserListResponse> responseEntity = new ResponseEntity<>(idamUserListResponse, HttpStatus.OK);
+    public void mockGetUsersForRolesCall(List<String> roles, IdamUserInfoResponse[] idamUserListResponse) {
+        UriComponents builderForUserInfo = null;
+        try {
+            builderForUserInfo = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+                    .queryParam("query", URLEncoder
+                            .encode("(roles:refund-approver OR roles:refund-admin)%20AND%20lastModified:%3Enow-720d","UTF-8"))
+                    .queryParam("size", 300)
+            .build();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(idamUserListResponse, HttpStatus.OK);
         when(restTemplateIdam.exchange(
                 eq(builderForUserInfo.toUriString()),
                 any(HttpMethod.class),
                 any(HttpEntity.class),
-                eq(IdamUserListResponse.class)
+                eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
     }
 

@@ -20,15 +20,18 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
@@ -231,11 +234,10 @@ class IdamServiceTest {
         List<String> roles = new ArrayList<>();
         roles.add("caseworker-damage");
 
-        IdamUserListResponse response = IdamUserListResponse.idamUserListResponseWith()
-                .idamUserInfoResponseList(Arrays.asList(USER1.get(), USER2.get(), USER3.get())).build();
-        ResponseEntity<IdamUserListResponse> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
+        IdamUserInfoResponse[] response = {USER1.get(), USER2.get(), USER3.get()};
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                eq(IdamUserListResponse.class)
+                eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
         List
@@ -254,11 +256,10 @@ class IdamServiceTest {
         roles.add("caseworker-damage");
         roles.add("caseworker-probate");
 
-        IdamUserListResponse response = IdamUserListResponse.idamUserListResponseWith()
-                .idamUserInfoResponseList(Arrays.asList(USER1.get(), USER2.get(), USER3.get())).build();
-        ResponseEntity<IdamUserListResponse> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
+        IdamUserInfoResponse[] response = {USER1.get(), USER2.get(), USER3.get()};
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                eq(IdamUserListResponse.class)
+                eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
         List <UserIdentityDataDto> users = idamService.getUsersForRoles(header, roles);
