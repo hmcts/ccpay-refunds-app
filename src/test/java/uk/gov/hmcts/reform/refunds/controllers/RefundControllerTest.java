@@ -133,12 +133,6 @@ class RefundControllerTest {
         .roles(List.of("refund-approver", "refund-admin"))
         .uid(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .build();
-    public static final Supplier<IdamUserListResponse> IDAM_USER_LIST_RESPONSE_SUPPLIER =
-            () -> IdamUserListResponse.idamUserListResponseWith()
-                    .idamUserInfoResponseList(Arrays.asList(idamFullNameCCDSearchRefundListSupplier.get())).build();
-    public static final Supplier<IdamUserListResponse> IDAM_USER_LIST_RESPONSE_SUPPLIER1 =
-            () -> IdamUserListResponse.idamUserListResponseWith()
-                    .idamUserInfoResponseList(Arrays.asList(idamFullNameCCDSearchRefundListSupplier1.get())).build();
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
     private RefundReason refundReason = RefundReason.refundReasonWith().
         code("RR031")

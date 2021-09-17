@@ -22,7 +22,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
@@ -217,9 +216,9 @@ class IdamServiceTest {
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
         roles.add("damage");
-        ResponseEntity<IdamUserListResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                eq(IdamUserListResponse.class)
+                eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
         Assertions.assertThrows(UserNotFoundException.class,
