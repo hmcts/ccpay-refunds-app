@@ -144,7 +144,7 @@ public class IdamServiceImpl implements IdamService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
                 .queryParam("query", getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime)
                 .queryParam("size", userInfoSize);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString(): {}", builder.toUriString());
 
         ResponseEntity<IdamUserListResponse> idamUserListResponseEntity = restTemplateIdam
                 .exchange(
