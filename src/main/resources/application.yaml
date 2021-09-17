@@ -162,7 +162,6 @@ logging:
     org:
       springframework:
         web: DEBUG
-      hibernate: ERROR
 
 
 
