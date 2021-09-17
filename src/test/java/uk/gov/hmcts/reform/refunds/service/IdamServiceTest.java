@@ -20,19 +20,21 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -42,7 +44,7 @@ import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFU
 @SpringBootTest(webEnvironment = MOCK)
 class IdamServiceTest {
 
-    public static final Supplier<IdamUserInfoResponse> USER1 = () -> IdamUserInfoResponse
+    public static final IdamUserInfoResponse USER1 = IdamUserInfoResponse
             .idamFullNameRetrivalResponseWith()
             .id("AA")
             .email("aa@gmail.com")
@@ -51,8 +53,10 @@ class IdamServiceTest {
             .roles(List.of("caseworker-refund", "caseworker-damage"))
             .active(true)
             .lastModified("2021-02-20T11:03:08.067Z")
+            .stale(false)
+            .createDate("2021-01-20T11:03:08.067Z")
             .build();
-    public static final Supplier<IdamUserInfoResponse> USER2 = () -> IdamUserInfoResponse
+    public static final IdamUserInfoResponse USER2 = IdamUserInfoResponse
             .idamFullNameRetrivalResponseWith()
             .id("BB")
             .email("bb@gmail.com")
@@ -61,8 +65,10 @@ class IdamServiceTest {
             .roles(List.of("caseworker-probate", "payments-refund"))
             .active(true)
             .lastModified("2021-03-20T11:03:08.067Z")
+            .stale(false)
+            .createDate("2021-01-20T11:03:08.067Z")
             .build();
-    public static final Supplier<IdamUserInfoResponse> USER3 = () -> IdamUserInfoResponse
+    public static final IdamUserInfoResponse USER3 = IdamUserInfoResponse
             .idamFullNameRetrivalResponseWith()
             .id("CC")
             .email("cc@gmail.com")
@@ -71,6 +77,8 @@ class IdamServiceTest {
             .roles(List.of("payments-refund", "caseworker-damage"))
             .active(true)
             .lastModified("2021-04-20T11:03:08.067Z")
+            .stale(false)
+            .createDate("2021-01-20T11:03:08.067Z")
             .build();
 
     @InjectMocks
@@ -171,14 +179,13 @@ class IdamServiceTest {
     }
 
     @Test
-    void givenIDAMResponse_whenGetUserIdentityData_thenDistinctUserIdSetIsReceived() {
+    void givenLibrataNameUID_whenGetUserIdentityData_thenLibrataNameIsReceived() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
         roles.add("damage");
 
-        final IdamUserInfoResponse[] responses = new IdamUserInfoResponse[1];
-        responses[0] = USER1.get();
+        final IdamUserInfoResponse[] responses = {USER1};
         ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(responses, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                 eq(IdamUserInfoResponse[].class)
@@ -187,6 +194,56 @@ class IdamServiceTest {
         UserIdentityDataDto resultDto = idamService.getUserIdentityData(header, "Middle office provider");
 
         Assertions.assertTrue(resultDto.getFullName().contains("Middle office provider"));
+    }
+
+    @Test
+    void givenIDAMResponse_whenGetUserIdentityData_thenDistinctUserIdSetIsReceived() {
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+        List<String> roles = new ArrayList<>();
+        roles.add("damage");
+
+        IdamUserInfoResponse user = IdamUserInfoResponse
+                .idamFullNameRetrivalResponseWith()
+                .id("AA")
+                .email("aa@gmail.com")
+                .forename("AAA")
+                .surname("BBB")
+                .roles(List.of("caseworker-refund", "caseworker-damage"))
+                .active(true)
+                .lastModified("2021-02-20T11:03:08.067Z")
+                .stale(false)
+                .createDate("2021-01-20T11:03:08.067Z")
+                .build();
+
+        final IdamUserInfoResponse[] responses = {user};
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(responses, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(IdamUserInfoResponse[].class)
+        )).thenReturn(responseEntity);
+
+        UserIdentityDataDto resultDto = idamService.getUserIdentityData(header, "AA");
+
+        assertEquals("AAA BBB", resultDto.getFullName());
+        assertEquals("aa@gmail.com", resultDto.getEmailId());
+    }
+
+    @Test
+    void givenNoIDAMResponse_whenGetUserIdentityData_thenUserNotFoundExceptionIsReceived() {
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+        List<String> roles = new ArrayList<>();
+        roles.add("damage");
+
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(IdamUserInfoResponse[].class)
+        )).thenReturn(responseEntity);
+
+        Exception exception = Assertions.assertThrows(UserNotFoundException.class,
+                () -> idamService.getUserIdentityData(header, "AA"));
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("User details not found for these roles in IDAM"));
     }
 
     @Test
@@ -209,33 +266,33 @@ class IdamServiceTest {
     }
 
     @Test
-    void givenNoIDAMResponse_whenGetUserIdSetForService_thenUserNotFoundException() {
+    void givenNoIDAMResponse_whenGetUsersForRoles_thenUserNotFoundException() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
         roles.add("damage");
-        ResponseEntity<IdamUserListResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                eq(IdamUserListResponse.class)
+                eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
-        Assertions.assertThrows(UserNotFoundException.class,
+        Exception exception = Assertions.assertThrows(UserNotFoundException.class,
                 () -> idamService.getUsersForRoles(header, roles));
-
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("User details not found for these roles in IDAM"));
     }
 
     @Test
-    void givenSingleRole_whenGetUserIdSetForService_thenDistinctUserIdSetIsReceived() {
+    void givenSingleRole_whenGetUsersForRoles_thenDistinctUserIdSetIsReceived() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
         roles.add("caseworker-damage");
 
-        IdamUserListResponse response = IdamUserListResponse.idamUserListResponseWith()
-                .idamUserInfoResponseList(Arrays.asList(USER1.get(), USER2.get(), USER3.get())).build();
-        ResponseEntity<IdamUserListResponse> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
+        IdamUserInfoResponse[] response = {USER1, USER2, USER3};
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                eq(IdamUserListResponse.class)
+                eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
         List
@@ -247,21 +304,41 @@ class IdamServiceTest {
     }
 
     @Test
-    void givenMultipleRoles_whenGetUserIdSetForService_thenDistinctUserIdSetIsReceived() {
+    void givenMultipleRoles_whenGetUsersForRoles_thenDistinctUserIdSetIsReceived() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
         roles.add("caseworker-damage");
         roles.add("caseworker-probate");
 
-        IdamUserListResponse response = IdamUserListResponse.idamUserListResponseWith()
-                .idamUserInfoResponseList(Arrays.asList(USER1.get(), USER2.get(), USER3.get())).build();
-        ResponseEntity<IdamUserListResponse> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
+        IdamUserInfoResponse[] response = {USER1, USER2, USER3};
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                eq(IdamUserListResponse.class)
+                eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
         List <UserIdentityDataDto> users = idamService.getUsersForRoles(header, roles);
+
+        assertEquals(3, users.size());
+        assertEquals("AAA BBB", users.get(0).getFullName());
+
+    }
+
+    @Test
+    void givenNoRoles_whenGetUsersForRoles_thenDistinctUserIdSetIsReceived() {
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+        List<String> roles = new ArrayList<>();
+        roles.add("caseworker-damage");
+        roles.add("caseworker-probate");
+
+        IdamUserInfoResponse[] response = {USER1, USER2, USER3};
+        ResponseEntity<IdamUserInfoResponse[]> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(IdamUserInfoResponse[].class)
+        )).thenReturn(responseEntity);
+
+        List <UserIdentityDataDto> users = idamService.getUsersForRoles(header, Arrays.asList());
 
         assertEquals(3, users.size());
         assertEquals("AAA BBB", users.get(0).getFullName());

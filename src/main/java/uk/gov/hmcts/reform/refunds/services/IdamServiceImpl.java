@@ -15,14 +15,16 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserListResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +39,7 @@ public class IdamServiceImpl implements IdamService {
     static private final String LIBERATA_NAME = "Middle office provider";
     private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
     private static final String USER_DETAILS_NOT_FOUND_ERROR_MSG = "User details not found for these roles in IDAM";
+    private static final String UNSUPPORTED_ENCODING_ERROR_MSG = "The Character Encoding is not supported for IDAM API";
 
     @Value("${idam.api.url}")
     private String idamBaseURL;
@@ -141,24 +144,29 @@ public class IdamServiceImpl implements IdamService {
 
         List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .queryParam("query", getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime)
-                .queryParam("size", userInfoSize);
+        UriComponents builder = null;
+        try {
+            builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+                    .queryParam("query", URLEncoder
+                            .encode(getRoles(roles) + ")%20AND%20lastModified:%3Enow-" + lastModifiedTime,"UTF-8"))
+                    .queryParam("size", userInfoSize)
+                    .build();
+        } catch (UnsupportedEncodingException e) {
+            throw new UserNotFoundException(UNSUPPORTED_ENCODING_ERROR_MSG);
+        }
         LOG.info("builder.toUriString(): {}", builder.toUriString());
 
-        ResponseEntity<IdamUserListResponse> idamUserListResponseEntity = restTemplateIdam
+        ResponseEntity<IdamUserInfoResponse[]> idamUserListResponseEntity = restTemplateIdam
                 .exchange(
                         builder.toUriString(),
                         HttpMethod.GET,
-                        getEntity(headers), IdamUserListResponse.class
+                        getEntity(headers), IdamUserInfoResponse[].class
                 );
 
         if (idamUserListResponseEntity != null && idamUserListResponseEntity.getBody() != null) {
-            IdamUserListResponse idamUserListResponse = idamUserListResponseEntity.getBody();
+            IdamUserInfoResponse[] idamUserListResponse = idamUserListResponseEntity.getBody();
 
-            if (idamUserListResponse != null && !idamUserListResponse.getIdamUserInfoResponseList().isEmpty()) {
-
-                for (IdamUserInfoResponse idamUserInfoResponse: idamUserListResponse.getIdamUserInfoResponseList()) {
+                for (IdamUserInfoResponse idamUserInfoResponse: idamUserListResponse) {
 
                     userIdentityDataDtoList.add(UserIdentityDataDto.userIdentityDataWith()
                             .id(idamUserInfoResponse.getId())
@@ -168,7 +176,6 @@ public class IdamServiceImpl implements IdamService {
                 }
 
                return userIdentityDataDtoList;
-            }
         }
 
         LOG.error(USER_DETAILS_NOT_FOUND_ERROR_MSG);
