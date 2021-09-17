@@ -144,16 +144,14 @@ public class IdamServiceImpl implements IdamService {
 
         List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
-        UriComponents builder = null;
-        try {
-            builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                    .queryParam("query", URLEncoder
-                            .encode(getRoles(roles) + ")%20AND%20lastModified:%3Enow-" + lastModifiedTime,"UTF-8"))
-                    .queryParam("size", userInfoSize)
-                    .build();
-        } catch (UnsupportedEncodingException e) {
-            throw new UserNotFoundException(UNSUPPORTED_ENCODING_ERROR_MSG);
-        }
+        String query = getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime;
+
+        UriComponents builder = UriComponentsBuilder.newInstance()
+                .fromUriString(idamBaseURL +USER_FULL_NAME_ENDPOINT)
+                .query("query={query}")
+                .query("size={size}")
+                .buildAndExpand(query, userInfoSize);
+
         LOG.info("builder.toUriString(): {}", builder.toUriString());
 
         ResponseEntity<IdamUserInfoResponse[]> idamUserListResponseEntity = restTemplateIdam
