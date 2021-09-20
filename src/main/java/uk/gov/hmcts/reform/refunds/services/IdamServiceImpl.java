@@ -185,7 +185,11 @@ public class IdamServiceImpl implements IdamService {
             for (String role : roles) {
                 rolesValue.append("roles:").append(role).append(" OR ");
             }
-            return rolesValue.replace(rolesValue.length() - 4, rolesValue.length(), "");
+
+            // Add the refund base role - "payments-refund" for IDAM API
+            return roles.contains("payments-refund") ? rolesValue
+                    .replace(rolesValue.length() - 4, rolesValue.length(), "") : rolesValue
+                    .append("roles:payments-refund");
         }
         return new StringBuilder("");
     }
