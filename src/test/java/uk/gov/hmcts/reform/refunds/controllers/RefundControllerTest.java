@@ -84,25 +84,25 @@ class RefundControllerTest {
         .lastModified("2021-07-20T11:03:08.067Z")
         .build()};
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier1 = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
+        .idamFullNameRetrivalResponseWith()
+        .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .email("mockfullname@gmail.com")
+        .forename("mock-Forename")
+        .surname("mock-Surname")
+        .roles(List.of("refund-approver", "refund-admin"))
+        .active(true)
+        .lastModified("2021-07-20T11:03:08.067Z")
+        .build(),
+        IdamUserInfoResponse
             .idamFullNameRetrivalResponseWith()
-            .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
-            .email("mockfullname@gmail.com")
-            .forename("mock-Forename")
-            .surname("mock-Surname")
-            .roles(List.of("refund-approver", "refund-admin"))
+            .id(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
+            .email("mock1fullname@gmail.com")
+            .forename("mock1-Forename")
+            .surname("mock1-Surname")
+            .roles(List.of("refund-approver", "caseworker-damage"))
             .active(true)
             .lastModified("2021-07-20T11:03:08.067Z")
-            .build(),
-            IdamUserInfoResponse
-                    .idamFullNameRetrivalResponseWith()
-                    .id(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
-                    .email("mock1fullname@gmail.com")
-                    .forename("mock1-Forename")
-                    .surname("mock1-Surname")
-                    .roles(List.of("refund-approver", "caseworker-damage"))
-                    .active(true)
-                    .lastModified("2021-07-20T11:03:08.067Z")
-                    .build()
+            .build()
     };
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameSubmittedRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
@@ -246,10 +246,13 @@ class RefundControllerTest {
 
     @Test
     void givenBlankCcdCaseNumberAndStatus_whenGetRefundList_thenRefundListEmptyExceptionIsReceived() {
-        Exception exception = assertThrows(RefundListEmptyException.class,
-                () -> refundsController.getRefundList(null, null, "", "", null));
+        Exception exception = assertThrows(
+            RefundListEmptyException.class,
+            () -> refundsController.getRefundList(null, null, "", "", null)
+        );
         String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("Please provide criteria to fetch refunds i.e. Refund status or ccd case number"));
+        assertTrue(actualMessage.contains(
+            "Please provide criteria to fetch refunds i.e. Refund status or ccd case number"));
     }
 
     @Test
@@ -257,26 +260,29 @@ class RefundControllerTest {
 
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
-        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), idamFullNameCCDSearchRefundListSupplier.get());
+        mockGetUsersForRolesCall(
+            Arrays.asList("refund-approver", "refund-admin"),
+            idamFullNameCCDSearchRefundListSupplier.get()
+        );
 
         //mock repository call
         when(refundsRepository.findByCcdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1))
-                .thenReturn(Optional.ofNullable(List.of(
-                        refundListSupplierBasedOnCCDCaseNumber1.get())));
+            .thenReturn(Optional.ofNullable(List.of(
+                refundListSupplierBasedOnCCDCaseNumber1.get())));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
-                .header("Authorization", "user")
-                .header("ServiceAuthorization", "Services")
-                .queryParam("status", "submitted")
-                .queryParam("ccdCaseNumber", GET_REFUND_LIST_CCD_CASE_USER_ID1)
-                .queryParam("excludeCurrentUser", " ")
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andReturn();
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .queryParam("status", "submitted")
+                                                  .queryParam("ccdCaseNumber", GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                                  .queryParam("excludeCurrentUser", " ")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk()).andReturn();
 
         RefundListDtoResponse refundListDtoResponse = mapper.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                new TypeReference<>() {
-                }
+            mvcResult.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
         );
 
         assertNotNull(refundListDtoResponse);
@@ -292,7 +298,10 @@ class RefundControllerTest {
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
-        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), idamFullNameCCDSearchRefundListSupplier.get());
+        mockGetUsersForRolesCall(
+            Arrays.asList("refund-approver", "refund-admin"),
+            idamFullNameCCDSearchRefundListSupplier.get()
+        );
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -321,7 +330,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void testInvalidInputException() throws  Exception {
+    void testInvalidInputException() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
@@ -337,7 +346,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void testInvalidRefundReasonException() throws  Exception {
+    void testInvalidRefundReasonException() throws Exception {
 
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
@@ -362,8 +371,14 @@ class RefundControllerTest {
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
-        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"), idamFullNameCCDSearchRefundListSupplier1.get());
-        when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id("a").fullName("a").emailId("a").build()));
+        mockGetUsersForRolesCall(
+            Arrays.asList("refund-approver", "refund-admin"),
+            idamFullNameCCDSearchRefundListSupplier1.get()
+        );
+        when(idamService.getUsersForRoles(
+            any(),
+            any()
+        )).thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id("a").fullName("a").emailId("a").build()));
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -407,30 +422,31 @@ class RefundControllerTest {
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
-        mockGetUsersForRolesCall(Arrays.asList("refund-approver", "refund-admin"),
-                idamFullNameSendBackRefundListSupplier.get()
-                        );
+        mockGetUsersForRolesCall(
+            Arrays.asList("refund-approver", "refund-admin"),
+            idamFullNameSendBackRefundListSupplier.get()
+        );
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
-                SENTBACK
+            SENTBACK
         ))
-                .thenReturn(Optional.ofNullable(List.of(
-                        refundListSupplierForSendBackStatus.get())));
+            .thenReturn(Optional.ofNullable(List.of(
+                refundListSupplierForSendBackStatus.get())));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
-                .header("Authorization", "user")
-                .header("ServiceAuthorization", "Services")
-                .queryParam("status", "sent back")
-                .queryParam("ccdCaseNumber", "")
-                .queryParam("excludeCurrentUser", "false")
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andReturn();
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .queryParam("status", "sent back")
+                                                  .queryParam("ccdCaseNumber", "")
+                                                  .queryParam("excludeCurrentUser", "false")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk()).andReturn();
 
         RefundListDtoResponse refundListDtoResponse = mapper.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                new TypeReference<>() {
-                }
+            mvcResult.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
         );
 
         assertNotNull(refundListDtoResponse);
@@ -454,17 +470,17 @@ class RefundControllerTest {
         String query = "(roles:refund-approver OR roles:refund-admin) AND lastModified:>now-720d";
         int size = 300;
         UriComponents builder = UriComponentsBuilder.newInstance()
-                .fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .query("query={query}")
-                .query("size={size}")
-                .buildAndExpand(query, size);
+            .fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+            .query("query={query}")
+            .query("size={size}")
+            .buildAndExpand(query, size);
         ResponseEntity<IdamUserInfoResponse[]> responseEntity =
-                new ResponseEntity<>(idamUserListResponse, HttpStatus.OK);
+            new ResponseEntity<>(idamUserListResponse, HttpStatus.OK);
         when(restTemplateIdam.exchange(
-                eq(builder.toUriString()),
-                any(HttpMethod.class),
-                any(HttpEntity.class),
-                eq(IdamUserInfoResponse[].class)
+            eq(builder.toUriString()),
+            any(HttpMethod.class),
+            any(HttpEntity.class),
+            eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
     }
 
@@ -493,8 +509,8 @@ class RefundControllerTest {
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
-                                                                                    .code("RR002")
-                                                                                    .name("Amended court")
+                                                                                   .code("RR002")
+                                                                                   .name("Amended court")
                                                                                    .build());
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -529,8 +545,8 @@ class RefundControllerTest {
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
-                                                                                    .code("RR036")
-                                                                                    .name("Retrospective remission")
+                                                                                   .code("RR036")
+                                                                                   .name("Retrospective remission")
                                                                                    .build());
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -909,7 +925,7 @@ class RefundControllerTest {
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                eq(IdamUserIdResponse.class)
+                                       eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
         MvcResult result = mockMvc.perform(patch(
@@ -1513,26 +1529,31 @@ class RefundControllerTest {
             .createdBy("CCC")
             .build();
 
-        List<StatusHistoryDto> statusHistoryDtoList = new ArrayList<>();
-        statusHistoryDtoList.add(statusHistoryDto);
+        StatusHistoryResponseDto statusHistoryResponseDto = StatusHistoryResponseDto.statusHistoryResponseDtoWith()
+            .lastUpdatedByCurrentUser(false)
+            .statusHistoryDtoList(Collections.singletonList(statusHistoryDto))
+            .build();
 
-        when(refundsService.getStatusHistory(any(), anyString())).thenReturn(statusHistoryDtoList);
+        when(refundsService.getStatusHistory(any(), anyString())).thenReturn(statusHistoryResponseDto);
 
         // when
-        ResponseEntity<List<StatusHistoryDto>> result = refundsController.getStatusHistory(null, null, "reference");
+        ResponseEntity<StatusHistoryResponseDto> result = refundsController.getStatusHistory(null, null, "reference");
 
         // then
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(200, result.getStatusCodeValue());
         assertNotNull(result.getBody());
-        assertEquals(1, result.getBody().size());
-        assertEquals(statusHistoryDto, result.getBody().get(0));
-        assertEquals(1, result.getBody().get(0).getId());
-        assertEquals(1, result.getBody().get(0).getRefundsId());
-        assertEquals("AAA", result.getBody().get(0).getStatus());
-        assertEquals("BBB", result.getBody().get(0).getNotes());
-        assertEquals(Timestamp.valueOf("2021-10-10 10:10:10"), result.getBody().get(0).getDateCreated());
-        assertEquals("CCC", result.getBody().get(0).getCreatedBy());
+        assertEquals(1, result.getBody().getStatusHistoryDtoList().size());
+        assertEquals(statusHistoryDto, result.getBody().getStatusHistoryDtoList().get(0));
+        assertEquals(1, result.getBody().getStatusHistoryDtoList().get(0).getId());
+        assertEquals(1, result.getBody().getStatusHistoryDtoList().get(0).getRefundsId());
+        assertEquals("AAA", result.getBody().getStatusHistoryDtoList().get(0).getStatus());
+        assertEquals("BBB", result.getBody().getStatusHistoryDtoList().get(0).getNotes());
+        assertEquals(
+            Timestamp.valueOf("2021-10-10 10:10:10"),
+            result.getBody().getStatusHistoryDtoList().get(0).getDateCreated()
+        );
+        assertEquals("CCC", result.getBody().getStatusHistoryDtoList().get(0).getCreatedBy());
 
     }
 
@@ -1540,44 +1561,45 @@ class RefundControllerTest {
     void testResubmitRefund() {
 
         ResubmitRefundRequest
-                resubmitRefundRequest =
-                ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason("WWW").amount(BigDecimal.valueOf(333))
-                        .build();
+            resubmitRefundRequest =
+            ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason("WWW").amount(BigDecimal.valueOf(333))
+                .build();
         ResubmitRefundResponseDto resubmitRefundResponseDto =
-                ResubmitRefundResponseDto.buildResubmitRefundResponseDtoWith()
-                        .refundReference("RF-1111-1111-1111-1111")
-                        .refundAmount(resubmitRefundRequest.getAmount()).build();
+            ResubmitRefundResponseDto.buildResubmitRefundResponseDtoWith()
+                .refundReference("RF-1111-1111-1111-1111")
+                .refundAmount(resubmitRefundRequest.getAmount()).build();
 
         when(refundsService.resubmitRefund(anyString(), any(), any()))
-                .thenReturn(resubmitRefundResponseDto);
+            .thenReturn(resubmitRefundResponseDto);
 
         ResponseEntity<ResubmitRefundResponseDto> responseEntity =
-                refundsController.resubmitRefund(null, null, "RF-1111-1111-1111-1111", resubmitRefundRequest);
+            refundsController.resubmitRefund(null, null, "RF-1111-1111-1111-1111", resubmitRefundRequest);
         verify(refundsService, times(1)).resubmitRefund("RF-1111-1111-1111-1111", resubmitRefundRequest, null);
         assertNotNull(responseEntity.getBody());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(BigDecimal.valueOf(333), responseEntity.getBody().getRefundAmount());
         assertEquals("RF-1111-1111-1111-1111", responseEntity.getBody().getRefundReference());
     }
+
     @Test
     void givenNullAmount_whenResubmitRefund_thenBadRequestStatusIsReceived() throws Exception {
         ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
-                .refundReason("RR003").build();
+            .refundReason("RR003").build();
         refund.setRefundStatus(SENTTOMIDDLEOFFICE);
         when(refundsRepository.findByReferenceOrThrow(anyString()))
-                .thenReturn(refundListSupplierForSendBackStatus.get());
+            .thenReturn(refundListSupplierForSendBackStatus.get());
 
         MvcResult result = mockMvc.perform(patch(
-                "/refund/resubmit/{reference}",
-                "RF-1234-1234-1234-1234"
+            "/refund/resubmit/{reference}",
+            "RF-1234-1234-1234-1234"
         )
-                .content(asJsonString(resubmitRefundRequest))
-                .header("Authorization", "user")
-                .header("ServiceAuthorization", "Services")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andReturn();
+                                               .content(asJsonString(resubmitRefundRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 
     private PaymentGroupResponse getPaymentGroupDto() {
