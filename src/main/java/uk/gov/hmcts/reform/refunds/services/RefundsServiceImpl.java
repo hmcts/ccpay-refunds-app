@@ -112,7 +112,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
-                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNot(
                 refundStatus,
                 idamUserIdResponse.getUid()
             ) : refundsRepository.findByRefundStatus(refundStatus);

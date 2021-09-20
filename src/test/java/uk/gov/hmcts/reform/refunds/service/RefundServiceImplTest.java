@@ -209,7 +209,7 @@ public class RefundServiceImplTest {
     @Test
     void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
-        when(refundsRepository.findByRefundStatusAndCreatedByIsNot(
+        when(refundsRepository.findByRefundStatusAndUpdatedByIsNot(
             any(),
             anyString()
         ))
