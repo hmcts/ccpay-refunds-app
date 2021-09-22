@@ -26,5 +26,15 @@ java:
           alias: OIDC_CLIENT_SECRET
         - name: launch-darkly-sdk-key
           alias: LAUNCH_DARKLY_SDK_KEY
+        - name: liberata-keys-oauth2-client-id
+          alias: liberata.oauth2.client.id
+        - name: liberata-keys-oauth2-client-secret
+          alias: liberata.oauth2.client.secret
+        - name: liberata-keys-oauth2-username
+          alias: liberata.oauth2.username
+        - name: liberata-keys-oauth2-password
+          alias: liberata.oauth2.password
+        - name: liberata-api-key
+          alias: LIBERATA_API_KEY
   postgresql:
     enabled: true
