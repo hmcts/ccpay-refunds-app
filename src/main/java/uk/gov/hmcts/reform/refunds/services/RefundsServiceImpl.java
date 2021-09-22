@@ -146,7 +146,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (!roles.isEmpty()) {
             List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
-
+            userIdentityDataDtoList.forEach(user->{
+                LOG.info("user info:"+user.getId());
+            });
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             refundList.stream()
                 .filter(e -> userIdentityDataDtoList.stream().map(UserIdentityDataDto::getId)
