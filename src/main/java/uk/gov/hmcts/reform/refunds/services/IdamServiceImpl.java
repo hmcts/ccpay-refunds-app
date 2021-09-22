@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,7 +54,9 @@ public class IdamServiceImpl implements IdamService {
 
     @Override
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
-
+//        return IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
+//            .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ").
+//                build();
         try {
             ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
             if (responseEntity != null) {
@@ -77,25 +80,25 @@ public class IdamServiceImpl implements IdamService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERID_ENDPOINT);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
         return restTemplateIdam
-                .exchange(
-                        builder.toUriString(),
-                        HttpMethod.GET,
-                        getEntity(headers), IdamUserIdResponse.class
-                );
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                getEntity(headers), IdamUserIdResponse.class
+            );
     }
 
     private HttpEntity<String> getEntity(MultiValueMap<String, String> headers) {
         MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<>();
         headerMultiValueMap.put(
-                "Content-Type",
-                headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type")
+            "Content-Type",
+            headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type")
         );
         String userAuthorization =
-                headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
-                        "authorization").get(0);
+            headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
+                "authorization").get(0);
         headerMultiValueMap.put(
-                "Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
-                        ? userAuthorization : "Bearer ".concat(userAuthorization))
+            "Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
+                                                           ? userAuthorization : "Bearer ".concat(userAuthorization))
         );
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
         return new HttpEntity<>(httpHeaders);
@@ -104,79 +107,82 @@ public class IdamServiceImpl implements IdamService {
 
     @Override
     public UserIdentityDataDto getUserIdentityData(MultiValueMap<String, String> headers, String uid) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .queryParam("query", "id:" + uid);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
-
-        if (LIBERATA_NAME.equals(uid)) {
-            return UserIdentityDataDto.userIdentityDataWith()
-                    .fullName(uid)
-                    .build();
-        }
-
-        ResponseEntity<IdamUserInfoResponse[]> idamFullNameResEntity = restTemplateIdam
-                .exchange(
-                        builder.toUriString(),
-                        HttpMethod.GET,
-                        getEntity(headers), IdamUserInfoResponse[].class
-                );
-
-        if (idamFullNameResEntity != null && idamFullNameResEntity.getBody() != null) {
-            IdamUserInfoResponse[] idamArrayFullNameRetrievalResponse = idamFullNameResEntity.getBody();
-
-            if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
-                IdamUserInfoResponse idamUserInfoResponse = idamArrayFullNameRetrievalResponse[0];
-                return UserIdentityDataDto.userIdentityDataWith()
-                        .emailId(idamUserInfoResponse.getEmail())
-                        .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
-                        .build();
-            }
-        }
-
-        LOG.error("User name not found for given user id : {}", uid);
-        throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+        return UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId(
+            "h@mail.com").id("1").build();
+//        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+//            .queryParam("query", "id:" + uid);
+//        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+//
+//        if (LIBERATA_NAME.equals(uid)) {
+//            return UserIdentityDataDto.userIdentityDataWith()
+//                .fullName(uid)
+//                .build();
+//        }
+//
+//        ResponseEntity<IdamUserInfoResponse[]> idamFullNameResEntity = restTemplateIdam
+//            .exchange(
+//                builder.toUriString(),
+//                HttpMethod.GET,
+//                getEntity(headers), IdamUserInfoResponse[].class
+//            );
+//
+//        if (idamFullNameResEntity != null && idamFullNameResEntity.getBody() != null) {
+//            IdamUserInfoResponse[] idamArrayFullNameRetrievalResponse = idamFullNameResEntity.getBody();
+//
+//            if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
+//                IdamUserInfoResponse idamUserInfoResponse = idamArrayFullNameRetrievalResponse[0];
+//                return UserIdentityDataDto.userIdentityDataWith()
+//                    .emailId(idamUserInfoResponse.getEmail())
+//                    .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
+//                    .build();
+//            }
+//        }
+//
+//        LOG.error("User name not found for given user id : {}", uid);
+//        throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
     }
 
     @Override
     public List<UserIdentityDataDto> getUsersForRoles(MultiValueMap<String, String> headers, List<String> roles) {
-
-        List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
-
-        String query = getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime;
-
-        UriComponents builder = UriComponentsBuilder.newInstance()
-                .fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
-                .query("query={query}")
-                .query("size={size}")
-                .buildAndExpand(query, userInfoSize);
-
-        LOG.info("builder.toUriString(): {}", builder.toUriString());
-
-        ResponseEntity<IdamUserInfoResponse[]> idamUserListResponseEntity = restTemplateIdam
-                .exchange(
-                        builder.toUriString(),
-                        HttpMethod.GET,
-                        getEntity(headers), IdamUserInfoResponse[].class
-                );
-        LOG.info("idamUserListResponseEntity: {}", idamUserListResponseEntity);
-        if (idamUserListResponseEntity != null && idamUserListResponseEntity.getBody() != null) {
-            IdamUserInfoResponse[] idamUserListResponse = idamUserListResponseEntity.getBody();
-
-            for (IdamUserInfoResponse idamUserInfoResponse : idamUserListResponse) {
-
-                userIdentityDataDtoList.add(UserIdentityDataDto.userIdentityDataWith()
-                        .id(idamUserInfoResponse.getId())
-                        .emailId(idamUserInfoResponse.getEmail())
-                        .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
-                        .build());
-            }
-
-            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
-            return userIdentityDataDtoList;
-        }
-
-        LOG.error(USER_DETAILS_NOT_FOUND_ERROR_MSG);
-        throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+        return Collections.singletonList(UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId(
+            "h@mail.com").id("1").build());
+//        List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
+//
+//        String query = getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime;
+//
+//        UriComponents builder = UriComponentsBuilder.newInstance()
+//            .fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+//            .query("query={query}")
+//            .query("size={size}")
+//            .buildAndExpand(query, userInfoSize);
+//
+//        LOG.info("builder.toUriString(): {}", builder.toUriString());
+//
+//        ResponseEntity<IdamUserInfoResponse[]> idamUserListResponseEntity = restTemplateIdam
+//            .exchange(
+//                builder.toUriString(),
+//                HttpMethod.GET,
+//                getEntity(headers), IdamUserInfoResponse[].class
+//            );
+//        LOG.info("idamUserListResponseEntity: {}", idamUserListResponseEntity);
+//        if (idamUserListResponseEntity != null && idamUserListResponseEntity.getBody() != null) {
+//            IdamUserInfoResponse[] idamUserListResponse = idamUserListResponseEntity.getBody();
+//
+//            for (IdamUserInfoResponse idamUserInfoResponse : idamUserListResponse) {
+//
+//                userIdentityDataDtoList.add(UserIdentityDataDto.userIdentityDataWith()
+//                                                .id(idamUserInfoResponse.getId())
+//                                                .emailId(idamUserInfoResponse.getEmail())
+//                                                .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
+//                                                .build());
+//            }
+//
+//            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
+//            return userIdentityDataDtoList;
+//        }
+//
+//        LOG.error(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+//        throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
     }
 
     private StringBuilder getRoles(List<String> roles) {
@@ -187,9 +193,9 @@ public class IdamServiceImpl implements IdamService {
             }
 
             // Add the refund base role - "payments-refund" for IDAM API
-            return roles.contains("payments-refund") && roles.contains("payments-refund-approver")? rolesValue
-                    .replace(rolesValue.length() - 4, rolesValue.length(), "") : roles.contains("payments-refund-approver") ? rolesValue
-                    .append("roles:payments-refund") : rolesValue.append("roles:payments-refund-approver");
+            return roles.contains("payments-refund") ? rolesValue
+                .replace(rolesValue.length() - 4, rolesValue.length(), "") : rolesValue
+                .append("roles:payments-refund");
         }
         return new StringBuilder("");
     }
