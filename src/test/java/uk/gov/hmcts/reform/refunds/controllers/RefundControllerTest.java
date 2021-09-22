@@ -79,7 +79,7 @@ class RefundControllerTest {
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
-        .roles(List.of("refund-approver", "refund-admin"))
+        .roles(List.of("payments-refund", "payments-refund-approver"))
         .active(true)
         .lastModified("2021-07-20T11:03:08.067Z")
         .build()};
@@ -89,7 +89,7 @@ class RefundControllerTest {
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
-        .roles(List.of("refund-approver", "refund-admin"))
+        .roles(List.of("payments-refund", "payments-refund-approver"))
         .active(true)
         .lastModified("2021-07-20T11:03:08.067Z")
         .build(),
@@ -99,7 +99,7 @@ class RefundControllerTest {
             .email("mock1fullname@gmail.com")
             .forename("mock1-Forename")
             .surname("mock1-Surname")
-            .roles(List.of("refund-approver", "caseworker-damage"))
+            .roles(List.of("payments-refund", "payments-refund-approver", "caseworker-damage"))
             .active(true)
             .lastModified("2021-07-20T11:03:08.067Z")
             .build()
@@ -110,7 +110,7 @@ class RefundControllerTest {
         .email("mock1fullname@gmail.com")
         .forename("mock1-Forename")
         .surname("mock1-Surname")
-        .roles(List.of("refund-approver", "caseworker-damage"))
+        .roles(List.of("payments-refund", "payments-refund-approver", "caseworker-damage"))
         .active(true)
         .lastModified("2021-07-20T11:03:08.067Z")
         .build()};
@@ -121,7 +121,7 @@ class RefundControllerTest {
         .email("mock2fullname@gmail.com")
         .forename("mock2-Forename")
         .surname("mock2-Surname")
-        .roles(List.of("refund-approver", "refund-admin"))
+        .roles(List.of("payments-refund", "payments-refund-approver", "refund-admin"))
         .active(true)
         .lastModified("2021-07-20T11:03:08.067Z")
         .build()};
@@ -130,7 +130,7 @@ class RefundControllerTest {
         .givenName("mock-ForeName")
         .name("mock-ForeName mock-Surname")
         .sub("mockfullname@gmail.com")
-        .roles(List.of("refund-approver", "refund-admin"))
+        .roles(List.of("payments-refund", "payments-refund-approver", "refund-admin"))
         .uid(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .build();
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
@@ -372,7 +372,7 @@ class RefundControllerTest {
 
         //mock idam userFullName call
         mockGetUsersForRolesCall(
-            Arrays.asList("refund-approver", "refund-admin"),
+            Arrays.asList("payments-refund", "payments-refund-approver"),
             idamFullNameCCDSearchRefundListSupplier1.get()
         );
         when(idamService.getUsersForRoles(
@@ -423,7 +423,7 @@ class RefundControllerTest {
 
         //mock idam userFullName call
         mockGetUsersForRolesCall(
-            Arrays.asList("refund-approver", "refund-admin"),
+            Arrays.asList("payments-refund", "payments-refund-approver"),
             idamFullNameSendBackRefundListSupplier.get()
         );
 
@@ -467,7 +467,7 @@ class RefundControllerTest {
     }
 
     public void mockGetUsersForRolesCall(List<String> roles, IdamUserInfoResponse[] idamUserListResponse) {
-        String query = "(roles:refund-approver OR roles:refund-admin OR roles:payments-refund-approver) AND lastModified:>now-720d";
+        String query = "(roles:payments-refund OR roles:payments-refund-approver OR roles:refund-admin) AND lastModified:>now-720d";
         int size = 300;
         UriComponents builder = UriComponentsBuilder.newInstance()
             .fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
