@@ -14,6 +14,10 @@ locals {
   # list of the thumbprints of the SSL certificates that should be accepted by the refund status API (gateway)
   refund_status_thumbprints_in_quotes = formatlist("&quot;%s&quot;", var.refunds_api_gateway_certificate_thumbprints)
   refund_status_thumbprints_in_quotes_str = join(",", local.refund_status_thumbprints_in_quotes)
+
+  s2s_rg_prefix               = "rpe-service-auth-provider"
+  s2s_key_vault_name          = var.env == "preview" || var.env == "spreview" ? join("-", ["s2s", "aat"]) : join("-", ["s2s", var.env])
+  s2s_vault_resource_group    = var.env == "preview" || var.env == "spreview" ? join("-", [local.s2s_rg_prefix, "aat"]) : join("-", [local.s2s_rg_prefix, var.env])
 }
 
 data "azurerm_key_vault" "refunds_key_vault" {
@@ -86,3 +90,18 @@ data "azurerm_key_vault_secret" "s2s_client_id" {
   key_vault_id = data.azurerm_key_vault.refund_key_vault.id
 }
 
+data "azurerm_key_vault" "s2s_key_vault" {
+  name                = local.s2s_key_vault_name
+  resource_group_name = local.s2s_vault_resource_group
+}
+
+data "azurerm_key_vault_secret" "s2s_secret" {
+  name          = "microservicekey-refunds-api"
+  key_vault_id  = data.azurerm_key_vault.s2s_key_vault.id
+}
+
+resource "azurerm_key_vault_secret" "refunds_s2s_secret" {
+  name          = "refunds-s2s-secret"
+  value         = data.azurerm_key_vault_secret.s2s_secret.value
+  key_vault_id  = data.azurerm_key_vault.refunds_key_vault.id
+}
