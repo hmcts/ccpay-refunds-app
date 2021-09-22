@@ -27,10 +27,14 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     @Autowired
     private OAuth2RestOperations restTemplate;
 
+    @Value("${liberata.api.key}")
+    private String xapikey;
+
 
     @Override
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest){
         try{
+            headers.add("X-API-KEY",xapikey);
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
