@@ -7,17 +7,22 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
+@Builder(builderMethodName = "statusHistoryResponseDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Builder(builderMethodName = "idamUserListResponseWith")
+@Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-public class IdamUserListResponse {
-    private List<IdamUserInfoResponse> idamUserInfoResponseList;
+public class StatusHistoryResponseDto {
+
+    private List<StatusHistoryDto> statusHistoryDtoList;
+
+    private Boolean lastUpdatedByCurrentUser;
 }
