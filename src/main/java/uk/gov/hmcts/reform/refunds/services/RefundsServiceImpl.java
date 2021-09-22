@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.idam.client.IdamClient;
+import uk.gov.hmcts.reform.idam.client.models.UserInfo;
+import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -76,6 +79,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private StatusHistoryRepository statusHistoryRepository;
 
+    @Autowired
+    private IdamRepository idamRepository;
+
     @Override
     public RefundEvent[] retrieveActions(String reference) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -101,9 +107,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Optional<List<Refund>> refundList = Optional.empty();
 
+        UserInfo userInfo = idamRepository.getUserInfo(headers.get("authorization").get(0));
+        LOG.info("userInfo: {}", userInfo.toString());
+
         //Get the userId
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
-        LOG.info("idamUserIdResponse: {}", idamUserIdResponse);
+        LOG.info("idamUserIdResponse: {}", idamUserIdResponse.toString());
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
@@ -146,8 +155,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (!roles.isEmpty()) {
             List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
-            userIdentityDataDtoList.forEach(user->{
-                LOG.info("user info:"+user.getId());
+            userIdentityDataDtoList.forEach(user -> {
+                LOG.info("user info:" + user.getId());
             });
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             refundList.stream()
