@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -30,11 +32,13 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     @Value("${liberata.api.key}")
     private String xapikey;
 
+    private static final Logger LOG = LoggerFactory.getLogger(ReconciliationProviderServiceImpl.class);
 
     @Override
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest){
         try{
             headers.add("X-API-KEY",xapikey);
+            LOG.info("xapikey"+xapikey);
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
