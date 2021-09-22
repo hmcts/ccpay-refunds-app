@@ -152,7 +152,7 @@ liberata:
     token:
       url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
   api:
-    key: ${LIBERATA_API_KEY}
+    key: ${LIBERATA_API_KEY:dummy}
 
 user:
   info:
