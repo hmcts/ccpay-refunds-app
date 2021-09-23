@@ -14,8 +14,11 @@ public class TestConfigProperties {
     @Autowired
     public Oauth2 oauth2;
 
-    @Value("${test.url}")
+    @Value("${test.url.refunds}")
     public String baseTestUrl;
+
+    @Value("${test.url.payments}")
+    public String basePaymentsUrl;
 
     @Value("${generated.user.email.pattern}")
     public String generatedUserEmailPattern;
@@ -29,9 +32,30 @@ public class TestConfigProperties {
     @Value("${s2s.url}")
     private String s2sBaseUrl;
 
-    @Value("${s2s.service.name}")
+    @Value("${s2s.service.paymentapp.name}")
     public String s2sServiceName;
 
-    @Value("${s2s.service.secret}")
+    @Value("${s2s.service.paymentapp.secret}")
     public String s2sServiceSecret;
+
+    @Value("${payments.account.existing.account.number}")
+    public String existingAccountNumber;
+
+    @Value("${payments.account.fake.account.number}")
+    public String fakeAccountNumber;
+
+    @Value("${mock.callback.url.endpoint}")
+    public String mockCallBackUrl;
+
+    @Value("${s2s.service.paybubble.name}")
+    public String payBubbleS2SName;
+
+    @Value("${s2s.service.paybubble.secret}")
+    public String payBubbleS2SSecret;
+
+    @Value("${s2s.service.cmc.name}")
+    public String cmcS2SName;
+
+    @Value("${s2s.service.cmc.secret}")
+    public String cmcS2SSecret;
 }

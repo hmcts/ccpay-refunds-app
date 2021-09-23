@@ -21,10 +21,15 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class IdamService {
     public static final String CMC_CITIZEN_GROUP = "cmc-private-beta";
+    public static final String CMC_CASE_WORKER_GROUP = "caseworker";
 
     public static final String BEARER = "Bearer ";
+    public static final String AUTHORIZATION_CODE = "authorization_code";
+    public static final String CODE = "code";
+    public static final String BASIC = "Basic ";
     public static final String GRANT_TYPE = "password";
     public static final String SCOPES = "openid profile roles";
+    public static final String SCOPES_SEARCH_USER = "openid profile roles search-user";
     private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
     private final IdamApi idamApi;
     private final TestConfigProperties testConfig;
@@ -55,6 +60,22 @@ public class IdamService {
         return new ValidUser(email, accessToken);
     }
 
+    public ValidUser createUserWithSearchScope(String userGroup, String... roles) {
+        String email = nextUserEmail();
+        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        LOG.info("idamApi : " + idamApi.toString());
+        LOG.info("userRequest : " + userRequest);
+        try {
+            idamApi.createUser(userRequest);
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+
+        String accessToken = authenticateUserWithSearchScope(email, testConfig.getTestUserPassword());
+
+        return new ValidUser(email, accessToken);
+    }
+
     public String authenticateUser(String username, String password) {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
@@ -81,6 +102,31 @@ public class IdamService {
         return null;
     }
 
+    public String authenticateUserWithSearchScope(String username, String password) {
+        String authorisation = username + ":" + password;
+        String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
+
+        LOG.info("username : " + username);
+        LOG.info("password : " + password);
+        LOG.info("base64Authorisation : " + base64Authorisation);
+        LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
+        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
+
+        try {
+            TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
+                                                                               password,
+                                                                               SCOPES_SEARCH_USER,
+                                                                               GRANT_TYPE,
+                                                                               "paybubble",
+                                                                               "***REMOVED***",
+                                                                               testConfig.getOauth2().getRedirectUrl());
+
+            return BEARER + tokenExchangeResponse.getAccessToken();
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+        return null;
+    }
 
     private CreateUserRequest userRequest(String email, String userGroup, String... roles) {
         return CreateUserRequest.builder()

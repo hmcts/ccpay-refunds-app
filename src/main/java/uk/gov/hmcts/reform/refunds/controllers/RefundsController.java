@@ -138,7 +138,7 @@ public class RefundsController {
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable("reference") String reference,
             @RequestBody @Valid ResubmitRefundRequest request) {
-        return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.OK);
+        return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 
     @GetMapping("/refund/rejection-reasons")
@@ -152,7 +152,7 @@ public class RefundsController {
      * @return List of Refunds Status History
      */
     @GetMapping("/refund/{reference}/status-history")
-    public ResponseEntity<List<StatusHistoryDto>> getStatusHistory(
+    public ResponseEntity<StatusHistoryResponseDto> getStatusHistory(
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable String reference) {
