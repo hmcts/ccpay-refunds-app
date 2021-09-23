@@ -24,7 +24,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -186,9 +185,9 @@ public class IdamServiceImpl implements IdamService {
             }
 
             // Add the refund base role - "payments-refund" for IDAM API
-            return roles.contains("payments-refund") ? rolesValue
-                .replace(rolesValue.length() - 4, rolesValue.length(), "") : rolesValue
-                .append("roles:payments-refund");
+            return roles.contains("payments-refund") && roles.contains("payments-refund-approver")? rolesValue
+                .replace(rolesValue.length() - 4, rolesValue.length(), "") : roles.contains("payments-refund-approver") ? rolesValue
+                .append("roles:payments-refund") : rolesValue.append("roles:payments-refund-approver");
         }
         return new StringBuilder("");
     }
