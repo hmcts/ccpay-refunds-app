@@ -18,8 +18,8 @@ public class RefundResponseMapper {
             .refundStatus(refund.getRefundStatus())
             .refundReference(refund.getReference())
             .paymentReference(refund.getPaymentReference())
-            .userFullName(userData.getFullName())
-            .emailId(userData.getEmailId())
+            .userFullName(userData == null ? "" : userData.getFullName())
+            .emailId(userData == null ? "" : userData.getEmailId())
             .dateCreated(refund.getDateCreated().toString())
             .dateUpdated(refund.getDateUpdated().toString())
             .build();
