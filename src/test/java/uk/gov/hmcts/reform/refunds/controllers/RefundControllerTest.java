@@ -1576,7 +1576,7 @@ class RefundControllerTest {
             refundsController.resubmitRefund(null, null, "RF-1111-1111-1111-1111", resubmitRefundRequest);
         verify(refundsService, times(1)).resubmitRefund("RF-1111-1111-1111-1111", resubmitRefundRequest, null);
         assertNotNull(responseEntity.getBody());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
         assertEquals(BigDecimal.valueOf(333), responseEntity.getBody().getRefundAmount());
         assertEquals("RF-1111-1111-1111-1111", responseEntity.getBody().getRefundReference());
     }
