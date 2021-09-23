@@ -8,7 +8,7 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/refunds
+    url: jdbc:postgresql://localhost:5432/refunds7
     username: refunds
     password: refunds
     properties:
@@ -78,8 +78,8 @@ payments:
 
 reconciliation-provider:
   api:
-    url: ${LIBERATA_BASE_URL:https://bpacustomerportal.liberata.com/pba/public}
-  refund-status-update-path: /api/v3/refund
+    url: ${LIBERATA_BASE_URL:https://lascustomerportaluat.liberata.com}
+  refund-status-update-path: ${REFUND_STATUS_UPDATE_PATH:/refunds-api/refunds}
 liberata:
   oauth2:
     client:
@@ -91,6 +91,6 @@ liberata:
       url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
     token:
       url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
-
-
+  api:
+    key: ${LIBERATA_API_KEY:abc}
 

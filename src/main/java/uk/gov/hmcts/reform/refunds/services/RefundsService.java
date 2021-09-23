@@ -23,7 +23,7 @@ public interface RefundsService {
 
     List<RejectionReasonResponse> getRejectedReasons();
 
-    List<StatusHistoryDto> getStatusHistory(MultiValueMap<String, String> headers, String reference);
+    StatusHistoryResponseDto getStatusHistory(MultiValueMap<String, String> headers, String reference);
 
     ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request, MultiValueMap<String, String> headers);
 }
