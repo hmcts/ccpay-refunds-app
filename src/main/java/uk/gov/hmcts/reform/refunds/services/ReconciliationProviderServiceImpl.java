@@ -31,15 +31,15 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     private OAuth2RestOperations restTemplate;
 
     @Value("${liberata.api.key}")
-    private String xapikey;
+    private String xApikey;
 
     private static final Logger LOG = LoggerFactory.getLogger(ReconciliationProviderServiceImpl.class);
 
     @Override
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest){
         try{
-            headers.add("X-API-KEY",xapikey);
-            LOG.info("xapikey"+xapikey);
+            headers.add("X-API-KEY",xApikey);
+            LOG.info("xApikey: {}",xApikey);
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
