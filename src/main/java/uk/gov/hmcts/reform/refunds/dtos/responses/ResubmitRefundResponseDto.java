@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.dtos.requests;
+package uk.gov.hmcts.reform.refunds.dtos.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -9,17 +9,16 @@ import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonInclude(NON_NULL)
-@Builder(builderMethodName = "ResubmitRefundRequestWith")
+@Builder(builderMethodName = "buildResubmitRefundResponseDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
 @Getter
-public class ResubmitRefundRequest {
+@Setter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonInclude(NON_NULL)
+public class ResubmitRefundResponseDto {
 
-    private String refundReason;
+    private BigDecimal refundAmount;
 
-    private BigDecimal amount;
-
+    private String refundReference;
 }

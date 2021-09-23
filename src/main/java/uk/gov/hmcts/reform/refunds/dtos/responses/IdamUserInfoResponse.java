@@ -19,7 +19,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "idamFullNameRetrivalResponseWith")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-public class IdamFullNameRetrivalResponse {
+public class IdamUserInfoResponse {
 
     private String id;
     private String forename;
@@ -28,4 +28,6 @@ public class IdamFullNameRetrivalResponse {
     private boolean active;
     private List<String> roles;
     private String lastModified;
+    private String createDate;
+    private boolean stale;
 }

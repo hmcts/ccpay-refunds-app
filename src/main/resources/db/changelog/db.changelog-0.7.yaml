@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100007
+      author: Jennings
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_reasons (code, name, description, recently_used)
+                VALUES
+              ('RR036', 'Retrospective remission', 'Retrospective remission',FALSE);
+  - changeSet:
+      id: 100007-1
+      author: Sayali
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              UPDATE refund_reasons SET
+                name = 'Application/case withdrawn'
+                WHERE code = 'RR004';
+              UPDATE refund_reasons SET
+                name = 'Claim issued in error (court error)'
+                WHERE code = 'RR005';
+              UPDATE refund_reasons SET
+                name = 'Claim issued in error (customer error)'
+                WHERE code = 'RR006';
+              UPDATE refund_reasons SET
+                name = 'Full help with fees/fee remission'
+                WHERE code = 'RR013';
+              UPDATE refund_reasons SET
+                name = 'Incorrect fee taken/wrong fee selected'
+                WHERE code = 'RR014';
+              UPDATE refund_reasons SET
+                name = 'Missing/incorrect documents'
+                WHERE code = 'RR017';
+              UPDATE refund_reasons SET
+                name = 'Part help with fees/fee remission'
+                WHERE code = 'RR018';
+              UPDATE refund_reasons SET
+                name = 'Fee not due'
+                WHERE code = 'RR023';
+              UPDATE refund_reasons SET
+                name = 'System/technical error'
+                WHERE code = 'RR024';
+              UPDATE refund_reasons SET
+                name = 'Legal correction - legislation revised'
+                WHERE code = 'RR025';
+              UPDATE refund_reasons SET
+                name = 'Legal correction - legislation reinterpretation'
+                WHERE code = 'RR026';
+  - changeSet:
+      id: 100007-2
+      author: Sayali
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              DELETE FROM refund_reasons WHERE code = 'RR013';
+              DELETE FROM refund_reasons WHERE code = 'RR018';

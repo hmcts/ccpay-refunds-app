@@ -5,24 +5,13 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
+import uk.gov.hmcts.reform.refunds.exceptions.*;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -38,12 +27,8 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -59,12 +44,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Pattern REASONPATTERN = Pattern.compile("(^RR0[0-9][0-9]-[a-zA-Z]+)");
 
-    private static final Pattern STATUSPATTERN = Pattern.compile("[^rejected]");
-
     private static final String OTHERREASONPATTERN = "Other - ";
 
+    private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
+    private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
-
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -102,8 +86,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundRequest(refundRequest);
-        String uid = idamService.getUserId(headers);
-        Refund refund = initiateRefundEntity(refundRequest, uid);
+        IdamUserIdResponse uid = idamService.getUserId(headers);
+        Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -112,63 +96,78 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber, String excludeCurrentUser) {
-        //Get the userId
-        String uid = idamService.getUserId(headers);
+    public RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers,
+                                               String ccdCaseNumber, String excludeCurrentUser) {
+
         Optional<List<Refund>> refundList = Optional.empty();
 
+        //Get the userId
+        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
+        LOG.info("idamUserIdResponse: {}", idamUserIdResponse);
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
         } else if (StringUtils.isNotBlank(status)) {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
+
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
-                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNot(
                 refundStatus,
-                uid
+                idamUserIdResponse.getUid()
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        return getRefundListDto(headers, refundList);
+        LOG.info("refundList: {}", refundList);
+        // Get Refunds related Roles from logged in user
+        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
+            .collect(Collectors.toList());
+        LOG.info("roles: {}", roles);
+        return getRefundListDto(headers, refundList, roles);
     }
 
-    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList) {
+    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList, List<String> roles) {
+
         if (refundList.isPresent() && !refundList.get().isEmpty()) {
             return RefundListDtoResponse
                 .buildRefundListWith()
-                .refundList(getRefundResponseDtoList(headers, refundList.get()))
+                .refundList(getRefundResponseDtoList(headers, refundList.get(), roles))
                 .build();
         } else {
             throw new RefundListEmptyException("Refund list is empty for given criteria");
         }
     }
 
-    public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList) {
-        //Distinct createdBy UID
-        Set<String> distintUIDSet = refundList
-            .stream().map(Refund::getCreatedBy)
-            .collect(Collectors.toSet());
-
-        //Map UID -> User full name
-        Map<String, UserIdentityDataDto> userFullNameMap = getIdamUserDetails(headers, distintUIDSet);
+    public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
 
-        //Update the user full name for created by
-        refundList
-            .forEach(refund -> {
-                String reason  = getRefundReason(refund.getReason());
-                refundListDto.add(refundResponseMapper.getRefundListDto(
-                    refund,
-                    userFullNameMap.get(refund.getCreatedBy()),reason
-                ));
-                     }
+        if (!roles.isEmpty()) {
+            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
+            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
+            userIdentityDataDtoList.forEach(user->{
+                LOG.info("user info:"+user.getId());
+            });
+            // Filter Refunds List based on Refunds Roles and Update the user full name for created by
+            refundList.stream()
+                .filter(e -> userIdentityDataDtoList.stream().map(UserIdentityDataDto::getId)
+                    .anyMatch(id -> id.equals(e.getCreatedBy())))
+                .collect(Collectors.toList())
+                .forEach(refund -> {
+                    String reason = getRefundReason(refund.getReason());
+                    LOG.info("refund: {}", refund);
+                    refundListDto.add(refundResponseMapper.getRefundListDto(
+                        refund,
+                        userIdentityDataDtoList.stream()
+                            .filter(dto -> refund.getCreatedBy().equals(dto.getId()))
+                            .findAny().get(),
+                        reason
+                    ));
+                });
+        }
 
-
-            );
-
+        LOG.info("refundListDto: {}", refundListDto);
         return refundListDto;
     }
 
@@ -180,47 +179,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
         throw new RefundNotFoundException("Refunds not found for " + reference);
     }
-
-
-//    @Override
-//    public HttpStatus reSubmitRefund(MultiValueMap<String, String> headers, String refundReference, RefundRequest refundRequest) {
-////        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-////        if (refund.isPresent()) {
-//
-////            String status = refund.get().getRefundStatus().getName();
-////            List<String> nextValidEvents = Arrays.asList(RefundState.valueOf(status).nextValidEvents()).stream().map(
-////                refundEvent1 -> refundEvent1.toString()).collect(
-////                Collectors.toList());
-//
-////            RefundEvent[] ve = RefundState.valueOf(status).nextValidEvents();
-//
-////            if (nextValidEvents.contains(RefundEvent.valueOf(status))) {
-////              return new ResponseEntity("Invalid refund event entered next valid refund events is/are : " + nextValidEvents, HttpStatus.BAD_REQUEST);
-////            }
-////
-////          request.setState(currentstate.nextState(currentEventFromRequest));
-//
-////          if(RefundState.valueOf(refund.get().getRefundStatus().getName()).equals())
-////            refund.get().setPaymentReference(refundRequest.getPaymentReference());
-////            refund.get().setReason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get());
-////            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
-////            refund.get().setRefundStatus(SUBMITTED);
-//
-////        }
-//        return HttpStatus.ACCEPTED;
-//
-//          request.setState(currentstate.nextState(currentEventFromRequest));
-
-//          if(RefundState.valueOf(refund.get().getRefundStatus().getName()).equals())
-//            refund.get().setPaymentReference(refundRequest.getPaymentReference());
-//            refund.get().setReason(RefundReason.getReasonObject(refundRequest.getRefundReason()).get());
-//            refund.get().setReason(RefundReasonCode.valueOf(refundRequest.getRefundReason().getCode()));
-//            refund.get().setRefundStatus(SUBMITTED);
-
-//        }
-//        return HttpStatus.ACCEPTED;
-
-//    }
 
     @Override
     public List<RejectionReasonResponse> getRejectedReasons() {
@@ -234,93 +192,108 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public List<StatusHistoryDto> getStatusHistory(MultiValueMap<String, String> headers, String reference) {
+    public StatusHistoryResponseDto getStatusHistory(MultiValueMap<String, String> headers, String reference) {
         List<StatusHistory> statusHistories = null;
+        Boolean isLastUpdatedByCurrentUser = false;
         if (null != reference) {
 
             Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
             statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund);
+
+            IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
+
+            isLastUpdatedByCurrentUser = isLastUpdatedByCurrentUser(idamUserIdResponse.getUid(), refund);
+
         }
 
-        return getStatusHistoryDto(headers, statusHistories);
+        return getStatusHistoryDto(headers, statusHistories, isLastUpdatedByCurrentUser);
     }
 
     @Override
-    public ResponseEntity resubmitRefund(String reference, ResubmitRefundRequest request,
-                                         MultiValueMap<String, String> headers) {
+    public ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request,
+                                                    MultiValueMap<String, String> headers) {
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
 
+
         if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
 
-            // Amount Validation
-            validateRefundAmount(refund, request, headers);
-
             // Refund Reason Validation
-            if (null != request.getRefundReason()) {
-                refund.setReason(validateRefundReason(request.getRefundReason()));
+            String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON : validateRefundReason(
+                request.getRefundReason());
+
+            BigDecimal refundAmount = request.getAmount() == null ? refund.getAmount() : request.getAmount();
+
+            refund.setReason(refundReason);
+            refund.setAmount(refundAmount);
+            // Remission update in payhub
+            RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
+                .refundResubmitRequestPayhubWith()
+                .refundReason(refundReason)
+                .amount(refundAmount)
+                .build();
+
+            boolean payhubRemissionUpdateResponse = paymentService.
+                updateRemissionAmountInPayhub(headers, refund.getPaymentReference(), refundResubmitPayhubRequest);
+
+            if (payhubRemissionUpdateResponse) {
+                // Update Status History table
+                IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
+                refund.setUpdatedBy(idamUserIdResponse.getUid());
+                List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
+                refund.setUpdatedBy(idamUserIdResponse.getUid());
+                statusHistories.add(StatusHistory.statusHistoryWith()
+                                        .createdBy(idamUserIdResponse.getUid())
+                                        .status(SENTFORAPPROVAL.getName())
+                                        .notes("Refund initiated")
+                                        .build());
+                refund.setStatusHistories(statusHistories);
+                refund.setRefundStatus(SENTFORAPPROVAL);
+
+                // Update Refunds table
+                refundsRepository.save(refund);
+
+                return
+                    ResubmitRefundResponseDto.buildResubmitRefundResponseDtoWith()
+                        .refundReference(refund.getReference())
+                        .refundAmount(refund.getAmount()).build();
             }
-
-            // Update Status History table
-            String userId = idamService.getUserId(headers);
-            refund.setUpdatedBy(userId);
-            List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
-            refund.setUpdatedBy(userId);
-            statusHistories.add(StatusHistory.statusHistoryWith()
-                    .createdBy(userId)
-                    .status(SENTFORAPPROVAL.getName())
-                    .notes("Refund initiated")
-                    .build());
-            refund.setStatusHistories(statusHistories);
-            refund.setRefundStatus(SENTFORAPPROVAL);
-
-            // Update Refunds table
-            refundsRepository.save(refund);
-
-        } else {
-            throw new ActionNotFoundException("Action not allowed to proceed");
         }
-
-        return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
-    }
-
-    private Refund validateRefundAmount(Refund refund, ResubmitRefundRequest request,
-                                        MultiValueMap<String, String> headers) {
-        PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
-                headers,
-                refund.getPaymentReference()
-        );
-        if (paymentData.getPayments().get(0).getAmount().compareTo(request.getAmount()) < 0) {
-            throw new InvalidRefundRequestException("Amount should not be more than Payment amount");
-        }
-        refund.setAmount(request.getAmount());
-        return refund;
+        throw new ActionNotFoundException("Action not allowed to proceed");
     }
 
     private String validateRefundReason(String reason) {
+
+        if (reason == null || reason.isBlank()) {
+            throw new InvalidRefundRequestException("Refund reason is required");
+        }
         Boolean matcher = REASONPATTERN.matcher(reason).find();
         if (matcher) {
             String reasonCode = reason.split("-")[0];
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
-            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
-                return refundReason.getName().split(OTHERREASONPATTERN)[1]+"-"+reason.substring(reasonPrefixLength);
+            if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
+                return refundReason.getName().split(OTHERREASONPATTERN)[1] + "-" + reason.substring(reasonPrefixLength);
             } else {
                 throw new InvalidRefundRequestException("Invalid reason selected");
             }
 
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reason);
-            if(refundReason.getName().startsWith(OTHERREASONPATTERN)){
+            if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
                 throw new InvalidRefundRequestException("reason required");
             }
             return refundReason.getCode();
         }
     }
 
-    private List<StatusHistoryDto> getStatusHistoryDto(MultiValueMap<String, String> headers, List<StatusHistory> statusHistories) {
+    private Boolean isLastUpdatedByCurrentUser(String uid, Refund refund) {
+        return refund.getUpdatedBy().equals(uid);
+    }
+
+    private StatusHistoryResponseDto getStatusHistoryDto(MultiValueMap<String, String> headers, List<StatusHistory> statusHistories, Boolean isUpdatedByCurrentUser) {
 
         List<StatusHistoryDto> statusHistoryDtos = new ArrayList<>();
 
@@ -340,7 +313,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                  userFullNameMap.get(statusHistory.getCreatedBy())
                              )));
         }
-        return statusHistoryDtos;
+        return StatusHistoryResponseDto.statusHistoryResponseDtoWith()
+            .lastUpdatedByCurrentUser(isUpdatedByCurrentUser)
+            .statusHistoryDtoList(statusHistoryDtos)
+            .build();
     }
 
     private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet) {
@@ -354,27 +330,30 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private void validateRefundRequest(RefundRequest refundRequest) {
 
-//        if (isRefundEligibilityFlagged()) {
-//            throw new InvalidRefundRequestException("Refund Eligibility flag is unflagged");
-//        }
-
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-        long refundProcessingCount = refundsList.isPresent() ? refundsList.get().stream().map(refund -> STATUSPATTERN.matcher(
-            refund.getRefundStatus().getName()).find()).count() : 0;
 
-        if (refundProcessingCount > 0) {
-            throw new InvalidRefundRequestException("Refund is already processed for this payment");
+        if (refundsList.isPresent()) {
+            List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
+                RefundStatus.REJECTED))
+                .map(Refund::getFeeIds)
+                .collect(Collectors.toList());
+
+            List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",") ? Arrays.stream(refundRequest.getFeeIds().split(
+                ",")).collect(Collectors.toList()) : Arrays.asList(refundRequest.getFeeIds());
+
+            feeIdsofRequestedRefund.forEach(feeId -> {
+                nonRejectedFeeList.forEach(nonRejectFee -> {
+                    if (nonRejectFee.contains(feeId)) {
+                        throw new InvalidRefundRequestException("Refund is already requested for this payment");
+                    }
+                });
+
+            });
         }
 
         refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
 
     }
-
-//
-//    private boolean isRefundEligibilityFlagged() {
-//        // Actual logic is coming
-//        return false;
-//    }
 
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()
@@ -398,10 +377,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
     }
 
-    private String getRefundReason(String rawReason){
-        if(rawReason.startsWith("RR")) {
+    private String getRefundReason(String rawReason) {
+        if (rawReason.startsWith("RR")) {
             Optional<RefundReason> refundReasonOptional = refundReasonRepository.findByCode(rawReason);
-            if(refundReasonOptional.isPresent()){
+            if (refundReasonOptional.isPresent()) {
                 return refundReasonOptional.get().getName();
             }
             throw new RefundReasonNotFoundException(rawReason);
