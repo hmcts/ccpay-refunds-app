@@ -128,9 +128,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         UserInfo userInfo = idamRepository.getUserInfo(token);
         LOG.info("userInfo: {}", userInfo.toString());
 
-        //Get the userId
-        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
-        LOG.info("idamUserIdResponse: {}", idamUserIdResponse.toString());
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
@@ -141,13 +138,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
                 excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNot(
                 refundStatus,
-                idamUserIdResponse.getUid()
+                userInfo.getUid()
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
         LOG.info("refundList: {}", refundList);
         // Get Refunds related Roles from logged in user
-        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
+        List<String> roles = userInfo.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
             .collect(Collectors.toList());
         LOG.info("roles: {}", roles);
         return getRefundListDto(headers, refundList, roles);

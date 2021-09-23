@@ -134,9 +134,13 @@ class RefundControllerTest {
         .uid(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .build();
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
-    private static final UserInfo userInfo = UserInfo.builder().uid("1").givenName("XX").familyName("YY").name("XX YY")
-        .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ").
-            build();
+    private static final UserInfo userInfo = UserInfo.builder().familyName("mock-Surname")
+        .givenName("mock-ForeName")
+        .name("mock-ForeName mock-Surname")
+        .sub("mockfullname@gmail.com")
+        .roles(List.of("payments-refund", "payments-refund-approver", "refund-admin"))
+        .uid(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .build();
     private RefundReason refundReason = RefundReason.refundReasonWith().
         code("RR031")
         .description("No comments")
