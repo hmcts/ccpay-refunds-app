@@ -123,7 +123,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Optional<List<Refund>> refundList = Optional.empty();
 
-        UserInfo userInfo = idamRepository.getUserInfo(headers.get("authorization").get(0));
+        String token = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
+            "authorization").get(0);
+        UserInfo userInfo = idamRepository.getUserInfo(token);
         LOG.info("userInfo: {}", userInfo.toString());
 
         //Get the userId

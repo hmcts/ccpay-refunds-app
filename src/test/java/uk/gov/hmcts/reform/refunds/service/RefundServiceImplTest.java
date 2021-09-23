@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.refunds.service;
 
-
-import org.assertj.core.api.AssertionsForClassTypes;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -9,8 +8,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.idam.client.models.UserInfo;
+import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.*;
@@ -32,13 +35,16 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -138,12 +144,17 @@ public class RefundServiceImplTest {
         IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
             .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ").
             build();
+    private static final UserInfo userInfo = UserInfo.builder().uid("1").givenName("XX").familyName("YY").name("XX YY")
+        .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ").
+            build();
+    private static final MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+
     @InjectMocks
     private RefundsServiceImpl refundsService;
     @Mock
     private IdamService idamService;
-    @Mock
-    private MultiValueMap<String, String> map;
+    @MockBean
+    private IdamRepository idamRepository;
     @Mock
     private RefundsRepository refundsRepository;
     @Mock
@@ -157,6 +168,10 @@ public class RefundServiceImplTest {
     @Spy
     private RefundResponseMapper refundResponseMapper;
 
+    @BeforeAll
+    public static void initOnce(){
+        header.put("authorization", Collections.singletonList("Bearer 131313"));
+    }
     @BeforeEach
     public void init() {
         MockitoAnnotations.initMocks(this);
@@ -164,12 +179,13 @@ public class RefundServiceImplTest {
 
     @Test
     void testRefundListEmptyForCritieria() {
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
 
         assertThrows(RefundListEmptyException.class, () -> refundsService.getRefundList(
             null,
-            map,
+            header,
             GET_REFUND_LIST_CCD_CASE_NUMBER,
             "true"
         ));
@@ -177,7 +193,7 @@ public class RefundServiceImplTest {
 
     @Test
     void testRefundListForGivenCCDCaseNumber() {
-
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
             refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
@@ -194,7 +210,7 @@ public class RefundServiceImplTest {
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             null,
-            map,
+            header,
             GET_REFUND_LIST_CCD_CASE_NUMBER,
             "true"
         );
@@ -209,6 +225,7 @@ public class RefundServiceImplTest {
     @Test
     void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() {
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
         when(refundsRepository.findByRefundStatusAndUpdatedByIsNot(
             any(),
             anyString()
@@ -226,7 +243,7 @@ public class RefundServiceImplTest {
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             "sent for approval",
-            map,
+            header,
             "",
             "true"
         );
@@ -250,7 +267,9 @@ public class RefundServiceImplTest {
                 refundListSupplierForSubmittedStatus.get()
             )));
 
-        when(idamService.getUserId(map)).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(idamRepository.getUserInfo(anyString())).thenReturn(userInfo);
+
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
 
         when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(
             UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId("h@mail.com")
@@ -264,7 +283,7 @@ public class RefundServiceImplTest {
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             "sent for approval",
-            map,
+            header,
             "",
             "false"
         );
@@ -313,10 +332,10 @@ public class RefundServiceImplTest {
 
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber1.get());
         when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(any())).thenReturn(statusHistories);
-        when(idamService.getUserId(map)).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(idamService.getUserId(header)).thenReturn(IDAM_USER_ID_RESPONSE);
         when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
 
-        StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(map, "123");
+        StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(header, "123");
 
         assertEquals(false, statusHistoryResponseDto.getLastUpdatedByCurrentUser());
         assertEquals(1, statusHistoryResponseDto.getStatusHistoryDtoList().size());
@@ -361,10 +380,10 @@ public class RefundServiceImplTest {
 
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refundListSupplierBasedOnCCDCaseNumber1.get());
         when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(any())).thenReturn(statusHistories);
-        when(idamService.getUserId(map)).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(idamService.getUserId(header)).thenReturn(IDAM_USER_ID_RESPONSE);
         when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
 
-        StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(map, "123");
+        StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(header, "123");
 
         assertEquals(false, statusHistoryResponseDto.getLastUpdatedByCurrentUser());
         assertEquals(2, statusHistoryResponseDto.getStatusHistoryDtoList().size());
@@ -583,7 +602,7 @@ public class RefundServiceImplTest {
 
     @Test
     void givenValidRole_whenGetRefundList_thenFilteredRefundsListIsReceived() {
-
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
             refundListSupplierBasedOnCCDCaseNumber1.get(), refundListSupplierBasedOnCCDCaseNumber2.get(),
             refundListSupplierBasedOnCCDCaseNumber3.get()
@@ -600,7 +619,7 @@ public class RefundServiceImplTest {
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             null,
-            map,
+            header,
             GET_REFUND_LIST_CCD_CASE_NUMBER,
             "true"
         );
@@ -613,7 +632,7 @@ public class RefundServiceImplTest {
 
     @Test
     void givenEmptyRefundList_whenGetRefundList_thenRefundListEmptyExceptionIsReceived() {
-
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
 
@@ -621,7 +640,7 @@ public class RefundServiceImplTest {
             RefundListEmptyException.class,
             () -> refundsService.getRefundList(
                 null,
-                map,
+                header,
                 GET_REFUND_LIST_CCD_CASE_NUMBER,
                 ""
             )

@@ -28,6 +28,8 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.idam.client.models.UserInfo;
+import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.*;
 import uk.gov.hmcts.reform.refunds.dtos.responses.*;
@@ -44,9 +46,7 @@ import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -79,7 +79,7 @@ class RefundControllerTest {
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
-        .roles(List.of("refund-approver", "refund-admin"))
+        .roles(List.of("payments-refund", "payments-refund-approver"))
         .active(true)
         .lastModified("2021-07-20T11:03:08.067Z")
         .build()};
@@ -89,7 +89,7 @@ class RefundControllerTest {
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
-        .roles(List.of("refund-approver", "refund-admin"))
+        .roles(List.of("payments-refund", "payments-refund-approver"))
         .active(true)
         .lastModified("2021-07-20T11:03:08.067Z")
         .build(),
@@ -99,7 +99,7 @@ class RefundControllerTest {
             .email("mock1fullname@gmail.com")
             .forename("mock1-Forename")
             .surname("mock1-Surname")
-            .roles(List.of("refund-approver", "caseworker-damage"))
+            .roles(List.of("payments-refund", "payments-refund-approver", "caseworker-damage"))
             .active(true)
             .lastModified("2021-07-20T11:03:08.067Z")
             .build()
@@ -110,7 +110,7 @@ class RefundControllerTest {
         .email("mock1fullname@gmail.com")
         .forename("mock1-Forename")
         .surname("mock1-Surname")
-        .roles(List.of("refund-approver", "caseworker-damage"))
+        .roles(List.of("payments-refund", "payments-refund-approver", "caseworker-damage"))
         .active(true)
         .lastModified("2021-07-20T11:03:08.067Z")
         .build()};
@@ -121,7 +121,7 @@ class RefundControllerTest {
         .email("mock2fullname@gmail.com")
         .forename("mock2-Forename")
         .surname("mock2-Surname")
-        .roles(List.of("refund-approver", "refund-admin"))
+        .roles(List.of("payments-refund", "payments-refund-approver", "refund-admin"))
         .active(true)
         .lastModified("2021-07-20T11:03:08.067Z")
         .build()};
@@ -130,10 +130,13 @@ class RefundControllerTest {
         .givenName("mock-ForeName")
         .name("mock-ForeName mock-Surname")
         .sub("mockfullname@gmail.com")
-        .roles(List.of("refund-approver", "refund-admin"))
+        .roles(List.of("payments-refund", "payments-refund-approver", "refund-admin"))
         .uid(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .build();
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final UserInfo userInfo = UserInfo.builder().uid("1").givenName("XX").familyName("YY").name("XX YY")
+        .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ").
+            build();
     private RefundReason refundReason = RefundReason.refundReasonWith().
         code("RR031")
         .description("No comments")
@@ -170,7 +173,6 @@ class RefundControllerTest {
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
         .build();
-
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -179,12 +181,10 @@ class RefundControllerTest {
     private RefundsServiceImpl refundsService;
     @MockBean
     private RefundsRepository refundsRepository;
-
     @MockBean
     private StatusHistoryRepository statusHistoryRepository;
     @MockBean
     private RejectionReasonRepository rejectionReasonRepository;
-
     @Mock
     private IdamServiceImpl idamService;
     @InjectMocks
@@ -200,26 +200,21 @@ class RefundControllerTest {
     private String idamBaseURL;
     @Mock
     private MultiValueMap<String, String> map;
-
+    @MockBean
+    private IdamRepository idamRepository;
     @MockBean
     @Qualifier("restTemplatePayment")
     private RestTemplate restTemplatePayment;
-
     @MockBean
     private OAuth2RestOperations restOperations;
-
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
-
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
-
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-
     @MockBean
     private JwtDecoder jwtDecoder;
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -265,6 +260,8 @@ class RefundControllerTest {
             idamFullNameCCDSearchRefundListSupplier.get()
         );
 
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
+
         //mock repository call
         when(refundsRepository.findByCcdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1))
             .thenReturn(Optional.ofNullable(List.of(
@@ -302,6 +299,8 @@ class RefundControllerTest {
             Arrays.asList("refund-approver", "refund-admin"),
             idamFullNameCCDSearchRefundListSupplier.get()
         );
+
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -350,6 +349,8 @@ class RefundControllerTest {
 
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
+
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
@@ -367,12 +368,13 @@ class RefundControllerTest {
     @Test
     void testMultipleRefundsSubmittedStatus() throws Exception {
 
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
         //mock idam userFullName call
         mockGetUsersForRolesCall(
-            Arrays.asList("refund-approver", "refund-admin"),
+            Arrays.asList("payments-refund", "payments-refund-approver"),
             idamFullNameCCDSearchRefundListSupplier1.get()
         );
         when(idamService.getUsersForRoles(
@@ -423,9 +425,11 @@ class RefundControllerTest {
 
         //mock idam userFullName call
         mockGetUsersForRolesCall(
-            Arrays.asList("refund-approver", "refund-admin"),
+            Arrays.asList("payments-refund", "payments-refund-approver"),
             idamFullNameSendBackRefundListSupplier.get()
         );
+
+        when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -467,7 +471,7 @@ class RefundControllerTest {
     }
 
     public void mockGetUsersForRolesCall(List<String> roles, IdamUserInfoResponse[] idamUserListResponse) {
-        String query = "(roles:refund-approver OR roles:refund-admin OR roles:payments-refund-approver) AND lastModified:>now-720d";
+        String query = "(roles:payments-refund OR roles:payments-refund-approver OR roles:refund-admin) AND lastModified:>now-720d";
         int size = 300;
         UriComponents builder = UriComponentsBuilder.newInstance()
             .fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
