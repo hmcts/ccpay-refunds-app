@@ -59,7 +59,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class, UserNotFoundException.class, RefundReasonNotFoundException.class,
         FeesNotFoundForRefundException.class, RefundFeeNotFoundInPaymentException.class, RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class})
     public ResponseEntity return500(Exception ex) {
-        LOG.error(ex.getMessage());
+        LOG.error(ex.getStackTrace().toString());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
