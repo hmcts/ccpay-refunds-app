@@ -7,8 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.reform.idam.client.models.UserInfo;
-import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -95,8 +93,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private StatusHistoryRepository statusHistoryRepository;
 
-    @Autowired
-    private IdamRepository idamRepository;
+//    @Autowired
+//    private IdamRepository idamRepository;
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {
@@ -123,8 +121,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Optional<List<Refund>> refundList = Optional.empty();
 
-        String token = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
-            "authorization").get(0);
+//        String token = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
+//            "authorization").get(0);
 //        UserInfo userInfo = idamRepository.getUserInfo(token);
 //        LOG.info("userInfo: {}", userInfo.toString());
 
