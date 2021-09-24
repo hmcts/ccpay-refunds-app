@@ -62,6 +62,8 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     public ResponseEntity return500(Exception ex) {
         LOG.error(ex.toString());
         LOG.error(ex.getLocalizedMessage());
+        LOG.error(ex.getCause().getMessage());
+        LOG.error(ex.getCause().toString());
 
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
