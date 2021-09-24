@@ -34,3 +34,5 @@ java:
           alias: OIDC_CLIENT_SECRET
         - name: launch-darkly-sdk-key
           alias: LAUNCH_DARKLY_SDK_KEY
+        - name: liberata-api-key
+          alias: LIBERATA_API_KEY
