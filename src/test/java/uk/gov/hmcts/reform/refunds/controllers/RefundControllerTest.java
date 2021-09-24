@@ -1041,81 +1041,81 @@ class RefundControllerTest {
         assertEquals("Invalid Request: Payhub", result.getResponse().getContentAsString());
     }
 
-//    @Test
-//    void approveRefundRequestWhenSendingInvalidRequestToReconciliationProviderReturnsBadRequest() throws Exception {
-//        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-//        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
-//        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
-//
-//        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
-//
-//        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
-//        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-//                                       eq(IdamUserIdResponse.class)
-//        )).thenReturn(responseEntity);
-//
-//
-//        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-//            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-//            Optional.of(getPaymentGroupDto())
-//
-//        ));
-//
-//        when(restOperations.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-//            ReconciliationProviderResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-//
-//        MvcResult result = mockMvc.perform(patch(
-//            "/refund/{reference}/action/{reviewer-action}",
-//            "RF-1628-5241-9956-2215",
-//            "APPROVE"
-//        )
-//                                               .content(asJsonString(refundReviewRequest))
-//                                               .header("Authorization", "user")
-//                                               .header("ServiceAuthorization", "Services")
-//                                               .contentType(MediaType.APPLICATION_JSON)
-//                                               .accept(MediaType.APPLICATION_JSON))
-//            .andExpect(status().isBadRequest())
-//            .andReturn();
-//        assertEquals("Invalid Request: Reconciliation Provider", result.getResponse().getContentAsString());
-//    }
+    @Test
+    void approveRefundRequestWhenSendingInvalidRequestToReconciliationProviderReturnsBadRequest() throws Exception {
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
-//    @Test
-//    void approveRefundRequestWhenReconciliationProviderIsUnavailableReturnsInternalServerError() throws Exception {
-//        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-//        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
-//        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
-//
-//        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
-//
-//        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
-//        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-//                                       eq(IdamUserIdResponse.class)
-//        )).thenReturn(responseEntity);
-//
-//
-//        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-//            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-//            Optional.of(getPaymentGroupDto())
-//
-//        ));
-//
-//        when(restOperations.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-//            ReconciliationProviderResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
-//
-//        MvcResult result = mockMvc.perform(patch(
-//            "/refund/{reference}/action/{reviewer-action}",
-//            "RF-1628-5241-9956-2215",
-//            "APPROVE"
-//        )
-//                                               .content(asJsonString(refundReviewRequest))
-//                                               .header("Authorization", "user")
-//                                               .header("ServiceAuthorization", "Services")
-//                                               .contentType(MediaType.APPLICATION_JSON)
-//                                               .accept(MediaType.APPLICATION_JSON))
-//            .andExpect(status().isInternalServerError())
-//            .andReturn();
-//        assertEquals("Reconciliation Provider Server Exception", result.getResponse().getContentAsString());
-//    }
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
+        when(restOperations.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+
+        MvcResult result = mockMvc.perform(patch(
+            "/refund/{reference}/action/{reviewer-action}",
+            "RF-1628-5241-9956-2215",
+            "APPROVE"
+        )
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+        assertEquals("Invalid Request: Reconciliation Provider", result.getResponse().getContentAsString());
+    }
+
+    @Test
+    void approveRefundRequestWhenReconciliationProviderIsUnavailableReturnsInternalServerError() throws Exception {
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
+        when(restOperations.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
+
+        MvcResult result = mockMvc.perform(patch(
+            "/refund/{reference}/action/{reviewer-action}",
+            "RF-1628-5241-9956-2215",
+            "APPROVE"
+        )
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+        assertEquals("Reconciliation Provider Server Exception", result.getResponse().getContentAsString());
+    }
 
     @Test
     void approveRefundRequest_WhenRefundIsNotAvailable() throws Exception {

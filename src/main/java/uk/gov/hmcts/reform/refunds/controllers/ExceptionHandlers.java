@@ -46,22 +46,26 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
         ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
     public ResponseEntity return400(Exception ex) {
+        LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({RefundNotFoundException.class, PaymentReferenceNotFoundException.class})
     public ResponseEntity return404(Exception ex) {
+        LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class, UserNotFoundException.class, RefundReasonNotFoundException.class,
         FeesNotFoundForRefundException.class, RefundFeeNotFoundInPaymentException.class, RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class})
     public ResponseEntity return500(Exception ex) {
+        LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(GatewayTimeoutException.class)
     public ResponseEntity return504(GatewayTimeoutException ex) {
+        LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
     }
 
