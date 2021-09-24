@@ -138,7 +138,7 @@ public class RefundsController {
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable("reference") String reference,
             @RequestBody @Valid ResubmitRefundRequest request) {
-        return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.OK);
+        return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 
     @GetMapping("/refund/rejection-reasons")
