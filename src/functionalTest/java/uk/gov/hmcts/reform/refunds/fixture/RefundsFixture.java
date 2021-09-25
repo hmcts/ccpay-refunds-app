@@ -12,8 +12,10 @@ import java.util.Random;
 
 public final class RefundsFixture {
 
-    public final static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(
-        final String amountString, final String service, final String pbaAccountNumber) {
+    private RefundsFixture() {}
+
+    public static final CreditAccountPaymentRequest pbaPaymentRequestForProbate(final String amountString,
+                                                                                final String service, final String pbaAccountNumber) {
         Random rand = new Random();
         String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
                                              "111122%04d%04d%02d",
@@ -42,8 +44,8 @@ public final class RefundsFixture {
             .build();
     }
 
-    public final static PaymentRefundRequest aRefundRequest(final String refundReason,
-                                                      final String paymentReference) {
+    public static final PaymentRefundRequest refundRequest(final String refundReason,
+                                                           final String paymentReference) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason).build();

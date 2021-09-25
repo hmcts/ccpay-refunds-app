@@ -9,14 +9,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import lombok.experimental.Wither;
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 
-import javax.validation.Valid;
-import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.AssertFalse;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -79,7 +83,7 @@ public class CreditAccountPaymentRequest {
 
     @AssertFalse(message = "Either of Site ID or Case Type is mandatory as part of the request.")
     private boolean isEitherIdOrTypeRequired() {
-        return ((StringUtils.isNotBlank(caseType) && StringUtils.isNotBlank(siteId)) ||
-            (StringUtils.isBlank(caseType) && StringUtils.isBlank(siteId)));
+        return ((StringUtils.isNotBlank(caseType) && StringUtils.isNotBlank(siteId))
+            || (StringUtils.isBlank(caseType) && StringUtils.isBlank(siteId)));
     }
 }

@@ -22,11 +22,11 @@ public class PaymentTestService {
 
     public Response postPbaPayment(final String userToken,
                                    final String serviceToken,
-                                   final String baseURI,
+                                   final String baseUri,
                                    final CreditAccountPaymentRequest request) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
-            .baseUri(baseURI)
+            .baseUri(baseUri)
             .body(request)
             .when()
             .post("/credit-account-payments");
@@ -35,19 +35,19 @@ public class PaymentTestService {
     public Response getPbaPaymentsByAccountNumber(final String userToken,
                                                   final String serviceToken,
                                                   final String accountNumber,
-                                                  final String baseURI) {
+                                                  final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .when()
-            .baseUri(baseURI)
+            .baseUri(baseUri)
             .get("/pba-accounts/{accountNumber}/payments", accountNumber);
     }
 
     public Response postInitiateRefund(final String userToken, final String serviceToken,
                                        final PaymentRefundRequest paymentRefundRequest,
-                                       final String baseURI) {
+                                       final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
-            .baseUri(baseURI)
+            .baseUri(baseUri)
             .body(paymentRefundRequest)
             .when()
             .post("/refund-for-payment");

@@ -12,14 +12,14 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.request.FeeDto;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.TimeZone;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -139,7 +139,8 @@ public class PaymentDto {
                 .add(getAmount() != null ? getAmount().toString() : "0.00")
                 .add(getSiteId());
 
-            String memoLineWithQuotes = fee.getMemoLine() != null ? new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString() : "";
+            String memoLineWithQuotes
+                = fee.getMemoLine() != null ? new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString() : "";
             String naturalAccountCode = fee.getNaturalAccountCode() != null ? fee.getNaturalAccountCode() : "";
             sb.add(fee.getCode())
                 .add(fee.getVersion())
@@ -177,7 +178,8 @@ public class PaymentDto {
                 .add(getAmount().toString())
                 .add(getSiteId());
 
-            String memolineWithQuotes = fee.getMemoLine() != null ? new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString() : "";
+            String memolineWithQuotes
+                = fee.getMemoLine() != null ? new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString() : "";
             String naturalAccountCode = fee.getNaturalAccountCode() != null ? fee.getNaturalAccountCode() : "";
 
             sb.add(fee.getCode())
