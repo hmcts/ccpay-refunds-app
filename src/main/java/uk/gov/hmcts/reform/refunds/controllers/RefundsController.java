@@ -118,7 +118,7 @@ public class RefundsController {
         @ApiResponse(code = 204, message = "No content"),
         @ApiResponse(code = 404, message = "Refund details not found")
     })
-    @PatchMapping("/refund/{reference}")
+    @PatchMapping("x")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity updateRefundStatus(@RequestHeader(required = false) MultiValueMap<String, String> headers,
                                              @PathVariable("reference") String reference,

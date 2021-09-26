@@ -5,6 +5,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.request.PaymentRefundRequest;
@@ -88,6 +89,16 @@ public class PaymentTestService {
     public Response getRefundReasons(final String userToken, final String serviceToken) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON).when().get("/refund/reasons");
+    }
+
+    public Response updateRefundStatus(final String userToken,
+                                       final String serviceToken,
+                                       final String refundReference,
+                                       final RefundStatusUpdateRequest refundStatusUpdateRequest) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON).when()
+            .body(refundStatusUpdateRequest)
+            .patch("/refund/{reference}", refundReference);
     }
 
     public Response resubmitRefund(final String userToken, final String serviceToken,
