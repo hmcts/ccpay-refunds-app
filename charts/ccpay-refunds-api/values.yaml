@@ -25,7 +25,7 @@ java:
     LIBERATA_OAUTH2_TOKEN_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
     LIBERATA_BASE_URL: "https://bpacustomerportal.liberata.com/pba/public"
     USER_INFO_SIZE: 300
-    USER_LAST_MODIFIED_TIME: 720d
+    USER_LAST_MODIFIED_TIME: 30d
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
