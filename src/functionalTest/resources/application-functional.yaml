@@ -8,14 +8,20 @@ spring:
   main:
     allow-bean-definition-overriding: true
   application:
-    name: bulk-scanning
+    name: refunds-api
   datasource:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11.0://localhost/features
   liquibase:
     enabled: ${SPRING_LIQUIBASE_ENABLED:true}
     change-log: classpath:/db/changelog/db.changelog-master.xml
-  # open id
+  jackson.date-format: yyyy-MM-dd
+  flyway.enabled: true
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+    deserialization:
+      fail-on-unknown-properties: true
   security:
     oauth2:
       client:
@@ -30,8 +36,8 @@ spring:
       resource:
         filter-order: 3
 oidc:
-  audience-list: paybubble,cmc_citizen
-  issuer: ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/hmcts}
+  audience-list: paybubble
+  issuer: ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat.internal:8443/openam/oauth2/hmcts}
 
 auth:
   provider:
@@ -42,51 +48,55 @@ auth:
     client:
       baseUrl: https://idam-api.aat.platform.hmcts.net
 test:
-  url: ${TEST_URL:http://localhost:8000}
+  url :
+    refunds : ${TEST_URL:http://localhost:8080}
+    payments : ${TEST_URL_PAYMENT}
   user:
     password: ${TEST_USER_PASSWORD}
 
-
 idam:
-  s2s-auth:
-    url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
-    totp_secret: ${OIDC_S2S_SECRET:dummy}
-    microservice: ${OIDC_S2S_MICROSERVICE_NAME:cmc}
-  s2s-authorised:
-    services: ccpay_bubble, cmc, bulk_scan_payment_processor, api_gw, probate_frontend, divorce_frontend, ccd_gw
   api:
     url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
-
-generated:
-  user:
-    email:
-      pattern: ${GENERATED_USER_EMAIL_PATTERN:freg-test-functional-aldie-junk-user-%s@feemail.com}
-
+  s2s-authorised:
+    services: ccpay_bubble,internal,payment_app
+  s2s-auth:
+    url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+    totp_secret: dummy
+    microservice: ccpay_bubble
 oauth2:
   redirect:
     uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
   client:
     id: ${OAUTH2_CLIENT_ID:cmc_citizen}
-    secret: ${OAUTH2_CLIENT_SECRET_CMC_CITIZEN:abcd}
-
+    secret: ${OAUTH2_CLIENT_SECRET}
 s2s:
   url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
-  service:
-    name: ${S2S_SERVICE_NAME:cmc}
-    secret: ${S2S_SERVICE_SECRET_CMC:dummy}
-
+  service :
+    paymentapp :
+      name : ${S2S_SERVICE_NAME_PAYMENT_APP:payment_app}
+      secret: ${S2S_SERVICE_SECRET_PAYMENT_APP}
+    cmc :
+      name : ${S2S_SERVICE_NAME_CMC:cmc}
+      secret : ${S2S_SERVICE_SECRET_CMC}
+    paybubble :
+      name : ${S2S_SERVICE_NAME_PAYBUBBLE:ccpay_bubble}
+      secret : ${S2S_SERVICE_SECRET_PAYBUBBLE}
 azure:
   application-insights:
     instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
-
-launch:
-  darkly:
-    sdk:
-      key: ${LAUNCH_DARKLY_SDK_KEY:dummy}
-    user:
-      name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:dummy}@feesandpay.com
-
-launchDarkly:
-  connectionTimeout: 3
-  socketTimeout: 3
-  flushInterval: 10
+generated:
+  user:
+    email:
+      pattern:${GENERATED_USER_EMAIL_PATTERN}
+payments:
+  account:
+    existing:
+      account:
+        number : PBAFUNC12345
+    fake:
+      account:
+        number : QWERTYUIOP
+mock:
+  callback:
+    url:
+      endpoint : ${TEST_URL:http://payment-api-aat-staging.service.core-compute-aat.internal}/mock-api/serviceCallback
