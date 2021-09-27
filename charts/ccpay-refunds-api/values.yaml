@@ -20,6 +20,8 @@ java:
     S2S_AUTHORISED_SERVICES: payment_app,ccpay_bubble,cmc,bulk_scan_payment_processor,api_gw,probate_frontend,divorce_frontend,ccd_gw
     IDAM_API_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
     LAUNCH_DARKLY_USER_NAME_PREFIX: '{{ .Values.global.environment }}'
+    LIBERATA_OAUTH2_AUTHORIZE_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/authorize"
+    LIBERATA_OAUTH2_TOKEN_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
