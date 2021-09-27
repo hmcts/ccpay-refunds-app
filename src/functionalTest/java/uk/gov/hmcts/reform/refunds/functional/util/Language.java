@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.util;
+package uk.gov.hmcts.reform.refunds.functional.util;
 
 public enum Language {
     CY("cy");

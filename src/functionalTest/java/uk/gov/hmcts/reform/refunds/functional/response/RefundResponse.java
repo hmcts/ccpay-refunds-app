@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.response;
+package uk.gov.hmcts.reform.refunds.functional.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

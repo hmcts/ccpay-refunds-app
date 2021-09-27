@@ -1,10 +1,10 @@
-package uk.gov.hmcts.reform.refunds.fixture;
+package uk.gov.hmcts.reform.refunds.functional.fixture;
 
 import com.google.common.collect.Lists;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
-import uk.gov.hmcts.reform.refunds.request.CreditAccountPaymentRequest;
-import uk.gov.hmcts.reform.refunds.request.FeeDto;
-import uk.gov.hmcts.reform.refunds.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.FeeDto;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 
 import java.math.BigDecimal;
 import java.util.Locale;

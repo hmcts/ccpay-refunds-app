@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.service;
+package uk.gov.hmcts.reform.refunds.functional.service;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;

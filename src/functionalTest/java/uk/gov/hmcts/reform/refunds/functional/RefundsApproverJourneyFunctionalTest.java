@@ -12,22 +12,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.refunds.config.IdamService;
-import uk.gov.hmcts.reform.refunds.config.S2sTokenService;
-import uk.gov.hmcts.reform.refunds.config.TestConfigProperties;
+import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
+import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
+import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.fixture.RefundsFixture;
-import uk.gov.hmcts.reform.refunds.request.CreditAccountPaymentRequest;
-import uk.gov.hmcts.reform.refunds.request.PaymentRefundRequest;
-import uk.gov.hmcts.reform.refunds.response.PaymentDto;
-import uk.gov.hmcts.reform.refunds.response.PaymentsResponse;
-import uk.gov.hmcts.reform.refunds.response.RefundResponse;
-import uk.gov.hmcts.reform.refunds.service.PaymentTestService;
+import uk.gov.hmcts.reform.refunds.functional.fixture.RefundsFixture;
+import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
+import uk.gov.hmcts.reform.refunds.functional.response.PaymentsResponse;
+import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
+import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -265,64 +265,9 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore("As Refund List is returning more than one Refund in its Get List....")
     public void test_resubmit_refund_journey() {
 
         final String refundReference = performRefund();
-        /*final String accountNumber = testConfigProperties.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
-            .pbaPaymentRequestForProbate(
-                "90.00",
-                "PROBATE",
-                accountNumber
-            );
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(
-            USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-            SERVICE_TOKEN_CMC,
-            testConfigProperties.basePaymentsUrl,
-            accountPaymentRequest
-        ).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success"));
-
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(
-                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-                SERVICE_TOKEN_CMC,
-                accountNumber,
-                testConfigProperties.basePaymentsUrl
-            )
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-                return s2.getDateCreated().compareTo(s1.getDateCreated());
-            }).findFirst();
-
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        String paymentReference = paymentDtoOptional.get().getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
-
-        PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            paymentRefundRequest,
-            testConfigProperties.basePaymentsUrl
-        );
-        System.out.println(refundResponse.getStatusLine());
-        System.out.println(refundResponse.getBody().prettyPrint());
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
-        final String refundReference = refundResponseFromPost.getRefundReference();
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
-*/
         final Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -373,63 +318,9 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     @Ignore("Need Support to complete this test....")
-    public void test_approval_journey() {
+    public void test_approval_from_liberata() {
 
         final String refundReference = performRefund();
-        /*final String accountNumber = testConfigProperties.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
-            .pbaPaymentRequestForProbate(
-                "90.00",
-                "PROBATE",
-                accountNumber
-            );
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(
-            USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-            SERVICE_TOKEN_CMC,
-            testConfigProperties.basePaymentsUrl,
-            accountPaymentRequest
-        ).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success"));
-
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(
-                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-                SERVICE_TOKEN_CMC,
-                accountNumber,
-                testConfigProperties.basePaymentsUrl
-            )
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-                return s2.getDateCreated().compareTo(s1.getDateCreated());
-            }).findFirst();
-
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        String paymentReference = paymentDtoOptional.get().getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
-
-        PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            paymentRefundRequest,
-            testConfigProperties.basePaymentsUrl
-        );
-        System.out.println(refundResponse.getStatusLine());
-        System.out.println(refundResponse.getBody().prettyPrint());
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
-        final String refundReference = refundResponseFromPost.getRefundReference();
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
-*/
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -445,46 +336,16 @@ public class RefundsApproverJourneyFunctionalTest {
         System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
         System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
-        Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                                       SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       "sent for approval", "true"
+        Response responseReviewRefundApproved = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE004")
+                .reason("More evidence is required").build()
         );
-        assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
-        assertThat(refundsListDto.getRefundList().size()).isEqualTo(1);
-        String refundReferenceFromTheRefundList = refundsListDto.getRefundList().get(0).getRefundReference();
-
-        Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReferenceFromTheRefundList
-            );
-        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryList =
-            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("sent for approval"))
-                .isTrue();
-        });
-
-        //Further call out to Liberata to approve from Liberata's side.
-        paymentTestService.updateRefundStatus(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                              refundReference,
-                                              RefundStatusUpdateRequest.RefundRequestWith().status(RefundStatus.ACCEPTED)
-                                                  .reason("This is a valid Request").build());
-        Response refundStatusHistoryResponsePostApproval =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReferenceFromTheRefundList
-            );
-        assertThat(refundStatusHistoryResponsePostApproval.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryListPostApproval =
-            refundStatusHistoryResponsePostApproval.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("sent for approval") || entry.get("status").trim().equals("approved"))
-                .isTrue();
-        });
+        assertThat(responseReviewRefundApproved.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefundApproved.getBody().asString()).isEqualTo("Refund Approved");
     }
 
     @Test

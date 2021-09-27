@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.service;
+package uk.gov.hmcts.reform.refunds.functional.service;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -7,8 +7,8 @@ import io.restassured.specification.RequestSpecification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.request.CreditAccountPaymentRequest;
-import uk.gov.hmcts.reform.refunds.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 
 import java.util.HashMap;
 import java.util.Map;
