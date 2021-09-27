@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds;
+package uk.gov.hmcts.reform.refunds.functional;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -27,9 +27,9 @@ import uk.gov.hmcts.reform.refunds.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.response.PaymentDto;
 import uk.gov.hmcts.reform.refunds.response.PaymentsResponse;
 import uk.gov.hmcts.reform.refunds.response.RefundResponse;
+import uk.gov.hmcts.reform.refunds.service.PaymentTestService;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
-import uk.gov.hmcts.reform.refunds.service.PaymentTestService;
 
 import java.math.BigDecimal;
 import java.util.List;
