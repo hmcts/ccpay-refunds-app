@@ -36,3 +36,12 @@ java:
           alias: LAUNCH_DARKLY_SDK_KEY
         - name: liberata-api-key
           alias: LIBERATA_API_KEY
+        - name: liberata-keys-oauth2-client-id
+          alias: LIBERATA_OAUTH2_CLIENT_ID
+        - name: liberata-keys-oauth2-client-secret
+          alias: LIBERATA_OAUTH2_CLIENT_SECRET
+        - name: liberata-keys-oauth2-username
+          alias: LIBERATA_OAUTH2_USERNAME
+        - name: liberata-keys-oauth2-password
+          alias: LIBERATA_OAUTH2_PASSWORD
+
