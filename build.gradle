@@ -75,8 +75,11 @@ test {
 task functional(type: Test) {
   description = "Runs functional tests"
   group = "Verification"
+  include "uk/gov/hmcts/reform/refunds/**"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  enableAssertions = true
+  scanForTestClasses = true
 }
 
 task integration(type: Test) {
@@ -89,17 +92,18 @@ task integration(type: Test) {
 
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
+  useJUnitPlatform();
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
   testLogging.showStandardStreams = true
 }
 
-tasks.withType(Test) {
+/*tasks.withType(Test) {
   useJUnitPlatform()
   testLogging {
     exceptionFormat = 'full'
   }
-}
+}*/
 
 pmd {
   toolVersion = "6.18.0"
@@ -193,6 +197,7 @@ def versions = [
   springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '3.0.0',
   jacocoVersion: '0.8.5',
+  restAssured : '4.2.0',
   serenity                : '2.2.12',
   serenityreporter        : '2.1.4',
   serenityCucumber        : '1.9.51'
@@ -296,6 +301,8 @@ dependencies {
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  functionalTestImplementation group: 'io.rest-assured', name: 'xml-path', version: versions.restAssured
+  functionalTestImplementation group: 'io.rest-assured', name: 'json-path', version: versions.restAssured
   functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
   functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
   functionalTestImplementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
@@ -305,9 +312,6 @@ dependencies {
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
 
-  smokeTestImplementation sourceSets.main.runtimeClasspath
-  smokeTestImplementation sourceSets.test.runtimeClasspath
-  smokeTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 }
 
 mainClassName = 'uk.gov.hmcts.reform.refunds.RefundApplication'
