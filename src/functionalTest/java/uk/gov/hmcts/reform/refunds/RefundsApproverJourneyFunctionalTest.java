@@ -42,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.refunds.config.IdamService.CMC_CASE_WORKER_GROUP;
@@ -88,11 +89,11 @@ public class RefundsApproverJourneyFunctionalTest {
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
-                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund", "payments")
+                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE =
-                idamService.createUserWith(CMC_CASE_WORKER_GROUP, "payments-refund-approver", "payments")
+                idamService.createUserWith(CMC_CASE_WORKER_GROUP, "payments-refund-approver")
                     .getAuthorisationToken();
 
             SERVICE_TOKEN_CMC =
@@ -108,13 +109,12 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void testGetReasons() {
 
         expect().given()
             .relaxedHTTPSValidation()
-            .header("Authorization", USER_TOKEN)
-            .header("ServiceAuthorization", SERVICE_TOKEN)
+            .header("Authorization", USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE)
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT)
             .contentType(APPLICATION_JSON_VALUE)
             .accept(APPLICATION_JSON_VALUE)
             .when()
@@ -125,14 +125,13 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore
     public void test_reject_a_refund_request() {
 
         final String refundReference = performRefund();
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
-            USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference
         );
@@ -142,7 +141,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         Response responseReviewRefund
             = paymentTestService.patchReviewRefund(
-            USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             ReviewerAction.REJECT.name(),
@@ -154,14 +153,13 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore
     public void test_sendback_a_refund_request() {
 
         final String refundReference = performRefund();
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
-            USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference
         );
@@ -170,7 +168,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundEvents.size()).isEqualTo(3);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             ReviewerAction.SENDBACK.name(),
@@ -219,7 +217,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
-            USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference
         );
@@ -228,7 +226,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundEvents.size()).isEqualTo(3);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             "NO DEFINED STATUS",
@@ -241,14 +239,13 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore
     public void test_negative_unauthorized_user_refund_request() {
 
         final String refundReference = performRefund();
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
-            USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference
         );
@@ -266,10 +263,11 @@ public class RefundsApproverJourneyFunctionalTest {
                 .reason("The case details don’t match the help with fees details")
                 .build()
         );
-        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(FORBIDDEN.value());
     }
 
     @Test
+    @Ignore("As Refund List is returning more than one Refund in its Get List....")
     public void test_resubmit_refund_journey() {
 
         final String refundReference = performRefund();
@@ -375,7 +373,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore
+    @Ignore("Need Support to complete this test....")
     public void test_approval_journey() {
 
         final String refundReference = performRefund();
@@ -768,7 +766,7 @@ public class RefundsApproverJourneyFunctionalTest {
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference);
         Response refundResponse = paymentTestService.postInitiateRefund(
-            USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             paymentRefundRequest,
             testConfigProperties.basePaymentsUrl
