@@ -150,6 +150,7 @@ public class ReconciliationProviderMapperTest {
             .refundStatus(SENTFORAPPROVAL)
             .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .feeIds("10")
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
                                                .status("submitted")

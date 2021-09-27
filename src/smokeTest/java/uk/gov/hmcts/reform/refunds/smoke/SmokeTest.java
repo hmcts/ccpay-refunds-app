@@ -16,12 +16,11 @@ import uk.gov.hmcts.reform.refunds.smoke.s2s.S2sTokenService;
 
 import static io.restassured.RestAssured.expect;
 import static io.restassured.RestAssured.given;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamService.CMC_CITIZEN_GROUP;
+import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamService.CMC_CASE_WORKER_GROUP;
 
 
 @Slf4j
@@ -49,7 +48,8 @@ public class SmokeTest {
     public void setUp() throws Exception {
         RestAssured.baseURI = testUrl;
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+            USER_TOKEN =  idamService.createUserWith(CMC_CASE_WORKER_GROUP, "payments-refund")
+                .getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }

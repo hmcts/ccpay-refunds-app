@@ -329,6 +329,7 @@ checkstyleMain.enabled(false)
 checkstyleTest.enabled(false)
 checkstyleIntegrationTest.enabled(false)
 pmdTest.enabled(false);
+pmdFunctionalTest.enabled(false);
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
