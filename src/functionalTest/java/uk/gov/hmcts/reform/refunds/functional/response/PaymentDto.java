@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.response;
+package uk.gov.hmcts.reform.refunds.functional.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
-import uk.gov.hmcts.reform.refunds.request.FeeDto;
+import uk.gov.hmcts.reform.refunds.functional.request.FeeDto;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
