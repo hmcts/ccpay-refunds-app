@@ -65,33 +65,12 @@ tasks.withType(JavaCompile) {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
 }
 
-
-
-test {
-  description = "Runs unit tests"
-  group = 'Delivery pipeline'
-  description = 'Executes unit tests'
-  testClassesDirs = sourceSets.test.output.classesDirs
-  classpath = sourceSets.test.runtimeClasspath
+tasks.withType(Test) {
   useJUnitPlatform()
   testLogging {
     exceptionFormat = 'full'
   }
-  finalizedBy jacocoTestReport
-  jacoco {
-    destinationFile = file("${project.rootDir}/build/jacoco/test.exec")
-  }
-  include "uk/gov/hmcts/reform/refunds/**"
-  failFast = true
-  testLogging.showStandardStreams = true
-  systemProperties System.getProperties()
-  environment("APPINSIGHTS_INSTRUMENTATIONKEY", "test-key")
-  enableAssertions = true
-  scanForTestClasses = true
 }
-
-gradle.startParameter.continueOnFailure = true
-test.finalizedBy(aggregate)
 
 task functional(type: Test) {
   description = "Runs functional tests"
@@ -118,13 +97,6 @@ task smoke(type: Test) {
   classpath = sourceSets.smokeTest.runtimeClasspath
   testLogging.showStandardStreams = true
 }
-
-/*tasks.withType(Test) {
-  useJUnitPlatform()
-  testLogging {
-    exceptionFormat = 'full'
-  }
-}*/
 
 pmd {
   toolVersion = "6.18.0"
