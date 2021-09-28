@@ -84,7 +84,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1;
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
@@ -93,7 +92,7 @@ class RefundControllerTest {
 
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
-        .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .id(RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
@@ -103,7 +102,7 @@ class RefundControllerTest {
         .build()};
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier1 = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
-        .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .id(RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
@@ -149,7 +148,7 @@ class RefundControllerTest {
         .name("mock-ForeName mock-Surname")
         .sub("mockfullname@gmail.com")
         .roles(List.of("payments-refund", "payments-refund-approver", "refund-admin"))
-        .uid(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .uid(RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .build();
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
     private static final UserInfo userInfo = UserInfo.builder().familyName("mock-Surname")
@@ -285,7 +284,7 @@ class RefundControllerTest {
         when(idamRepository.getUserInfo(any())).thenReturn(userInfo);
 
         //mock repository call
-        when(refundsRepository.findByCcdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1))
+        when(refundsRepository.findByCcdCaseNumber(RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1))
             .thenReturn(Optional.ofNullable(List.of(
                 RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
 
@@ -293,7 +292,7 @@ class RefundControllerTest {
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "submitted")
-                                                  .queryParam("ccdCaseNumber", GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                                  .queryParam("ccdCaseNumber", RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1)
                                                   .queryParam("excludeCurrentUser", " ")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
