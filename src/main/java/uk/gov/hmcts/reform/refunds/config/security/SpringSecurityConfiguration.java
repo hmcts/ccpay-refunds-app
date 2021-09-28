@@ -41,7 +41,9 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SpringSecurityConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
-    private static final String AUTHORISED_ROLE_REFUNDS = "payments";
+//    private static final String AUTHORISED_ROLE_REFUNDS = "payments";
+    private static final String AUTHORISED_REFUNDS_ROLE="payments-refund";
+    private static final String AUTHORISED_REFUNDS_APPROVER_ROLE="payments-refund-approver";
 
     @Configuration
     @Order(1)
@@ -165,10 +167,12 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
+                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/refund/reasons").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
-                    .antMatchers(HttpMethod.PATCH, "/refund/*/action/*").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
+                    .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()
                     .and()

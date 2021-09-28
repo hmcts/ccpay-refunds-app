@@ -65,17 +65,17 @@ tasks.withType(JavaCompile) {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
 }
 
-test {
-  finalizedBy jacocoTestReport
-  jacoco {
-    destinationFile = file("${project.rootDir}/build/jacoco/test.exec")
+tasks.withType(Test) {
+  useJUnitPlatform()
+  testLogging {
+    exceptionFormat = 'full'
   }
 }
 
 task functional(type: Test) {
   description = "Runs functional tests"
   group = "Verification"
-  include "uk/gov/hmcts/reform/refunds/**"
+  include "uk/gov/hmcts/reform/refunds/functional/**"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
   enableAssertions = true
@@ -97,13 +97,6 @@ task smoke(type: Test) {
   classpath = sourceSets.smokeTest.runtimeClasspath
   testLogging.showStandardStreams = true
 }
-
-/*tasks.withType(Test) {
-  useJUnitPlatform()
-  testLogging {
-    exceptionFormat = 'full'
-  }
-}*/
 
 pmd {
   toolVersion = "6.18.0"
@@ -296,6 +289,8 @@ dependencies {
 
   functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
   functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
+  functionalTestCompile("junit:junit:4.12")
+  functionalTestRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
@@ -333,6 +328,7 @@ checkstyleMain.enabled(false)
 checkstyleTest.enabled(false)
 checkstyleIntegrationTest.enabled(false)
 pmdTest.enabled(false);
+pmdFunctionalTest.enabled(false);
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL

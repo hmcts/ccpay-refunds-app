@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.config;
+package uk.gov.hmcts.reform.refunds.functional.config;
 
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
@@ -143,4 +143,3 @@ public class IdamService {
         return String.format(testConfig.getGeneratedUserEmailPattern(), UUID.randomUUID().toString());
     }
 }
-
