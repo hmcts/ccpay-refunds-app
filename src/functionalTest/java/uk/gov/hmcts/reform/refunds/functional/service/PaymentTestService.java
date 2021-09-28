@@ -80,10 +80,10 @@ public class PaymentTestService {
 
     public Response getRefundList(final String userToken,
                                   final String serviceToken,
-                                  final String ccd_case_number) {
+                                  final String ccdCaseNumber) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON).when()
-            .queryParams("ccdCaseNumber", ccd_case_number)
+            .queryParams("ccdCaseNumber", ccdCaseNumber)
             .get("/refund");
     }
 
