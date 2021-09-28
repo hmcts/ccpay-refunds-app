@@ -178,7 +178,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void test_get_refund_list_for_an_approver() {
+    public void positive_get_refund_list_for_an_approver() {
 
         final String refundReference = performRefundByApprover();
         /*Response responseReviewRefund = paymentTestService.patchReviewRefund(
@@ -232,8 +232,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore
-    public void test_negative_unknown_action_refund_request() {
+    public void negative_unknown_action_refund_request() {
 
         final String refundReference = performRefund();
 
@@ -261,7 +260,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void test_negative_unauthorized_user_refund_request() {
+    public void negative_unauthorized_user_refund_request() {
 
         final String refundReference = performRefund();
 
@@ -289,7 +288,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void test_resubmit_refund_journey() {
+    public void positive_resubmit_refund_journey() {
 
         final String refundReference = performRefund();
         final Response responseReviewRefund = paymentTestService.patchReviewRefund(
@@ -342,7 +341,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     @Ignore("Awaiting Test Execution post Fixes from Liberata.....")
-    public void test_approval_from_liberata() {
+    public void positive_approval_from_liberata() {
 
         final String refundReference = performRefund();
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
@@ -385,7 +384,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     @Ignore
-    public void test_rejected_journey() {
+    public void positive_rejected_from_liberata() {
 
         final String refundReference = performRefund();
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
@@ -426,8 +425,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore
-    public void test_refund_list_for_ccd_case_number_journey() {
+    public void positive_refund_list_for_ccd_case_number_journey() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
