@@ -469,60 +469,6 @@ public class RefundsApproverJourneyFunctionalTest {
     public void test_invalid_liberata_update_journey() {
 
         final String refundReference = performRefund();
-        /*final String accountNumber = testConfigProperties.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
-            .pbaPaymentRequestForProbate(
-                "90.00",
-                "PROBATE",
-                accountNumber
-            );
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(
-            USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-            SERVICE_TOKEN_CMC,
-            testConfigProperties.basePaymentsUrl,
-            accountPaymentRequest
-        ).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success"));
-
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(
-                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-                SERVICE_TOKEN_CMC,
-                accountNumber,
-                testConfigProperties.basePaymentsUrl
-            )
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-                return s2.getDateCreated().compareTo(s1.getDateCreated());
-            }).findFirst();
-
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        String paymentReference = paymentDtoOptional.get().getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
-
-        PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            paymentRefundRequest,
-            testConfigProperties.basePaymentsUrl
-        );
-        System.out.println(refundResponse.getStatusLine());
-        System.out.println(refundResponse.getBody().prettyPrint());
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
-        final String refundReference = refundResponseFromPost.getRefundReference();
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
-*/
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
