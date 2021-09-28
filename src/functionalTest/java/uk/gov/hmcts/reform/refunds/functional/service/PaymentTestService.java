@@ -78,6 +78,15 @@ public class PaymentTestService {
             .get("/refund");
     }
 
+    public Response getRefundList(final String userToken,
+                                  final String serviceToken,
+                                  final String ccd_case_number) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON).when()
+            .queryParams("ccdCaseNumber", ccd_case_number)
+            .get("/refund");
+    }
+
     public Response getStatusHistory(final String userToken,
                                      final String serviceToken,
                                      final String refundReference) {
