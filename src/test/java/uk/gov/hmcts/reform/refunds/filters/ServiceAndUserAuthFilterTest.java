@@ -63,8 +63,8 @@ public class ServiceAndUserAuthFilterTest {
     @Test
     public void shouldReturn200ResponseWhenRoleMatches() throws Exception {
         request.setRequestURI("/refunds/");
-        when(SecurityContextHolder.getContext().getAuthentication()).thenReturn(getJWTAuthenticationTokenBasedOnRoles("payments"));
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUidRoles("user123", "payments"));
+        when(SecurityContextHolder.getContext().getAuthentication()).thenReturn(getJWTAuthenticationTokenBasedOnRoles("payments-refund"));
+        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUidRoles("user123", "payments-refund"));
 
         filter.doFilterInternal(request, response, filterChain);
         assertThat(response.getStatus()).isEqualTo(OK.value());

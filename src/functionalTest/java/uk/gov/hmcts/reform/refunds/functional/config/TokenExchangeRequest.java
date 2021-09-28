@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.config;
+package uk.gov.hmcts.reform.refunds.functional.config;
 
 import feign.Param;
 import lombok.Builder;
