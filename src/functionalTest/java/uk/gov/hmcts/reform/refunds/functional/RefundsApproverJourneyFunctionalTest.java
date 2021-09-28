@@ -317,7 +317,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Need Support to complete this test....")
+    @Ignore("Awaiting Test")
     public void test_approval_from_liberata() {
 
         final String refundReference = performRefund();
@@ -346,6 +346,16 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefundApproved.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefundApproved.getBody().asString()).isEqualTo("Refund Approved");
+
+        paymentTestService.updateRefundStatus(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference,
+                                              RefundStatusUpdateRequest.RefundRequestWith()
+                                                  .reason("Accepted")
+                                                  .status(RefundStatus.ACCEPTED).build());
+
+        assertThat(responseReviewRefundApproved.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefundApproved.getBody().asString()).isEqualTo("Refund Approved");
+
     }
 
     @Test
