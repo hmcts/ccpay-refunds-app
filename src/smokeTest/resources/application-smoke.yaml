@@ -78,7 +78,7 @@ azure:
 generated:
   user:
     email:
-      pattern:${GENERATED_USER_EMAIL_PATTERN}
+      pattern:${GENERATED_USER_EMAIL_PATTERN:freg-test-functional-aldie-junk-user-%s@feemail.com}
 payments:
   account:
     existing:
