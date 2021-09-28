@@ -71,7 +71,7 @@ s2s:
   url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
   service :
     name : ${S2S_SERVICE_NAME:payment_app}
-    secret: ${S2S_SERVICE_SECRET}
+    secret: ${S2S_SERVICE_SECRET_PAYMENT_APP}
 azure:
   application-insights:
     instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
