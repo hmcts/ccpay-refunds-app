@@ -198,7 +198,7 @@ public class IdamServiceImpl implements IdamService {
             .queryParam("grant_type","password")
             .queryParam("password","PassRefund123")
             .queryParam("redirect_uri","http://ccpay-refunds-api-demo.service.core-compute-demo.internal/oauth2/callback")
-            .query("scope=openid profile roles search-user")
+            .queryParam("scope","openid profile roles search-user")
             .queryParam("username","idam.user.ccpayrefundsapi@hmcts.net");
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);

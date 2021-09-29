@@ -27,6 +27,10 @@ java:
     REFUND_STATUS_UPDATE_PATH: "/refunds-api/refunds"
     USER_INFO_SIZE: 300
     USER_LAST_MODIFIED_TIME: 720d
+    REFUND_SERVICE_ACCOUNT_CLIENT_ID: "refunds_api"
+    REFUND_SERVICE_ACCOUNT_GRANT_TYPE: "password"
+    REFUND_SERVICE_ACCOUNT_USERNAME: "idam.user.ccpayrefundsapi@hmcts.net"
+    REFUND_SERVICE_ACCOUNT_SCOPE: "openid profile roles search-user"
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
@@ -51,3 +55,7 @@ java:
           alias: liberata.oauth2.password
         - name: liberata-api-key
           alias: LIBERATA_API_KEY
+        - name: refunds-api-user-password
+          alias: REFUND_SERVICE_ACCOUNT_PASSWORD
+        - name: refunds-api-client-secret
+          alias: REFUND_SERVICE_ACCOUNT_PASSWORD

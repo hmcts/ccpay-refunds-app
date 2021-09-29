@@ -94,3 +94,12 @@ liberata:
   api:
     key: ${LIBERATA_API_KEY:abc}
 
+
+refunds:
+  serviceAccount:
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:refunds_api}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:idam.user.ccpayrefundsapi@hmcts.net}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
