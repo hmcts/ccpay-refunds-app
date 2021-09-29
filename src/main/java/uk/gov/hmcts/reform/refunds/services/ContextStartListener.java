@@ -29,9 +29,7 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
         userMap = new ConcurrentHashMap<>();
         List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
                                                                                          Arrays.asList("payments-refund","payments-refund-approver"));
-
-        userMap.put("payments-refund", getUsersBasedOnRole(userIdentityDataDtoList,"payments-refund"));
-        userMap.put("payments-refund-approver", getUsersBasedOnRole(userIdentityDataDtoList,"payments-refund-approver"));
+        userMap.put("payments-refund",userIdentityDataDtoList);
 
     }
 
