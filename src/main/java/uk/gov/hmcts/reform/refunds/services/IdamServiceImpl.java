@@ -52,6 +52,24 @@ public class IdamServiceImpl implements IdamService {
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
+    @Value("${refunds.serviceAccount.clientId}")
+    private String serviceClientId;
+
+    @Value("${refunds.serviceAccount.clientSecret}")
+    private String serviceClientSecret;
+
+    @Value("${refunds.serviceAccount.grantType}")
+    private String serviceGrantType;
+
+    @Value("${refunds.serviceAccount.username}")
+    private String serviceUsername;
+
+    @Value("${refunds.serviceAccount.password}")
+    private String servicePassword;
+
+    @Value("${refunds.serviceAccount.scope}")
+    private String serviceScope;
+
 
     @Override
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
@@ -193,13 +211,13 @@ public class IdamServiceImpl implements IdamService {
         String idamBaseURL = "https://idam-api.demo.platform.hmcts.net/";
         UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
             .fromUriString(idamBaseURL + TOKEN_ENDPOINT)
-            .queryParam("client_id","refunds_api")
-            .queryParam("client_secret","2q6VLB39Lx23Zg9G")
-            .queryParam("grant_type","password")
-            .queryParam("password","PassRefund123")
+            .queryParam("client_id",serviceClientId)
+            .queryParam("client_secret",serviceClientSecret)
+            .queryParam("grant_type",serviceGrantType)
+            .queryParam("password",servicePassword)
             .queryParam("redirect_uri","http://ccpay-refunds-api-demo.service.core-compute-demo.internal/oauth2/callback")
-            .queryParam("scope","openid profile roles search-user")
-            .queryParam("username","idam.user.ccpayrefundsapi@hmcts.net");
+            .queryParam("scope",serviceScope)
+            .queryParam("username",serviceUsername);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         System.out.println(builder.toUriString());
