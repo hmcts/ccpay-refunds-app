@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -17,6 +14,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
@@ -27,12 +25,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.springframework.http.HttpHeaders.EMPTY;
+
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
 public class IdamServiceImpl implements IdamService {
 
     public static final String USERID_ENDPOINT = "/o/userinfo";
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
+    private static final String TOKEN_ENDPOINT = "/o/token";
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
     static private final String LIBERATA_NAME = "Middle office provider";
     private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
@@ -50,6 +51,7 @@ public class IdamServiceImpl implements IdamService {
     @Autowired()
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
+
 
     @Override
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
@@ -145,6 +147,7 @@ public class IdamServiceImpl implements IdamService {
     public List<UserIdentityDataDto> getUsersForRoles(MultiValueMap<String, String> headers, List<String> roles) {
 //        return Collections.singletonList(UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId(
 //            "h@mail.com").id("1").build());
+        String idamBaseURL = "https://idam-api.demo.platform.hmcts.net/";
         List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
         String query = getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime;
@@ -172,6 +175,7 @@ public class IdamServiceImpl implements IdamService {
                 userIdentityDataDtoList.add(UserIdentityDataDto.userIdentityDataWith()
                                                 .id(idamUserInfoResponse.getId())
                                                 .emailId(idamUserInfoResponse.getEmail())
+                                                .roles(idamUserInfoResponse.getRoles())
                                                 .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
                                                 .build());
             }
@@ -182,6 +186,33 @@ public class IdamServiceImpl implements IdamService {
 
         LOG.error(USER_DETAILS_NOT_FOUND_ERROR_MSG);
         throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+    }
+
+    @Override
+    public IdamTokenResponse getSecurityTokens() {
+        String idamBaseURL = "https://idam-api.demo.platform.hmcts.net/";
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+            .fromUriString(idamBaseURL + TOKEN_ENDPOINT)
+            .queryParam("client_id","refunds_api")
+            .queryParam("client_secret","2q6VLB39Lx23Zg9G")
+            .queryParam("grant_type","password")
+            .queryParam("password","PassRefund123")
+            .queryParam("redirect_uri","http://ccpay-refunds-api-demo.service.core-compute-demo.internal/oauth2/callback")
+            .query("scope=openid profile roles search-user")
+            .queryParam("username","idam.user.ccpayrefundsapi@hmcts.net");
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        System.out.println(builder.toUriString());
+        ResponseEntity<IdamTokenResponse> idamTokenResponse = restTemplateIdam
+                                                                .exchange(
+                                                                    builder.build(false).toUriString(),
+                                                                    HttpMethod.POST,
+                                                                    new HttpEntity<>(httpHeaders,EMPTY),
+                                                                    IdamTokenResponse.class
+                                                                );
+
+
+        return idamTokenResponse.getBody();
     }
 
     private StringBuilder getRoles(List<String> roles) {
