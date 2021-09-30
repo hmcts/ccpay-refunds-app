@@ -23,7 +23,8 @@ java:
     PAYMENT_API_URL: "http://payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     LIBERATA_OAUTH2_AUTHORIZE_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/authorize"
     LIBERATA_OAUTH2_TOKEN_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
-    LIBERATA_BASE_URL: "https://bpacustomerportal.liberata.com/pba/public"
+    LIBERATA_BASE_URL: "https://lascustomerportaluat.liberata.com"
+    REFUND_STATUS_UPDATE_PATH: "/refunds-api/refunds"
     USER_INFO_SIZE: 300
     USER_LAST_MODIFIED_TIME: 30d
   keyVaults:
@@ -43,10 +44,11 @@ java:
         - name: liberata-api-key
           alias: LIBERATA_API_KEY
         - name: liberata-keys-oauth2-client-id
-          alias: liberata.oauth2.client.id
+          alias: LIBERATA_OAUTH2_CLIENT_ID
         - name: liberata-keys-oauth2-client-secret
-          alias: liberata.oauth2.client.secret
+          alias: LIBERATA_OAUTH2_CLIENT_SECRET
         - name: liberata-keys-oauth2-username
-          alias: liberata.oauth2.username
+          alias: LIBERATA_OAUTH2_USERNAME
         - name: liberata-keys-oauth2-password
-          alias: liberata.oauth2.password
+          alias: LIBERATA_OAUTH2_PASSWORD
+
