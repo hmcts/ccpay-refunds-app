@@ -18,10 +18,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -66,6 +66,8 @@ public class PaymentServiceImpl implements PaymentService {
     private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {
         List<String> authtoken = headers.get("authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
+        logger.info("service token ");
+        logger.info(servauthtoken.get(0));
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
         inputHeaders.put("Authorization", authtoken);

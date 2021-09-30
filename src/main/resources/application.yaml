@@ -137,8 +137,8 @@ payments:
 
 reconciliation-provider:
   api:
-    url: ${LIBERATA_BASE_URL:https://bpacustomerportal.liberata.com/pba/public}
-  refund-status-update-path: /api/v3/refund
+    url: ${LIBERATA_BASE_URL:https://lascustomerportaluat.liberata.com}
+  refund-status-update-path: ${REFUND_STATUS_UPDATE_PATH:/refunds-api/refunds}
 
 liberata:
   oauth2:
@@ -151,6 +151,8 @@ liberata:
       url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
     token:
       url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
+  api:
+    key: ${LIBERATA_API_KEY:dummy}
 
 user:
   info:

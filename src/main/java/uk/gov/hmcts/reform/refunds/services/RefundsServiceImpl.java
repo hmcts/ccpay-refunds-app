@@ -7,11 +7,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.*;
-import uk.gov.hmcts.reform.refunds.exceptions.*;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -112,7 +124,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
-                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndCreatedByIsNot(
+                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNot(
                 refundStatus,
                 idamUserIdResponse.getUid()
             ) : refundsRepository.findByRefundStatus(refundStatus);
@@ -146,7 +158,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (!roles.isEmpty()) {
             List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
-
+            userIdentityDataDtoList.forEach(user->{
+                LOG.info("user info:"+user.getId());
+            });
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             refundList.stream()
                 .filter(e -> userIdentityDataDtoList.stream().map(UserIdentityDataDto::getId)

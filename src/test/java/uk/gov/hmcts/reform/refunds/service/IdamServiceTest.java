@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1;
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
@@ -174,7 +173,7 @@ class IdamServiceTest {
         )).thenThrow(new UserNotFoundException("User Not Found"));
 
         assertThrows(UserNotFoundException.class, () -> {
-            idamService.getUserIdentityData(header, GET_REFUND_LIST_CCD_CASE_USER_ID1);
+            idamService.getUserIdentityData(header, RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1);
         });
     }
 

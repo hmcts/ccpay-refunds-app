@@ -13,8 +13,25 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.*;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.FeesNotFoundForRefundException;
+import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
+import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderInvalidRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
+import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,22 +63,28 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
         ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
     public ResponseEntity return400(Exception ex) {
+        LOG.error(Arrays.toString(ex.getStackTrace()));
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({RefundNotFoundException.class, PaymentReferenceNotFoundException.class})
     public ResponseEntity return404(Exception ex) {
+        LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class, UserNotFoundException.class, RefundReasonNotFoundException.class,
         FeesNotFoundForRefundException.class, RefundFeeNotFoundInPaymentException.class, RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class})
     public ResponseEntity return500(Exception ex) {
+//        LOG.error(ex.getCause().getMessage());
+//        LOG.error(ex.getCause().toString());
+
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(GatewayTimeoutException.class)
     public ResponseEntity return504(GatewayTimeoutException ex) {
+        LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
     }
 
