@@ -15,7 +15,7 @@ java:
     ISSUER_URI: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net/o"
     OIDC_CLIENT_ID: "paybubble"
     OIDC_ISSUER: "https://forgerock-am.service.core-compute-idam-{{ .Values.global.environment }}.internal:8443/openam/oauth2/hmcts"
-    OIDC_S2S_MICROSERVICE_NAME: ccpay_bubble
+    OIDC_S2S_MICROSERVICE_NAME: refunds_api
     OIDC_AUDIENCE_LIST: paybubble,cmc_citizen,ccd_gateway
     S2S_AUTHORISED_SERVICES: payment_app,ccpay_bubble,api_gw,ccd_gw
     IDAM_API_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
@@ -23,7 +23,8 @@ java:
     PAYMENT_API_URL: "http://payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     LIBERATA_OAUTH2_AUTHORIZE_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/authorize"
     LIBERATA_OAUTH2_TOKEN_URL: "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
-    LIBERATA_BASE_URL: "https://bpacustomerportal.liberata.com/pba/public"
+    LIBERATA_BASE_URL: "https://lascustomerportaluat.liberata.com"
+    REFUND_STATUS_UPDATE_PATH: "/refunds-api/refunds"
     USER_INFO_SIZE: 300
     USER_LAST_MODIFIED_TIME: 720d
   keyVaults:
@@ -34,17 +35,20 @@ java:
           alias: POSTGRES_PASSWORD
         - name: AppInsightsInstrumentationKey
           alias: azure.application-insights.instrumentation-key
-        - name: paybubble-s2s-secret
+        - name: refunds-s2s-secret
           alias: OIDC_S2S_SECRET
         - name: paybubble-idam-client-secret
           alias: OIDC_CLIENT_SECRET
         - name: launch-darkly-sdk-key
           alias: LAUNCH_DARKLY_SDK_KEY
+        - name: liberata-api-key
+          alias: LIBERATA_API_KEY
         - name: liberata-keys-oauth2-client-id
-          alias: liberata.oauth2.client.id
+          alias: LIBERATA_OAUTH2_CLIENT_ID
         - name: liberata-keys-oauth2-client-secret
-          alias: liberata.oauth2.client.secret
+          alias: LIBERATA_OAUTH2_CLIENT_SECRET
         - name: liberata-keys-oauth2-username
-          alias: liberata.oauth2.username
+          alias: LIBERATA_OAUTH2_USERNAME
         - name: liberata-keys-oauth2-password
-          alias: liberata.oauth2.password
+          alias: LIBERATA_OAUTH2_PASSWORD
+
