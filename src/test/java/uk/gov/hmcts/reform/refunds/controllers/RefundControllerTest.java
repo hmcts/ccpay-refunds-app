@@ -482,7 +482,7 @@ class RefundControllerTest {
     }
 
     public void mockGetUsersForRolesCall(List<String> roles, IdamUserInfoResponse[] idamUserListResponse) {
-        String query = "(roles:payments-refund OR roles:payments-refund-approver OR roles:refund-admin) AND lastModified:>now-720d";
+        String query = "(roles:payments-refund OR roles:payments-refund-approver OR roles:refund-admin) AND lastModified:>now-30d";
         int size = 300;
         UriComponents builder = UriComponentsBuilder.newInstance()
             .fromUriString(idamBaseURL + IdamServiceImpl.USER_FULL_NAME_ENDPOINT)
