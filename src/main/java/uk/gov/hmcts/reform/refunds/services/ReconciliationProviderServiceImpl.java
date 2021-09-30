@@ -30,6 +30,12 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     @Value("${liberata.api.key}")
     private String xApikey;
 
+    @Value("${liberata.oauth2.username}")
+    private String username;
+
+    @Value("${liberata.oauth2.password}")
+    private String password;
+
     private static final Logger LOG = LoggerFactory.getLogger(ReconciliationProviderServiceImpl.class);
 
     @Override
@@ -37,6 +43,8 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
 //        try{
             headers.add("X-API-KEY",xApikey);
             LOG.info("xApikey: {}",xApikey);
+            LOG.info("username {}",username);
+            LOG.info("password {}",password);
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
