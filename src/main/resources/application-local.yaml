@@ -53,7 +53,7 @@ idam:
   api:
     url: ${IDAM_API_URL:http://localhost:5000}
   s2s-authorised:
-    services: ccpay_bubble,internal,payment_app,refunds_api
+    services: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp
   s2s-auth:
     url: http://localhost:8085
     totp_secret: AAAAAAAAAAAAAAAA
