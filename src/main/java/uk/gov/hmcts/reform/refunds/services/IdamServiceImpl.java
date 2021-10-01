@@ -70,6 +70,9 @@ public class IdamServiceImpl implements IdamService {
     @Value("${refunds.serviceAccount.scope}")
     private String serviceScope;
 
+    @Value("${refunds.serviceAccount.redirectUri}")
+    private String redirectUri;
+
 
     @Override
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
@@ -165,7 +168,6 @@ public class IdamServiceImpl implements IdamService {
     public List<UserIdentityDataDto> getUsersForRoles(MultiValueMap<String, String> headers, List<String> roles) {
 //        return Collections.singletonList(UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId(
 //            "h@mail.com").id("1").build());
-        String idamBaseURL = "https://idam-api.demo.platform.hmcts.net/";
         List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
         String query = getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime;
@@ -208,19 +210,17 @@ public class IdamServiceImpl implements IdamService {
 
     @Override
     public IdamTokenResponse getSecurityTokens() {
-        String idamBaseURL = "https://idam-api.demo.platform.hmcts.net/";
         UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
             .fromUriString(idamBaseURL + TOKEN_ENDPOINT)
             .queryParam("client_id",serviceClientId)
             .queryParam("client_secret",serviceClientSecret)
             .queryParam("grant_type",serviceGrantType)
             .queryParam("password",servicePassword)
-            .queryParam("redirect_uri","http://ccpay-refunds-api-demo.service.core-compute-demo.internal/oauth2/callback")
+            .queryParam("redirect_uri",redirectUri)
             .queryParam("scope",serviceScope)
             .queryParam("username",serviceUsername);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        System.out.println(builder.toUriString());
         ResponseEntity<IdamTokenResponse> idamTokenResponse = restTemplateIdam
                                                                 .exchange(
                                                                     builder.build(false).toUriString(),
