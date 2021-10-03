@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
-import com.google.common.collect.Multimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextStartedEvent;
@@ -14,23 +15,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Component
 public class ContextStartListener implements ApplicationListener<ContextStartedEvent> {
-    public static Map<String, List<UserIdentityDataDto>> userMap;
+    private static Map<String, List<UserIdentityDataDto>> userMap;
+    private static final Logger LOG = LoggerFactory.getLogger(ContextStartListener.class);
+
 
     @Autowired
     private IdamService idamService;
 
     @Override
     public void onApplicationEvent(ContextStartedEvent event) {
-        System.out.println("Context Start Event received.");
+        LOG.info("Context Start Event received.");
         userMap = new ConcurrentHashMap<>();
         List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
                                                                                          Arrays.asList("payments-refund","payments-refund-approver"));
         userMap.put("payments-refund",userIdentityDataDtoList);
 
+    }
+
+    public Map<String, List<UserIdentityDataDto>> getUserMap(){
+        return userMap;
     }
 
 
@@ -45,8 +51,8 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
         return idamTokenResponse.getAccessToken();
     }
 
-    private List<UserIdentityDataDto> getUsersBasedOnRole(List<UserIdentityDataDto> userIdentityDataDtoList, String role){
-        return userIdentityDataDtoList.stream().filter(userIdentityDataDto -> userIdentityDataDto.getRoles().contains(role)).collect(
-            Collectors.toList());
-    }
+//    private List<UserIdentityDataDto> getUsersBasedOnRole(List<UserIdentityDataDto> userIdentityDataDtoList, String role){
+//        return userIdentityDataDtoList.stream().filter(userIdentityDataDto -> userIdentityDataDto.getRoles().contains(role)).collect(
+//            Collectors.toList());
+//    }
 }

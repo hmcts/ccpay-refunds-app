@@ -88,6 +88,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private StatusHistoryRepository statusHistoryRepository;
 
+    @Autowired
+    private  ContextStartListener contextStartListener;
+
     @Override
     public RefundEvent[] retrieveActions(String reference) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -163,7 +166,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 //                    userIdentityDataDtoSet.add(user);
 //                });
 //            });
-            Set<UserIdentityDataDto> userIdentityDataDtoSet =  ContextStartListener.userMap.get("payments-refund").stream().collect(
+            Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by

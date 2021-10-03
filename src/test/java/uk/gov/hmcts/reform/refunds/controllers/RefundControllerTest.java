@@ -56,6 +56,7 @@ import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
+import uk.gov.hmcts.reform.refunds.services.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
@@ -70,6 +71,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -80,6 +82,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1;
+import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID;
 
 
 @SpringBootTest
@@ -90,7 +94,7 @@ class RefundControllerTest {
 
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
-        .id(RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
@@ -100,7 +104,7 @@ class RefundControllerTest {
         .build()};
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier1 = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
-        .id(RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .email("mockfullname@gmail.com")
         .forename("mock-Forename")
         .surname("mock-Surname")
@@ -132,7 +136,7 @@ class RefundControllerTest {
 
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameSendBackRefundListSupplier = () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
         .idamFullNameRetrivalResponseWith()
-        .id(RefundServiceImplTest.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
+        .id(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
         .email("mock2fullname@gmail.com")
         .forename("mock2-Forename")
         .surname("mock2-Surname")
@@ -146,7 +150,7 @@ class RefundControllerTest {
         .name("mock-ForeName mock-Surname")
         .sub("mockfullname@gmail.com")
         .roles(List.of("payments-refund", "payments-refund-approver", "refund-admin"))
-        .uid(RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .uid(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .build();
     private static final String REFUND_REFERENCE_REGEX = "^[RF-]{3}(\\w{4}-){3}(\\w{4})";
     private RefundReason refundReason = RefundReason.refundReasonWith().
@@ -199,6 +203,9 @@ class RefundControllerTest {
     private StatusHistoryRepository statusHistoryRepository;
     @MockBean
     private RejectionReasonRepository rejectionReasonRepository;
+
+    @MockBean
+    private ContextStartListener contextStartListener;
 
     @Mock
     private IdamServiceImpl idamService;
@@ -281,15 +288,21 @@ class RefundControllerTest {
         );
 
         //mock repository call
-        when(refundsRepository.findByCcdCaseNumber(RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1))
+        when(refundsRepository.findByCcdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1))
             .thenReturn(Optional.ofNullable(List.of(
                 RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
+
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund",Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                                        .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build()));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
+
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "submitted")
-                                                  .queryParam("ccdCaseNumber", RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                                  .queryParam("ccdCaseNumber", GET_REFUND_LIST_CCD_CASE_USER_ID1)
                                                   .queryParam("excludeCurrentUser", " ")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
@@ -317,6 +330,11 @@ class RefundControllerTest {
             Arrays.asList("refund-approver", "refund-admin"),
             idamFullNameCCDSearchRefundListSupplier.get()
         );
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund",Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                                        .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build()));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
+
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -390,10 +408,11 @@ class RefundControllerTest {
             Arrays.asList("payments-refund", "payments-refund-approver"),
             idamFullNameCCDSearchRefundListSupplier1.get()
         );
-        when(idamService.getUsersForRoles(
-            any(),
-            any()
-        )).thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id("a").fullName("a").emailId("a").build()));
+
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund",Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                                                        .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build()));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
 
         //mock repository call
         when(refundsRepository.findByRefundStatus(
@@ -418,16 +437,12 @@ class RefundControllerTest {
         );
 
         assertNotNull(refundListDtoResponse);
-        assertEquals(2, refundListDtoResponse.getRefundList().size());
+        assertEquals(1, refundListDtoResponse.getRefundList().size());
         assertEquals(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL, refundListDtoResponse.getRefundList().get(0).getRefundStatus());
 
         assertTrue(refundListDtoResponse.getRefundList().stream()
                        .anyMatch(refundListDto -> refundListDto.getUserFullName().equalsIgnoreCase(
                            "mock-Forename mock-Surname")));
-
-        assertTrue(refundListDtoResponse.getRefundList().stream()
-                       .anyMatch(refundListDto -> refundListDto.getUserFullName().equalsIgnoreCase(
-                           "mock1-Forename mock1-Surname")));
     }
 
     @Test
@@ -448,6 +463,11 @@ class RefundControllerTest {
         ))
             .thenReturn(Optional.ofNullable(List.of(
                 RefundServiceImplTest.refundListSupplierForSendBackStatus.get())));
+
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund",Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
+                                                        .fullName("mock2-Forename mock2-Surname").emailId("mock2fullname@gmail.com").build()));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
