@@ -170,8 +170,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 Collectors.toSet());
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
+            List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
+                Collectors.toList());
+            refundList.forEach(refund -> {
+                if(!userIdsWithGivenRoles.contains(refund.getCreatedBy())){
+                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
+                    contextStartListener.addUserToMap("payments-refunds",userIdentityDataDto);
+                    userIdentityDataDtoSet.add(userIdentityDataDto);
+                    userIdsWithGivenRoles.add(userIdentityDataDto.getId());
+                }
+            });
             refundList.stream()
-                .filter(e -> userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId)
+                .filter(e -> userIdsWithGivenRoles.stream()
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
