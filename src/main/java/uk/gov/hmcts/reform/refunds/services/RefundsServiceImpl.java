@@ -88,6 +88,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private StatusHistoryRepository statusHistoryRepository;
 
+    @Autowired
+    private  ContextStartListener contextStartListener;
+
     @Override
     public RefundEvent[] retrieveActions(String reference) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -156,14 +159,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundDto> refundListDto = new ArrayList<>();
 
         if (!roles.isEmpty()) {
-            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
-            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
-            userIdentityDataDtoList.forEach(user->{
-                LOG.info("user info:"+user.getId());
-            });
+//            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
+//            Set<UserIdentityDataDto> userIdentityDataDtoSet = new HashSet<>();
+//                roles.forEach(role->{
+//                ContextStartListener.userMap.get(role).forEach(user->{
+//                    userIdentityDataDtoSet.add(user);
+//                });
+//            });
+            Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
+                Collectors.toSet());
+            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             refundList.stream()
-                .filter(e -> userIdentityDataDtoList.stream().map(UserIdentityDataDto::getId)
+                .filter(e -> userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId)
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
@@ -171,7 +179,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     LOG.info("refund: {}", refund);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
-                        userIdentityDataDtoList.stream()
+                        userIdentityDataDtoSet.stream()
                             .filter(dto -> refund.getCreatedBy().equals(dto.getId()))
                             .findAny().get(),
                         reason

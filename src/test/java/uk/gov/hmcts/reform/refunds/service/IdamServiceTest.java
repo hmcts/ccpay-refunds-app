@@ -20,6 +20,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
@@ -32,12 +33,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
+import static org.springframework.http.HttpHeaders.EMPTY;
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
@@ -342,6 +345,27 @@ class IdamServiceTest {
         assertEquals(3, users.size());
         assertEquals("AAA BBB", users.get(0).getFullName());
 
+    }
+
+    @Test
+    void whenGetSecurityTokenCalled_thenReturnsIdamTokenResponse(){
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith()
+                                                .accessToken("access-token")
+                                                .expiresIn("1000")
+                                                .idToken("id-token")
+                                                .refreshToken("refresh-token")
+                                                .scope("openid profile roles")
+                                                .tokenType("type")
+                                                .build();
+        when(restTemplateIdam
+                  .exchange(
+                      anyString(),
+                      eq(HttpMethod.POST),
+                      any(HttpEntity.class),
+                      eq(IdamTokenResponse.class)
+                  )).thenReturn(ResponseEntity.ok(idamTokenResponse));
+        IdamTokenResponse actualResponse = idamService.getSecurityTokens();
+        assertThat(actualResponse).usingRecursiveComparison().isEqualTo(idamTokenResponse);
     }
 
 }
