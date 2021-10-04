@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -17,6 +14,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
@@ -27,12 +25,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.springframework.http.HttpHeaders.EMPTY;
+
 @Service
 @SuppressWarnings("PMD.PreserveStackTrace")
 public class IdamServiceImpl implements IdamService {
 
     public static final String USERID_ENDPOINT = "/o/userinfo";
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
+    private static final String TOKEN_ENDPOINT = "/o/token";
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
     static private final String LIBERATA_NAME = "Middle office provider";
     private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
@@ -50,6 +51,28 @@ public class IdamServiceImpl implements IdamService {
     @Autowired()
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
+
+    @Value("${refunds.serviceAccount.clientId}")
+    private String serviceClientId;
+
+    @Value("${refunds.serviceAccount.clientSecret}")
+    private String serviceClientSecret;
+
+    @Value("${refunds.serviceAccount.grantType}")
+    private String serviceGrantType;
+
+    @Value("${refunds.serviceAccount.username}")
+    private String serviceUsername;
+
+    @Value("${refunds.serviceAccount.password}")
+    private String servicePassword;
+
+    @Value("${refunds.serviceAccount.scope}")
+    private String serviceScope;
+
+    @Value("${refunds.serviceAccount.redirectUri}")
+    private String redirectUri;
+
 
     @Override
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
@@ -172,6 +195,7 @@ public class IdamServiceImpl implements IdamService {
                 userIdentityDataDtoList.add(UserIdentityDataDto.userIdentityDataWith()
                                                 .id(idamUserInfoResponse.getId())
                                                 .emailId(idamUserInfoResponse.getEmail())
+                                                .roles(idamUserInfoResponse.getRoles())
                                                 .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
                                                 .build());
             }
@@ -182,6 +206,31 @@ public class IdamServiceImpl implements IdamService {
 
         LOG.error(USER_DETAILS_NOT_FOUND_ERROR_MSG);
         throw new UserNotFoundException(USER_DETAILS_NOT_FOUND_ERROR_MSG);
+    }
+
+    @Override
+    public IdamTokenResponse getSecurityTokens() {
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+            .fromUriString(idamBaseURL + TOKEN_ENDPOINT)
+            .queryParam("client_id",serviceClientId)
+            .queryParam("client_secret",serviceClientSecret)
+            .queryParam("grant_type",serviceGrantType)
+            .queryParam("password",servicePassword)
+            .queryParam("redirect_uri",redirectUri)
+            .queryParam("scope",serviceScope)
+            .queryParam("username",serviceUsername);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<IdamTokenResponse> idamTokenResponse = restTemplateIdam
+                                                                .exchange(
+                                                                    builder.build(false).toUriString(),
+                                                                    HttpMethod.POST,
+                                                                    new HttpEntity<>(httpHeaders,EMPTY),
+                                                                    IdamTokenResponse.class
+                                                                );
+
+
+        return idamTokenResponse.getBody();
     }
 
     private StringBuilder getRoles(List<String> roles) {

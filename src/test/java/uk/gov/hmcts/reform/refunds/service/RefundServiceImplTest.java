@@ -7,7 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -32,6 +34,7 @@ import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
+import uk.gov.hmcts.reform.refunds.services.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
 import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
@@ -39,10 +42,8 @@ import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -149,7 +150,7 @@ public class RefundServiceImplTest {
             build();
     @InjectMocks
     private RefundsServiceImpl refundsService;
-    @Mock
+    @MockBean
     private IdamService idamService;
     @Mock
     private MultiValueMap<String, String> map;
@@ -165,6 +166,9 @@ public class RefundServiceImplTest {
     private StatusHistoryResponseMapper statusHistoryResponseMapper;
     @Spy
     private RefundResponseMapper refundResponseMapper;
+
+    @Mock
+    private ContextStartListener contextStartListener;
 
     @BeforeEach
     public void init() {
@@ -190,14 +194,14 @@ public class RefundServiceImplTest {
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
             refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
-        when(idamService.getUsersForRoles(
-            any(),
-            any()
-        )).thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
-                                        .fullName("ccd-full-name")
-                                        .emailId("j@mail.com")
-                                        .id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
-                                        .build()));
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund",Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
+                                                        .fullName("ccd-full-name")
+                                                        .emailId("j@mail.com")
+                                                        .id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                                                        .build()));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
+
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code(
             "RR001").name("duplicate payment").build()));
 
@@ -224,14 +228,13 @@ public class RefundServiceImplTest {
         ))
             .thenReturn(Optional.ofNullable(List.of(
                 refundListSupplierForSubmittedStatus.get())));
-        when(idamService.getUsersForRoles(
-            any(),
-            any()
-        )).thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
-                                        .fullName("ccd-full-name-for-submitted-status")
-                                        .emailId("j@mail.com")
-                                        .id("2f2b7025-0f91-4737-92c6-b7a9baef14c6")
-                                        .build()));
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund",Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
+                                                        .fullName("ccd-full-name-for-submitted-status")
+                                                        .emailId("j@mail.com")
+                                                        .id("2f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                                                        .build()));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             "sent for approval",
@@ -260,13 +263,14 @@ public class RefundServiceImplTest {
             )));
 
         when(idamService.getUserId(map)).thenReturn(IDAM_USER_ID_RESPONSE);
-
-        when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund",Arrays.asList(
             UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId("h@mail.com")
                 .id(GET_REFUND_LIST_CCD_CASE_USER_ID1).build(),
             UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status")
                 .emailId("h@mail.com").id(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID).build()
         ));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
 
         when(refundReasonRepository.findByCode(anyString())).thenReturn(
             Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
@@ -605,8 +609,9 @@ public class RefundServiceImplTest {
             .emailId("j@mail.com")
             .id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
             .build();
-        when(idamService.getUsersForRoles(any(), any())).thenReturn(Arrays.asList(dto));
-
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund",Arrays.asList(dto));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             null,
             map,
