@@ -39,7 +39,11 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
         return userMap;
     }
 
-
+    public void addUserToMap(String userGroup, UserIdentityDataDto userIdentityDataDto){
+        List<UserIdentityDataDto> userIdentityDataDtoList = userMap.get(userGroup);
+        userIdentityDataDtoList.add(userIdentityDataDto);
+        userMap.put("payments-refund",userIdentityDataDtoList);
+    }
     private MultiValueMap<String, String>  getAuthenticationHeaders(){
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.add("Authorization", getAccessToken());
