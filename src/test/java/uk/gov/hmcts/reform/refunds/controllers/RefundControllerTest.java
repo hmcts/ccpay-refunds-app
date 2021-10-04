@@ -56,7 +56,7 @@ import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
-import uk.gov.hmcts.reform.refunds.services.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;

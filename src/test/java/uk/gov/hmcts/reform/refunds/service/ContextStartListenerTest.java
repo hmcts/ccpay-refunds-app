@@ -9,16 +9,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.services.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;

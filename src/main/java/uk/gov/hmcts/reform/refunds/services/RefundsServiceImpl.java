@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -89,7 +90,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private StatusHistoryRepository statusHistoryRepository;
 
     @Autowired
-    private  ContextStartListener contextStartListener;
+    private ContextStartListener contextStartListener;
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {

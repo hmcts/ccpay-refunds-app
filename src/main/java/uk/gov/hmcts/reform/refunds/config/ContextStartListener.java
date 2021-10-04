@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.services;
+package uk.gov.hmcts.reform.refunds.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +10,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.services.IdamService;
 
 import java.util.Arrays;
 import java.util.List;
