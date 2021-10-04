@@ -116,6 +116,16 @@ idam:
     totp_secret: ${OIDC_S2S_SECRET}
     microservice: ${OIDC_S2S_MICROSERVICE_NAME}
 
+refunds:
+  serviceAccount:
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:refunds_api}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:idam.user.ccpayrefundsapi@hmcts.net}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
+    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:http://ccpay-refunds-api-demo.service.core-compute-demo.internal/oauth2/callback}
+
 
 #Launch Darkly Config
 launch:

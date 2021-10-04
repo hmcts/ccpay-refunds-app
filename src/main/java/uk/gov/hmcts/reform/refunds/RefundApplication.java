@@ -9,7 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class RefundApplication {
 
     public static void main(final String[] args) {
-            SpringApplication.run(RefundApplication.class, args);
+        SpringApplication.run(RefundApplication.class, args).start();
     }
+
 }
 
