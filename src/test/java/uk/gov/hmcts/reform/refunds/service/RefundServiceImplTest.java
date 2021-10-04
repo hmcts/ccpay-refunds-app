@@ -48,8 +48,7 @@ import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
@@ -598,10 +597,10 @@ public class RefundServiceImplTest {
     void givenValidRole_whenGetRefundList_thenFilteredRefundsListIsReceived() {
 
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
-            refundListSupplierBasedOnCCDCaseNumber1.get(), refundListSupplierBasedOnCCDCaseNumber2.get(),
-            refundListSupplierBasedOnCCDCaseNumber3.get()
-        )));
+            refundListSupplierBasedOnCCDCaseNumber1.get(), refundListSupplierBasedOnCCDCaseNumber2.get())));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(idamService.getUserIdentityData(any(),anyString())).thenReturn(UserIdentityDataDto.userIdentityDataWith().id("userId2")
+                                                                                                               .fullName("mock2-Forename mock2-Surname").emailId("mock2fullname@gmail.com").build());
         when(refundReasonRepository.findByCode(anyString())).thenReturn(
             Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
         UserIdentityDataDto dto = UserIdentityDataDto.userIdentityDataWith()
@@ -620,7 +619,7 @@ public class RefundServiceImplTest {
         );
 
         assertNotNull(refundListDtoResponse);
-        assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals(2, refundListDtoResponse.getRefundList().size());
         assertEquals("ccd-full-name", refundListDtoResponse.getRefundList().get(0).getUserFullName());
         assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
     }

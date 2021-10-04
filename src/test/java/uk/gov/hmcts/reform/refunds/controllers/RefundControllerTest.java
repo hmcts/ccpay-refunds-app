@@ -419,7 +419,7 @@ class RefundControllerTest {
             uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL
         ))
             .thenReturn(Optional.ofNullable(List.of(
-                RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get(), RefundServiceImplTest.refundListSupplierForSubmittedStatus.get())));
+                RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
