@@ -176,7 +176,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundList.forEach(refund -> {
                 if(!userIdsWithGivenRoles.contains(refund.getCreatedBy())){
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
-                    contextStartListener.addUserToMap("payments-refunds",userIdentityDataDto);
+                    contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
                     userIdentityDataDtoSet.add(userIdentityDataDto);
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
