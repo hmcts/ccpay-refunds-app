@@ -181,6 +181,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
+            LOG.info("userIdsWithGivenRoles {}",userIdsWithGivenRoles);
+            LOG.info("refundList {}",refundList);
             refundList.stream()
                 .filter(e -> userIdsWithGivenRoles.stream()
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
