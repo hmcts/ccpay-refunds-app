@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.services;
+package uk.gov.hmcts.reform.refunds.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +10,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.services.IdamService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +40,11 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
         return userMap;
     }
 
-
+    public void addUserToMap(String userGroup, UserIdentityDataDto userIdentityDataDto){
+        List<UserIdentityDataDto> userIdentityDataDtoList = userMap.get(userGroup);
+        userIdentityDataDtoList.add(userIdentityDataDto);
+        userMap.put("payments-refund",userIdentityDataDtoList);
+    }
     private MultiValueMap<String, String>  getAuthenticationHeaders(){
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.add("Authorization", getAccessToken());

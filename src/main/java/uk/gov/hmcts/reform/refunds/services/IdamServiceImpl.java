@@ -154,6 +154,8 @@ public class IdamServiceImpl implements IdamService {
             if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
                 IdamUserInfoResponse idamUserInfoResponse = idamArrayFullNameRetrievalResponse[0];
                 return UserIdentityDataDto.userIdentityDataWith()
+                    .id(idamUserInfoResponse.getId())
+                    .roles(idamUserInfoResponse.getRoles())
                     .emailId(idamUserInfoResponse.getEmail())
                     .fullName(idamUserInfoResponse.getForename() + " " + idamUserInfoResponse.getSurname())
                     .build();
