@@ -56,7 +56,7 @@ import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
-import uk.gov.hmcts.reform.refunds.services.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
@@ -419,7 +419,7 @@ class RefundControllerTest {
             uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL
         ))
             .thenReturn(Optional.ofNullable(List.of(
-                RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get(), RefundServiceImplTest.refundListSupplierForSubmittedStatus.get())));
+                RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")

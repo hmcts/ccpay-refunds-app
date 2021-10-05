@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -89,7 +90,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private StatusHistoryRepository statusHistoryRepository;
 
     @Autowired
-    private  ContextStartListener contextStartListener;
+    private ContextStartListener contextStartListener;
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {
@@ -170,8 +171,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 Collectors.toSet());
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
+            List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
+                Collectors.toList());
+            refundList.forEach(refund -> {
+                if(!userIdsWithGivenRoles.contains(refund.getCreatedBy())){
+                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
+                    contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
+                    userIdentityDataDtoSet.add(userIdentityDataDto);
+                    userIdsWithGivenRoles.add(userIdentityDataDto.getId());
+                }
+            });
             refundList.stream()
-                .filter(e -> userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId)
+                .filter(e -> userIdsWithGivenRoles.stream()
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
