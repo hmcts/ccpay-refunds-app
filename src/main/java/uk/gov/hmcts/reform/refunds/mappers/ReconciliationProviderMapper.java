@@ -13,9 +13,11 @@ import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRa
 import uk.gov.hmcts.reform.refunds.model.Refund;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,8 +27,8 @@ public class ReconciliationProviderMapper {
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
             .refundReference(refund.getReference())
             .paymentReference(paymentDto.getPayments().get(0).getReference())
-            .dateCreated(new Date(refund.getDateCreated().getTime()))
-            .dateUpdated(new Date(refund.getDateUpdated().getTime()))
+            .dateCreated(getDate(refund.getDateCreated()))
+            .dateUpdated(getDate(refund.getDateUpdated()))
             .refundReason(refund.getReason())
             .totalRefundAmount(refund.getAmount())
             .currency("GBP")
@@ -90,5 +92,11 @@ public class ReconciliationProviderMapper {
             throw new RefundFeeNotFoundInPaymentException("Refund not found in payment");
         }
         return feeResponses;
+    }
+
+    private String getDate(Timestamp timestamp) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss", Locale.ENGLISH);
+        return simpleDateFormat.format(timestamp);
+
     }
 }
