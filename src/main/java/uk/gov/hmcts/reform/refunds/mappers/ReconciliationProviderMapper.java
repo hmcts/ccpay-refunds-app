@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,8 +25,8 @@ public class ReconciliationProviderMapper {
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
             .refundReference(refund.getReference())
             .paymentReference(paymentDto.getPayments().get(0).getReference())
-            .dateCreated(refund.getDateCreated())
-            .dateUpdated(refund.getDateUpdated())
+            .dateCreated(new Date(refund.getDateCreated().getTime()))
+            .dateUpdated(new Date(refund.getDateUpdated().getTime()))
             .refundReason(refund.getReason())
             .totalRefundAmount(refund.getAmount())
             .currency("GBP")
