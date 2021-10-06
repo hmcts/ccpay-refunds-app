@@ -173,9 +173,8 @@ logging:
   level:
     org:
       springframework:
-        web:
-          client:
-            RestTemplate: DEBUG
+        web: DEBUG
+
 
 
 
