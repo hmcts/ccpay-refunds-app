@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 
@@ -40,6 +43,8 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
 
     @Override
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest){
+        ReconciliationProviderRefundRequest reconciliationProviderRefundRequest = ReconciliationProviderRefundRequest.refundReconciliationProviderRefundRequestWith()
+                                                                                    .refundRequest(reconciliationProviderRequest).build();
 //        try{
             headers.add("X-API-KEY",xApikey);
             LOG.info("xApikey: {}",xApikey);
@@ -49,7 +54,7 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             return restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
-                new HttpEntity<>(reconciliationProviderRequest, headers), ReconciliationProviderResponse.class
+                new HttpEntity<>(reconciliationProviderRefundRequest, headers), ReconciliationProviderResponse.class
             );
 //        } catch (HttpClientErrorException e){
 //            throw new ReconciliationProviderInvalidRequestException("Invalid Request: Reconciliation Provider", e);
