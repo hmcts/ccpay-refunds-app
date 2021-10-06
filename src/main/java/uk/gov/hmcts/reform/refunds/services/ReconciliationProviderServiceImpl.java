@@ -48,6 +48,9 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             LOG.info("xApikey: {}",xApikey);
             LOG.info("username {}",username);
             LOG.info("password {}",password);
+
+            LOG.info("reconciliationProviderRequest.getDateCreated() {}",reconciliationProviderRequest.getDateCreated());
+            LOG.info("reconciliationProviderRequest.getDateUpdated() {}",reconciliationProviderRequest.getDateUpdated());
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
