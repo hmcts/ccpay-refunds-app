@@ -37,6 +37,7 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
     }
 
     public Map<String, List<UserIdentityDataDto>> getUserMap(){
+        LOG.info("getting data from User Map");
         return userMap;
     }
 

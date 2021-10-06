@@ -42,9 +42,6 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest){
 //        try{
             headers.add("X-API-KEY",xApikey);
-            LOG.info("xApikey: {}",xApikey);
-            LOG.info("username {}",username);
-            LOG.info("password {}",password);
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
