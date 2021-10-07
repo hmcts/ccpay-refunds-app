@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +51,15 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             LOG.info("xApikey: {}",xApikey);
             LOG.info("username {}",username);
             LOG.info("password {}",password);
+            try{
+                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                String json = ow.writeValueAsString(reconciliationProviderRefundRequest);
+                LOG.info(json);
+            }catch (JsonProcessingException e){
+                LOG.info(e.getMessage());
+            }
 
-            LOG.info("reconciliationProviderRequest.getDateCreated() {}",reconciliationProviderRequest.getDateCreated());
-            LOG.info("reconciliationProviderRequest.getDateUpdated() {}",reconciliationProviderRequest.getDateUpdated());
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
