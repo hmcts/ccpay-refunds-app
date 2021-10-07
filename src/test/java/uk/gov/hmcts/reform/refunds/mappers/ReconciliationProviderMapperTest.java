@@ -57,11 +57,11 @@ public class ReconciliationProviderMapperTest {
                     .ccdCaseNumber("ccd-case-number")
                     .currency("GBP")
                     .refundReason("RR0001")
-                    .totalRefundAmount(BigDecimal.valueOf(100))
+                    .totalRefundAmount(100.00)
                     .fees(Arrays.asList(
                         ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
                                 .code("FEE012")
-                                .refundAmount(BigDecimal.valueOf(100))
+                                .refundAmount(100.00)
                                 .version("1")
                                 .build()
                           )

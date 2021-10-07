@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
-import java.math.BigDecimal;
-
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -20,5 +18,5 @@ public class ReconcilitationProviderFeeRequest {
 
     private String version;
 
-    private BigDecimal refundAmount;
+    private double refundAmount;
 }
