@@ -23,7 +23,7 @@ public class ReconciliationProviderRequest {
 
     private String refundReason;
 
-    private double totalRefundAmount;
+    private String totalRefundAmount;
 
     private String currency;
 

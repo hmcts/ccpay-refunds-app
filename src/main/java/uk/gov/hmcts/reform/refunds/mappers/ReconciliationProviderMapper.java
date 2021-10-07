@@ -1,28 +1,31 @@
 package uk.gov.hmcts.reform.refunds.mappers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconcilitationProviderFeeRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.FeesNotFoundForRefundException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentException;
-import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
+import uk.gov.hmcts.reform.refunds.exceptions.*;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 public class ReconciliationProviderMapper {
+
+    @Autowired
+    private RefundReasonRepository refundReasonRepository;
 
     public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund){
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
@@ -30,8 +33,8 @@ public class ReconciliationProviderMapper {
             .paymentReference(paymentDto.getPayments().get(0).getReference())
             .dateCreated(getDate(refund.getDateCreated()))
             .dateUpdated(getDate(refund.getDateUpdated()))
-            .refundReason(refund.getReason())
-            .totalRefundAmount(refund.getAmount().setScale(2,RoundingMode.UNNECESSARY).doubleValue())
+            .refundReason(getRefundReason(refund.getReason()))
+            .totalRefundAmount(refund.getAmount().toString())
             .currency("GBP")
             .caseReference(paymentDto.getPayments().get(0).getCaseReference())
             .ccdCaseNumber(paymentDto.getPayments().get(0).getCcdCaseNumber())
@@ -52,10 +55,9 @@ public class ReconciliationProviderMapper {
                 validateRetrospectiveRemissions(remissionsAppliedForRefund,refund);
                 List<PaymentFeeResponse> feeResponses = getRetrospectiveRemissionAppliedFee(paymentGroupResponse, refundFeeIds);
                 return Arrays.asList(ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
-                                         .version(feeResponses.get(0).getVersion())
+                                         .version(Integer.parseInt(feeResponses.get(0).getVersion()))
                                          .code(feeResponses.get(0).getCode())
-                                         .refundAmount(remissionsAppliedForRefund.get(0).getHwfAmount().setScale(2,
-                                                                                                                 RoundingMode.UNNECESSARY).doubleValue())
+                                         .refundAmount(remissionsAppliedForRefund.get(0).getHwfAmount().toString())
                                          .build());
             }
 
@@ -66,8 +68,8 @@ public class ReconciliationProviderMapper {
                 BigDecimal refundAmount = remissionForGivenFee.isEmpty()?paymentFeeResponse.getApportionAmount():paymentFeeResponse.getApportionAmount().subtract(remissionForGivenFee.get(0).getHwfAmount());
                 return ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
                     .code(paymentFeeResponse.getCode())
-                    .version(paymentFeeResponse.getVersion())
-                    .refundAmount(refundAmount.setScale(2,RoundingMode.UNNECESSARY).doubleValue())
+                    .version(Integer.parseInt(paymentFeeResponse.getVersion()))
+                    .refundAmount(refundAmount.toString())
                     .build();
             }).collect(Collectors.toList());
         }
@@ -100,5 +102,16 @@ public class ReconciliationProviderMapper {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss", Locale.ENGLISH);
         return simpleDateFormat.format(timestamp);
 
+    }
+
+    private String getRefundReason(String rawReason) {
+        if (rawReason.startsWith("RR")) {
+            Optional<RefundReason> refundReasonOptional = refundReasonRepository.findByCode(rawReason);
+            if (refundReasonOptional.isPresent()) {
+                return refundReasonOptional.get().getName();
+            }
+            throw new RefundReasonNotFoundException(rawReason);
+        }
+        return rawReason;
     }
 }
