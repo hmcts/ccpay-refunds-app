@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -16,7 +17,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class ReconcilitationProviderFeeRequest {
     private String code;
 
-    private String version;
+    private int version;
 
-    private double refundAmount;
+    private String refundAmount;
 }
