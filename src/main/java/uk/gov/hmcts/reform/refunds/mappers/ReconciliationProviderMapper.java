@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRa
 import uk.gov.hmcts.reform.refunds.model.Refund;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -30,7 +31,7 @@ public class ReconciliationProviderMapper {
             .dateCreated(getDate(refund.getDateCreated()))
             .dateUpdated(getDate(refund.getDateUpdated()))
             .refundReason(refund.getReason())
-            .totalRefundAmount(refund.getAmount())
+            .totalRefundAmount(refund.getAmount().setScale(2,RoundingMode.UNNECESSARY).doubleValue())
             .currency("GBP")
             .caseReference(paymentDto.getPayments().get(0).getCaseReference())
             .ccdCaseNumber(paymentDto.getPayments().get(0).getCcdCaseNumber())
@@ -53,7 +54,8 @@ public class ReconciliationProviderMapper {
                 return Arrays.asList(ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
                                          .version(feeResponses.get(0).getVersion())
                                          .code(feeResponses.get(0).getCode())
-                                         .refundAmount(remissionsAppliedForRefund.get(0).getHwfAmount())
+                                         .refundAmount(remissionsAppliedForRefund.get(0).getHwfAmount().setScale(2,
+                                                                                                                 RoundingMode.UNNECESSARY).doubleValue())
                                          .build());
             }
 
@@ -65,7 +67,7 @@ public class ReconciliationProviderMapper {
                 return ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
                     .code(paymentFeeResponse.getCode())
                     .version(paymentFeeResponse.getVersion())
-                    .refundAmount(refundAmount)
+                    .refundAmount(refundAmount.setScale(2,RoundingMode.UNNECESSARY).doubleValue())
                     .build();
             }).collect(Collectors.toList());
         }
