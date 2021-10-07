@@ -66,8 +66,6 @@ public class PaymentServiceImpl implements PaymentService {
     private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {
         List<String> authtoken = headers.get("authorization");
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
-        logger.info("service token ");
-        logger.info(servauthtoken.get(0));
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
         inputHeaders.put("Authorization", authtoken);
