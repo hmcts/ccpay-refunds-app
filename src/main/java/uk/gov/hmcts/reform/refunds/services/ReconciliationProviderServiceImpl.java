@@ -13,10 +13,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderInvalidRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 
 
 @Service
@@ -46,11 +49,8 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest){
         ReconciliationProviderRefundRequest reconciliationProviderRefundRequest = ReconciliationProviderRefundRequest.refundReconciliationProviderRefundRequestWith()
                                                                                     .refundRequest(reconciliationProviderRequest).build();
-//        try{
+        try{
             headers.add("X-API-KEY",xApikey);
-            LOG.info("xApikey: {}",xApikey);
-            LOG.info("username {}",username);
-            LOG.info("password {}",password);
             try{
                 ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
                 String json = ow.writeValueAsString(reconciliationProviderRefundRequest);
@@ -65,11 +65,11 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
                 HttpMethod.POST,
                 new HttpEntity<>(reconciliationProviderRefundRequest, headers), ReconciliationProviderResponse.class
             );
-//        } catch (HttpClientErrorException e){
-//            throw new ReconciliationProviderInvalidRequestException("Invalid Request: Reconciliation Provider", e);
-//        } catch ( Exception e){
-//            throw new ReconciliationProviderServerException("Reconciliation Provider Server Exception", e);
-//        }
+        } catch (HttpClientErrorException e){
+            throw new ReconciliationProviderInvalidRequestException("Invalid Request: Reconciliation Provider", e);
+        } catch ( Exception e){
+            throw new ReconciliationProviderServerException("Reconciliation Provider Server Exception", e);
+        }
     }
 
 }
