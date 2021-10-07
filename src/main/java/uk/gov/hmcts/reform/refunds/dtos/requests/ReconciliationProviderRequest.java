@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.List;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -19,13 +17,13 @@ public class ReconciliationProviderRequest {
 
     private String paymentReference;
 
-    private Timestamp dateCreated;
+    private String dateCreated;
 
-    private Timestamp dateUpdated;
+    private String dateUpdated;
 
     private String refundReason;
 
-    private BigDecimal totalRefundAmount;
+    private String totalRefundAmount;
 
     private String currency;
 
