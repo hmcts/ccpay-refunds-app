@@ -37,12 +37,6 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     @Value("${liberata.api.key}")
     private String xApikey;
 
-    @Value("${liberata.oauth2.username}")
-    private String username;
-
-    @Value("${liberata.oauth2.password}")
-    private String password;
-
     private static final Logger LOG = LoggerFactory.getLogger(ReconciliationProviderServiceImpl.class);
 
     @Override
