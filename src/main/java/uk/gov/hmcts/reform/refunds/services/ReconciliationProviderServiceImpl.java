@@ -44,14 +44,15 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
         ReconciliationProviderRefundRequest reconciliationProviderRefundRequest = ReconciliationProviderRefundRequest.refundReconciliationProviderRefundRequestWith()
                                                                                     .refundRequest(reconciliationProviderRequest).build();
         try{
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            String json = ow.writeValueAsString(reconciliationProviderRefundRequest);
+            LOG.info(json);
+        }catch (JsonProcessingException e){
+            LOG.info(e.getMessage());
+        }
+
+        try{
             headers.add("X-API-KEY",xApikey);
-            try{
-                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-                String json = ow.writeValueAsString(reconciliationProviderRefundRequest);
-                LOG.info(json);
-            }catch (JsonProcessingException e){
-                LOG.info(e.getMessage());
-            }
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
@@ -60,9 +61,11 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
                 new HttpEntity<>(reconciliationProviderRefundRequest, headers), ReconciliationProviderResponse.class
             );
         } catch (HttpClientErrorException e){
-            throw new ReconciliationProviderInvalidRequestException("Invalid Request: Reconciliation Provider", e);
+            LOG.error("HttpClientErrorException",e);
+            throw new ReconciliationProviderInvalidRequestException("Invalid request. Please try again.", e);
         } catch ( Exception e){
-            throw new ReconciliationProviderServerException("Reconciliation Provider Server Exception", e);
+            LOG.error("Reconciliation Provider",e);
+            throw new ReconciliationProviderServerException("Reconciliation provider unavailable. Please try again later.", e);
         }
     }
 

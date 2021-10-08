@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,6 +56,9 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
+    private static final Logger LOG = LoggerFactory.getLogger(RefundReviewServiceImpl.class);
+
+
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference);
@@ -86,7 +91,9 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
                 }else{
-                    throw new ReconciliationProviderServerException("Reconciliation Provider: "+reconciliationProviderResponseResponse.getStatusCode().getReasonPhrase());
+                    LOG.error(reconciliationProviderResponseResponse.getStatusCode().toString());
+                    LOG.error(reconciliationProviderResponseResponse.getStatusCode().getReasonPhrase());
+                    throw new ReconciliationProviderServerException("Reconciliation provider unavailable. Please try again later.");
                 }
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
