@@ -9,8 +9,11 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
@@ -167,6 +170,12 @@ public class RefundServiceImplTest {
 
     @Mock
     private ContextStartListener contextStartListener;
+
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    private JwtDecoder jwtDecoder;
 
     @BeforeEach
     public void init() {

@@ -110,9 +110,12 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
         } catch (HttpClientErrorException exception) {
-            throw new InvalidRefundRequestException(exception.getResponseBodyAsString(), exception);
+            if(exception.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                throw new PaymentReferenceNotFoundException("Payment reference not found", exception);
+            }
+            throw new InvalidRefundRequestException("Invalid request. Please try again.", exception);
         } catch (Exception exception) {
-            throw new PaymentServerException("Exception occurred while calling payment api ", exception);
+            throw new PaymentServerException("Payment server unavailable. Please try again.", exception);
         }
         return false;
     }

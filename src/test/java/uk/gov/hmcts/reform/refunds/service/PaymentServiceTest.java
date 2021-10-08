@@ -9,6 +9,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -59,6 +61,12 @@ public class PaymentServiceTest {
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
+
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    private JwtDecoder jwtDecoder;
 
     private SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
 
