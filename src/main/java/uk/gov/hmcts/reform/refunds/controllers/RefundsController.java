@@ -11,34 +11,38 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
-import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
-import javax.validation.Valid;
 import java.util.List;
+import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.ok;
 
-/**
- * Refund controller for backend rest api operations
- */
 @RestController
 @Api(tags = {"Refund Journey group"})
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals"})
@@ -56,11 +60,6 @@ public class RefundsController {
     @Autowired
     private RefundReviewService refundReviewService;
 
-    /**
-     * Api for returning list of Refund reasons
-     *
-     * @return List of Refund reasons
-     */
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
         return ok().body(refundReasonsService.findAll());
@@ -79,7 +78,8 @@ public class RefundsController {
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> createRefund(@RequestHeader("Authorization") String authorization,
                                                        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                                       @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException, InvalidRefundRequestException {
+                                                       @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException,
+                                                        InvalidRefundRequestException {
         return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
     }
 
@@ -111,7 +111,6 @@ public class RefundsController {
                 headers,
                 ccdCaseNumber,
                 excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser
-                // default false
             ),
             HttpStatus.OK
         );
@@ -150,11 +149,6 @@ public class RefundsController {
         return ok().body(refundsService.getRejectedReasons());
     }
 
-    /**
-     * API for Refunds Status History
-     *
-     * @return List of Refunds Status History
-     */
     @GetMapping("/refund/{reference}/status-history")
     public ResponseEntity<StatusHistoryResponseDto> getStatusHistory(
             @RequestHeader("Authorization") String authorization,

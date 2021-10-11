@@ -7,22 +7,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
-import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
 import uk.gov.hmcts.reform.refunds.mappers.RefundReviewMapper;
-import uk.gov.hmcts.reform.refunds.state.RefundEvent;
-import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
+import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +60,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
 
     @Override
-    public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
+    public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent,
+                                               RefundReviewRequest refundReviewRequest) {
         Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference);
 
         IdamUserIdResponse userId = idamService.getUserId(headers);
@@ -72,7 +73,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                                 .notes(refundReviewMapper.getStatusNotes(refundEvent, refundReviewRequest))
                                 .build());
         refundForGivenReference.setStatusHistories(statusHistories);
-        String statusMessage="";
+        String statusMessage = "";
         if (refundEvent.equals(RefundEvent.APPROVE)) {
             boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
             if (isRefundLiberata) {
@@ -84,13 +85,14 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                     paymentData,
                     refundForGivenReference
                 );
-                ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService.updateReconciliationProviderWithApprovedRefund(
+                ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService
+                    .updateReconciliationProviderWithApprovedRefund(
                     headers,
                     reconciliationProviderRequest
                 );
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
-                }else{
+                } else {
                     LOG.error(reconciliationProviderResponseResponse.getStatusCode().toString());
                     LOG.error(reconciliationProviderResponseResponse.getStatusCode().getReasonPhrase());
                     throw new ReconciliationProviderServerException("Reconciliation provider unavailable. Please try again later.");
@@ -103,7 +105,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
         if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.SENDBACK)) {
             updateRefundStatus(refundForGivenReference, refundEvent);
-            statusMessage = refundEvent.equals(RefundEvent.REJECT)?"Refund rejected":"Refund returned to caseworker";
+            statusMessage = refundEvent.equals(RefundEvent.REJECT) ? "Refund rejected" : "Refund returned to caseworker";
         }
         return new ResponseEntity<>(statusMessage, HttpStatus.CREATED);
     }
@@ -117,11 +119,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         return refund;
     }
 
-    /**
-     * @param refund
-     * @param refundEvent updates the refund status in database using state transition mechanism.
-     * @return
-     */
     private Refund updateRefundStatus(Refund refund, RefundEvent refundEvent) {
         RefundState updateStatusAfterAction = getRefundState(refund.getRefundStatus().getName());
         // State transition logic
