@@ -5,7 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -15,10 +19,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
 import java.util.ArrayList;
@@ -35,12 +39,12 @@ public class IdamServiceImpl implements IdamService {
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
     private static final String TOKEN_ENDPOINT = "/o/token";
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
-    static private final String LIBERATA_NAME = "Middle office provider";
+    private static final String LIBERATA_NAME = "Middle office provider";
     private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
     private static final String USER_DETAILS_NOT_FOUND_ERROR_MSG = "User details not found for these roles in IDAM";
 
     @Value("${idam.api.url}")
-    private String idamBaseURL;
+    private String idamBaseUrl;
 
     @Value("${user.info.size}")
     private String userInfoSize;
@@ -76,9 +80,6 @@ public class IdamServiceImpl implements IdamService {
 
     @Override
     public IdamUserIdResponse getUserId(MultiValueMap<String, String> headers) {
-//        return IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
-//            .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ").
-//                build();
         try {
             ResponseEntity<IdamUserIdResponse> responseEntity = getResponseEntity(headers);
             if (responseEntity != null) {
@@ -99,7 +100,7 @@ public class IdamServiceImpl implements IdamService {
     }
 
     private ResponseEntity<IdamUserIdResponse> getResponseEntity(MultiValueMap<String, String> headers) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERID_ENDPOINT);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseUrl + USERID_ENDPOINT);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
@@ -129,9 +130,7 @@ public class IdamServiceImpl implements IdamService {
 
     @Override
     public UserIdentityDataDto getUserIdentityData(MultiValueMap<String, String> headers, String uid) {
-//        return UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId(
-//            "h@mail.com").id("1").build();
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseUrl + USER_FULL_NAME_ENDPOINT)
             .queryParam("query", "id:" + uid);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
@@ -168,14 +167,12 @@ public class IdamServiceImpl implements IdamService {
 
     @Override
     public List<UserIdentityDataDto> getUsersForRoles(MultiValueMap<String, String> headers, List<String> roles) {
-//        return Collections.singletonList(UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId(
-//            "h@mail.com").id("1").build());
         List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
         String query = getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime;
 
         UriComponents builder = UriComponentsBuilder.newInstance()
-            .fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
+            .fromUriString(idamBaseUrl + USER_FULL_NAME_ENDPOINT)
             .query("query={query}")
             .query("size={size}")
             .buildAndExpand(query, userInfoSize);
@@ -213,7 +210,7 @@ public class IdamServiceImpl implements IdamService {
     @Override
     public IdamTokenResponse getSecurityTokens() {
         UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
-            .fromUriString(idamBaseURL + TOKEN_ENDPOINT)
+            .fromUriString(idamBaseUrl + TOKEN_ENDPOINT)
             .queryParam("client_id",serviceClientId)
             .queryParam("client_secret",serviceClientSecret)
             .queryParam("grant_type",serviceGrantType)
@@ -243,7 +240,7 @@ public class IdamServiceImpl implements IdamService {
             }
 
             // Add the refund base role - "payments-refund" for IDAM API
-            return roles.contains("payments-refund") && roles.contains("payments-refund-approver")? rolesValue
+            return roles.contains("payments-refund") && roles.contains("payments-refund-approver") ? rolesValue
                 .replace(rolesValue.length() - 4, rolesValue.length(), "") : roles.contains("payments-refund-approver") ? rolesValue
                 .append("roles:payments-refund") : rolesValue.append("roles:payments-refund-approver");
         }

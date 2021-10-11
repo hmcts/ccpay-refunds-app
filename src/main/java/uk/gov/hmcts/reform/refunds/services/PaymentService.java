@@ -6,5 +6,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 
 public interface PaymentService {
     PaymentGroupResponse fetchPaymentGroupResponse(MultiValueMap<String, String> headers, String paymentReference);
-    boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference, RefundResubmitPayhubRequest refundResubmitPayhubRequest);
+
+    boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference,
+                                          RefundResubmitPayhubRequest refundResubmitPayhubRequest);
 }

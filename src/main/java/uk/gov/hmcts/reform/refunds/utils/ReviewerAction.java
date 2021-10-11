@@ -5,21 +5,21 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 public enum ReviewerAction {
     APPROVE {
         @Override
-        public RefundEvent getEvent(){
+        public RefundEvent getEvent() {
             return RefundEvent.APPROVE;
         }
     },
 
     REJECT {
         @Override
-        public RefundEvent getEvent(){
+        public RefundEvent getEvent() {
             return RefundEvent.REJECT;
         }
     },
 
     SENDBACK {
         @Override
-        public RefundEvent getEvent(){
+        public RefundEvent getEvent() {
             return RefundEvent.SENDBACK;
         }
     };

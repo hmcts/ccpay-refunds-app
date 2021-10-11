@@ -39,14 +39,14 @@ public class ReconciliationProviderMapperTest {
     private ReconciliationProviderMapper reconciliationProviderMapper;
 
     @Test
-    public void testGetReconciliationProviderRequest(){
+    public void testGetReconciliationProviderRequest() {
         ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper
             .getReconciliationProviderRequest(getPaymentGroupDto(),getRefund());
 
         assertThat(reconciliationProviderRequest).usingRecursiveComparison().isEqualTo(getExpectedReconciliationProviderRequest());
     }
 
-    private ReconciliationProviderRequest getExpectedReconciliationProviderRequest(){
+    private ReconciliationProviderRequest getExpectedReconciliationProviderRequest() {
         return  ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
                     .accountNumber("PBAFUNC1234")
                     .refundReference("RF-1628-5241-9956-2215")
@@ -69,7 +69,7 @@ public class ReconciliationProviderMapperTest {
                     .build();
     }
 
-    private PaymentGroupResponse getPaymentGroupDto(){
+    private PaymentGroupResponse getPaymentGroupDto() {
         return  PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
             .dateCreated(Date.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
@@ -137,7 +137,7 @@ public class ReconciliationProviderMapperTest {
             )).build();
     }
 
-    private Refund getRefund(){
+    private Refund getRefund() {
         return  Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))

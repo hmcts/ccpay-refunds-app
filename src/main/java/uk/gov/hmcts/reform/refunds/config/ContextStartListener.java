@@ -36,28 +36,25 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
 
     }
 
-    public Map<String, List<UserIdentityDataDto>> getUserMap(){
+    public Map<String, List<UserIdentityDataDto>> getUserMap() {
         return userMap;
     }
 
-    public void addUserToMap(String userGroup, UserIdentityDataDto userIdentityDataDto){
+    public void addUserToMap(String userGroup, UserIdentityDataDto userIdentityDataDto) {
         List<UserIdentityDataDto> userIdentityDataDtoList = userMap.get(userGroup);
         userIdentityDataDtoList.add(userIdentityDataDto);
         userMap.put("payments-refund",userIdentityDataDtoList);
     }
-    private MultiValueMap<String, String>  getAuthenticationHeaders(){
+
+    private MultiValueMap<String, String>  getAuthenticationHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.add("Authorization", getAccessToken());
         return inputHeaders;
     }
 
-    private String getAccessToken(){
+    private String getAccessToken() {
         IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
         return idamTokenResponse.getAccessToken();
     }
 
-//    private List<UserIdentityDataDto> getUsersBasedOnRole(List<UserIdentityDataDto> userIdentityDataDtoList, String role){
-//        return userIdentityDataDtoList.stream().filter(userIdentityDataDto -> userIdentityDataDto.getRoles().contains(role)).collect(
-//            Collectors.toList());
-//    }
 }
