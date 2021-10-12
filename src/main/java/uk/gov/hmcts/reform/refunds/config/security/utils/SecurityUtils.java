@@ -21,9 +21,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Utility class for security related operations
- */
 @Service
 public class SecurityUtils {
     private final AuthTokenGenerator authTokenGenerator;
@@ -35,12 +32,6 @@ public class SecurityUtils {
         this.idamRepository = idamRepository;
     }
 
-    /**
-     * Check if a user is authenticated and has any roles (authorities)
-     * Change this if you care about specific roles
-     *
-     * @return true if the user is authenticated, false otherwise.
-     */
     public static boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null && getAuthorities(authentication).findAny().isPresent();
@@ -49,8 +40,8 @@ public class SecurityUtils {
     private static Stream<String> getAuthorities(Authentication authentication) {
         Collection<? extends GrantedAuthority> authorities;
         //added condition for claims
-        if (authentication instanceof JwtAuthenticationToken &&
-            ((JwtAuthenticationToken) authentication).getToken().getClaims().containsKey("roles")){
+        if (authentication instanceof JwtAuthenticationToken
+            && ((JwtAuthenticationToken) authentication).getToken().getClaims().containsKey("roles")) {
             authorities = extractAuthorityFromClaims(((JwtAuthenticationToken) authentication).getToken().getClaims());
         } else {
             authorities = authentication.getAuthorities();
@@ -61,9 +52,9 @@ public class SecurityUtils {
 
     @SuppressWarnings("unchecked")
     public static List<GrantedAuthority> extractAuthorityFromClaims(Map<String, Object> claims) {
-        if (!Optional.ofNullable(claims).isPresent() && !Optional.ofNullable(claims.get("roles")).isPresent()){
-            throw new InsufficientAuthenticationException("No roles can be extracted from claims " +
-                                                              "most probably due to insufficient scopes provided");
+        if (!Optional.ofNullable(claims).isPresent() && !Optional.ofNullable(claims.get("roles")).isPresent()) {
+            throw new InsufficientAuthenticationException("No roles can be extracted from claims "
+                                                              + "most probably due to insufficient scopes provided");
         }
 
         return ((List<String>) claims.get("roles"))
@@ -71,8 +62,6 @@ public class SecurityUtils {
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toList());
     }
-
-    /*Below methods will be refactored soon based on usages*/
 
     public HttpHeaders authorizationHeaders() {
         final HttpHeaders headers = new HttpHeaders();
@@ -112,7 +101,7 @@ public class SecurityUtils {
     public String getUserRolesHeader() {
         Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
         return authorities.stream()
-                             .map(GrantedAuthority::getAuthority)
-                             .collect(Collectors.joining(","));
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(","));
     }
 }

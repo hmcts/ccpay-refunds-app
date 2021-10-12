@@ -18,10 +18,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
-import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -86,15 +86,6 @@ public class PaymentServiceImpl implements PaymentService {
                         getHeadersEntity(headers), PaymentGroupResponse.class);
     }
 
-//    private void checkPaymentReference(PaymentGroupResponse paymentGroupResponse, String paymentReference){
-//        List<PaymentResponse> paymentResponseList = paymentGroupResponse.getPayments()
-//            .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
-//            .collect(Collectors.toList());
-//        if(paymentResponseList.isEmpty()){
-//            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
-//        }
-//    }
-
     @Override
     public boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference,
                                                  RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
@@ -110,7 +101,7 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
         } catch (HttpClientErrorException exception) {
-            if(exception.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+            if (exception.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 throw new PaymentReferenceNotFoundException("Payment reference not found", exception);
             }
             throw new InvalidRefundRequestException("Invalid request. Please try again.", exception);
@@ -131,12 +122,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .exchange(
                         builder.toUriString(),
                         HttpMethod.PATCH,
-                        getHTTPEntityForResubmitRefundsPatch(headers, refundResubmitPayhubRequest),
+                        getHttpEntityForResubmitRefundsPatch(headers, refundResubmitPayhubRequest),
                         String.class
                 );
     }
 
-    private HttpEntity<RefundResubmitPayhubRequest> getHTTPEntityForResubmitRefundsPatch(
+    private HttpEntity<RefundResubmitPayhubRequest> getHttpEntityForResubmitRefundsPatch(
             MultiValueMap<String, String> headers, RefundResubmitPayhubRequest request) {
         return new HttpEntity<>(request, getFormatedHeaders(headers));
     }

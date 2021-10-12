@@ -324,9 +324,6 @@ bootJar {
 checkstyle {
   toolVersion "7.8.1"
 }
-checkstyleMain.enabled(false)
-checkstyleTest.enabled(false)
-checkstyleIntegrationTest.enabled(false)
 pmdTest.enabled(false);
 pmdFunctionalTest.enabled(false);
 

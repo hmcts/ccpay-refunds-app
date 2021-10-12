@@ -7,10 +7,6 @@ import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 import uk.gov.hmcts.reform.refunds.config.security.exception.UnauthorizedException;
 import uk.gov.hmcts.reform.refunds.config.security.utils.SecurityUtils;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,11 +14,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-/**
- * Custom filter responsible for User authorisation
- */
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
 
@@ -33,8 +30,8 @@ public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
     private final SecurityUtils securityUtils;
 
     public ServiceAndUserAuthFilter(Function<HttpServletRequest, Optional<String>> userIdExtractor,
-                                              Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
-                                              SecurityUtils securityUtils) {
+                                    Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
+                                    SecurityUtils securityUtils) {
         super();
         this.userIdExtractor = userIdExtractor;
         this.authorizedRolesExtractor = authorizedRolesExtractor;
@@ -67,21 +64,16 @@ public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
         if (!authorizedRoles.isEmpty() && Collections.disjoint(authorizedRoles, userInfo.getRoles())) {
 
             Optional<List<String>> currentRolesOptional = Optional.ofNullable(userInfo.getRoles());
-            if (currentRolesOptional.isPresent() && !currentRolesOptional.get().isEmpty()){
-                throw new UnauthorizedException("Current user roles are : " + currentRolesOptional.get() +
-                                                    " While Authorised roles are only : " +authorizedRoles);
+            if (currentRolesOptional.isPresent() && !currentRolesOptional.get().isEmpty()) {
+                throw new UnauthorizedException("Current user roles are : " + currentRolesOptional.get()
+                                                    + " While Authorised roles are only : " + authorizedRoles);
             }
 
         }
 
-        if(userIdOptional.isPresent()&&!userIdOptional.get().equalsIgnoreCase(userInfo.getUid())){
+        if (userIdOptional.isPresent() && !userIdOptional.get().equalsIgnoreCase(userInfo.getUid())) {
             throw new UnauthorizedException("Unauthorised userId in the path");
         }
-//        userIdOptional.ifPresent(resourceUserId -> {
-//            if (!resourceUserId.equalsIgnoreCase(userInfo.getUid())) {
-//                throw new UnauthorizedException("Unauthorised userId in the path");
-//            }
-//        });
     }
 
 }
