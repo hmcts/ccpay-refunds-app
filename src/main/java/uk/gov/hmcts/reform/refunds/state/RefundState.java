@@ -26,7 +26,7 @@ public enum RefundState {
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
+        public RefundStatus getRefundStatus() {
             return RefundStatus.SENTFORAPPROVAL;
         }
     },
@@ -50,11 +50,11 @@ public enum RefundState {
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
+        public RefundStatus getRefundStatus() {
             return RefundStatus.SENTBACK;
         }
     },
-    SENTTOMIDDLEOFFICE{
+    SENTTOMIDDLEOFFICE {
         @Override
         public RefundEvent[] nextValidEvents() {
             return new RefundEvent[]{RefundEvent.ACCEPT, RefundEvent.REJECT};
@@ -75,7 +75,7 @@ public enum RefundState {
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
+        public RefundStatus getRefundStatus() {
             return RefundStatus.SENTTOMIDDLEOFFICE;
         }
     },
@@ -91,7 +91,7 @@ public enum RefundState {
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
+        public RefundStatus getRefundStatus() {
             return RefundStatus.ACCEPTED;
         }
     },
@@ -107,7 +107,7 @@ public enum RefundState {
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
+        public RefundStatus getRefundStatus() {
             return RefundStatus.REJECTED;
         }
     };

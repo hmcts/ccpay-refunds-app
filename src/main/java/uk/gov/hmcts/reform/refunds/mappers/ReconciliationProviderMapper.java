@@ -7,7 +7,11 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.ReconcilitationProviderFeeReque
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.*;
+import uk.gov.hmcts.reform.refunds.exceptions.FeesNotFoundForRefundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
@@ -27,7 +31,7 @@ public class ReconciliationProviderMapper {
     @Autowired
     private RefundReasonRepository refundReasonRepository;
 
-    public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund){
+    public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund) {
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
             .refundReference(refund.getReference())
             .paymentReference(paymentDto.getPayments().get(0).getReference())
@@ -47,10 +51,11 @@ public class ReconciliationProviderMapper {
     private List<ReconcilitationProviderFeeRequest> getRefundRequestFees(Refund refund, PaymentGroupResponse paymentGroupResponse) {
         String feeIds = refund.getFeeIds();
         List<Integer> refundFeeIds = getRefundFeeIds(feeIds);
-        if(!refundFeeIds.isEmpty()){
-            List<RemissionResponse> remissionsAppliedForRefund = paymentGroupResponse.getRemissions().stream().filter(remissionResponse -> refundFeeIds.contains(remissionResponse.getFeeId())).collect(
+        if (!refundFeeIds.isEmpty()) {
+            List<RemissionResponse> remissionsAppliedForRefund = paymentGroupResponse.getRemissions().stream()
+                .filter(remissionResponse -> refundFeeIds.contains(remissionResponse.getFeeId())).collect(
                 Collectors.toList());
-            if( refund.getReason().equals("RR036")){
+            if (refund.getReason().equals("RR036")) {
                 // create a constant and add the code
                 validateRetrospectiveRemissions(remissionsAppliedForRefund,refund);
                 List<PaymentFeeResponse> feeResponses = getRetrospectiveRemissionAppliedFee(paymentGroupResponse, refundFeeIds);
@@ -62,10 +67,13 @@ public class ReconciliationProviderMapper {
             }
 
             return paymentGroupResponse.getFees().stream().map(paymentFeeResponse -> {
-                List<RemissionResponse> remissionForGivenFee = remissionsAppliedForRefund.stream().filter(remissionResponse ->
-                                                                                                            remissionResponse.getFeeId().equals(paymentFeeResponse.getId())).collect(
-                    Collectors.toList());
-                BigDecimal refundAmount = remissionForGivenFee.isEmpty()?paymentFeeResponse.getApportionAmount():paymentFeeResponse.getApportionAmount().subtract(remissionForGivenFee.get(0).getHwfAmount());
+                List<RemissionResponse> remissionForGivenFee = remissionsAppliedForRefund.stream()
+                                                                    .filter(remissionResponse ->
+                                                                      remissionResponse.getFeeId().equals(paymentFeeResponse.getId()))
+                                                                    .collect(Collectors.toList());
+                BigDecimal refundAmount = remissionForGivenFee.isEmpty() ? paymentFeeResponse.getApportionAmount()
+                    : paymentFeeResponse.getApportionAmount()
+                    .subtract(remissionForGivenFee.get(0).getHwfAmount());
                 return ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
                     .code(paymentFeeResponse.getCode())
                     .version(Integer.parseInt(paymentFeeResponse.getVersion()))
@@ -77,22 +85,23 @@ public class ReconciliationProviderMapper {
     }
 
     private List<Integer> getRefundFeeIds(String refundIds) {
-        return  Arrays.stream(refundIds.split(",")).map(feeId->Integer.parseInt(feeId)).collect(Collectors.toList());
+        return  Arrays.stream(refundIds.split(",")).map(feeId -> Integer.parseInt(feeId)).collect(Collectors.toList());
     }
 
-    private void validateRetrospectiveRemissions(List<RemissionResponse> remissionsAppliedForRefund, Refund refund ){
-        if(remissionsAppliedForRefund.isEmpty()){
+    private void validateRetrospectiveRemissions(List<RemissionResponse> remissionsAppliedForRefund, Refund refund) {
+        if (remissionsAppliedForRefund.isEmpty()) {
             throw new RetrospectiveRemissionNotFoundException("Remission not found");
         }
-        if(!remissionsAppliedForRefund.isEmpty() && !remissionsAppliedForRefund.get(0).getHwfAmount().equals(refund.getAmount())){
+        if (!remissionsAppliedForRefund.isEmpty() && !remissionsAppliedForRefund.get(0).getHwfAmount().equals(refund.getAmount())) {
             throw new UnequalRemissionAmountWithRefundRaisedException("Remission amount not equal to refund amount");
         }
     }
 
-    private List<PaymentFeeResponse> getRetrospectiveRemissionAppliedFee(PaymentGroupResponse paymentGroupResponse, List<Integer> refundFeeIds ){
-        List<PaymentFeeResponse> feeResponses = paymentGroupResponse.getFees().stream().filter(feeResponse -> feeResponse.getId().equals(refundFeeIds.get(0))).collect(
+    private List<PaymentFeeResponse> getRetrospectiveRemissionAppliedFee(PaymentGroupResponse paymentGroupResponse, List<Integer> refundFeeIds) {
+        List<PaymentFeeResponse> feeResponses = paymentGroupResponse.getFees().stream()
+            .filter(feeResponse -> feeResponse.getId().equals(refundFeeIds.get(0))).collect(
             Collectors.toList());
-        if(feeResponses.isEmpty()){
+        if (feeResponses.isEmpty()) {
             throw new RefundFeeNotFoundInPaymentException("Refund not found in payment");
         }
         return feeResponses;

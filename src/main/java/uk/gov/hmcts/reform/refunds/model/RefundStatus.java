@@ -1,9 +1,15 @@
 package uk.gov.hmcts.reform.refunds.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @AllArgsConstructor
@@ -13,18 +19,17 @@ import javax.persistence.*;
 @Table(name = "refund_status")
 public class RefundStatus {
 
-
-    public final static RefundStatus SENTFORAPPROVAL = new RefundStatus(
+    public static final RefundStatus ACCEPTED = new RefundStatus("accepted", "Refund request accepted");
+    public static final RefundStatus SENTBACK = new RefundStatus("sent back", "Refund request sent back");
+    public static final RefundStatus REJECTED = new RefundStatus("rejected", "Refund request rejected");
+    public static final RefundStatus SENTFORAPPROVAL = new RefundStatus(
         "sent for approval",
         "Refund request submitted"
     );
-    public final static RefundStatus SENTTOMIDDLEOFFICE = new RefundStatus(
+    public static final RefundStatus SENTTOMIDDLEOFFICE = new RefundStatus(
         "sent to middle office",
         "Refund request sent to liberata"
     );
-    public final static RefundStatus SENTBACK = new RefundStatus("sent back", "Refund request sent back");
-    public final static RefundStatus ACCEPTED = new RefundStatus("accepted", "Refund request accepted");
-    public final static RefundStatus REJECTED = new RefundStatus("rejected", "Refund request rejected");
 
     @Id
     @Column(name = "name")

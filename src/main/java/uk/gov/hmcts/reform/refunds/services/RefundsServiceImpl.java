@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
@@ -41,7 +41,12 @@ import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -160,13 +165,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundDto> refundListDto = new ArrayList<>();
 
         if (!roles.isEmpty()) {
-//            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(headers, roles);
-//            Set<UserIdentityDataDto> userIdentityDataDtoSet = new HashSet<>();
-//                roles.forEach(role->{
-//                ContextStartListener.userMap.get(role).forEach(user->{
-//                    userIdentityDataDtoSet.add(user);
-//                });
-//            });
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
@@ -174,7 +172,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
             refundList.forEach(refund -> {
-                if(!userIdsWithGivenRoles.contains(refund.getCreatedBy())){
+                if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
                     contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
                     userIdentityDataDtoSet.add(userIdentityDataDto);
@@ -267,8 +265,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .amount(refundAmount)
                 .build();
 
-            boolean payhubRemissionUpdateResponse = paymentService.
-                updateRemissionAmountInPayhub(headers, refund.getPaymentReference(), refundResubmitPayhubRequest);
+            boolean payhubRemissionUpdateResponse = paymentService
+                .updateRemissionAmountInPayhub(headers, refund.getPaymentReference(), refundResubmitPayhubRequest);
 
             if (payhubRemissionUpdateResponse) {
                 // Update Status History table
@@ -324,18 +322,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return refund.getUpdatedBy().equals(uid);
     }
 
-    private StatusHistoryResponseDto getStatusHistoryDto(MultiValueMap<String, String> headers, List<StatusHistory> statusHistories, Boolean isUpdatedByCurrentUser) {
+    private StatusHistoryResponseDto getStatusHistoryDto(MultiValueMap<String, String> headers,
+                                                         List<StatusHistory> statusHistories, Boolean isUpdatedByCurrentUser) {
 
         List<StatusHistoryDto> statusHistoryDtos = new ArrayList<>();
 
         if (null != statusHistories && !statusHistories.isEmpty()) {
             //Distinct createdBy UID
-            Set<String> distintUIDSet = statusHistories
+            Set<String> distintUidSet = statusHistories
                 .stream().map(StatusHistory::getCreatedBy)
                 .collect(Collectors.toSet());
 
             //Map UID -> User full name
-            Map<String, UserIdentityDataDto> userFullNameMap = getIdamUserDetails(headers, distintUIDSet);
+            Map<String, UserIdentityDataDto> userFullNameMap = getIdamUserDetails(headers, distintUidSet);
 
             statusHistories
                 .forEach(statusHistory ->
@@ -350,9 +349,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
     }
 
-    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUIDSet) {
+    private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUidSet) {
         Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
-        distintUIDSet.forEach(userId -> userFullNameMap.put(
+        distintUidSet.forEach(userId -> userFullNameMap.put(
             userId,
             idamService.getUserIdentityData(headers, userId)
         ));
