@@ -8,8 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @AllArgsConstructor
@@ -18,15 +16,17 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "idamFullNameRetrivalResponseWith")
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-public class IdamUserInfoResponse {
+public class IdamTokenResponse {
 
-    private String id;
-    private String forename;
-    private String surname;
-    private String email;
-    private boolean active;
-    private List<String> roles;
-    private String lastModified;
-    private String createDate;
-    private boolean stale;
+    private String accessToken;
+
+    private String refreshToken;
+
+    private String scope;
+
+    private String idToken;
+
+    private String tokenType;
+
+    private String expiresIn;
 }

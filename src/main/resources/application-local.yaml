@@ -8,7 +8,7 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/refunds7
+    url: jdbc:postgresql://localhost:5432/refunds
     username: refunds
     password: refunds
     properties:
@@ -53,7 +53,7 @@ idam:
   api:
     url: ${IDAM_API_URL:http://localhost:5000}
   s2s-authorised:
-    services: ccpay_bubble,internal,payment_app,refunds_api
+    services: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp
   s2s-auth:
     url: http://localhost:8085
     totp_secret: AAAAAAAAAAAAAAAA
@@ -93,4 +93,15 @@ liberata:
       url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
   api:
     key: ${LIBERATA_API_KEY:abc}
+
+
+refunds:
+  serviceAccount:
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:paybubble}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET:***REMOVED***}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:j.m@hmcts.net}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD:LevelAt12}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
+    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:http://localhost:3000/receiver}
 
