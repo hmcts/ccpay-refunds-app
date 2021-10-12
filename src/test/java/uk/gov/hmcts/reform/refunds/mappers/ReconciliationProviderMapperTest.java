@@ -39,37 +39,37 @@ public class ReconciliationProviderMapperTest {
     private ReconciliationProviderMapper reconciliationProviderMapper;
 
     @Test
-    public void testGetReconciliationProviderRequest(){
+    public void testGetReconciliationProviderRequest() {
         ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper
             .getReconciliationProviderRequest(getPaymentGroupDto(),getRefund());
 
         assertThat(reconciliationProviderRequest).usingRecursiveComparison().isEqualTo(getExpectedReconciliationProviderRequest());
     }
 
-    private ReconciliationProviderRequest getExpectedReconciliationProviderRequest(){
+    private ReconciliationProviderRequest getExpectedReconciliationProviderRequest() {
         return  ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
                     .accountNumber("PBAFUNC1234")
                     .refundReference("RF-1628-5241-9956-2215")
                     .paymentReference("RC-1628-5241-9956-2315")
-                    .dateCreated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
-                    .dateUpdated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
+                    .dateCreated("2021-09-17T13:00:00")
+                    .dateUpdated("2021-09-17T13:00:00")
                     .caseReference("case-reference")
                     .ccdCaseNumber("ccd-case-number")
                     .currency("GBP")
                     .refundReason("RR0001")
-                    .totalRefundAmount(BigDecimal.valueOf(100))
+                    .totalRefundAmount("100.00")
                     .fees(Arrays.asList(
                         ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
                                 .code("FEE012")
-                                .refundAmount(BigDecimal.valueOf(100))
-                                .version("1")
+                                .refundAmount("100.00")
+                                .version(1)
                                 .build()
                           )
                     )
                     .build();
     }
 
-    private PaymentGroupResponse getPaymentGroupDto(){
+    private PaymentGroupResponse getPaymentGroupDto() {
         return  PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
             .dateCreated(Date.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
@@ -137,7 +137,7 @@ public class ReconciliationProviderMapperTest {
             )).build();
     }
 
-    private Refund getRefund(){
+    private Refund getRefund() {
         return  Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))

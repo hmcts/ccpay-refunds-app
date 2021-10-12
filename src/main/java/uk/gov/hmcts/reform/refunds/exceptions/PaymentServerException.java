@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.refunds.exceptions;
 
-public class PaymentServerException  extends RuntimeException{
+public class PaymentServerException  extends RuntimeException {
 
     public static final long serialVersionUID = 413287436;
 

@@ -1,6 +1,12 @@
 package uk.gov.hmcts.reform.refunds.dtos.responses;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
 
 @Builder(builderMethodName = "userIdentityDataWith")
 @AllArgsConstructor
@@ -11,4 +17,5 @@ public class UserIdentityDataDto {
     private String fullName;
     private String emailId;
     private String id;
+    private List<String> roles;
 }
