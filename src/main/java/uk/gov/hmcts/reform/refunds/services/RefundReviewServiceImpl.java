@@ -60,11 +60,11 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
 
     @Override
-    public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent,
-                                               RefundReviewRequest refundReviewRequest) {
-        Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference);
-
+    public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         IdamUserIdResponse userId = idamService.getUserId(headers);
+
+        Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference,userId.getUid());
+
         List<StatusHistory> statusHistories = new ArrayList<>(refundForGivenReference.getStatusHistories());
         refundForGivenReference.setUpdatedBy(userId.getUid());
         statusHistories.add(StatusHistory.statusHistoryWith()
@@ -110,8 +110,12 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         return new ResponseEntity<>(statusMessage, HttpStatus.CREATED);
     }
 
-    private Refund validatedAndGetRefundForGivenReference(String reference) {
+    private Refund validatedAndGetRefundForGivenReference(String reference, String userId) {
         Refund refund = refundsService.getRefundForReference(reference);
+
+        if(refund.getUpdatedBy().equals(userId)){
+            throw new InvalidRefundReviewRequestException("User cannot perform the action");
+        }
 
         if (!refund.getRefundStatus().equals(SENTFORAPPROVAL.getRefundStatus())) {
             throw new InvalidRefundReviewRequestException("Refund is not submitted");
