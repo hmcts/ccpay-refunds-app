@@ -60,7 +60,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
 
     @Override
-    public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference, RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
+    public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
+                                               RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         IdamUserIdResponse userId = idamService.getUserId(headers);
 
         Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference,userId.getUid());
@@ -113,7 +114,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private Refund validatedAndGetRefundForGivenReference(String reference, String userId) {
         Refund refund = refundsService.getRefundForReference(reference);
 
-        if(refund.getUpdatedBy().equals(userId)){
+        if (refund.getUpdatedBy().equals(userId)) {
             throw new InvalidRefundReviewRequestException("User cannot perform the action");
         }
 
