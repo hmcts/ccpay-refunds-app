@@ -50,11 +50,13 @@ public class PaymentServiceImpl implements PaymentService {
                     fetchPaymentGroupDataFromPayhub(headers, paymentReference);
             return paymentGroupResponse.getBody();
         } catch (HttpClientErrorException e) {
+            logger.error(e.getMessage());
             if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
             }
             throw new PaymentInvalidRequestException("Invalid Request: Payhub", e);
         } catch (Exception e) {
+            logger.error(e.getMessage());
             throw new PaymentServerException("Payment Server Exception", e);
         }
     }
