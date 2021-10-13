@@ -31,7 +31,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundExce
 import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,7 +57,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
         ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
     public ResponseEntity return400(Exception ex) {
-        LOG.error(Arrays.toString(ex.getStackTrace()));
+        LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
@@ -73,6 +72,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         RefundFeeNotFoundInPaymentException.class,
         RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class})
     public ResponseEntity return500(Exception ex) {
+        LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

@@ -1241,10 +1241,56 @@ class RefundControllerTest {
             .andExpect(status().isInternalServerError())
             .andReturn();
         assertEquals(
-            "Reconciliation provider unavailable. Please try again later.",
+            "Third-party reconciliation provider unavailable. Please try again later.",
             result.getResponse().getContentAsString()
         );
     }
+
+    @Test
+    void approveRefundRequestWhenReconciliationProviderReceivesDuplicateRequestReturnsDuplicateRequestMessage() throws Exception {
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(anyString(), anyBoolean())).thenReturn(true);
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
+        when(restOperations.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
+
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code(
+            "RR002").name("refund reason").build()));
+
+
+        MvcResult result = mockMvc.perform(patch(
+            "/refund/{reference}/action/{reviewer-action}",
+            "RF-1628-5241-9956-2215",
+            "APPROVE"
+        )
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+        assertEquals(
+            "Duplicate request.",
+            result.getResponse().getContentAsString()
+        );
+    }
+
 
     @Test
     void approveRefundRequest_WhenRefundIsNotAvailable() throws Exception {
