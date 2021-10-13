@@ -61,6 +61,11 @@
       <property name="violationSuppressRegex" value="(.*method chain calls.*|.*object not created locally.*)"/>
     </properties>
   </rule>
+  <rule ref="category/java/design.xml/CouplingBetweenObjects">
+    <properties>
+      <property name="threshold" value="25" />
+    </properties>
+  </rule>
   <rule ref="category/java/design.xml/SignatureDeclareThrowsException">
     <properties>
       <property name="IgnoreJUnitCompletely" value="true"/>

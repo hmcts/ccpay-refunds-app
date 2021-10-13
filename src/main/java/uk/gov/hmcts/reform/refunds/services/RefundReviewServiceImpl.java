@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.ForbiddenToApproveRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
@@ -115,7 +116,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         Refund refund = refundsService.getRefundForReference(reference);
 
         if (refund.getUpdatedBy().equals(userId)) {
-            throw new InvalidRefundReviewRequestException("User cannot perform the action");
+            throw new ForbiddenToApproveRefundException("User cannot approve this refund.");
         }
 
         if (!refund.getRefundStatus().equals(SENTFORAPPROVAL.getRefundStatus())) {
