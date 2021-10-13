@@ -5,7 +5,6 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,6 +143,8 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund rejected");
+
+        //Further verify that there is no invocation with Liberata
     }
 
     @Test
@@ -171,6 +172,8 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund returned to caseworker");
+
+        //Further verify that there is no invocation ofx Liberata
     }
 
     @Test
@@ -188,7 +191,6 @@ public class RefundsApproverJourneyFunctionalTest {
         });
     }
 
-    @Ignore("Returning a 400 but not a 403 as expected.")
     @Test
     public void negative_approver_can_request_refund_but_not_self_approve() {
 
@@ -228,6 +230,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+        //Should be verified as a call out to Liberata....
     }
 
     @Test
@@ -326,7 +329,7 @@ public class RefundsApproverJourneyFunctionalTest {
             assertThat(
                 entry.get("status").trim().equals("sent for approval") || entry.get("status").trim().equals("sentback"))
                 .isTrue();
-        });
+        });//The Lifecylcle of Statuses against a Refund will be maintained for all the statuses should be checked
         Response resubmitRefundResponse = paymentTestService.resubmitRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -366,7 +369,45 @@ public class RefundsApproverJourneyFunctionalTest {
         );
 
         assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
-        System.out.println("The value of the response body : " + updateReviewRefund.getBody().asString());
+    }
+
+    @Test
+    public void negative_double_approval_from_liberata() {
+
+        final String refundReference = performRefund();
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundEvent.APPROVE.name(),
+            RefundReviewRequest
+                .buildRefundReviewRequest()
+                .code("RE004")
+                .reason("More evidence is required")
+                .build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
+        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
+
+        Response updateReviewRefund = paymentTestService.updateRefundStatus(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+                                                                            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference,
+                                                                            RefundStatusUpdateRequest.RefundRequestWith()
+                                                                                .reason("Accepted")
+                                                                                .status(RefundStatus.ACCEPTED).build()
+        );
+
+        assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        Response updateReviewRefundAgain = paymentTestService.updateRefundStatus(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+                                                                            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference,
+                                                                            RefundStatusUpdateRequest.RefundRequestWith()
+                                                                                .reason("Accepted")
+                                                                                .status(RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateReviewRefundAgain.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("No actions to proceed further");
     }
 
     @Test
