@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
@@ -60,11 +61,14 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             );
         } catch (HttpClientErrorException e) {
             LOG.error("HttpClientErrorException", e);
+            if (e.getStatusCode().equals(HttpStatus.CONFLICT)) {
+                throw new ReconciliationProviderInvalidRequestException("Duplicate request.", e);
+            }
             throw new ReconciliationProviderInvalidRequestException("Invalid request. Please try again.", e);
         } catch (Exception e) {
             LOG.error("Reconciliation Provider", e);
             throw new ReconciliationProviderServerException(
-                "Reconciliation provider unavailable. Please try again later.",
+                "Third-party reconciliation provider unavailable. Please try again later.",
                 e
             );
         }
