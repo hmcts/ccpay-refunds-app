@@ -107,6 +107,9 @@ public class PaymentServiceImpl implements PaymentService {
             if (exception.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 throw new PaymentReferenceNotFoundException("Payment reference not found", exception);
             }
+            if (exception.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+                throw new InvalidRefundRequestException(exception.getResponseBodyAsString(), exception);
+            }
             throw new InvalidRefundRequestException("Invalid request. Please try again.", exception);
         } catch (Exception exception) {
             logger.error("Update Remission Server Exception",exception);
