@@ -263,6 +263,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .refundResubmitRequestPayhubWith()
                 .refundReason(refundReason)
                 .amount(refundAmount)
+                .feeId(refund.getFeeIds())
                 .build();
 
             boolean payhubRemissionUpdateResponse = paymentService
