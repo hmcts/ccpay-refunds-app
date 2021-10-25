@@ -162,7 +162,6 @@ dependencyUpdates {
 
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
-
 }
 apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
