@@ -1702,7 +1702,7 @@ class RefundControllerTest {
                                                .header("ServiceAuthorization", "Services")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isConflict())
             .andReturn();
 
         assertEquals("Action not allowed to proceed", result.getResponse().getContentAsString());

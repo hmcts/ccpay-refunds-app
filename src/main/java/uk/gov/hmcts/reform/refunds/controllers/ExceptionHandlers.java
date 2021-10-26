@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.FeesNotFoundForRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.ForbiddenToApproveRefundException;
@@ -73,6 +74,12 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     public ResponseEntity return404(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({ActionNotAllowedException.class})
+    public ResponseEntity return409(Exception ex) {
+        LOG.error(ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class,
