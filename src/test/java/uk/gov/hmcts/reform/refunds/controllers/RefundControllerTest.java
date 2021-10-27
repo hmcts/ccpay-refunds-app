@@ -1548,8 +1548,8 @@ class RefundControllerTest {
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$").value("No actions to proceed further"));
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$").value("Action not allowed to proceed"));
     }
 
     @Test
