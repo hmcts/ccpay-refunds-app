@@ -24,8 +24,6 @@ plugins {
 apply plugin: 'net.serenity-bdd.aggregator'
 apply from: 'liquibase.gradle'
 
-println 'checking = '
-
 group = 'uk.gov.hmcts.reform'
 version = '0.0.1'
 
@@ -162,7 +160,6 @@ dependencyUpdates {
 
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
-
 }
 apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
