@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.refunds.utils;
 
-import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
 
 import static uk.gov.hmcts.reform.refunds.state.RefundState.NEEDMOREINFO;
@@ -19,7 +19,7 @@ public class StateUtil {
                 return NEEDMOREINFO;
             case "accepted":
             case "rejected":
-                throw new ActionNotFoundException("No actions to proceed further");
+                throw new ActionNotAllowedException("Action not allowed to proceed");
             default:
                 return null;
         }
