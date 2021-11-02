@@ -163,6 +163,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
+        List<RefundReason> refundReasonList= refundReasonRepository.findAll();
 
         if (!roles.isEmpty()) {
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
@@ -184,7 +185,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
-                    String reason = getRefundReason(refund.getReason());
+                    String reason = getRefundReason(refund.getReason() , refundReasonList);
                     LOG.info("refund: {}", refund);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
@@ -408,9 +409,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
     }
 
-    private String getRefundReason(String rawReason) {
+    private String getRefundReason(String rawReason , List<RefundReason> refundReasonList) {
         if (rawReason.startsWith("RR")) {
-            Optional<RefundReason> refundReasonOptional = refundReasonRepository.findByCode(rawReason);
+            Optional<RefundReason> refundReasonOptional = Optional.ofNullable(refundReasonList.stream()
+                                                                                  .filter(refundReason -> rawReason.equals(refundReason))
+                                                                                  .collect(Collectors.toList()).get(0));
             if (refundReasonOptional.isPresent()) {
                 return refundReasonOptional.get().getName();
             }
@@ -420,3 +423,4 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
 }
+
