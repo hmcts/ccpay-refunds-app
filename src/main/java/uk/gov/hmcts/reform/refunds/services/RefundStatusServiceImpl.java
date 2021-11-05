@@ -35,7 +35,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     public ResponseEntity updateRefundStatus(String reference, RefundStatusUpdateRequest statusUpdateRequest, MultiValueMap<String, String> headers) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
-        if (currentRefundState.getRefundStatus().getName().equals("sent to middle office")) {
+        if (currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
             if (statusUpdateRequest.getStatus().getCode().equals("accepted")) {
                 refund.setRefundStatus(RefundStatus.ACCEPTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(

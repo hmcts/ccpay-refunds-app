@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100008
+      author: Anshika
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              UPDATE refund_status SET name = 'approved' where name = 'sent to middle office';
+              UPDATE refund_status SET name = 'update required' where name = 'sent back';
