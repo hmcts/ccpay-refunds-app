@@ -383,10 +383,12 @@ class RefundControllerTest {
         ))
             .thenReturn(Optional.ofNullable(List.of(
                 RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
-
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith()
+                                                                                        .code("RR002")
+                                                                                        .name("Amended court")
+                                                                                        .build()));
         when(refundReasonRepository.findAll()).thenReturn(
             Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
-
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
@@ -471,9 +473,12 @@ class RefundControllerTest {
         ))
             .thenReturn(Optional.ofNullable(List.of(
                 RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith()
+                                                                                        .code("RR002")
+                                                                                        .name("Amended court")
+                                                                                        .build()));
         when(refundReasonRepository.findAll()).thenReturn(
             Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
-
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
