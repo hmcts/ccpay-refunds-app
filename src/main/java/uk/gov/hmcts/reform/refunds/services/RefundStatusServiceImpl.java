@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
@@ -56,7 +56,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             refund.setUpdatedBy(LIBERATA_NAME);
             refund.setReason(statusUpdateRequest.getReason());
         } else {
-            throw new ActionNotFoundException("Action not allowed to proceed");
+            throw new ActionNotAllowedException("Action not allowed to proceed");
         }
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
     }
