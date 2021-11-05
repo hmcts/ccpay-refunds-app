@@ -411,11 +411,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
         if (rawReason.startsWith("RR")) {
-            Optional<RefundReason> refundReasonOptional = Optional.ofNullable(refundReasonList.stream()
-                                                                                  .filter(refundReason -> rawReason.equals(refundReason.getName()))
-                                                                                  .collect(Collectors.toList()).get(0));
-            if (refundReasonOptional.isPresent()) {
-                return refundReasonOptional.get().getName();
+            List<RefundReason> refundReasonOptional =  refundReasonList.stream()
+                .filter(refundReason -> refundReason.getCode().equalsIgnoreCase(rawReason))
+                .collect(Collectors.toList());
+            if (!refundReasonOptional.isEmpty()) {
+                return refundReasonOptional.get(0).getName();
             }
             throw new RefundReasonNotFoundException(rawReason);
         }
