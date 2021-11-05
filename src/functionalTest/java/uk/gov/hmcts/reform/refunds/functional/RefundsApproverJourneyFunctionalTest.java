@@ -41,6 +41,7 @@ import javax.inject.Inject;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -406,8 +407,8 @@ public class RefundsApproverJourneyFunctionalTest {
                                                                                 .reason("Accepted")
                                                                                 .status(RefundStatus.ACCEPTED).build()
         );
-        assertThat(updateReviewRefundAgain.getStatusCode()).isEqualTo(BAD_REQUEST.value());
-        assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("No actions to proceed further");
+        assertThat(updateReviewRefundAgain.getStatusCode()).isEqualTo(CONFLICT.value());
+        assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("Action not allowed to proceed");
     }
 
     @Test

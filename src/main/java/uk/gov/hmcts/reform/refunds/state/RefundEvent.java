@@ -11,7 +11,7 @@ public enum RefundEvent {
 
     SUBMIT("Submit", "Send for approval"),
     REJECT("Reject", "There is no refund due"),
-    UPDATEREQUIRED("Return to caseworker", "Some information needs correction"),
+    UPDATEREQUIRED("Return to caseworker", "Some information needs correcting"),
     APPROVE("Approve", "Send to middle office"),
     ACCEPT("Accept", "Refund request accepted"),
     CANCEL("Cancel", "Refund request cancelled");
