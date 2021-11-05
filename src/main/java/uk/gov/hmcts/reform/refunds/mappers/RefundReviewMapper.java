@@ -17,14 +17,14 @@ public class RefundReviewMapper {
     private RejectionReasonRepository rejectionReasonRepository;
 
     public String getStatus(RefundEvent refundEvent) {
-        return  refundEvent.equals(RefundEvent.APPROVE) ? "sent to middle office" : refundEvent.equals(RefundEvent.REJECT) ? "rejected" : "sentback";
+        return  refundEvent.equals(RefundEvent.APPROVE) ? "approved" : refundEvent.equals(RefundEvent.REJECT) ? "rejected" : "Update required";
     }
 
     public String getStatusNotes(RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         String notes;
         if (refundEvent.equals(RefundEvent.APPROVE)) {
-            notes =  "Refund Approved";
-        } else if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.SENDBACK)) {
+            notes =  "Sent to middle-office";
+        } else if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {
 
             if (refundEvent.equals(refundEvent.REJECT)) {
                 notes = getRejectStatusNotes(refundReviewRequest);

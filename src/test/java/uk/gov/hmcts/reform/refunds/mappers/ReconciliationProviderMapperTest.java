@@ -155,7 +155,7 @@ public class ReconciliationProviderMapperTest {
                                                .status("submitted")
                                                .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
                                                .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-                                               .notes("Refund Initiated")
+                                               .notes("Refund Initiated and sent to team leader")
                                                .build()))
             .build();
     }

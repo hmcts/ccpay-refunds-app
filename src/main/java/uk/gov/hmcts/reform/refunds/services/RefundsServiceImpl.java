@@ -51,8 +51,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
 
 @Service
 @SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports"})
@@ -248,7 +248,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
 
 
-        if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
+        if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED)) {
 
             // Refund Reason Validation
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON : validateRefundReason(
@@ -278,7 +278,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 statusHistories.add(StatusHistory.statusHistoryWith()
                                         .createdBy(idamUserIdResponse.getUid())
                                         .status(SENTFORAPPROVAL.getName())
-                                        .notes("Refund initiated")
+                                        .notes("Refund initiated and sent to team leader")
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
@@ -400,7 +400,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
-                                  .notes("Refund initiated")
+                                  .notes("Refund initiated and sent to team leader")
                                   .status(SENTFORAPPROVAL.getName())
                                   .build()
                 )
