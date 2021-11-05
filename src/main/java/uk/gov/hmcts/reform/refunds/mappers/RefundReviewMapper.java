@@ -17,7 +17,7 @@ public class RefundReviewMapper {
     private RejectionReasonRepository rejectionReasonRepository;
 
     public String getStatus(RefundEvent refundEvent) {
-        return  refundEvent.equals(RefundEvent.APPROVE) ? "approved" : refundEvent.equals(RefundEvent.REJECT) ? "rejected" : "Update required";
+        return  refundEvent.equals(RefundEvent.APPROVE) ? "approved" : refundEvent.equals(RefundEvent.REJECT) ? "rejected" : "update required";
     }
 
     public String getStatusNotes(RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
