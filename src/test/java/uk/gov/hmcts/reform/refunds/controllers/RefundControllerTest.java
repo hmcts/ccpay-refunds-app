@@ -381,10 +381,12 @@ class RefundControllerTest {
         ))
             .thenReturn(Optional.ofNullable(List.of(
                 RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
-        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith()
-                                                                                        .code("RR002")
-                                                                                        .name("Amended court")
-                                                                                        .build()));
+
+
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR002").name("Amended court").build()));
+
+
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
@@ -448,6 +450,8 @@ class RefundControllerTest {
 
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR002").name("Amended court").build()));
 
         //mock idam userFullName call
         mockGetUsersForRolesCall(
@@ -469,10 +473,7 @@ class RefundControllerTest {
         ))
             .thenReturn(Optional.ofNullable(List.of(
                 RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
-        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith()
-                                                                                        .code("RR002")
-                                                                                        .name("Amended court")
-                                                                                        .build()));
+
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
