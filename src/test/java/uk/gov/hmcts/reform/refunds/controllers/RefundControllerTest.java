@@ -384,9 +384,6 @@ class RefundControllerTest {
             .thenReturn(Optional.ofNullable(List.of(
                 RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
 
-
-        when(refundReasonRepository.findAll()).thenReturn(
-            Arrays.asList(RefundReason.refundReasonWith().code("RR002").name("Amended court").build()));
         when(refundReasonRepository.findAll()).thenReturn(
             Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
 
@@ -453,8 +450,6 @@ class RefundControllerTest {
 
         //mock userinfo call
         mockUserinfoCall(idamUserIDResponseSupplier.get());
-        when(refundReasonRepository.findAll()).thenReturn(
-            Arrays.asList(RefundReason.refundReasonWith().code("RR002").name("Amended court").build()));
 
         //mock idam userFullName call
         mockGetUsersForRolesCall(
