@@ -106,6 +106,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         }
 
         if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {
+            System.out.println();
             updateRefundStatus(refundForGivenReference, refundEvent);
             statusMessage = refundEvent.equals(RefundEvent.REJECT) ? "Refund rejected" : "Refund returned to caseworker";
         }
