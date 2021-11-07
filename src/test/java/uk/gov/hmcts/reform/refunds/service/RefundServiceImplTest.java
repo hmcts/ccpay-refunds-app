@@ -199,6 +199,8 @@ public class RefundServiceImplTest {
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
             refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put("payments-refund",Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
                                                         .fullName("ccd-full-name")
@@ -279,6 +281,8 @@ public class RefundServiceImplTest {
 
         when(refundReasonRepository.findByCode(anyString())).thenReturn(
             Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             "sent for approval",
@@ -599,6 +603,8 @@ public class RefundServiceImplTest {
                             .emailId("mock2fullname@gmail.com").build());
         when(refundReasonRepository.findByCode(anyString())).thenReturn(
             Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
         UserIdentityDataDto dto = UserIdentityDataDto.userIdentityDataWith()
             .fullName("ccd-full-name")
             .emailId("j@mail.com")
@@ -640,3 +646,4 @@ public class RefundServiceImplTest {
     }
 
 }
+
