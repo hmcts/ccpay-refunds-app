@@ -415,7 +415,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .filter(refundReason -> refundReason.getCode().equalsIgnoreCase(rawReason))
                 .collect(Collectors.toList());
             if (!refundReasonOptional.isEmpty()) {
-                System.out.println();
                 return refundReasonOptional.get(0).getName();
             }
             throw new RefundReasonNotFoundException(rawReason);
