@@ -1,4 +1,3 @@
-
 package uk.gov.hmcts.reform.refunds.services;
 
 import org.apache.commons.lang.StringUtils;
@@ -131,8 +130,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
         } else if (StringUtils.isNotBlank(status)) {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
-
             //get the refund list except the self uid
+
+            LOG.info("excludeCurrentUser {}",excludeCurrentUser.replaceAll("[\n\r\t]", "_"));
+            LOG.info("status {}",status.replaceAll("[\n\r\t]", "_"));
+
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
                 excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNot(
                 refundStatus,
@@ -215,10 +217,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public List<RejectionReasonResponse> getRejectedReasons() {
         // Getting names from Rejection Reasons List object
         return rejectionReasonRepository.findAll().stream().map(reason -> RejectionReasonResponse.rejectionReasonWith()
-                .code(reason.getCode())
-                .name(reason.getName())
-                .build()
-            )
+            .code(reason.getCode())
+            .name(reason.getName())
+            .build()
+        )
             .collect(Collectors.toList());
     }
 
@@ -367,7 +369,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (refundsList.isPresent()) {
             List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                    RefundStatus.REJECTED))
+                RefundStatus.REJECTED))
                 .map(Refund::getFeeIds)
                 .collect(Collectors.toList());
 
