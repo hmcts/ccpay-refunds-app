@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.refunds.exceptions;
 
-import java.io.Serializable;
-
-public class GatewayTimeoutException extends RuntimeException implements Serializable {
+public class GatewayTimeoutException extends RuntimeException {
 
     public static final long serialVersionUID = 43287432;
 
