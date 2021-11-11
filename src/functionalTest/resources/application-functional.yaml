@@ -63,6 +63,10 @@ idam:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     totp_secret: dummy
     microservice: ccpay_bubble
+  paybubble:
+    client:
+      id: ${IDAM_PAYBUBBLE_CLIENT_ID:paybubble}
+      secret: ${IDAM_PAYBUBBLE_CLIENT_SECRET}
 oauth2:
   redirect:
     uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
