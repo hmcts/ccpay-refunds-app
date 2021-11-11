@@ -60,7 +60,7 @@ public class TestConfigProperties {
     public String cmcS2SSecret;
 
     @Value("${idam.paybubble.client.id}")
-    public String idamPayBubbleClientID;
+    public String idamPayBubbleClientId;
 
     @Value("${idam.paybubble.client.secret}")
     public String idamPayBubbleClientSecret;
