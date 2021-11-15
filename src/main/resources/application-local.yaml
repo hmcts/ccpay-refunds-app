@@ -9,8 +9,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/refunds
-    username: refunds
-    password: refunds
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
     properties:
       charSet: UTF-8
   jpa:
@@ -28,15 +28,15 @@ spring:
       client:
         provider:
           oidc:
-            issuer-uri: http://localhost:5000/o
+            issuer-uri: ${ISSUER_URI}
         # Dummy OIDC client required even we are not going to use
         registration:
           oidc:
-            client-id: internal
-            client-secret: internal
+            client-id: ${OIDC_CLIENT_ID}
+            client-secret: ${OIDC_CLIENT_SECRET}
 oidc:
   audience-list: internal,paybubble,refunds,payments
-  issuer: ${OIDC_ISSUER:http://fr-am:8080/openam/oauth2/hmcts}
+  issuer: ${OIDC_ISSUER}
 
 auth:
   provider:
@@ -48,22 +48,22 @@ auth:
       baseUrl: http://localhost:8085
 azure:
   application-insights:
-    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY}
 idam:
   api:
-    url: ${IDAM_API_URL:http://localhost:5000}
+    url: ${IDAM_API_URL}
   s2s-authorised:
     services: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp
   s2s-auth:
     url: http://localhost:8085
-    totp_secret: AAAAAAAAAAAAAAAA
-    microservice: payment_app
+    totp_secret: ${OIDC_S2S_SECRET}
+    microservice: ${OIDC_S2S_MICROSERVICE_NAME}
 
 #Launch Darkly Config
 launch:
   darkly:
     sdk:
-      key: ${LAUNCH_DARKLY_SDK_KEY:dummy}
+      key: ${LAUNCH_DARKLY_SDK_KEY}
     user:
       name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:dummy}@feesandpay.com
 
@@ -74,34 +74,34 @@ launchDarkly:
 
 payments:
   api:
-    url: ${PAYMENT_API_URL:http://localhost:8095}
+    url: ${PAYMENT_API_URL}
 
 reconciliation-provider:
   api:
-    url: ${LIBERATA_BASE_URL:https://lascustomerportaluat.liberata.com}
-  refund-status-update-path: ${REFUND_STATUS_UPDATE_PATH:/refunds-api/refunds}
+    url: ${LIBERATA_BASE_URL}
+  refund-status-update-path: ${REFUND_STATUS_UPDATE_PATH}
 liberata:
   oauth2:
     client:
-      id: ${LIBERATA_OAUTH2_CLIENT_ID:id}
-      secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:abc}
-    username: ${LIBERATA_OAUTH2_USERNAME:username}
-    password: ${LIBERATA_OAUTH2_PASSWORD:password}
+      id: ${LIBERATA_OAUTH2_CLIENT_ID}
+      secret: ${LIBERATA_OAUTH2_CLIENT_SECRET}
+    username: ${LIBERATA_OAUTH2_USERNAME}
+    password: ${LIBERATA_OAUTH2_PASSWORD}
     authorize:
-      url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
+      url: ${LIBERATA_OAUTH2_AUTHORIZE_URL}
     token:
-      url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
+      url: ${LIBERATA_OAUTH2_TOKEN_URL}
   api:
-    key: ${LIBERATA_API_KEY:abc}
+    key: ${LIBERATA_API_KEY}
 
 
 refunds:
   serviceAccount:
-    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:paybubble}
-    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET:NVYEC2X7XFSRENTU}
-    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
-    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:j.m@hmcts.net}
-    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD:LevelAt12}
-    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
-    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:http://localhost:3000/receiver}
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE}
+    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI}
 
