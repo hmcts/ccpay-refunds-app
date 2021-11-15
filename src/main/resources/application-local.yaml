@@ -98,7 +98,7 @@ liberata:
 refunds:
   serviceAccount:
     clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:paybubble}
-    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET:***REMOVED***}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET:NVYEC2X7XFSRENTU}
     grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
     username: ${REFUND_SERVICE_ACCOUNT_USERNAME:j.m@hmcts.net}
     password: ${REFUND_SERVICE_ACCOUNT_PASSWORD:LevelAt12}
