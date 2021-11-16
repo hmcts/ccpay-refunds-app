@@ -42,7 +42,7 @@ withPipeline(type, product, app) {
       keepAll              : true,
       reportDir            : "build/reports/checkstyle",
       reportFiles          : "main.html",
-      reportName           : "Refunds Application Checkstyle Main Report"
+      reportName           : "CCPAY Refunds PREVIEW Application Checkstyle Main Report"
     ]
 
     publishHTML target: [
@@ -51,7 +51,7 @@ withPipeline(type, product, app) {
       keepAll              : true,
       reportDir            : "build/reports/checkstyle",
       reportFiles          : "test.html",
-      reportName           : "Refunds Application Checkstyle Test Report"
+      reportName           : "CCPAY Refunds PREVIEW Application Checkstyle Test Report"
     ]
 
     publishHTML target: [
@@ -60,7 +60,7 @@ withPipeline(type, product, app) {
       keepAll              : true,
       reportDir            : "build/reports/checkstyle",
       reportFiles          : "aat.html",
-      reportName           : "Refunds Application Checkstyle AAT Report"
+      reportName           : "CCPAY Refunds PREVIEW Application Checkstyle AAT Report"
     ]
 
     publishHTML target: [
@@ -69,7 +69,7 @@ withPipeline(type, product, app) {
       keepAll              : true,
       reportDir            : "build/reports/tests/test",
       reportFiles          : "index.html",
-      reportName           : "Refunds Unit Tests Report"
+      reportName           : "CCPAY Refunds PREVIEW Unit Tests Report"
     ]
 
   }
@@ -81,7 +81,7 @@ withPipeline(type, product, app) {
       keepAll              : true,
       reportDir            : "build/reports/tests/smoke",
       reportFiles          : "index.html",
-      reportName           : "Refunds Smoke Test Report"
+      reportName           : "CCPAY Refunds PREVIEW Smoke Test Report"
     ]
   }
 
@@ -92,7 +92,7 @@ withPipeline(type, product, app) {
       keepAll              : true,
       reportDir            : "build/reports/tests/smoke",
       reportFiles          : "index.html",
-      reportName           : "Refunds Smoke Test Report"
+      reportName           : "CCPAY Refunds PREVIEW Smoke Test Report"
     ]
   }
 
@@ -106,7 +106,7 @@ withPipeline(type, product, app) {
       reportFiles          : "index.html",
       reportName           : "Preview Functional Tests",
       alwaysLinkToLastBuild: true,
-      reportName           : "CCPAY Refunds API Functional Test Report"
+      reportName           : "CCPAY Refunds PREVIEW API Functional Test Report"
     ]
 
     publishHTML target: [
@@ -117,7 +117,7 @@ withPipeline(type, product, app) {
       reportFiles          : "index.html",
       reportName           : "Preview Functional Tests",
       alwaysLinkToLastBuild: true,
-      reportName           : "CCPAY Refunds API Functional Test Sereneity Report"
+      reportName           : "CCPAY Refunds PREVIEW API Functional Test Sereneity Report"
     ]
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
@@ -126,7 +126,7 @@ withPipeline(type, product, app) {
     publishHTML target: [
       reportDir            : "target/site/serenity/",
       reportFiles          : "index.html",
-      reportName           : "AAT Functional Tests",
+      reportName           : "CCPAY Refunds AAT Functional Tests",
       alwaysLinkToLastBuild: true
     ]
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
