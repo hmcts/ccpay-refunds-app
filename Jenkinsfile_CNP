@@ -97,6 +97,18 @@ withPipeline(type, product, app) {
   }
 
   after('functionalTest:preview') {
+
+    publishHTML target: [
+      reportDir            : "build/reports/tests/functional",
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportFiles          : "index.html",
+      reportName           : "Preview Functional Tests",
+      alwaysLinkToLastBuild: true,
+      reportName           : "CCPAY Refunds API Functional Test Report"
+    ]
+
     publishHTML target: [
       reportDir            : "target/site/serenity/",
       allowMissing         : true,
@@ -105,7 +117,7 @@ withPipeline(type, product, app) {
       reportFiles          : "index.html",
       reportName           : "Preview Functional Tests",
       alwaysLinkToLastBuild: true,
-      reportName           : "CCPAY Refunds API Functional Test Report"
+      reportName           : "CCPAY Refunds API Functional Test Sereneity Report"
     ]
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
