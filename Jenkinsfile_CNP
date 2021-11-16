@@ -35,14 +35,65 @@ withPipeline(type, product, app) {
   enableDbMigration('ccpay')
   enableAksStagingDeployment()
 
-  after('functionalTest:aat') {
+  after('test') {
     publishHTML target: [
-      reportDir            : "target/site/serenity/",
-      reportFiles          : "index.html",
-      reportName           : "AAT Functional Tests",
-      alwaysLinkToLastBuild: true
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/checkstyle",
+      reportFiles          : "main.html",
+      reportName           : "Refunds Application Checkstyle Main Report"
     ]
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/checkstyle",
+      reportFiles          : "test.html",
+      reportName           : "Refunds Application Checkstyle Test Report"
+    ]
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/checkstyle",
+      reportFiles          : "aat.html",
+      reportName           : "Refunds Application Checkstyle AAT Report"
+    ]
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/tests/test",
+      reportFiles          : "index.html",
+      reportName           : "Refunds Unit Tests Report"
+    ]
+
+  }
+
+  after('smoketest:preview') {
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/tests/smoke",
+      reportFiles          : "index.html",
+      reportName           : "Refunds Smoke Test Report"
+    ]
+  }
+
+  after('smoketest:aat') {
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/tests/smoke",
+      reportFiles          : "index.html",
+      reportName           : "Refunds Smoke Test Report"
+    ]
   }
 
   after('functionalTest:preview') {
@@ -51,11 +102,20 @@ withPipeline(type, product, app) {
       allowMissing         : true,
       alwaysLinkToLastBuild: true,
       keepAll              : true,
-      reportDir            : "build/reports/tests/functional",
       reportFiles          : "index.html",
       reportName           : "Preview Functional Tests",
       alwaysLinkToLastBuild: true,
       reportName           : "CCPAY Refunds API Functional Test Report"
+    ]
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+  }
+
+  after('functionalTest:aat') {
+    publishHTML target: [
+      reportDir            : "target/site/serenity/",
+      reportFiles          : "index.html",
+      reportName           : "AAT Functional Tests",
+      alwaysLinkToLastBuild: true
     ]
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
