@@ -20,14 +20,14 @@ import javax.persistence.Table;
 public class RefundStatus {
 
     public static final RefundStatus ACCEPTED = new RefundStatus("accepted", "Refund request accepted");
-    public static final RefundStatus UPDATEREQUIRED = new RefundStatus("update required", "Refund request update required");
-    public static final RefundStatus REJECTED = new RefundStatus("rejected", "Refund request rejected");
+    public static final RefundStatus UPDATEREQUIRED = new RefundStatus("Update required", "Refund request update required");
+    public static final RefundStatus REJECTED = new RefundStatus("Rejected", "Refund request rejected");
     public static final RefundStatus SENTFORAPPROVAL = new RefundStatus(
-        "sent for approval",
+        "Sent for approval",
         "Refund request submitted"
     );
     public static final RefundStatus APPROVED = new RefundStatus(
-        "approved",
+        "Approved",
         "Refund request sent to liberata"
     );
 
@@ -40,15 +40,15 @@ public class RefundStatus {
 
     public static RefundStatus getRefundStatus(String name) {
         switch (name) {
-            case "sent for approval":
+            case "Sent for approval":
                 return SENTFORAPPROVAL;
-            case "approved":
+            case "Approved":
                 return APPROVED;
-            case "update required":
+            case "Update required":
                 return UPDATEREQUIRED;
             case "accepted":
                 return ACCEPTED;
-            case "rejected":
+            case "Rejected":
                 return REJECTED;
             default:
                 throw new InvalidRefundRequestException("Invalid Refund status");

@@ -11,14 +11,14 @@ public class StateUtil {
 
     protected RefundState getRefundState(String status) {
         switch (status) {
-            case "sent for approval":
+            case "Sent for approval":
                 return SENTFORAPPROVAL;
-            case "approved":
+            case "Approved":
                 return APPROVED;
-            case "update required":
+            case "Update required":
                 return NEEDMOREINFO;
             case "accepted":
-            case "rejected":
+            case "Rejected":
                 throw new ActionNotAllowedException("Action not allowed to proceed");
             default:
                 return null;

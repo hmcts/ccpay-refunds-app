@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.refunds.dtos.requests;
 
 public enum RefundStatus {
     ACCEPTED("accepted"),
-    REJECTED("rejected");
+    REJECTED("Rejected");
 
     private String code;
 

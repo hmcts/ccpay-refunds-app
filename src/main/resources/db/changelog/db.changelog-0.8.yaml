@@ -7,5 +7,7 @@ databaseChangeLog:
         - sql:
             splitStatements: true
             sql: >
-              UPDATE refund_status SET name = 'approved' where name = 'sent to middle office';
-              UPDATE refund_status SET name = 'update required' where name = 'sent back';
+              UPDATE refund_status SET name = 'Approved' where name = 'sent to middle office';
+              UPDATE refund_status SET name = 'Update required' where name = 'sent back';
+              UPDATE refund_status SET name = 'Rejected' where name = 'rejected';
+              UPDATE refund_status SET name = 'Sent for approval' where name = 'sent for approval';

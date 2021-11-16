@@ -242,7 +242,7 @@ public class RefundServiceImplTest {
         when(contextStartListener.getUserMap()).thenReturn(userMap);
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
-            "sent for approval",
+            "Sent for approval",
             map,
             "",
             "true"
@@ -281,7 +281,7 @@ public class RefundServiceImplTest {
             Optional.of(RefundReason.refundReasonWith().code("RR001").name("duplicate payment").build()));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
-            "sent for approval",
+            "Sent for approval",
             map,
             "",
             "false"

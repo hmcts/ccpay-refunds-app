@@ -389,7 +389,7 @@ class RefundControllerTest {
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
-                                                  .queryParam("status", "sent for approval")
+                                                  .queryParam("status", "Sent for approval")
                                                   .queryParam("ccdCaseNumber", "")
                                                   .queryParam("excludeCurrentUser", "null")
                                                   .accept(MediaType.APPLICATION_JSON))
@@ -477,7 +477,7 @@ class RefundControllerTest {
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
-                                                  .queryParam("status", "sent for approval")
+                                                  .queryParam("status", "Sent for approval")
                                                   .queryParam("ccdCaseNumber", "")
                                                   .queryParam("excludeCurrentUser", "false")
                                                   .accept(MediaType.APPLICATION_JSON))
@@ -532,7 +532,7 @@ class RefundControllerTest {
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
-                                                  .queryParam("status", "update required")
+                                                  .queryParam("status", "Update required")
                                                   .queryParam("ccdCaseNumber", "")
                                                   .queryParam("excludeCurrentUser", "false")
                                                   .accept(MediaType.APPLICATION_JSON))
@@ -856,7 +856,7 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Refund approved", result.getResponse().getContentAsString());
+        assertEquals("Sent to middle office ", result.getResponse().getContentAsString());
     }
 
     @Test
@@ -1361,7 +1361,7 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Refund approved", result.getResponse().getContentAsString());
+        assertEquals("Sent to middle office", result.getResponse().getContentAsString());
     }
 
     @Test
