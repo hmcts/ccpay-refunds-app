@@ -58,4 +58,5 @@ public class TestConfigProperties {
 
     @Value("${s2s.service.cmc.secret}")
     public String cmcS2SSecret;
+
 }
