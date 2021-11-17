@@ -183,7 +183,7 @@ public class RefundsApproverJourneyFunctionalTest {
         final String refundReference = performRefundByApprover();
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             "Sent for approval", "true"
+                                                                             "sent for approval", "true"
         );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
@@ -311,7 +311,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             "Update required", "false"
+                                                                             "sent back", "false"
         );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
@@ -328,7 +328,7 @@ public class RefundsApproverJourneyFunctionalTest {
             refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
         statusHistoryList.stream().forEach(entry -> {
             assertThat(
-                entry.get("status").trim().equals("Sent for approval") || entry.get("status").trim().equals("Update required"))
+                entry.get("status").trim().equals("sent for approval") || entry.get("status").trim().equals("sentback"))
                 .isTrue();
         });//The Lifecylcle of Statuses against a Refund will be maintained for all the statuses should be checked
         Response resubmitRefundResponse = paymentTestService.resubmitRefund(
@@ -505,7 +505,7 @@ public class RefundsApproverJourneyFunctionalTest {
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
         assertThat(refundListDtoResponse.getRefundList().size()).isEqualTo(1);
         assertThat(refundListDtoResponse.getRefundList().get(0).getRefundStatus().getName())
-            .isEqualTo("Sent for approval");
+            .isEqualTo("sent for approval");
         assertThat(refundListDtoResponse.getRefundList().get(0).getRefundStatus().getDescription())
             .isEqualTo("Refund request submitted");
 
