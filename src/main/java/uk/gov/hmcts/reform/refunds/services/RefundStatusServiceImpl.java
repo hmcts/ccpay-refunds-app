@@ -36,7 +36,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         if (currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
-            if (statusUpdateRequest.getStatus().getCode().equals("accepted")) {
+            if (statusUpdateRequest.getStatus().getCode().equals("Accepted")) {
                 refund.setRefundStatus(RefundStatus.ACCEPTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                     LIBERATA_NAME,

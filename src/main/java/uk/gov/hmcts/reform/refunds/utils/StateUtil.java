@@ -17,7 +17,7 @@ public class StateUtil {
                 return APPROVED;
             case "Update required":
                 return NEEDMOREINFO;
-            case "accepted":
+            case "Accepted":
             case "Rejected":
                 throw new ActionNotAllowedException("Action not allowed to proceed");
             default:

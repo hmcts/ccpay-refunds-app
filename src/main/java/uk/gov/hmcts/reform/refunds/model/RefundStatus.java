@@ -19,7 +19,7 @@ import javax.persistence.Table;
 @Table(name = "refund_status")
 public class RefundStatus {
 
-    public static final RefundStatus ACCEPTED = new RefundStatus("accepted", "Refund request accepted");
+    public static final RefundStatus ACCEPTED = new RefundStatus("Accepted", "Refund request accepted");
     public static final RefundStatus UPDATEREQUIRED = new RefundStatus("Update required", "Refund request update required");
     public static final RefundStatus REJECTED = new RefundStatus("Rejected", "Refund request rejected");
     public static final RefundStatus SENTFORAPPROVAL = new RefundStatus(
@@ -46,7 +46,7 @@ public class RefundStatus {
                 return APPROVED;
             case "Update required":
                 return UPDATEREQUIRED;
-            case "accepted":
+            case "Accepted":
                 return ACCEPTED;
             case "Rejected":
                 return REJECTED;

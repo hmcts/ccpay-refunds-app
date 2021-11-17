@@ -48,4 +48,6 @@ databaseChangeLog:
                     UPDATE refund_status SET name = 'Update required' where name = 'sent back';
                     UPDATE refund_status SET name = 'Rejected' where name = 'rejected';
                     UPDATE refund_status SET name = 'Sent for approval' where name = 'sent for approval';
+                    UPDATE refund_status SET name = 'Accepted' where name = 'accepted';
+
 
