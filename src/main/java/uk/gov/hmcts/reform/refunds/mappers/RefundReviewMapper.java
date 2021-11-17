@@ -23,7 +23,7 @@ public class RefundReviewMapper {
     public String getStatusNotes(RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         String notes;
         if (refundEvent.equals(RefundEvent.APPROVE)) {
-            notes =  "Sent to middle soffice";
+            notes =  "Sent to middle office";
         } else if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {
 
             if (refundEvent.equals(refundEvent.REJECT)) {

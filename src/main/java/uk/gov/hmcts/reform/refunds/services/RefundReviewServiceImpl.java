@@ -102,7 +102,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
             }
-            statusMessage = "Sent to middle office ";
+            statusMessage = "Sent to middle office";
         }
 
         if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {

@@ -129,7 +129,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
         } else if (StringUtils.isNotBlank(status)) {
-            RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
+            RefundStatus refundStatus = RefundStatus.getRefundStatus(status);
             //get the refund list except the self uid
 
             LOG.info("excludeCurrentUser {}",excludeCurrentUser.replaceAll("[\n\r\t]", "_"));
