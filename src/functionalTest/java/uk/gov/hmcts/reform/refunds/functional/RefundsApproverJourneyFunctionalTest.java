@@ -340,6 +340,33 @@ public class RefundsApproverJourneyFunctionalTest {
             refundReferenceFromRefundList
         );
         assertThat(resubmitRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        
+        //Do a verification check so that the Payment App not has the remission amount of 80.00
+        // not the initial 90.00
+        final String accountNumber = testConfigProperties.existingAccountNumber;
+        // Get pba payments by accountNumber
+        final PaymentsResponse paymentsResponse = paymentTestService
+            .getPbaPaymentsByAccountNumber(
+                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                SERVICE_TOKEN_CMC,
+                accountNumber,
+                testConfigProperties.basePaymentsUrl
+            )
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        final Optional<PaymentDto> paymentDtoOptional
+            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
+            return s2.getDateCreated().compareTo(s1.getDateCreated());
+        }).findFirst();
+
+        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
+        //assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
+        final String paymentReference = paymentDtoOptional.get().getPaymentReference();
+        System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
+
     }
 
     @Test
