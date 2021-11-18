@@ -340,7 +340,7 @@ public class RefundsApproverJourneyFunctionalTest {
             refundReferenceFromRefundList
         );
         assertThat(resubmitRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        
+
         //Do a verification check so that the Payment App not has the remission amount of 80.00
         // not the initial 90.00
         final String accountNumber = testConfigProperties.existingAccountNumber;
