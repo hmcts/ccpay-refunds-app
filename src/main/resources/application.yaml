@@ -104,7 +104,7 @@ oidc:
 
 azure:
   application-insights:
-    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
 
 idam:
   api:
@@ -120,7 +120,7 @@ refunds:
   serviceAccount:
     clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:refunds_api}
     clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET}
-    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:}
     username: ${REFUND_SERVICE_ACCOUNT_USERNAME:idam.user.ccpayrefundsapi@hmcts.net}
     password: ${REFUND_SERVICE_ACCOUNT_PASSWORD}
     scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
@@ -131,7 +131,7 @@ refunds:
 launch:
   darkly:
     sdk:
-      key: ${LAUNCH_DARKLY_SDK_KEY:dummy}
+      key: ${LAUNCH_DARKLY_SDK_KEY:}
     user:
       name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:dummy}@feesandpay.com
 
@@ -153,16 +153,16 @@ reconciliation-provider:
 liberata:
   oauth2:
     client:
-      id: ${LIBERATA_OAUTH2_CLIENT_ID:id}
-      secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:abc}
-    username: ${LIBERATA_OAUTH2_USERNAME:username}
-    password: ${LIBERATA_OAUTH2_PASSWORD:password}
+      id: ${LIBERATA_OAUTH2_CLIENT_ID:}
+      secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:}
+    username: ${LIBERATA_OAUTH2_USERNAME:}
+    password: ${LIBERATA_OAUTH2_PASSWORD:}
     authorize:
       url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
     token:
       url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
   api:
-    key: ${LIBERATA_API_KEY:dummy}
+    key: ${LIBERATA_API_KEY:}
 
 user:
   info:
