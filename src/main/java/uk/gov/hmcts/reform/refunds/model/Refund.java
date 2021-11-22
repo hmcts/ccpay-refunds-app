@@ -50,7 +50,7 @@ public class Refund {
     @JoinColumn(name = "reason")
     private String reason;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "refund_status")
     private RefundStatus refundStatus;
 
