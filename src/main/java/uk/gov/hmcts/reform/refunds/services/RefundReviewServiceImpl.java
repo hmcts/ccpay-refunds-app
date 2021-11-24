@@ -58,6 +58,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private LaunchDarklyFeatureToggler featureToggler;
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundReviewServiceImpl.class);
+    private static final String SENTTOMIDDLEOFFICE = "Sent to middle office";
 
 
     @Override
@@ -102,7 +103,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
             }
-            statusMessage = "Sent to middle office";
+            statusMessage = SENTTOMIDDLEOFFICE;
         }
 
         if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {

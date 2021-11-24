@@ -97,6 +97,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private ContextStartListener contextStartListener;
 
+    private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
+
     @Override
     public RefundEvent[] retrieveActions(String reference) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -281,7 +283,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 statusHistories.add(StatusHistory.statusHistoryWith()
                                         .createdBy(idamUserIdResponse.getUid())
                                         .status(SENTFORAPPROVAL.getName())
-                                        .notes("Refund initiated and sent to team leader")
+                                        .notes(REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER)
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
@@ -403,7 +405,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
-                                  .notes("Refund initiated and sent to team leader")
+                                  .notes(REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER)
                                   .status(SENTFORAPPROVAL.getName())
                                   .build()
                 )
