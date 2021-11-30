@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100008
+      author: Pragnesh
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              UPDATE refund_status SET description = 'Refund request sent to middle office' where name = 'sent to middle office';

@@ -28,7 +28,7 @@ public class RefundStatus {
     );
     public static final RefundStatus SENTTOMIDDLEOFFICE = new RefundStatus(
         "sent to middle office",
-        "Refund request sent to liberata"
+        "Refund request sent to middle office"
     );
 
     @Id

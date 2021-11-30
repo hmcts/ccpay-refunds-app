@@ -39,7 +39,7 @@ public class IdamServiceImpl implements IdamService {
     public static final String USER_FULL_NAME_ENDPOINT = "/api/v1/users";
     private static final String TOKEN_ENDPOINT = "/o/token";
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
-    private static final String LIBERATA_NAME = "Middle office provider";
+    private static final String MIDDLE_OFFICE_PROVIDER = "Middle office provider";
     private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
     private static final String USER_DETAILS_NOT_FOUND_ERROR_MSG = "User details not found for these roles in IDAM";
 
@@ -134,7 +134,7 @@ public class IdamServiceImpl implements IdamService {
             .queryParam("query", "id:" + uid);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
 
-        if (LIBERATA_NAME.equals(uid)) {
+        if (MIDDLE_OFFICE_PROVIDER.equals(uid)) {
             return UserIdentityDataDto.userIdentityDataWith()
                 .fullName(uid)
                 .build();

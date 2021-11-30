@@ -19,7 +19,7 @@ import java.util.Arrays;
 @Service
 public class RefundStatusServiceImpl extends StateUtil implements RefundStatusService {
 
-    private static final String LIBERATA_NAME = "Middle office provider";
+    private static final String MIDDLE_OFFICE_PROVIDER = "Middle office provider";
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -39,7 +39,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             if (statusUpdateRequest.getStatus().getCode().equals("accepted")) {
                 refund.setRefundStatus(RefundStatus.ACCEPTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                    LIBERATA_NAME,
+                    MIDDLE_OFFICE_PROVIDER,
                     RefundStatus.ACCEPTED,
                     "Approved by middle office"
                                                         )
@@ -47,13 +47,13 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             } else {
                 refund.setRefundStatus(RefundStatus.REJECTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                    LIBERATA_NAME,
+                    MIDDLE_OFFICE_PROVIDER,
                     RefundStatus.REJECTED,
                     statusUpdateRequest.getReason()
                                                         )
                 ));
             }
-            refund.setUpdatedBy(LIBERATA_NAME);
+            refund.setUpdatedBy(MIDDLE_OFFICE_PROVIDER);
             refund.setReason(statusUpdateRequest.getReason());
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
