@@ -166,6 +166,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
+        List<RefundReason> refundReasonList = refundReasonRepository.findAll();
 
         if (!roles.isEmpty()) {
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
@@ -187,7 +188,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
-                    String reason = getRefundReason(refund.getReason());
+                    String reason = getRefundReason(refund.getReason(), refundReasonList);
                     LOG.info("refund: {}", refund);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
@@ -411,11 +412,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
     }
 
-    private String getRefundReason(String rawReason) {
+    private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
         if (rawReason.startsWith("RR")) {
-            Optional<RefundReason> refundReasonOptional = refundReasonRepository.findByCode(rawReason);
-            if (refundReasonOptional.isPresent()) {
-                return refundReasonOptional.get().getName();
+            List<RefundReason> refundReasonOptional =  refundReasonList.stream()
+                .filter(refundReason -> refundReason.getCode().equalsIgnoreCase(rawReason))
+                .collect(Collectors.toList());
+            if (!refundReasonOptional.isEmpty()) {
+                return refundReasonOptional.get(0).getName();
             }
             throw new RefundReasonNotFoundException(rawReason);
         }

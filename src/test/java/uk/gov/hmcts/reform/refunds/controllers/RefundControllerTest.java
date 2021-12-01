@@ -331,6 +331,8 @@ class RefundControllerTest {
                                                                                    .code("RR002")
                                                                                    .name("Amended court")
                                                                                    .build());
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
@@ -385,6 +387,8 @@ class RefundControllerTest {
                                                                                         .code("RR002")
                                                                                         .name("Amended court")
                                                                                         .build()));
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
@@ -473,7 +477,8 @@ class RefundControllerTest {
                                                                                         .code("RR002")
                                                                                         .name("Amended court")
                                                                                         .build()));
-
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
