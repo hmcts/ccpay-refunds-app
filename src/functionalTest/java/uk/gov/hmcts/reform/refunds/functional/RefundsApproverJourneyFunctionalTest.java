@@ -409,6 +409,8 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(updateReviewRefundAgain.getStatusCode()).isEqualTo(CONFLICT.value());
         assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("Action not allowed to proceed");
+        assertThat(updateReviewRefundAgain.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("No actions to proceed further");
     }
 
     @Test

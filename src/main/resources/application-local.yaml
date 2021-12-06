@@ -97,11 +97,11 @@ liberata:
 
 refunds:
   serviceAccount:
-    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:paybubble}
-    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET:NVYEC2X7XFSRENTU}
-    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
-    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:j.m@hmcts.net}
-    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD:LevelAt12}
-    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
-    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:http://localhost:3000/receiver}
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET:}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD:}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:}
+    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:}
 
