@@ -35,7 +35,7 @@ spring:
             client-id: internal
             client-secret: internal
 oidc:
-  audience-list: internal,paybubble,refunds
+  audience-list: internal,paybubble,refunds,payments
   issuer: ${OIDC_ISSUER:http://fr-am:8080/openam/oauth2/hmcts}
 
 auth:
@@ -48,7 +48,7 @@ auth:
       baseUrl: http://localhost:8085
 azure:
   application-insights:
-    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
 idam:
   api:
     url: ${IDAM_API_URL:http://localhost:5000}
@@ -56,14 +56,14 @@ idam:
     services: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp
   s2s-auth:
     url: http://localhost:8085
-    totp_secret: AAAAAAAAAAAAAAAA
-    microservice: divorce
+    totp_secret: ${OIDC_S2S_SECRET:}
+    microservice: payment_app
 
 #Launch Darkly Config
 launch:
   darkly:
     sdk:
-      key: ${LAUNCH_DARKLY_SDK_KEY:dummy}
+      key: ${LAUNCH_DARKLY_SDK_KEY:}
     user:
       name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:dummy}@feesandpay.com
 
@@ -71,3 +71,37 @@ launchDarkly:
   connectionTimeout: 3
   socketTimeout: 3
   flushInterval: 10
+
+payments:
+  api:
+    url: ${PAYMENT_API_URL:http://localhost:8095}
+
+reconciliation-provider:
+  api:
+    url: ${LIBERATA_BASE_URL:https://lascustomerportaluat.liberata.com}
+  refund-status-update-path: ${REFUND_STATUS_UPDATE_PATH:/refunds-api/refunds}
+liberata:
+  oauth2:
+    client:
+      id: ${LIBERATA_OAUTH2_CLIENT_ID:id}
+      secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:}
+    username: ${LIBERATA_OAUTH2_USERNAME:username}
+    password: ${LIBERATA_OAUTH2_PASSWORD:}
+    authorize:
+      url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
+    token:
+      url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
+  api:
+    key: ${LIBERATA_API_KEY:}
+
+
+refunds:
+  serviceAccount:
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET:}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD:}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:}
+    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:}
+

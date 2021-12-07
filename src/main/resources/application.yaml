@@ -104,7 +104,7 @@ oidc:
 
 azure:
   application-insights:
-    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
 
 idam:
   api:
@@ -116,12 +116,22 @@ idam:
     totp_secret: ${OIDC_S2S_SECRET}
     microservice: ${OIDC_S2S_MICROSERVICE_NAME}
 
+refunds:
+  serviceAccount:
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:idam.user.ccpayrefundsapi@hmcts.net}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
+    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:http://ccpay-refunds-api-demo.service.core-compute-demo.internal/oauth2/callback}
+
 
 #Launch Darkly Config
 launch:
   darkly:
     sdk:
-      key: ${LAUNCH_DARKLY_SDK_KEY:dummy}
+      key: ${LAUNCH_DARKLY_SDK_KEY:}
     user:
       name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:dummy}@feesandpay.com
 
@@ -130,6 +140,39 @@ launchDarkly:
   socketTimeout: 3
   flushInterval: 10
 
+payments:
+  api:
+    url: ${PAYMENT_API_URL:http://localhost:8095}
 
+
+reconciliation-provider:
+  api:
+    url: ${LIBERATA_BASE_URL:https://lascustomerportaluat.liberata.com}
+  refund-status-update-path: ${REFUND_STATUS_UPDATE_PATH:/refunds-api/refunds}
+
+liberata:
+  oauth2:
+    client:
+      id: ${LIBERATA_OAUTH2_CLIENT_ID:id}
+      secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:}
+    username: ${LIBERATA_OAUTH2_USERNAME:}
+    password: ${LIBERATA_OAUTH2_PASSWORD:}
+    authorize:
+      url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
+    token:
+      url: ${LIBERATA_OAUTH2_TOKEN_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/token}
+  api:
+    key: ${LIBERATA_API_KEY:}
+
+user:
+  info:
+    size: ${USER_INFO_SIZE:300}
+  lastModifiedTime: ${USER_LAST_MODIFIED_TIME:720d}
+
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        web: DEBUG
 
 

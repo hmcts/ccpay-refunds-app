@@ -1,0 +1,104 @@
+management:
+  endpoints:
+    web:
+      base-path: /
+
+#If you use a database then uncomment below lines and update db properties accordingly
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: refunds-api
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:11.0://localhost/features
+  liquibase:
+    enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+  jackson.date-format: yyyy-MM-dd
+  flyway.enabled: true
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+    deserialization:
+      fail-on-unknown-properties: true
+  security:
+    oauth2:
+      client:
+        provider:
+          oidc:
+            issuer-uri: https://idam-web-public.aat.platform.hmcts.net/o
+        # Dummy OIDC client required even we are not going to use
+        registration:
+          oidc:
+            client-id: paybubble
+            client-secret: ${OIDC_CLIENT_SECRET}
+      resource:
+        filter-order: 3
+oidc:
+  audience-list: paybubble
+  issuer: ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat.internal:8443/openam/oauth2/hmcts}
+
+auth:
+  provider:
+    service:
+      client:
+        baseUrl: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+  idam:
+    client:
+      baseUrl: https://idam-api.aat.platform.hmcts.net
+test:
+  url: ${TEST_URL:http://localhost:8080}
+  user:
+    password: ${TEST_USER_PASSWORD}
+
+idam:
+  api:
+    url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
+  s2s-authorised:
+    services: ccpay_bubble,internal,payment_app
+  s2s-auth:
+    url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+    totp_secret: dummy
+    microservice: ccpay_bubble
+oauth2:
+  redirect:
+    uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
+  client:
+    id: ${OAUTH2_CLIENT_ID:cmc_citizen}
+    secret: ${OAUTH2_CLIENT_SECRET}
+s2s:
+  url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
+  service :
+    name : ${S2S_SERVICE_NAME:payment_app}
+    secret: ${S2S_SERVICE_SECRET_PAYMENT_APP}
+azure:
+  application-insights:
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+generated:
+  user:
+    email:
+      pattern:${GENERATED_USER_EMAIL_PATTERN:freg-test-functional-aldie-junk-user-%s@feemail.com}
+payments:
+  account:
+    existing:
+      account:
+        number : PBAFUNC12345
+    fake:
+      account:
+        number : QWERTYUIOP
+
+mock:
+  callback:
+    url:
+      endpoint : ${TEST_URL:http://payment-api-aat-staging.service.core-compute-aat.internal}/mock-api/serviceCallback
+
+refunds:
+  serviceAccount:
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:refunds_api}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:idam.user.ccpayrefundsapi@hmcts.net}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
+    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:http://ccpay-refunds-api-aat.service.core-compute-aat.internal/oauth2/callback}

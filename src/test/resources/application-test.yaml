@@ -35,6 +35,7 @@ spring:
             client-secret: ${OIDC_CLIENT_SECRET}
       resource:
         filter-order: 3
+
 oidc:
   audience-list: paybubble
   issuer: ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat.internal:8443/openam/oauth2/hmcts}
@@ -56,11 +57,11 @@ idam:
   api:
     url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
   s2s-authorised:
-    services: ccpay_bubble, cmc, bulk_scan_payment_processor, api_gw, probate_frontend, divorce_frontend, ccd_gw
+    services:  ccpay_bubble,internal,payment_app,refunds_api
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
-    totp_secret: dummy
-    microservice: ccpay_bubble
+    totp_secret: ${OIDC_S2S_SECRET:}
+    microservice: payment_app
 
 oauth2:
   redirect:
@@ -73,5 +74,5 @@ s2s:
   url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
 azure:
   application-insights:
-    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
 
