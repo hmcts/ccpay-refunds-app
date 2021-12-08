@@ -41,9 +41,7 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             .refundRequest(reconciliationProviderRequest).build();
         try {
 
-            LOG.info("apiKey {}",apiKey);
             headers.add("X-API-KEY", apiKey);
-
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
