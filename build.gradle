@@ -366,3 +366,5 @@ pitest {
   failWhenNoMutations = false
   detectInlinedCode = true
 }
+
+
