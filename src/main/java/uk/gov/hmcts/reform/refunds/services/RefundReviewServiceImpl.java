@@ -56,7 +56,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private LaunchDarklyFeatureToggler featureToggler;
 
 
-    private static final Logger LOG = LoggerFactory.getLogger(RefundReviewServiceImpl.class);
     private static final String SENTTOMIDDLEOFFICE = "Sent to middle office";
 
 
