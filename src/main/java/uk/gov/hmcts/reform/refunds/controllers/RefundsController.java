@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
@@ -60,8 +61,14 @@ public class RefundsController {
     @Autowired
     private RefundReviewService refundReviewService;
 
+    @Autowired
+    private LaunchDarklyFeatureToggler featureToggler;
+
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         return ok().body(refundReasonsService.findAll());
     }
 
@@ -80,6 +87,9 @@ public class RefundsController {
                                                        @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                        @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException,
                                                         InvalidRefundRequestException {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
     }
 
@@ -99,6 +109,10 @@ public class RefundsController {
         @RequestParam(required = false) String status,
         @RequestParam(required = false) String ccdCaseNumber,
         @RequestParam(required = false) String excludeCurrentUser) {
+
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
 
         if (StringUtils.isBlank(status) && StringUtils.isBlank(ccdCaseNumber)) {
             throw new RefundListEmptyException(
@@ -126,6 +140,9 @@ public class RefundsController {
     public ResponseEntity updateRefundStatus(@RequestHeader(required = false) MultiValueMap<String, String> headers,
                                              @PathVariable("reference") String reference,
                                              @RequestBody @Valid RefundStatusUpdateRequest request) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         return refundStatusService.updateRefundStatus(reference, request, headers);
     }
 
@@ -141,11 +158,17 @@ public class RefundsController {
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable("reference") String reference,
             @RequestBody @Valid ResubmitRefundRequest request) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 
     @GetMapping("/refund/rejection-reasons")
     public ResponseEntity<List<RejectionReasonResponse>> getRejectedReasons(@RequestHeader("Authorization") String authorization) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         return ok().body(refundsService.getRejectedReasons());
     }
 
@@ -154,6 +177,9 @@ public class RefundsController {
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable String reference) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
@@ -176,6 +202,9 @@ public class RefundsController {
             @PathVariable(value = "reference", required = true) String reference,
             @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
             @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 
@@ -184,6 +213,9 @@ public class RefundsController {
     public ResponseEntity<RefundEvent[]> retrieveActions(
         @RequestHeader("Authorization") String authorization,
         @PathVariable String reference) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
 
     }

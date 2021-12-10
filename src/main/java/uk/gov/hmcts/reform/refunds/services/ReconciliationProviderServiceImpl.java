@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.refunds.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,14 +39,6 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
         ReconciliationProviderRefundRequest reconciliationProviderRefundRequest = ReconciliationProviderRefundRequest
             .refundReconciliationProviderRefundRequestWith()
             .refundRequest(reconciliationProviderRequest).build();
-        try {
-            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            String json = ow.writeValueAsString(reconciliationProviderRefundRequest);
-            LOG.info(json);
-        } catch (JsonProcessingException e) {
-            LOG.info(e.getMessage());
-        }
-
         try {
             headers.add("X-API-KEY", apiKey);
 
