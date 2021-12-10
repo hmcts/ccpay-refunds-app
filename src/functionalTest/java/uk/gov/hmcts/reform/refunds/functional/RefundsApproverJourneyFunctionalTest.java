@@ -107,7 +107,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void testGetReasons() {
+    public void positive_get_reasons() {
 
         Response responseRefundReasons
             = paymentTestService
@@ -119,7 +119,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
 
     @Test
-    public void test_reject_a_refund_request() {
+    public void positive_reject_a_refund_request() {
 
         final String refundReference = performRefund();
 
@@ -149,7 +149,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void test_sendback_a_refund_request() {
+    public void positive_sendback_a_refund_request() {
 
         final String refundReference = performRefund();
 
@@ -173,7 +173,6 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund returned to caseworker");
-
         //Further verify that there is no invocation ofx Liberata
     }
 
@@ -208,7 +207,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void test_approve_a_refund_request() {
+    public void positive_approve_a_refund_request() {
 
         final String refundReference = performRefund();
 
