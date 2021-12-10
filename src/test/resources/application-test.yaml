@@ -32,20 +32,13 @@ spring:
         registration:
           oidc:
             client-id: paybubble
-            client-secret: ${OIDC_CLIENT_SECRET:}
+            client-secret: ${OIDC_CLIENT_SECRET}
       resource:
         filter-order: 3
 
 oidc:
   audience-list: paybubble
   issuer: ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat.internal:8443/openam/oauth2/hmcts}
-
-launch:
-  darkly:
-    sdk:
-      key: ${LAUNCH_DARKLY_SDK_KEY:}
-    user:
-      name: ${LAUNCH_DARKLY_USER_NAME_PREFIX:}@feesandpay.com
 
 auth:
   provider:
@@ -58,7 +51,7 @@ auth:
 test:
   url: ${TEST_URL:http://localhost:8080}
   user:
-    password: ${TEST_USER_PASSWORD:}
+    password: ${TEST_USER_PASSWORD}
 
 idam:
   api:
@@ -68,14 +61,14 @@ idam:
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     totp_secret: ${OIDC_S2S_SECRET:}
-    microservice: ${OIDC_S2S_MICROSERVICE_NAME:}
+    microservice: payment_app
 
 oauth2:
   redirect:
     uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
   client:
-    id: ${OAUTH2_CLIENT_ID:}
-    secret: ${OAUTH2_CLIENT_SECRET_CMC_CITIZEN:}
+    id: ${OAUTH2_CLIENT_ID:cmc_citizen}
+    secret: ${OAUTH2_CLIENT_SECRET_CMC_CITIZEN}
 
 s2s:
   url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
@@ -83,37 +76,3 @@ azure:
   application-insights:
     instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
 
-refunds:
-  serviceAccount:
-    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:}
-    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET:}
-    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:}
-    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:}
-    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD:}
-    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:}
-    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:}
-
-liberata:
-  oauth2:
-    client:
-      id: ${LIBERATA_OAUTH2_CLIENT_ID:}
-      secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:}
-    username: ${LIBERATA_OAUTH2_USERNAME:}
-    password: ${LIBERATA_OAUTH2_PASSWORD:}
-    authorize:
-      url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:}
-    token:
-      url: ${LIBERATA_OAUTH2_TOKEN_URL:}
-  api:
-    key: ${LIBERATA_API_KEY:}
-
-payments:
-  api:
-    url: ${PAYMENT_API_URL:}
-
-
-
-reconciliation-provider:
-  api:
-    url: ${LIBERATA_BASE_URL:}
-  refund-status-update-path: ${REFUND_STATUS_UPDATE_PATH:}

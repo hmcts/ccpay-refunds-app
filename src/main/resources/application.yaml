@@ -118,7 +118,7 @@ idam:
 
 refunds:
   serviceAccount:
-    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:refunds_api}
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:}
     clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET}
     grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:}
     username: ${REFUND_SERVICE_ACCOUNT_USERNAME:idam.user.ccpayrefundsapi@hmcts.net}
@@ -153,7 +153,7 @@ reconciliation-provider:
 liberata:
   oauth2:
     client:
-      id: ${LIBERATA_OAUTH2_CLIENT_ID:}
+      id: ${LIBERATA_OAUTH2_CLIENT_ID:id}
       secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:}
     username: ${LIBERATA_OAUTH2_USERNAME:}
     password: ${LIBERATA_OAUTH2_PASSWORD:}
@@ -169,10 +169,10 @@ user:
     size: ${USER_INFO_SIZE:300}
   lastModifiedTime: ${USER_LAST_MODIFIED_TIME:720d}
 
-logging:
-  level:
-    org:
-      springframework:
-        web: DEBUG
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        web: DEBUG
 
 

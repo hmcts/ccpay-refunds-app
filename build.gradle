@@ -81,6 +81,9 @@ task functional(type: Test) {
   scanForTestClasses = true
 }
 
+// Serenity Reporting
+functional.finalizedBy(aggregate)
+
 task integration(type: Test) {
   description = "Runs integration tests"
   group = "Verification"
@@ -301,6 +304,7 @@ dependencies {
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-screenplay', version: versions.serenity
   functionalTestImplementation group: 'io.rest-assured', name: 'xml-path', version: versions.restAssured
   functionalTestImplementation group: 'io.rest-assured', name: 'json-path', version: versions.restAssured
   functionalTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
