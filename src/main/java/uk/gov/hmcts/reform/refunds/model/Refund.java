@@ -49,8 +49,7 @@ public class Refund {
     private String reason;
 
     @ManyToOne(cascade = {
-        CascadeType.PERSIST,
-        CascadeType.MERGE
+        CascadeType.PERSIST
     })
     @JoinColumn(name = "refund_status", referencedColumnName = "name", nullable = false)
     private RefundStatus refundStatus;
