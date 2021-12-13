@@ -20,6 +20,8 @@ import java.util.Arrays;
 public class RefundStatusServiceImpl extends StateUtil implements RefundStatusService {
 
     private static final String LIBERATA_NAME = "Middle office provider";
+    private static final String ACCEPTED = "Accepted";
+
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -35,8 +37,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     public ResponseEntity updateRefundStatus(String reference, RefundStatusUpdateRequest statusUpdateRequest, MultiValueMap<String, String> headers) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
-        if (currentRefundState.getRefundStatus().getName().equals("sent to middle office")) {
-            if (statusUpdateRequest.getStatus().getCode().equals("accepted")) {
+        if (currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
+            if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
                 refund.setRefundStatus(RefundStatus.ACCEPTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                     LIBERATA_NAME,

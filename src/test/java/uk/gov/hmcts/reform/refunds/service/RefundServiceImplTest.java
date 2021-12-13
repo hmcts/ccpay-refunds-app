@@ -72,7 +72,7 @@ public class RefundServiceImplTest {
     public static final String GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID = "3f2b7025-0f91-4737-92c6-b7a9baef14c6";
     public static final Supplier<StatusHistory> STATUS_HISTORY_SUPPLIER = () -> StatusHistory.statusHistoryWith()
         .id(1)
-        .status(RefundStatus.SENTBACK.getName())
+        .status(RefundStatus.UPDATEREQUIRED.getName())
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
         .build();
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber1 = () -> Refund.refundsWith()
@@ -134,7 +134,7 @@ public class RefundServiceImplTest {
         .createdBy(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
         .updatedBy(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
         .reference("RF-3333-2234-1077-1123")
-        .refundStatus(RefundStatus.SENTBACK)
+        .refundStatus(RefundStatus.UPDATEREQUIRED)
         .reason("Other")
         .paymentReference("RC-3333-2234-1077-1123")
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
@@ -244,7 +244,7 @@ public class RefundServiceImplTest {
         when(contextStartListener.getUserMap()).thenReturn(userMap);
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
-            "sent for approval",
+            "Sent for approval",
             map,
             "",
             "true"
@@ -285,7 +285,7 @@ public class RefundServiceImplTest {
             Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
 
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
-            "sent for approval",
+            "Sent for approval",
             map,
             "",
             "false"

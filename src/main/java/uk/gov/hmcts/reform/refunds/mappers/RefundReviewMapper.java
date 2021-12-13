@@ -16,15 +16,21 @@ public class RefundReviewMapper {
     @Autowired
     private RejectionReasonRepository rejectionReasonRepository;
 
+    private static final String APPROVED = "Approved";
+    private static final String REJECTED = "Rejected";
+    private static final String UPDATEREQUIRED = "Update required";
+    private static final String SENTTOMIDDLEOFFICE = "Sent to middle office";
+
     public String getStatus(RefundEvent refundEvent) {
-        return  refundEvent.equals(RefundEvent.APPROVE) ? "sent to middle office" : refundEvent.equals(RefundEvent.REJECT) ? "rejected" : "sentback";
+        return  refundEvent.equals(RefundEvent.APPROVE) ? APPROVED : refundEvent.equals(RefundEvent.REJECT)
+            ? REJECTED : UPDATEREQUIRED;
     }
 
     public String getStatusNotes(RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         String notes;
         if (refundEvent.equals(RefundEvent.APPROVE)) {
-            notes =  "Refund Approved";
-        } else if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.SENDBACK)) {
+            notes =  SENTTOMIDDLEOFFICE;
+        } else if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {
 
             if (refundEvent.equals(refundEvent.REJECT)) {
                 notes = getRejectStatusNotes(refundReviewRequest);

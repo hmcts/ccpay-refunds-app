@@ -56,6 +56,9 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private LaunchDarklyFeatureToggler featureToggler;
 
 
+    private static final String SENTTOMIDDLEOFFICE = "Sent to middle office";
+
+
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
                                                RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
@@ -96,10 +99,10 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
             }
-            statusMessage = "Refund approved";
+            statusMessage = SENTTOMIDDLEOFFICE;
         }
 
-        if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.SENDBACK)) {
+        if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {
             updateRefundStatus(refundForGivenReference, refundEvent);
             statusMessage = refundEvent.equals(RefundEvent.REJECT) ? "Refund rejected" : "Refund returned to caseworker";
         }
