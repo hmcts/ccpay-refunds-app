@@ -59,4 +59,9 @@ public class TestConfigProperties {
     @Value("${s2s.service.cmc.secret}")
     public String cmcS2SSecret;
 
+    @Value("${idam.paybubble.client.id}")
+    public String idamPayBubbleClientId;
+
+    @Value("${idam.paybubble.client.secret}")
+    public String idamPayBubbleClientSecret;
 }
