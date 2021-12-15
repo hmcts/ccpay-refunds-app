@@ -64,5 +64,4 @@ public class TestConfigProperties {
 
     @Value("${idam.paybubble.client.secret}")
     public String idamPayBubbleClientSecret;
-
 }
