@@ -25,15 +25,15 @@ class RefundStateUtilTest extends StateUtil {
     void nextStateForSubmitOrSentForApproval() throws Exception {
 
         RefundState refundState = RefundState.SENTFORAPPROVAL;
-        assertEquals(RefundState.SENTTOMIDDLEOFFICE, refundState.nextState(RefundEvent.APPROVE));
+        assertEquals(RefundState.APPROVED, refundState.nextState(RefundEvent.APPROVE));
         assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.REJECT));
-        assertEquals(RefundState.NEEDMOREINFO, refundState.nextState(RefundEvent.SENDBACK));
+        assertEquals(RefundState.NEEDMOREINFO, refundState.nextState(RefundEvent.UPDATEREQUIRED));
     }
 
     @Test
     void nextStateForApprove() throws Exception {
 
-        RefundState refundState = RefundState.SENTTOMIDDLEOFFICE;
+        RefundState refundState = RefundState.APPROVED;
         assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.REJECT));
         assertEquals(RefundState.ACCEPTED, refundState.nextState(RefundEvent.ACCEPT));
     }
