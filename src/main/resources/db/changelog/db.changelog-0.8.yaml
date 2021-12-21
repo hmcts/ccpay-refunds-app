@@ -10,7 +10,6 @@ databaseChangeLog:
             constraintName: FK_1000081
             deferrable: false
             initiallyDeferred: false
-            onUpdate: CASCADE
             referencedColumnNames: name
             referencedTableName: refund_status
 
