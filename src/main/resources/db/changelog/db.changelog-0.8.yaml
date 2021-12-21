@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100008-1
+      author: Anshika
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: refund_status
+            baseTableName: refunds
+            constraintName: FK_1000081
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: refund_status
+
+  - changeSet:
+      id: 100008-2
+      author: Anshika
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              ALTER TABLE refunds DROP CONSTRAINT FK_1000041;
+  - changeSet:
+      id: 100008-3
+      author: Anshika
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              UPDATE refund_status SET name = 'Approved' where name = 'sent to middle office';
+              UPDATE refund_status SET name = 'Update required' where name = 'sent back';
+              UPDATE refund_status SET name = 'Rejected' where name = 'rejected';
+              UPDATE refund_status SET name = 'Accepted' where name = 'accepted';
+              UPDATE refund_status SET name = 'Sent for approval' where name = 'sent for approval';
