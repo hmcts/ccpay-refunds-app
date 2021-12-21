@@ -12,16 +12,16 @@ databaseChangeLog:
             initiallyDeferred: false
             referencedColumnNames: name
             referencedTableName: refund_status
-
-  - changeSet:
-      id: 100008-2
-      author: Anshika
-      failOnError: true
-      changes:
-        - sql:
-            splitStatements: true
-            sql: >
-              ALTER TABLE refunds DROP CONSTRAINT FK_1000041;
+# Due to a manual commit we are commenting the below changeset
+#  - changeSet:
+#      id: 100008-2
+#      author: Anshika
+#      failOnError: true
+#      changes:
+#        - sql:
+#            splitStatements: true
+#            sql: >
+#              ALTER TABLE refunds DROP CONSTRAINT FK_1000041;
   - changeSet:
       id: 100008-3
       author: Anshika
