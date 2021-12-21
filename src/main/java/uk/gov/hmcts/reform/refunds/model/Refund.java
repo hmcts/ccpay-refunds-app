@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.refunds.model;
 
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
