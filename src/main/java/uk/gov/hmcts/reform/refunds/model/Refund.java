@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.model;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -87,7 +88,7 @@ public class Refund {
 
     @Type(type = "json")
     @Column(columnDefinition = "json", name = "contact_details")
-    private String contactDetails;
+    private ContactDetails contactDetails;
 
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
