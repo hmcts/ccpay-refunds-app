@@ -61,7 +61,7 @@ idam:
     services: ccpay_bubble,internal,payment_app
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
-    totp_secret: ${OIDC_S2S_SECRET}
+    totp_secret: ${OIDC_S2S_SECRET:}
     microservice: ccpay_bubble
   paybubble:
     client:
