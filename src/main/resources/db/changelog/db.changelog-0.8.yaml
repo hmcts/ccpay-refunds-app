@@ -22,6 +22,32 @@ databaseChangeLog:
             splitStatements: true
             sql: >
               ALTER TABLE refunds DROP CONSTRAINT FK_1000041;
+#New constraints added with cascade option enabled
+  - changeSet:
+      id: 100008-4
+      author: Jennings
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: refund_status
+            baseTableName: refunds
+            constraintName: FK_1000084
+            deferrable: false
+            onUpdate: CASCADE
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: refund_status
+
+  - changeSet:
+      id: 100008-5
+      author: Jennings
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              ALTER TABLE refunds DROP CONSTRAINT FK_1000081;
+
   - changeSet:
       id: 100008-3
       author: Anshika
