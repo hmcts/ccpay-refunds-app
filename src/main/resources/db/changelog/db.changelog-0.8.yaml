@@ -26,6 +26,7 @@ databaseChangeLog:
       id: 100008-3
       author: Anshika
       failOnError: true
+      onUpdate: CASCADE
       changes:
         - sql:
             splitStatements: true
