@@ -176,3 +176,7 @@ logging:
         web: DEBUG
 
 
+notification:
+  url: ${NOTIFICATION_API_URL:http://localhost:4300}
+  emailToReply: ${EMAIL_TO_REPLY:}
+

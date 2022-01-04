@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
@@ -31,6 +32,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
@@ -59,6 +61,9 @@ public class RefundsController {
 
     @Autowired
     private RefundReviewService refundReviewService;
+
+    @Autowired
+    private RefundNotificationService refundNotificationService;
 
 
     @GetMapping("/refund/reasons")
@@ -188,5 +193,18 @@ public class RefundsController {
         return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
 
     }
+
+
+    @PostMapping("resend/notification")
+    public HttpStatus resendNotification(
+                    @RequestHeader("Authorization") String authorization,
+                    @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                    @RequestBody ResendNotificationRequest resendNotificationRequest,
+                    @RequestParam Boolean resendToNewContactDetail
+                    ){
+        ResponseEntity responseEntity = refundNotificationService.resendRefundNotification(resendToNewContactDetail,resendNotificationRequest,headers);
+        return responseEntity.getStatusCode();
+    }
+
 
 }
