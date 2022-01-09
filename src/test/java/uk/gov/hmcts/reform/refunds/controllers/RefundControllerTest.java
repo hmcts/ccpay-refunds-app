@@ -56,11 +56,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.RejectionReason;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -206,6 +202,11 @@ class RefundControllerTest {
         .refundReason("RR002")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .contactDetails(ContactDetails.contactDetailsWith()
+                .email("abc@abc.com")
+                .notificationType("EMAIL")
+                .templateId("test1")
+                .build())
         .build();
     private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
@@ -213,6 +214,15 @@ class RefundControllerTest {
         .refundReason("RR036")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("ABC Street")
+                .city("London")
+                .county("Greater London")
+                .country("UK")
+                .postalCode("E1 6AN")
+                .notificationType("LETTER")
+                .templateId("test2")
+                .build())
         .build();
 
     @Autowired
@@ -631,6 +641,11 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .contactDetails(ContactDetails.contactDetailsWith()
+                                                                                 .email("abc@abc.com")
+                                                                                 .notificationType("EMAIL")
+                                                                                 .templateId("template")
+                                                                                 .build())
                                                                          .build()))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
@@ -766,6 +781,7 @@ class RefundControllerTest {
             .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .feeIds("1")
+            .contactDetails(refundRequest.getContactDetails())
             .build();
 
         List<Refund> refunds = Collections.singletonList(refund);
@@ -805,6 +821,11 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .contactDetails(ContactDetails.contactDetailsWith()
+                                                                                 .email("abc@abc.com")
+                                                                                 .notificationType("EMAIL")
+                                                                                 .templateId("tudft")
+                                                                                 .build())
                                                                          .build()))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")

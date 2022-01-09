@@ -26,10 +26,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
@@ -87,6 +84,14 @@ public class RefundServiceImplTest {
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
         .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
         .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("aaaa")
+                .city("bbbb")
+                .country("cccc")
+                .county("dddd")
+                .notificationType("LETTER")
+                .templateId("eeee")
+                .build())
         .build();
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber2 = () -> Refund.refundsWith()
         .id(1)
@@ -140,6 +145,11 @@ public class RefundServiceImplTest {
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
         .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
         .statusHistories(Arrays.asList(STATUS_HISTORY_SUPPLIER.get()))
+        .contactDetails(ContactDetails.contactDetailsWith()
+                .email("bb@bb.com")
+                .notificationType("EMAIL")
+                .templateId("id")
+                .build())
         .build();
     public static final Supplier<PaymentResponse> PAYMENT_RESPONSE_SUPPLIER = () -> PaymentResponse.paymentResponseWith()
         .amount(BigDecimal.valueOf(100))

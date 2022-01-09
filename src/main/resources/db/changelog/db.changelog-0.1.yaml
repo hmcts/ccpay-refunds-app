@@ -67,3 +67,12 @@ databaseChangeLog:
             splitStatements:
             sql: >
               ALTER TABLE refunds ADD COLUMN fee_ids varchar(255);
+  - changeSet:
+      id: 100001-6
+      author: Sayali
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE refunds ADD COLUMN contact_details json;

@@ -399,6 +399,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .feeIds(refundRequest.getFeeIds())
             .createdBy(uid)
             .updatedBy(uid)
+            .contactDetails(refundRequest.getContactDetails())
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
