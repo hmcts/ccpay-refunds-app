@@ -37,10 +37,11 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
                                                            MultiValueMap<String, String> headers) {
 
+        Refund refund = refundsService.getRefundForReference(resendNotificationRequest.getReference());
+
         validateResendNotificationRequest(resendNotificationRequest);
 
         NotificationType notificationType = resendNotificationRequest.getNotificationType();
-        Refund refund = refundsService.getRefundForReference(resendNotificationRequest.getReference());
 
         ResponseEntity<String> responseEntity;
         if (notificationType.equals(EMAIL)) {
@@ -82,6 +83,7 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
 
 
     private void validateResendNotificationRequest(ResendNotificationRequest resendNotificationRequest) {
+
         if (resendNotificationRequest.getNotificationType().equals(EMAIL)
             && resendNotificationRequest.getRecipientEmailAddress() == null) {
             throw new InvalidRefundNotificationResendRequestException("Please enter recipient email for Email notification.");

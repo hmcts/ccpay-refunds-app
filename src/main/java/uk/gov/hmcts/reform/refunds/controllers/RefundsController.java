@@ -196,7 +196,16 @@ public class RefundsController {
 
     }
 
+    @ApiOperation(value = "PUT resend/notification/{reference} ", notes = "Resend Refund Notification")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Ok"),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "IDAM User Authorization Failed"),
+        @ApiResponse(code = 403, message = "RPE Service Authentication Failed"),
+        @ApiResponse(code = 404, message = "Refund Not found"),
+        @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
 
+    })
     @PutMapping("resend/notification/{reference}")
     public ResponseEntity<String> resendNotification(
         @RequestHeader("Authorization") String authorization,

@@ -53,7 +53,12 @@ public class NotificationServiceImpl implements NotificationService {
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
                                                new HttpEntity<>(refundNotificationEmailRequest, getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
-            throw new InvalidRefundNotificationResendRequestException("Invalid Refund notification request.", exception);
+            String exceptionMessage = "Invalid Refund notification request.";
+            HttpStatus status = exception.getStatusCode();
+            if(status.equals(HttpStatus.BAD_REQUEST) || status.equals(HttpStatus.FORBIDDEN) || status.equals(HttpStatus.TOO_MANY_REQUESTS)){
+                exceptionMessage = exception.getMessage();
+            }
+            throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
         } catch (HttpServerErrorException exception) {
             log.info("Notification service is unavailable. Please try again later.");
         }
@@ -69,7 +74,12 @@ public class NotificationServiceImpl implements NotificationService {
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,new HttpEntity<>(refundNotificationLetterRequest,
                                                                                                        getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
-            throw new InvalidRefundNotificationResendRequestException("Invalid Refund notification request.", exception);
+            String exceptionMessage = "Invalid Refund notification request.";
+            HttpStatus status = exception.getStatusCode();
+            if(status.equals(HttpStatus.BAD_REQUEST) || status.equals(HttpStatus.FORBIDDEN) || status.equals(HttpStatus.TOO_MANY_REQUESTS)){
+                exceptionMessage = exception.getMessage();
+            }
+            throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
         } catch (HttpServerErrorException exception) {
             log.info("Notification service is unavailable. Please try again later.");
         }
