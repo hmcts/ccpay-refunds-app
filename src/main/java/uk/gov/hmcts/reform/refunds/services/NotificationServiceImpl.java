@@ -1,23 +1,30 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class NotificationServiceImpl implements NotificationService{
+@Service
+public class NotificationServiceImpl implements NotificationService {
 
     @Autowired
     private RestTemplate restTemplateNotify;
@@ -26,23 +33,48 @@ public class NotificationServiceImpl implements NotificationService{
     private String notificationUrl;
 
     @Value("${notification.email-path}")
-    private String emailPath;
+    private String emailUrlPath;
+
+    @Value("${notification.letter-path}")
+    private String letterUrlPath;
 
     public static final String CONTENT_TYPE = "content-type";
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
+    private static Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
+
     @Override
-    public ResponseEntity postEmailNotificationData(MultiValueMap<String, String> headers, RefundNotificationEmailRequest refundNotificationEmailRequest) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(emailPath).toString());
-        return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,new HttpEntity<>(refundNotificationEmailRequest, getFormatedHeaders(headers)),ResponseEntity.class);
+    public ResponseEntity<String> postEmailNotificationData(MultiValueMap<String, String> headers,
+                                                            RefundNotificationEmailRequest refundNotificationEmailRequest) {
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(emailUrlPath).toString());
+            return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
+                                               new HttpEntity<>(refundNotificationEmailRequest, getFormatedHeaders(headers)),String.class);
+        } catch (HttpClientErrorException exception) {
+            throw new InvalidRefundNotificationResendRequestException("Invalid Refund notification request.", exception);
+        } catch (HttpServerErrorException exception) {
+            log.info("Notification service is unavailable. Please try again later.");
+        }
+        return new ResponseEntity<String>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
-    public ResponseEntity postLetterNotificationData(MultiValueMap<String, String> headers, RefundNotificationLetterRequest refundNotificationLetterRequest) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(emailPath).toString());
-        return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,new HttpEntity<>(refundNotificationLetterRequest, getFormatedHeaders(headers)),ResponseEntity.class);
+    public ResponseEntity<String> postLetterNotificationData(MultiValueMap<String, String> headers,
+                                                             RefundNotificationLetterRequest refundNotificationLetterRequest) {
+
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(letterUrlPath).toString());
+            return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,new HttpEntity<>(refundNotificationLetterRequest,
+                                                                                                       getFormatedHeaders(headers)),String.class);
+        } catch (HttpClientErrorException exception) {
+            throw new InvalidRefundNotificationResendRequestException("Invalid Refund notification request.", exception);
+        } catch (HttpServerErrorException exception) {
+            log.info("Notification service is unavailable. Please try again later.");
+        }
+        return new ResponseEntity<String>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
+
     }
 
 

@@ -7,7 +7,9 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 
 public interface NotificationService {
 
-    public ResponseEntity postEmailNotificationData(MultiValueMap<String, String> headers, RefundNotificationEmailRequest refundNotificationEmailRequest);
+    ResponseEntity<String> postEmailNotificationData(MultiValueMap<String, String> headers,
+                                                     RefundNotificationEmailRequest refundNotificationEmailRequest);
 
-    public ResponseEntity postLetterNotificationData(MultiValueMap<String, String> headers, RefundNotificationLetterRequest refundNotificationLetterRequest);
+    ResponseEntity<String> postLetterNotificationData(MultiValueMap<String, String> headers,
+                                                      RefundNotificationLetterRequest refundNotificationLetterRequest);
 }

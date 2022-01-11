@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
@@ -85,7 +87,7 @@ public class RefundsController {
     public ResponseEntity<RefundResponse> createRefund(@RequestHeader("Authorization") String authorization,
                                                        @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                        @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException,
-                                                        InvalidRefundRequestException {
+        InvalidRefundRequestException {
         return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
     }
 
@@ -137,16 +139,16 @@ public class RefundsController {
 
     @ApiOperation(value = "Update refund reason and amount by refund reference", notes = "Update refund reason and amount by refund reference")
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "No content"),
-            @ApiResponse(code = 404, message = "Refund details not found")
+        @ApiResponse(code = 204, message = "No content"),
+        @ApiResponse(code = 404, message = "Refund details not found")
     })
     @PatchMapping("/refund/resubmit/{reference}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<ResubmitRefundResponseDto> resubmitRefund(
-            @RequestHeader("Authorization") String authorization,
-            @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable("reference") String reference,
-            @RequestBody @Valid ResubmitRefundRequest request) {
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @PathVariable("reference") String reference,
+        @RequestBody @Valid ResubmitRefundRequest request) {
         return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 
@@ -157,9 +159,9 @@ public class RefundsController {
 
     @GetMapping("/refund/{reference}/status-history")
     public ResponseEntity<StatusHistoryResponseDto> getStatusHistory(
-            @RequestHeader("Authorization") String authorization,
-            @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable String reference) {
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @PathVariable String reference) {
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
@@ -177,11 +179,11 @@ public class RefundsController {
     @PatchMapping("/refund/{reference}/action/{reviewer-action}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> reviewRefund(
-            @RequestHeader("Authorization") String authorization,
-            @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable(value = "reference", required = true) String reference,
-            @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
-            @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @PathVariable(value = "reference", required = true) String reference,
+        @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+        @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 
@@ -195,15 +197,17 @@ public class RefundsController {
     }
 
 
-    @PostMapping("resend/notification")
-    public HttpStatus resendNotification(
-                    @RequestHeader("Authorization") String authorization,
-                    @RequestHeader(required = false) MultiValueMap<String, String> headers,
-                    @RequestBody ResendNotificationRequest resendNotificationRequest,
-                    @RequestParam Boolean resendToNewContactDetail
-                    ){
-        ResponseEntity responseEntity = refundNotificationService.resendRefundNotification(resendToNewContactDetail,resendNotificationRequest,headers);
-        return responseEntity.getStatusCode();
+    @PutMapping("resend/notification/{reference}")
+    public ResponseEntity<String> resendNotification(
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @RequestBody ResendNotificationRequest resendNotificationRequest,
+        @PathVariable String reference,
+        @RequestParam NotificationType notificationType
+    ) {
+        resendNotificationRequest.setReference(reference);
+        resendNotificationRequest.setNotificationType(notificationType);
+        return refundNotificationService.resendRefundNotification(resendNotificationRequest,headers);
     }
 
 

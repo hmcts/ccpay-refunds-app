@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.refunds.mapper;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
@@ -8,20 +7,18 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.Personalisation;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
-import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
 @Component
 public class RefundNotificationMapper {
 
-    @Value("${notification.emailToReply}")
+    @Value("${notification.email-to-reply}")
     private String emailReplyToId;
 
-    @Value("${notification.serviceMailBox}")
+    @Value("${notification.service-mailbox}")
     private String serviceMailBox;
 
-    @Value("${notification.serviceUrl}")
+    @Value("${notification.service-url}")
     private String serviceUrl;
 
 
@@ -42,7 +39,7 @@ public class RefundNotificationMapper {
                 .build();
     }
 
-    public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest){
+    public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
             .templateId(resendNotificationRequest.getTemplateId())
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())

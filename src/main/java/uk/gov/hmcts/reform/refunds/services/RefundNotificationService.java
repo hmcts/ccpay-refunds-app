@@ -5,5 +5,5 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 
 public interface RefundNotificationService {
-    ResponseEntity resendRefundNotification(Boolean resendToNewContactDetail,ResendNotificationRequest resendNotificationRequest, MultiValueMap<String, String> headers);
+    ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest, MultiValueMap<String, String> headers);
 }
