@@ -261,8 +261,6 @@ dependencies {
   implementation group: 'joda-time', name: 'joda-time', version: '2.10.10'
   implementation group: "com.vladmihalcea", name: "hibernate-types-55", version: "2.14.0"
 
-
-
   implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.4.0'
   implementation(group: 'org.postgresql', name: 'postgresql', version: '42.2.13') {
     exclude(module: 'commons-logging')

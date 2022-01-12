@@ -787,7 +787,6 @@ class RefundControllerTest {
             .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .feeIds("1")
-            .contactDetails(refundRequest.getContactDetails())
             .build();
 
         List<Refund> refunds = Collections.singletonList(refund);
@@ -827,11 +826,6 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
-                                                                         .contactDetails(ContactDetails.contactDetailsWith()
-                                                                                 .email("abc@abc.com")
-                                                                                 .notificationType("EMAIL")
-                                                                                 .templateId("tudft")
-                                                                                 .build())
                                                                          .build()))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
