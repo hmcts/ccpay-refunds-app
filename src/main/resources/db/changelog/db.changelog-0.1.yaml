@@ -88,3 +88,4 @@ databaseChangeLog:
             sql: >
               ALTER TABLE refunds ADD COLUMN refund_approve_flag varchar(255);
               ALTER TABLE refunds ADD COLUMN notification_sent_flag varchar(255);
+              ALTER TABLE refunds ADD COLUMN notification_sent_flag varchar(255);
