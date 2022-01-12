@@ -56,6 +56,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
@@ -188,7 +189,7 @@ class RefundControllerTest {
         .givenName("VP")
         .name("VP")
         .sub("V_P@gmail.com")
-        .roles(Arrays.asList("vp"))
+        .roles(Collections.singletonList("vp"))
         .uid("986-erfg-kjhg-123")
         .build();
     private Refund refund = Refund.refundsWith()
@@ -206,6 +207,11 @@ class RefundControllerTest {
         .refundReason("RR002")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .contactDetails(ContactDetails.contactDetailsWith()
+                .email("abc@abc.com")
+                .notificationType("EMAIL")
+                .templateId("test1")
+                .build())
         .build();
     private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
@@ -213,6 +219,15 @@ class RefundControllerTest {
         .refundReason("RR036")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("ABC Street")
+                .city("London")
+                .county("Greater London")
+                .country("UK")
+                .postalCode("E1 6AN")
+                .notificationType("LETTER")
+                .templateId("test2")
+                .build())
         .build();
 
     @Autowired
@@ -320,8 +335,9 @@ class RefundControllerTest {
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put(
             "payments-refund",
-            Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
-                              .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
+                 Collections
+                        .singletonList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
         );
         when(contextStartListener.getUserMap()).thenReturn(userMap);
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
@@ -631,6 +647,11 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .contactDetails(ContactDetails.contactDetailsWith()
+                                                                                 .email("abc@abc.com")
+                                                                                 .notificationType("EMAIL")
+                                                                                 .templateId("template")
+                                                                                 .build())
                                                                          .build()))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
@@ -787,8 +808,6 @@ class RefundControllerTest {
     @Test
     void createRefundReturns504ForGatewayTimeout() throws Exception {
 
-        List<Refund> refunds = Collections.emptyList();
-
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
                                                                                    .code("RR035")
                                                                                    .name("Other - Reason")
@@ -805,6 +824,7 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                          .build()))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")

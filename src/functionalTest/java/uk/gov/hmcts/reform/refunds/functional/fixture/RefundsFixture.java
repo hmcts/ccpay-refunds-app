@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.functional.fixture;
 
 import com.google.common.collect.Lists;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
+import uk.gov.hmcts.reform.refunds.functional.request.ContactDetails;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.FeeDto;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
@@ -49,7 +50,7 @@ public final class RefundsFixture {
                                                            final String paymentReference) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
-            .refundReason(refundReason).build();
+            .refundReason(refundReason).contactDetails(ContactDetails.contactDetailsWith().build()).build();
 
     }
 }

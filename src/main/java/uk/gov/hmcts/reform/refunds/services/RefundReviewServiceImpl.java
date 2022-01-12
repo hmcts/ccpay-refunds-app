@@ -59,7 +59,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
     private static final String SENTTOMIDDLEOFFICE = "Sent to middle office";
 
-
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
                                                RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
@@ -105,8 +104,10 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
         if (refundEvent.equals(RefundEvent.REJECT)) {
             refundForGivenReference.setContactDetails(null);
+
             refundForGivenReference.setNotificationSentFlag(NOTAPPLICABLE.getFlag());
             refundForGivenReference.setRefundApproveFlag(NOTAPPLICABLE.getFlag());
+
             updateRefundStatus(refundForGivenReference, refundEvent);
             statusMessage = "Refund rejected";
         }

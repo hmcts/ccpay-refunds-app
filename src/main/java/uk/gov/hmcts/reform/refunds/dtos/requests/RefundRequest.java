@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 
 import java.math.BigDecimal;
 
@@ -54,4 +55,6 @@ public class RefundRequest {
     @Pattern(regexp = "^([0-9]{1,10}(?:[\\.,]\\d{1,10}+)*+)$", message = "fee_ids is not in valid format")
     private String feeIds;
 
+    @NotNull(message = "Contact Details cannot be null")
+    private ContactDetails contactDetails;
 }
