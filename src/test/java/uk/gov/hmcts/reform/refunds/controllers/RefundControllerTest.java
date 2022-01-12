@@ -808,8 +808,6 @@ class RefundControllerTest {
     @Test
     void createRefundReturns504ForGatewayTimeout() throws Exception {
 
-        List<Refund> refunds = Collections.emptyList();
-
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
                                                                                    .code("RR035")
                                                                                    .name("Other - Reason")
@@ -826,6 +824,7 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                          .build()))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
