@@ -79,14 +79,19 @@ public class Refund {
     @Column(name = "updated_by")
     private String updatedBy;
 
+    @Column(name = "refund_approve_flag")
+    private String refundApproveFlag;
+
+    @Column(name = "notification_sent_flag")
+    private String notificationSentFlag;
+
     @Type(type = "json")
     @Column(columnDefinition = "json", name = "contact_details")
-    private ContactDetails contactDetails;
+    private String contactDetails;
 
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
-
 
 }
