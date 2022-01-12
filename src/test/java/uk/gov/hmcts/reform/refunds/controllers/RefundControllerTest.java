@@ -189,7 +189,7 @@ class RefundControllerTest {
         .givenName("VP")
         .name("VP")
         .sub("V_P@gmail.com")
-        .roles(Arrays.asList("vp"))
+        .roles(Collections.singletonList("vp"))
         .uid("986-erfg-kjhg-123")
         .build();
     private Refund refund = Refund.refundsWith()
@@ -335,8 +335,9 @@ class RefundControllerTest {
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put(
             "payments-refund",
-            Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
-                              .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
+                 Collections
+                        .singletonList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
         );
         when(contextStartListener.getUserMap()).thenReturn(userMap);
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(

@@ -31,4 +31,6 @@ public class PaymentRefundRequest {
     @NotEmpty(message = "Refund Reason cannot be blank")
     private String refundReason;
 
+    @NotNull(message = "Contact Details cannot be null")
+    private ContactDetails contactDetails;
 }
