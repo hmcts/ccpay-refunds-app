@@ -88,7 +88,7 @@ public class Refund {
 
     @Type(type = "json")
     @Column(columnDefinition = "json", name = "contact_details")
-    private ContactDetails contactDetails;
+    private String contactDetails;
 
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
