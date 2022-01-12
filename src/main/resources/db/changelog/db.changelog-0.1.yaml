@@ -70,16 +70,6 @@ databaseChangeLog:
 
   - changeSet:
       id: 100001-6
-      author: Sayali
-      failOnError: true
-      changes:
-        - sql:
-            splitStatements:
-            sql: >
-              ALTER TABLE refunds ADD COLUMN contact_details json;
-
-  - changeSet:
-      id: 100001-7
       author: ranjeet
       failOnError: true
       changes:
@@ -88,4 +78,4 @@ databaseChangeLog:
             sql: >
               ALTER TABLE refunds ADD COLUMN refund_approve_flag varchar(255);
               ALTER TABLE refunds ADD COLUMN notification_sent_flag varchar(255);
-              ALTER TABLE refunds ADD COLUMN notification_sent_flag varchar(255);
+              ALTER TABLE refunds ADD COLUMN contact_details json;
