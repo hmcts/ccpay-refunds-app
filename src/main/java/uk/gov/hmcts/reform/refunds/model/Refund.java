@@ -94,5 +94,4 @@ public class Refund {
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
-
 }
