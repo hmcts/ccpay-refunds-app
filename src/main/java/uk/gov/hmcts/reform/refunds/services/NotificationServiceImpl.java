@@ -22,6 +22,8 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendReq
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -45,6 +47,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
+    private static final Pattern EXCEPTIONPATTERN = Pattern.compile("\\[(.*?)\\]");
+
     @Override
     public ResponseEntity<String> postEmailNotificationData(MultiValueMap<String, String> headers,
                                                             RefundNotificationEmailRequest refundNotificationEmailRequest) {
@@ -53,12 +57,7 @@ public class NotificationServiceImpl implements NotificationService {
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
                                                new HttpEntity<>(refundNotificationEmailRequest, getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
-            String exceptionMessage = "Invalid Refund notification request.";
-            HttpStatus status = exception.getStatusCode();
-            if(status.equals(HttpStatus.BAD_REQUEST) || status.equals(HttpStatus.FORBIDDEN) || status.equals(HttpStatus.TOO_MANY_REQUESTS)){
-                exceptionMessage = exception.getMessage();
-            }
-            throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
+            handleHttpClientErrorException(exception);
         } catch (HttpServerErrorException exception) {
             log.info("Notification service is unavailable. Please try again later.");
         }
@@ -74,12 +73,7 @@ public class NotificationServiceImpl implements NotificationService {
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,new HttpEntity<>(refundNotificationLetterRequest,
                                                                                                        getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
-            String exceptionMessage = "Invalid Refund notification request.";
-            HttpStatus status = exception.getStatusCode();
-            if(status.equals(HttpStatus.BAD_REQUEST) || status.equals(HttpStatus.FORBIDDEN) || status.equals(HttpStatus.TOO_MANY_REQUESTS)){
-                exceptionMessage = exception.getMessage();
-            }
-            throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
+            handleHttpClientErrorException(exception);
         } catch (HttpServerErrorException exception) {
             log.info("Notification service is unavailable. Please try again later.");
         }
@@ -96,5 +90,19 @@ public class NotificationServiceImpl implements NotificationService {
         inputHeaders.put("Authorization", authtoken);
         inputHeaders.put("ServiceAuthorization", servauthtoken);
         return inputHeaders;
+    }
+
+    private void handleHttpClientErrorException(HttpClientErrorException exception){
+        String exceptionMessage = "Invalid Refund notification request.";
+        HttpStatus status = exception.getStatusCode();
+        if(status.equals(HttpStatus.BAD_REQUEST) || status.equals(HttpStatus.FORBIDDEN) || status.equals(HttpStatus.TOO_MANY_REQUESTS) || status.equals(HttpStatus.UNPROCESSABLE_ENTITY)){
+            Matcher matcher = EXCEPTIONPATTERN.matcher(exception.getMessage());
+            if(matcher.find()){
+                exceptionMessage = matcher.group(1);
+            }else{
+                exceptionMessage = exception.getMessage();
+            }
+        }
+        throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
     }
 }
