@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -33,6 +34,12 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
     @Autowired
     private RefundsRepository refundsRepository;
 
+    @Value("${notify.letter.template}")
+    private String letterTemplateId;
+
+    @Value("${notify.email.template}")
+    private String emailTemplateId;
+
     @Override
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
                                                            MultiValueMap<String, String> headers) {
@@ -47,7 +54,7 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
         if (notificationType.equals(EMAIL)) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                                          .email(resendNotificationRequest.getRecipientEmailAddress())
-                                         .templateId(resendNotificationRequest.getTemplateId())
+                                         .templateId(emailTemplateId)
                                          .notificationType(EMAIL.name())
                                          .build();
             refund.setContactDetails(newContact);
@@ -57,7 +64,7 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(resendNotificationRequest.getTemplateId())
+                .templateId(letterTemplateId)
                 .addressLine(resendNotificationRequest.getRecipientPostalAddress().getAddressLine())
                 .county(resendNotificationRequest.getRecipientPostalAddress().getCounty())
                 .postalCode(resendNotificationRequest.getRecipientPostalAddress().getPostalCode())

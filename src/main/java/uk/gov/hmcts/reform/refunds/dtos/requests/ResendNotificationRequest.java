@@ -18,8 +18,6 @@ import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 @Builder(builderMethodName = "resendNotificationRequest")
 public class ResendNotificationRequest {
 
-    private String templateId;
-
     private String recipientEmailAddress;
 
     @JsonIgnore

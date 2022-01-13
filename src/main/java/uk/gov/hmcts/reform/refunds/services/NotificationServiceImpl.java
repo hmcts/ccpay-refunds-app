@@ -92,14 +92,15 @@ public class NotificationServiceImpl implements NotificationService {
         return inputHeaders;
     }
 
-    private void handleHttpClientErrorException(HttpClientErrorException exception){
+    private void handleHttpClientErrorException(HttpClientErrorException exception) {
         String exceptionMessage = "Invalid Refund notification request.";
         HttpStatus status = exception.getStatusCode();
-        if(status.equals(HttpStatus.BAD_REQUEST) || status.equals(HttpStatus.FORBIDDEN) || status.equals(HttpStatus.TOO_MANY_REQUESTS) || status.equals(HttpStatus.UNPROCESSABLE_ENTITY)){
+        if (status.equals(HttpStatus.BAD_REQUEST) || status.equals(HttpStatus.FORBIDDEN)
+            || status.equals(HttpStatus.TOO_MANY_REQUESTS) || status.equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
             Matcher matcher = EXCEPTIONPATTERN.matcher(exception.getMessage());
-            if(matcher.find()){
+            if (matcher.find()) {
                 exceptionMessage = matcher.group(1);
-            }else{
+            } else {
                 exceptionMessage = exception.getMessage();
             }
         }

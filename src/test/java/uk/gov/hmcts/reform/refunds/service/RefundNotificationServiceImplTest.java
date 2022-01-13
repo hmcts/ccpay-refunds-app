@@ -117,7 +117,6 @@ public class RefundNotificationServiceImplTest {
             .recipientEmailAddress("mock@gmail.com")
             .notificationType(NotificationType.EMAIL)
             .reference("RF-1233-2134-1234-1234")
-            .templateId("ID-123")
             .build();
     }
 
@@ -130,7 +129,6 @@ public class RefundNotificationServiceImplTest {
                                         .build())
             .notificationType(NotificationType.LETTER)
             .reference("RF-1233-2134-1234-1234")
-            .templateId("ID-123")
             .build();
     }
 

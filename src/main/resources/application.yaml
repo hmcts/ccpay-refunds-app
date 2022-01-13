@@ -184,3 +184,8 @@ notification:
   service-mailbox: ${SERVICE_MAIL_BOX:dummy}
   service-url: ${SERVICE_URL:http://service}
 
+valnotify:
+  letter.apiKey: ${NOTIFICATION_LETTER_KEY:}
+  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
+  email.apiKey: ${NOTIFICATION_EMAIL_KEY:}
+  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}

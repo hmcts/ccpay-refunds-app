@@ -1849,7 +1849,6 @@ class RefundControllerTest {
             .recipientEmailAddress("mock@gmail.com")
             .notificationType(NotificationType.EMAIL)
             .reference("RF-1233-2134-1234-1234")
-            .templateId("ID-123")
             .build();
     }
 

@@ -21,11 +21,17 @@ public class RefundNotificationMapper {
     @Value("${notification.service-url}")
     private String serviceUrl;
 
+    @Value("${notify.letter.template}")
+    private String letterTemplateId;
+
+    @Value("${notify.email.template}")
+    private String emailTemplateId;
+
 
 
     public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
-                .templateId(resendNotificationRequest.getTemplateId())
+                .templateId(emailTemplateId)
                 .recipientEmailAddress(resendNotificationRequest.getRecipientEmailAddress())
                 .reference(resendNotificationRequest.getReference())
                 .emailReplyToId(emailReplyToId)
@@ -41,7 +47,7 @@ public class RefundNotificationMapper {
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
-            .templateId(resendNotificationRequest.getTemplateId())
+            .templateId(letterTemplateId)
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())
             .reference(resendNotificationRequest.getReference())
             .notificationType(NotificationType.EMAIL)
