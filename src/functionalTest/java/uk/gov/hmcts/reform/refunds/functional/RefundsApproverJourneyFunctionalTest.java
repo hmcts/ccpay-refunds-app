@@ -246,7 +246,7 @@ public class RefundsApproverJourneyFunctionalTest {
             RefundReviewRequest.buildRefundReviewRequest().build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Sent to middle office");
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -424,7 +424,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Sent to middle office");
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
         System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
         System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
@@ -475,7 +475,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Sent to middle office");
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
         System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
         System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
@@ -518,7 +518,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Sent to middle office");
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
         System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
         System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 

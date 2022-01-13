@@ -881,7 +881,7 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Sent to middle office", result.getResponse().getContentAsString());
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
     @Test
@@ -1386,7 +1386,7 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Sent to middle office", result.getResponse().getContentAsString());
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
     @Test
