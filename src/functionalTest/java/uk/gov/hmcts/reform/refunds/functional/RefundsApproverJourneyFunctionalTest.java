@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,7 @@ import static org.springframework.http.HttpStatus.OK;
 @ActiveProfiles({"functional", "liberataMock"})
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
-//@Ignore("Ignoring the test cases for the purpose of Pre-implementation plan")
+@Ignore("Ignoring the test cases for the purpose of Pre-implementation plan")
 public class RefundsApproverJourneyFunctionalTest {
 
     @Autowired
