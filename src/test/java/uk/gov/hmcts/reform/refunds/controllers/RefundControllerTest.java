@@ -210,7 +210,6 @@ class RefundControllerTest {
         .contactDetails(ContactDetails.contactDetailsWith()
                 .email("abc@abc.com")
                 .notificationType("EMAIL")
-                .templateId("test1")
                 .build())
         .build();
     private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
@@ -226,7 +225,6 @@ class RefundControllerTest {
                 .country("UK")
                 .postalCode("E1 6AN")
                 .notificationType("LETTER")
-                .templateId("test2")
                 .build())
         .build();
 
@@ -650,7 +648,6 @@ class RefundControllerTest {
                                                                          .contactDetails(ContactDetails.contactDetailsWith()
                                                                                  .email("abc@abc.com")
                                                                                  .notificationType("EMAIL")
-                                                                                 .templateId("template")
                                                                                  .build())
                                                                          .build()))
                                                .header("Authorization", "user")

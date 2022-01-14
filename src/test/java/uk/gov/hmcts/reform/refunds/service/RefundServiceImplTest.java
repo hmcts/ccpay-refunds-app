@@ -94,7 +94,6 @@ public class RefundServiceImplTest {
                 .country("cccc")
                 .county("dddd")
                 .notificationType("LETTER")
-                .templateId("eeee")
                 .build())
         .build();
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber2 = () -> Refund.refundsWith()
@@ -152,7 +151,6 @@ public class RefundServiceImplTest {
         .contactDetails(ContactDetails.contactDetailsWith()
                 .email("bb@bb.com")
                 .notificationType("EMAIL")
-                .templateId("id")
                 .build())
         .build();
     public static final Supplier<PaymentResponse> PAYMENT_RESPONSE_SUPPLIER = () -> PaymentResponse.paymentResponseWith()
