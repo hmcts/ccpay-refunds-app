@@ -563,6 +563,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 "PROBATE",
                 accountNumber
             );
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
@@ -571,6 +572,10 @@ public class RefundsApproverJourneyFunctionalTest {
             accountPaymentRequest
         ).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
 
         // Get pba payments by accountNumber
         final PaymentsResponse paymentsResponse = paymentTestService
@@ -635,10 +640,10 @@ public class RefundsApproverJourneyFunctionalTest {
                 "PROBATE",
                 accountNumber
             );
+        accountPaymentRequest.setAccountNumber(accountNumber);
 
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
 
-        accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
             SERVICE_TOKEN_CMC,
@@ -702,6 +707,9 @@ public class RefundsApproverJourneyFunctionalTest {
                 accountNumber
             );
         accountPaymentRequest.setAccountNumber(accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
         paymentTestService.postPbaPayment(
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
             SERVICE_TOKEN_CMC,
@@ -725,6 +733,10 @@ public class RefundsApproverJourneyFunctionalTest {
             = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
                 return s2.getDateCreated().compareTo(s1.getDateCreated());
             }).findFirst();
+
+        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
