@@ -51,8 +51,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTBACK;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
 
 @Service
 @SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports"})
@@ -97,6 +97,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private ContextStartListener contextStartListener;
 
+    private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
+
     @Override
     public RefundEvent[] retrieveActions(String reference) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -129,7 +131,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
         } else if (StringUtils.isNotBlank(status)) {
-            RefundStatus refundStatus = RefundStatus.getRefundStatus(status.toLowerCase());
+            RefundStatus refundStatus = RefundStatus.getRefundStatus(status);
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
                 excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNot(
@@ -162,6 +164,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
+        List<RefundReason> refundReasonList = refundReasonRepository.findAll();
 
         if (!roles.isEmpty()) {
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
@@ -183,7 +186,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
-                    String reason = getRefundReason(refund.getReason());
+                    String reason = getRefundReason(refund.getReason(), refundReasonList);
                     LOG.info("refund: {}", refund);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
@@ -247,7 +250,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
 
 
-        if (currentRefundState.getRefundStatus().equals(SENTBACK)) {
+        if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED)) {
 
             // Refund Reason Validation
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON : validateRefundReason(
@@ -277,7 +280,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 statusHistories.add(StatusHistory.statusHistoryWith()
                                         .createdBy(idamUserIdResponse.getUid())
                                         .status(SENTFORAPPROVAL.getName())
-                                        .notes("Refund initiated")
+                                        .notes(REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER)
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
@@ -399,7 +402,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
-                                  .notes("Refund initiated")
+                                  .notes(REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER)
                                   .status(SENTFORAPPROVAL.getName())
                                   .build()
                 )
@@ -407,11 +410,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
     }
 
-    private String getRefundReason(String rawReason) {
+    private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
         if (rawReason.startsWith("RR")) {
-            Optional<RefundReason> refundReasonOptional = refundReasonRepository.findByCode(rawReason);
-            if (refundReasonOptional.isPresent()) {
-                return refundReasonOptional.get().getName();
+            List<RefundReason> refundReasonOptional =  refundReasonList.stream()
+                .filter(refundReason -> refundReason.getCode().equalsIgnoreCase(rawReason))
+                .collect(Collectors.toList());
+            if (!refundReasonOptional.isEmpty()) {
+                return refundReasonOptional.get(0).getName();
             }
             throw new RefundReasonNotFoundException(rawReason);
         }
