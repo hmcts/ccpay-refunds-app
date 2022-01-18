@@ -54,7 +54,7 @@ public class PaymentTestService {
             .post("/refund-for-payment");
     }
 
-    public Response updateThePaymentDateByCCDCaseNumberForCertainHours(final String userToken,
+    public Response updateThePaymentDateByCcdCaseNumberForCertainHours(final String userToken,
                                                                        final String serviceToken,
                                                                        final String ccdCaseNumber,
                                                                        final String lag_time,
