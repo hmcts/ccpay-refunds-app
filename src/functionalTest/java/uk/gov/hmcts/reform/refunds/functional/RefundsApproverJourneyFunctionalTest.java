@@ -573,7 +573,7 @@ public class RefundsApproverJourneyFunctionalTest {
         ).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
-        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                                                                               ccdCaseNumber,"5",
                                                                               testConfigProperties.basePaymentsUrl);
 
@@ -668,7 +668,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 return s2.getDateCreated().compareTo(s1.getDateCreated());
             }).findFirst();
 
-        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                                                                               ccdCaseNumber,"5",
                                                                               testConfigProperties.basePaymentsUrl);
 
@@ -734,7 +734,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 return s2.getDateCreated().compareTo(s1.getDateCreated());
             }).findFirst();
 
-        paymentTestService.updateThePaymentDateByCCDCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                                                                               ccdCaseNumber,"5",
                                                                               testConfigProperties.basePaymentsUrl);
 
