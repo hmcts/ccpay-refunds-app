@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
+import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.*;
 
 @Service
 public class RefundNotificationServiceImpl implements RefundNotificationService {
@@ -54,17 +55,17 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
         if (notificationType.equals(EMAIL)) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                                          .email(resendNotificationRequest.getRecipientEmailAddress())
-                                         .templateId(emailTemplateId)
+//                                         .templateId(emailTemplateId)
                                          .notificationType(EMAIL.name())
                                          .build();
             refund.setContactDetails(newContact);
-            refund.setNotificationSentFlag("email_not_sent");
+            refund.setNotificationSentFlag(EMAILNOTSENT.getFlag());
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                 .getRefundNotificationEmailRequest(refund, resendNotificationRequest);
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(letterTemplateId)
+//                .templateId(letterTemplateId)
                 .addressLine(resendNotificationRequest.getRecipientPostalAddress().getAddressLine())
                 .county(resendNotificationRequest.getRecipientPostalAddress().getCounty())
                 .postalCode(resendNotificationRequest.getRecipientPostalAddress().getPostalCode())
@@ -73,14 +74,14 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
                 .notificationType(LETTER.name())
                 .build();
             refund.setContactDetails(newContact);
-            refund.setNotificationSentFlag("letter_not_sent");
+            refund.setNotificationSentFlag(LETTERNOTSENT.getFlag());
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
                 .getRefundNotificationLetterRequest(refund, resendNotificationRequest);
             responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
-            refund.setNotificationSentFlag("sent");
+            refund.setNotificationSentFlag(SENT.getFlag());
             refund.setContactDetails(null);
         }
         refundsRepository.save(refund);
