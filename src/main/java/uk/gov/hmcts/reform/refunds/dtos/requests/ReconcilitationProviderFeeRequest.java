@@ -25,10 +25,10 @@ public class ReconcilitationProviderFeeRequest {
 
     @Override
     public String toString() {
-        return "ReconcilitationProviderFeeRequest{" +
-                "code='" + code + '\'' +
-                ", version=" + version +
-                ", refundAmount='" + refundAmount + '\'' +
-                '}';
+        return "ReconcilitationProviderFeeRequest{"
+                + "code='" + code + '\''
+                + ", version=" + version
+                + ", refundAmount='" + refundAmount + '\''
+                + '}';
     }
 }
