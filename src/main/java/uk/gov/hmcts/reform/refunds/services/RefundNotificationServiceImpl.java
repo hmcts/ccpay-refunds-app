@@ -17,7 +17,9 @@ import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
-import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.*;
+import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.EMAILNOTSENT;
+import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.LETTERNOTSENT;
+import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.SENT;
 
 @Service
 public class RefundNotificationServiceImpl implements RefundNotificationService {
@@ -55,7 +57,7 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
         if (notificationType.equals(EMAIL)) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                                          .email(resendNotificationRequest.getRecipientEmailAddress())
-//                                         .templateId(emailTemplateId)
+                                         .templateId(emailTemplateId)
                                          .notificationType(EMAIL.name())
                                          .build();
             refund.setContactDetails(newContact);
@@ -65,7 +67,7 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-//                .templateId(letterTemplateId)
+                .templateId(letterTemplateId)
                 .addressLine(resendNotificationRequest.getRecipientPostalAddress().getAddressLine())
                 .county(resendNotificationRequest.getRecipientPostalAddress().getCounty())
                 .postalCode(resendNotificationRequest.getRecipientPostalAddress().getPostalCode())
