@@ -1,12 +1,15 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
@@ -14,14 +17,20 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse
 import uk.gov.hmcts.reform.refunds.exceptions.ForbiddenToApproveRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
+import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
 import uk.gov.hmcts.reform.refunds.mappers.RefundReviewMapper;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
+
+import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
+
+import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +64,18 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private RefundNotificationMapper refundNotificationMapper;
+
+    @Value("${notify.letter.template}")
+    private String letterTemplateId;
+
+    @Value("${notify.email.template}")
+    private String emailTemplateId;
 
 
     @Override
@@ -91,7 +112,22 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 );
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
+                    ResponseEntity<String>  responseEntity =  sendNotification(refundForGivenReference, headers);
+                    if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                        refundForGivenReference.setNotificationSentFlag("sent");
+                        refundForGivenReference.setRefundApproveFlag("sent");
+                        refundForGivenReference.setContactDetails(null);
+                    }
+                    refundsRepository.save(refundForGivenReference);
+
                 } else {
+                    if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL)) {
+                        refundForGivenReference.setNotificationSentFlag("EMAIL_NOT_SENT");
+                    } else {
+                        refundForGivenReference.setNotificationSentFlag("LETTER_NOT_SENT");
+                    }
+                    refundForGivenReference.setRefundApproveFlag("NOT SENT");
+                    refundsRepository.save(refundForGivenReference);
                     throw new ReconciliationProviderServerException("Reconciliation provider unavailable. Please try again later.");
                 }
             } else {
@@ -139,5 +175,38 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         return refundsRepository.save(refund);
     }
 
+    private ResponseEntity<String> sendNotification(Refund refund,MultiValueMap<String, String> headers) {
+        ResponseEntity<String> responseEntity;
+        if (refund.getContactDetails().getNotificationType().equals(EMAIL)) {
+            ContactDetails newContact = ContactDetails.contactDetailsWith()
+                .email(refund.getContactDetails().getEmail())
+                .templateId(emailTemplateId)
+                .notificationType(EMAIL.name())
+                .build();
+            refund.setContactDetails(newContact);
+            refund.setNotificationSentFlag("email_not_sent");
+            RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
+                .getRefundNotificationEmailRequestApproveJourney(refund);
+            responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
+        } else {
+            ContactDetails newContact = ContactDetails.contactDetailsWith()
+                .templateId(letterTemplateId)
+                .addressLine(refund.getContactDetails().getAddressLine())
+                .county(refund.getContactDetails().getCounty())
+                .postalCode(refund.getContactDetails().getPostalCode())
+                .city(refund.getContactDetails().getCity())
+                .country(refund.getContactDetails().getCountry())
+                .notificationType(LETTER.name())
+                .build();
+            refund.setContactDetails(newContact);
+            refund.setNotificationSentFlag("letter_not_sent");
+            RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
+                .getRefundNotificationLetterRequestApproveJourney(refund);
+            responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
+
+        }
+        return responseEntity;
+
+    }
 
 }
