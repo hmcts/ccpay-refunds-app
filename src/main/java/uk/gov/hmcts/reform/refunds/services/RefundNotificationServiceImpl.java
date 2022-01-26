@@ -57,7 +57,6 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
         if (notificationType.equals(EMAIL)) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                                          .email(resendNotificationRequest.getRecipientEmailAddress())
-                                         .templateId(emailTemplateId)
                                          .notificationType(EMAIL.name())
                                          .build();
             refund.setContactDetails(newContact);
@@ -67,7 +66,6 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(letterTemplateId)
                 .addressLine(resendNotificationRequest.getRecipientPostalAddress().getAddressLine())
                 .county(resendNotificationRequest.getRecipientPostalAddress().getCounty())
                 .postalCode(resendNotificationRequest.getRecipientPostalAddress().getPostalCode())
