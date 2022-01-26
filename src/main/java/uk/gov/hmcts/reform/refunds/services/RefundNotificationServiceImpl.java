@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -36,12 +35,6 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
 
     @Autowired
     private RefundsRepository refundsRepository;
-
-    @Value("${notify.letter.template}")
-    private String letterTemplateId;
-
-    @Value("${notify.email.template}")
-    private String emailTemplateId;
 
     @Override
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
