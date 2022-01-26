@@ -36,7 +36,7 @@ import static org.testng.Assert.assertThrows;
 
 @SpringBootTest(webEnvironment = MOCK)
 @ActiveProfiles({"local", "test"})
-public class NotificationServiceImplTest {
+class NotificationServiceImplTest {
 
     @Autowired
     private NotificationService notificationService;
@@ -112,9 +112,6 @@ public class NotificationServiceImplTest {
             InvalidRefundNotificationResendRequestException.class,
             () -> notificationService.postLetterNotificationData(getHeaders(), getRefundNotificationLetterRequest()));
     }
-
-
-
 
     private MultiValueMap<String,String> getHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();

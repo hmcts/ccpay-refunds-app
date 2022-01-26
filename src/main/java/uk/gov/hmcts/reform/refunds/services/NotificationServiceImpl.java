@@ -61,7 +61,7 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (HttpServerErrorException exception) {
             log.info("Notification service is unavailable. Please try again later.");
         }
-        return new ResponseEntity<String>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
+        return new ResponseEntity<>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (HttpServerErrorException exception) {
             log.info("Notification service is unavailable. Please try again later.");
         }
-        return new ResponseEntity<String>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
+        return new ResponseEntity<>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
 
     }
 

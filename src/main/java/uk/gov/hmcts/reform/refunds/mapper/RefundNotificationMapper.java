@@ -50,7 +50,7 @@ public class RefundNotificationMapper {
             .templateId(letterTemplateId)
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())
             .reference(resendNotificationRequest.getReference())
-            .notificationType(NotificationType.EMAIL)
+            .notificationType(NotificationType.LETTER)
             .personalisation(Personalisation.personalisationRequestWith()
                                  .ccdCaseNumber(refund.getCcdCaseNumber())
                                  .refundReference(refund.getReference())

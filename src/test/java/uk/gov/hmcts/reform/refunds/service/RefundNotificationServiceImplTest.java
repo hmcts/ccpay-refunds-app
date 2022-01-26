@@ -32,6 +32,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,7 +43,7 @@ import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFU
 
 @SpringBootTest(webEnvironment = MOCK)
 @ActiveProfiles({"local", "test"})
-public class RefundNotificationServiceImplTest {
+class RefundNotificationServiceImplTest {
 
     @MockBean
     @Qualifier("restTemplateNotify")
@@ -73,7 +74,7 @@ public class RefundNotificationServiceImplTest {
         when(authTokenGenerator.generate()).thenReturn("Service.Auth.Token");
         when(refundsRepository.save(any(Refund.class))).thenReturn(getMockRefund());
         ResponseEntity<String> responseEntity = refundNotificationService.resendRefundNotification(mockRequest,getHeaders());
-        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
@@ -86,31 +87,32 @@ public class RefundNotificationServiceImplTest {
         when(authTokenGenerator.generate()).thenReturn("Service.Auth.Token");
         when(refundsRepository.save(any(Refund.class))).thenReturn(getMockRefund());
         ResponseEntity<String> responseEntity = refundNotificationService.resendRefundNotification(mockRequest,getHeaders());
-        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
     void resendEmailRefundNotificationShouldReturnBadRequest_WhenNotificationTypeIsEmailAndNoRecipientEmailSent() {
         ResendNotificationRequest mockRequest = getMockEmailRequest();
         mockRequest.setRecipientEmailAddress(null);
-        InvalidRefundNotificationResendRequestException thrown = assertThrows(
-            InvalidRefundNotificationResendRequestException.class,
-            () -> refundNotificationService.resendRefundNotification(mockRequest,getHeaders()));
-        assertEquals("Please enter recipient email for Email notification.",thrown.getMessage());
+        Exception exception = assertThrows(InvalidRefundNotificationResendRequestException.class,
+                () -> refundNotificationService.resendRefundNotification(mockRequest, getHeaders()));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Please enter recipient email for Email notification."));
+
     }
 
     @Test
     void resendLetterRefundNotificationShouldReturnBadRequest_WhenNotificationTypeIsLetterAndNoPostalAddressSent() {
         ResendNotificationRequest mockRequest = getMockLetterRequest();
         mockRequest.setRecipientPostalAddress(null);
-        InvalidRefundNotificationResendRequestException thrown = assertThrows(
-            InvalidRefundNotificationResendRequestException.class,
-            () -> refundNotificationService.resendRefundNotification(mockRequest,getHeaders()));
-        assertEquals("Please enter recipient postal address for Postal notification.",thrown.getMessage());
+
+        Exception exception = assertThrows(InvalidRefundNotificationResendRequestException.class,
+                () -> refundNotificationService.resendRefundNotification(mockRequest, getHeaders()));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Please enter recipient postal address for Postal notification."));
     }
-
-
-
 
     private ResendNotificationRequest getMockEmailRequest() {
         return ResendNotificationRequest.resendNotificationRequest()
