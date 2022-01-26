@@ -14,8 +14,8 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)

@@ -95,7 +95,7 @@ class RefundNotificationServiceImplTest {
         ResendNotificationRequest mockRequest = getMockEmailRequest();
         mockRequest.setRecipientEmailAddress(null);
         Exception exception = assertThrows(InvalidRefundNotificationResendRequestException.class,
-                () -> refundNotificationService.resendRefundNotification(mockRequest, getHeaders()));
+            () -> refundNotificationService.resendRefundNotification(mockRequest, getHeaders()));
 
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("Please enter recipient email for Email notification."));
@@ -108,7 +108,7 @@ class RefundNotificationServiceImplTest {
         mockRequest.setRecipientPostalAddress(null);
 
         Exception exception = assertThrows(InvalidRefundNotificationResendRequestException.class,
-                () -> refundNotificationService.resendRefundNotification(mockRequest, getHeaders()));
+            () -> refundNotificationService.resendRefundNotification(mockRequest, getHeaders()));
 
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("Please enter recipient postal address for Postal notification."));
