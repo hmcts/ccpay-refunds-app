@@ -897,6 +897,55 @@ class RefundControllerTest {
     }
 
     @Test
+    void approveRefundRequestReturnsSuccessResponsewithLetternotification() throws Exception {
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+            new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                                                   .amount(BigDecimal.valueOf(100))
+                                                   .refundReference("RF-1628-5241-9956-2215")
+                                                   .build()
+        ))).when(restOperations).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class));
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefundWithLetterDetails());
+
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+            "refund reason").build()));
+
+        MvcResult result = mockMvc.perform(patch(
+                "/refund/{reference}/action/{reviewer-action}",
+                "RF-1628-5241-9956-2215",
+                "APPROVE"
+            )
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andReturn();
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
+    }
+
+    @Test
     void anyRefundReviewActionOnUnSubmittedRefundReturnsBadRequest() throws Exception {
         Refund unsubmittedRefund = getRefund();
         unsubmittedRefund.setRefundStatus(RefundStatus.UPDATEREQUIRED);
@@ -1969,6 +2018,37 @@ class RefundControllerTest {
             .contactDetails(ContactDetails.contactDetailsWith()
                                 .email("abc@abc.com")
                                 .notificationType("EMAIL")
+                                .build())
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                                               .id(1)
+                                               .status(RefundStatus.SENTFORAPPROVAL.getName())
+                                               .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+                                               .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                               .notes("Refund initiated and sent to team leader")
+                                               .build()))
+            .build();
+    }
+
+    private Refund getRefundWithLetterDetails() {
+        return Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .reason("RR0001")
+            .reference("RF-1628-5241-9956-2215")
+            .paymentReference("RC-1628-5241-9956-2315")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
+            .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .feeIds("50")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("ABC Street")
+                                .city("London")
+                                .county("Greater London")
+                                .country("UK")
+                                .postalCode("E1 6AN")
+                                .notificationType("LETTER")
                                 .build())
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
