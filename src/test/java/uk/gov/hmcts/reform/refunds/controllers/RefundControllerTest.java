@@ -1509,12 +1509,12 @@ class RefundControllerTest {
         assertEquals("Remission amount not equal to refund amount", result.getResponse().getContentAsString());
     }
 
-     @Test
+    @Test
     void approveRefundRequestWhenReconciliationProviderThrowsServerExceptionItSendsInternalServerError() throws Exception {
-         when(restTemplateNotify.exchange(anyString(),
-                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
-             new ResponseEntity<String>("Success", HttpStatus.OK)
-         );
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class),
+                                         eq(String.class))).thenReturn(new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
