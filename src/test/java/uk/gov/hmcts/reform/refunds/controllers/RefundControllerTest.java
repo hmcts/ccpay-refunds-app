@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -288,6 +289,10 @@ class RefundControllerTest {
 
     @MockBean
     private RefundNotificationService refundNotificationService;
+
+    @MockBean
+    @Qualifier("restTemplateNotify")
+    private RestTemplate restTemplateNotify;
 
     private static String asJsonString(final Object obj) {
         try {
@@ -842,8 +847,12 @@ class RefundControllerTest {
         );
     }
 
-    //@Test
+    @Test
     void approveRefundRequestReturnsSuccessResponse() throws Exception {
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+            new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
@@ -1345,10 +1354,14 @@ class RefundControllerTest {
         assertEquals("Refunds not found for RF-1628-5241-9956-2215", result.getResponse().getContentAsString());
     }
 
-    //@Test
+    @Test
     void approveRefundRequestWithRetrospectiveRemissionReturnsSuccessResponse() throws Exception {
 
         Refund refundWithRetroRemission = getRefund();
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+            new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
         refundWithRetroRemission.setReason("RR036");
         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
@@ -1375,6 +1388,11 @@ class RefundControllerTest {
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
         when(refundReasonRepository.findByCode(anyString())).thenReturn(
             Optional.of(RefundReason.refundReasonWith().code("RR036").name("Retrospective Remission").build()));
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+            new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
+
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
 
         MvcResult result = mockMvc.perform(patch(
@@ -1491,9 +1509,12 @@ class RefundControllerTest {
         assertEquals("Remission amount not equal to refund amount", result.getResponse().getContentAsString());
     }
 
-    // @Test
+     @Test
     void approveRefundRequestWhenReconciliationProviderThrowsServerExceptionItSendsInternalServerError() throws Exception {
-
+         when(restTemplateNotify.exchange(anyString(),
+                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+             new ResponseEntity<String>("Success", HttpStatus.OK)
+         );
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
@@ -1945,6 +1966,10 @@ class RefundControllerTest {
             .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .feeIds("50")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .email("abc@abc.com")
+                                .notificationType("EMAIL")
+                                .build())
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
                                                .status(RefundStatus.SENTFORAPPROVAL.getName())
