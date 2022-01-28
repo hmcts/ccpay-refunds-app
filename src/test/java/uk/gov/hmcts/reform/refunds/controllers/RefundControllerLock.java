@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 
 import java.math.BigDecimal;
 
@@ -81,6 +82,7 @@ public class RefundControllerLock {
                                                                             .refundReason("RR035-Other-Reason")
                                                                             .ccdCaseNumber("1111222233334444")
                                                                             .feeIds("1")
+                                                                            .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                             .build()))
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
