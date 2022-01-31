@@ -207,7 +207,7 @@ configurations {
   }
 }
 
-apply from: "${rootDir}/cve-resolution-strategy.gradle"
+//apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
 dependencies {
 
