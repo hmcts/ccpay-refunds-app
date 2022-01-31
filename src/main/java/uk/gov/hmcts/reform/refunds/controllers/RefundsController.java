@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -248,6 +249,34 @@ public class RefundsController {
         resendNotificationRequest.setReference(reference);
         resendNotificationRequest.setNotificationType(notificationType);
         return refundNotificationService.resendRefundNotification(resendNotificationRequest,headers);
+    }
+
+
+    @ApiOperation(value = "Re-process failed notifications of type email and letter", notes = "Re-process failed notifications of type email and letter")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Re-processed the failed email and letter notifications")
+    })
+    @PatchMapping(value = "/jobs/refund-notification-update")
+    @Transactional
+    public void processFailedNotifcations() throws JsonProcessingException {
+        System.out.println("test failed notification started");
+        refundNotificationService.processFailedNotificationsEmail();
+        refundNotificationService.processFailedNotificationsLetter();
+        System.out.println("test failed notification completed");
+    }
+
+
+
+    @ApiOperation(value = "Re-process failed refunds which are approved and sent it to liberata", notes = "Re-process failed refunds which are approved and sent it to liberata")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "The approved refunds are sent to liberata")
+    })
+    @PatchMapping(value = "/jobs/refund-approved-update")
+    @Transactional
+    public void postFailedRefundsToLiberata() throws JsonProcessingException {
+        System.out.println("Process Liberata started");
+        refundNotificationService.reprocessPostFailedRefundsToLiberata();
+        System.out.println("Process Liberata completed");
     }
 
 }
