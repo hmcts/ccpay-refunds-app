@@ -153,14 +153,14 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refundForGivenReference.setNotificationSentFlag("SENT");
             refundForGivenReference.setContactDetails(null);
-        }else if (responseEntity.getStatusCode().is5xxServerError()){
+        } else if (responseEntity.getStatusCode().is5xxServerError()) {
             if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL.name())) {
                 refundForGivenReference.setNotificationSentFlag("EMAIL_NOT_SENT");
             } else {
                 refundForGivenReference.setNotificationSentFlag("LETTER_NOT_SENT");
             }
-        }else {
-                refundForGivenReference.setNotificationSentFlag("ERROR");
+        } else {
+            refundForGivenReference.setNotificationSentFlag("ERROR");
         }
         return refundForGivenReference;
     }
