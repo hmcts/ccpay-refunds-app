@@ -169,11 +169,6 @@ user:
     size: ${USER_INFO_SIZE:300}
   lastModifiedTime: ${USER_LAST_MODIFIED_TIME:720d}
 
-logging:
-  level:
-    org:
-      springframework:
-        web: DEBUG
 
 
 notification:
@@ -185,7 +180,5 @@ notification:
   service-url: ${SERVICE_URL:http://service}
 
 valnotify:
-  letter.apiKey: ${NOTIFICATION_LETTER_KEY:}
-  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
-  email.apiKey: ${NOTIFICATION_EMAIL_KEY:}
-  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}
+  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:dummy}
+  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:dummy}

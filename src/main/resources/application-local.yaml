@@ -9,8 +9,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/refunds
-    username: refunds
-    password: refunds
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
     properties:
       charSet: UTF-8
   jpa:
@@ -33,7 +33,7 @@ spring:
         registration:
           oidc:
             client-id: internal
-            client-secret: internal
+            client-secret:  ${OIDC_S2S_SECRET}
 oidc:
   audience-list: internal,paybubble,refunds,payments
   issuer: ${OIDC_ISSUER:http://fr-am:8080/openam/oauth2/hmcts}
@@ -85,7 +85,7 @@ liberata:
     client:
       id: ${LIBERATA_OAUTH2_CLIENT_ID:id}
       secret: ${LIBERATA_OAUTH2_CLIENT_SECRET:}
-    username: ${LIBERATA_OAUTH2_USERNAME:username}
+    username: ${LIBERATA_OAUTH2_USERNAME:}
     password: ${LIBERATA_OAUTH2_PASSWORD:}
     authorize:
       url: ${LIBERATA_OAUTH2_AUTHORIZE_URL:https://bpacustomerportal.liberata.com/pba/public/oauth/authorize}
@@ -114,9 +114,7 @@ notification:
   service-url: ${SERVICE_URL:http://service}
 
 notify:
-  letter.apiKey: ${NOTIFICATION_LETTER_KEY:}
   letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
-  email.apiKey: ${NOTIFICATION_EMAIL_KEY:}
   email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}
 
 

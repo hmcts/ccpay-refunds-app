@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,7 @@ import static org.springframework.http.HttpStatus.OK;
 @ActiveProfiles({"functional", "liberataMock"})
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
-//@Ignore("Ignoring the test cases for the purpose of Pre-implementation plan")
+@Ignore("Ignoring the test cases for the purpose of Pre-implementation plan")
 public class RefundsApproverJourneyFunctionalTest {
 
     @Autowired
@@ -425,8 +426,6 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
         Response updateReviewRefund = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -476,8 +475,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
+
 
         Response updateReviewRefund = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
