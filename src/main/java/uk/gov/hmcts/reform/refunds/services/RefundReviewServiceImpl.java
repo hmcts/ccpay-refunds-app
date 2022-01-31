@@ -113,30 +113,18 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 );
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
-                    refundForGivenReference.setRefundApproveFlag("sent");
-                    ResponseEntity<String>  responseEntity =  sendNotification(refundForGivenReference, headers);
-                    if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                        refundForGivenReference.setNotificationSentFlag("sent");
-                        refundForGivenReference.setContactDetails(null);
-                    }
+                    refundForGivenReference.setRefundApproveFlag("SENT");
+                    refundForGivenReference = updateNotification(headers, refundForGivenReference);
                     refundsRepository.save(refundForGivenReference);
                 } else {
-                    if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL.name())) {
-                        refundForGivenReference.setNotificationSentFlag("email_not_sent");
-                    } else {
-                        refundForGivenReference.setNotificationSentFlag("letter_not_sent");
-                    }
-                    refundForGivenReference.setRefundApproveFlag("not sent");
+                    refundForGivenReference.setRefundApproveFlag("NOT SENT");
                     refundsRepository.save(refundForGivenReference);
                     throw new ReconciliationProviderServerException("Reconciliation provider unavailable. Please try again later.");
                 }
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
-                ResponseEntity<String>  responseEntity =  sendNotification(refundForGivenReference, headers);
-                if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                    refundForGivenReference.setNotificationSentFlag("sent");
-                    refundForGivenReference.setContactDetails(null);
-                }
+                refundForGivenReference.setRefundApproveFlag("NOT SENT");
+                refundForGivenReference = updateNotification(headers, refundForGivenReference);
                 refundsRepository.save(refundForGivenReference);
             }
             statusMessage = "Refund approved";
@@ -158,6 +146,23 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         }
 
         return new ResponseEntity<>(statusMessage, HttpStatus.CREATED);
+    }
+
+    private Refund updateNotification(MultiValueMap<String, String> headers, Refund refundForGivenReference) {
+        ResponseEntity<String>  responseEntity =  sendNotification(refundForGivenReference, headers);
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            refundForGivenReference.setNotificationSentFlag("SENT");
+            refundForGivenReference.setContactDetails(null);
+        }else if (responseEntity.getStatusCode().is5xxServerError()){
+            if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL.name())) {
+                refundForGivenReference.setNotificationSentFlag("EMAIL_NOT_SENT");
+            } else {
+                refundForGivenReference.setNotificationSentFlag("LETTER_NOT_SENT");
+            }
+        }else {
+                refundForGivenReference.setNotificationSentFlag("ERROR");
+        }
+        return refundForGivenReference;
     }
 
     private Refund validatedAndGetRefundForGivenReference(String reference, String userId) {

@@ -904,7 +904,7 @@ class RefundControllerTest {
         );
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
-        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefundWithLetterDetails()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -2070,4 +2070,5 @@ class RefundControllerTest {
             .uid("986-erfg-kjhg-123")
             .build();
     }
+
 }
