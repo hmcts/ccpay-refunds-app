@@ -180,5 +180,5 @@ notification:
   service-url: ${SERVICE_URL:http://service}
 
 notify:
-  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:dummy}
-  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:dummy}
+  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID}
+  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID}
