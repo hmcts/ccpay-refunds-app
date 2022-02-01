@@ -643,8 +643,7 @@ public class RefundsApproverJourneyFunctionalTest {
         // verify that contact details is registered
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             "Sent for approval", "false"
-        );
+                                                                             "Sent for approval", "false");
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
