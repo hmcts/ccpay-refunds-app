@@ -173,8 +173,8 @@ user:
 
 notification:
   url: ${NOTIFICATION_API_URL:http://localhost:4300}
-  letter-path: ${NOTIFICATION_LETTER_PATH:/letter}
-  email-path: ${NOTIFICATION_EMAIL_PATH:/email}
+  letter-path: ${NOTIFICATION_LETTER_PATH:/notifications/letter}
+  email-path: ${NOTIFICATION_EMAIL_PATH:/notifications/email}
   email-to-reply: ${EMAIL_TO_REPLY:}
   service-mailbox: ${SERVICE_MAIL_BOX:}
   service-url: ${SERVICE_URL:http://service}
