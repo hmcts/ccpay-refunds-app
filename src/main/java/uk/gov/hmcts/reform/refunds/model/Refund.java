@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.model;
 
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
@@ -35,6 +38,7 @@ import javax.persistence.Table;
 @Setter
 @Data
 @Table(name = "refunds")
+@TypeDef(name = "json", typeClass = JsonType.class)
 public class Refund {
 
     @Id
@@ -77,10 +81,19 @@ public class Refund {
     @Column(name = "updated_by")
     private String updatedBy;
 
+    @Column(name = "refund_approve_flag")
+    private String refundApproveFlag;
+
+    @Column(name = "notification_sent_flag")
+    private String notificationSentFlag;
+
+    @Type(type = "json")
+    @Column(columnDefinition = "json", name = "contact_details")
+    private ContactDetails contactDetails;
+
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
-
 
 }

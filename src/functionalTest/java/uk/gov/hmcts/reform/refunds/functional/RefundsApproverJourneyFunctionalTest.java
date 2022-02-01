@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
 //@Ignore("Ignoring the test cases for the purpose of Pre-implementation plan")
+
 public class RefundsApproverJourneyFunctionalTest {
 
     @Autowired
@@ -98,12 +100,12 @@ public class RefundsApproverJourneyFunctionalTest {
             SERVICE_TOKEN_CMC =
                 s2sTokenService.getS2sToken(testConfigProperties.cmcS2SName, testConfigProperties.cmcS2SSecret);
 
-
             USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE =
                 idamService.createUserWith(IdamService.CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT =
                 s2sTokenService.getS2sToken("ccpay_bubble", testConfigProperties.payBubbleS2SSecret);
             TOKENS_INITIALIZED = true;
+
         }
     }
 
@@ -246,7 +248,7 @@ public class RefundsApproverJourneyFunctionalTest {
             RefundReviewRequest.buildRefundReviewRequest().build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Sent to middle office");
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -424,9 +426,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Sent to middle office");
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
         Response updateReviewRefund = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -475,9 +475,8 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Sent to middle office");
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
 
         Response updateReviewRefund = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -518,7 +517,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Sent to middle office");
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
         System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
         System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
@@ -563,6 +562,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 "PROBATE",
                 accountNumber
             );
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
@@ -571,6 +571,10 @@ public class RefundsApproverJourneyFunctionalTest {
             accountPaymentRequest
         ).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
 
         // Get pba payments by accountNumber
         final PaymentsResponse paymentsResponse = paymentTestService
@@ -636,6 +640,9 @@ public class RefundsApproverJourneyFunctionalTest {
                 accountNumber
             );
         accountPaymentRequest.setAccountNumber(accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
         paymentTestService.postPbaPayment(
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
             SERVICE_TOKEN_CMC,
@@ -659,6 +666,10 @@ public class RefundsApproverJourneyFunctionalTest {
             = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
                 return s2.getDateCreated().compareTo(s1.getDateCreated());
             }).findFirst();
+
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
@@ -695,6 +706,9 @@ public class RefundsApproverJourneyFunctionalTest {
                 accountNumber
             );
         accountPaymentRequest.setAccountNumber(accountNumber);
+
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+
         paymentTestService.postPbaPayment(
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
             SERVICE_TOKEN_CMC,
@@ -718,6 +732,10 @@ public class RefundsApproverJourneyFunctionalTest {
             = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
                 return s2.getDateCreated().compareTo(s1.getDateCreated());
             }).findFirst();
+
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));

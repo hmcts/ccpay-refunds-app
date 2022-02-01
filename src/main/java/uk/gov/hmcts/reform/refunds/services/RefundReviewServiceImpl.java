@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.NOTAPPLICABLE;
 import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
 
 @Service
@@ -54,9 +55,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
-
-
-    private static final String SENTTOMIDDLEOFFICE = "Sent to middle office";
 
 
     @Override
@@ -99,13 +97,24 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
             }
-            statusMessage = SENTTOMIDDLEOFFICE;
+            statusMessage = "Refund approved";
         }
 
-        if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {
+        if (refundEvent.equals(RefundEvent.REJECT)) {
+            refundForGivenReference.setContactDetails(null);
+
+            refundForGivenReference.setNotificationSentFlag(NOTAPPLICABLE.getFlag());
+            refundForGivenReference.setRefundApproveFlag(NOTAPPLICABLE.getFlag());
+
             updateRefundStatus(refundForGivenReference, refundEvent);
-            statusMessage = refundEvent.equals(RefundEvent.REJECT) ? "Refund rejected" : "Refund returned to caseworker";
+            statusMessage = "Refund rejected";
         }
+
+        if (refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {
+            updateRefundStatus(refundForGivenReference, refundEvent);
+            statusMessage =  "Refund returned to caseworker";
+        }
+
         return new ResponseEntity<>(statusMessage, HttpStatus.CREATED);
     }
 

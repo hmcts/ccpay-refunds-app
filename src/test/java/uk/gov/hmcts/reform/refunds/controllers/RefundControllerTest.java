@@ -56,6 +56,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
@@ -188,7 +189,7 @@ class RefundControllerTest {
         .givenName("VP")
         .name("VP")
         .sub("V_P@gmail.com")
-        .roles(Arrays.asList("vp"))
+        .roles(Collections.singletonList("vp"))
         .uid("986-erfg-kjhg-123")
         .build();
     private Refund refund = Refund.refundsWith()
@@ -206,6 +207,10 @@ class RefundControllerTest {
         .refundReason("RR002")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .contactDetails(ContactDetails.contactDetailsWith()
+                .email("abc@abc.com")
+                .notificationType("EMAIL")
+                .build())
         .build();
     private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
@@ -213,6 +218,14 @@ class RefundControllerTest {
         .refundReason("RR036")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("ABC Street")
+                .city("London")
+                .county("Greater London")
+                .country("UK")
+                .postalCode("E1 6AN")
+                .notificationType("LETTER")
+                .build())
         .build();
 
     @Autowired
@@ -320,8 +333,9 @@ class RefundControllerTest {
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put(
             "payments-refund",
-            Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
-                              .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
+                 Collections
+                        .singletonList(UserIdentityDataDto.userIdentityDataWith().id(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
         );
         when(contextStartListener.getUserMap()).thenReturn(userMap);
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
@@ -631,6 +645,10 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .contactDetails(ContactDetails.contactDetailsWith()
+                                                                                 .email("abc@abc.com")
+                                                                                 .notificationType("EMAIL")
+                                                                                 .build())
                                                                          .build()))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
@@ -787,8 +805,6 @@ class RefundControllerTest {
     @Test
     void createRefundReturns504ForGatewayTimeout() throws Exception {
 
-        List<Refund> refunds = Collections.emptyList();
-
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
                                                                                    .code("RR035")
                                                                                    .name("Other - Reason")
@@ -805,6 +821,7 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                          .build()))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
@@ -822,6 +839,7 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestReturnsSuccessResponse() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
@@ -861,7 +879,7 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Sent to middle office", result.getResponse().getContentAsString());
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
     @Test
@@ -1070,6 +1088,7 @@ class RefundControllerTest {
 
     @Test
     void approveRefundRequestForNotExistingPaymentReturnsBadRequest() throws Exception {
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR001", "reason1");
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
@@ -1104,6 +1123,7 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestPaymentServerIsUnAvailableReturnsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
@@ -1136,6 +1156,7 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenSendingMalformedRequestToPaymentReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
@@ -1168,6 +1189,7 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenSendingInvalidRequestToReconciliationProviderReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
@@ -1209,6 +1231,7 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenReconciliationProviderIsUnavailableReturnsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
@@ -1254,6 +1277,7 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenReconciliationProviderReceivesDuplicateRequestReturnsDuplicateRequestMessage() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
@@ -1327,6 +1351,7 @@ class RefundControllerTest {
 
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
@@ -1366,7 +1391,7 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Sent to middle office", result.getResponse().getContentAsString());
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
     @Test
@@ -1374,6 +1399,7 @@ class RefundControllerTest {
 
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
@@ -1426,6 +1452,7 @@ class RefundControllerTest {
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
         refundWithRetroRemission.setAmount(BigDecimal.valueOf(10));
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
@@ -1473,6 +1500,7 @@ class RefundControllerTest {
 
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
