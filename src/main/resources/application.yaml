@@ -179,6 +179,6 @@ notification:
   service-mailbox: ${SERVICE_MAIL_BOX:}
   service-url: ${SERVICE_URL:http://service}
 
-valnotify:
+notify:
   letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:dummy}
   email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:dummy}
