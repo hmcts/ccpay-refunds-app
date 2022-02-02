@@ -22,6 +22,7 @@ public class RefundResponseMapper {
             .emailId(userData == null ? "" : userData.getEmailId())
             .dateCreated(refund.getDateCreated().toString())
             .dateUpdated(refund.getDateUpdated().toString())
+            .contactDetails(refund.getContactDetails())
             .build();
 
     }
