@@ -108,7 +108,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
-        validateRefundRequest(refundRequest);
+        //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
         IdamUserIdResponse uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
         refundsRepository.save(refund);
