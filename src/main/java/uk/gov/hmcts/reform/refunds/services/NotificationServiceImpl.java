@@ -54,6 +54,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                             RefundNotificationEmailRequest refundNotificationEmailRequest) {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(emailUrlPath).toString());
+            log.info(refundNotificationEmailRequest.getTemplateId()+ " refundNotificationEmailRequest template id ");
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
                     new HttpEntity<>(refundNotificationEmailRequest, getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
@@ -70,6 +71,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(letterUrlPath).toString());
+            log.info(refundNotificationLetterRequest.getTemplateId()+ " refundNotificationEmailRequest template id ");
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,new HttpEntity<>(refundNotificationLetterRequest,
                     getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
