@@ -114,6 +114,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
                     refundForGivenReference.setRefundApproveFlag("SENT");
+                    refundsRepository.save(refundForGivenReference);
                     refundForGivenReference = updateNotification(headers, refundForGivenReference);
                     refundsRepository.save(refundForGivenReference);
                 } else {
@@ -124,6 +125,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
                 refundForGivenReference.setRefundApproveFlag("NOT SENT");
+                refundsRepository.save(refundForGivenReference);
                 refundForGivenReference = updateNotification(headers, refundForGivenReference);
                 refundsRepository.save(refundForGivenReference);
             }
