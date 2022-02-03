@@ -172,7 +172,7 @@ user:
 
 
 notification:
-  url: ${NOTIFICATION_API_URL:http://localhost:4300}
+  url: ${NOTIFICATION_API_URL:}
   letter-path: ${NOTIFICATION_LETTER_PATH:/notifications/letter}
   email-path: ${NOTIFICATION_EMAIL_PATH:/notifications/email}
   email-to-reply: ${EMAIL_TO_REPLY:}
