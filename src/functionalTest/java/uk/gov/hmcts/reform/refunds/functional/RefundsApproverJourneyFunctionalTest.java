@@ -4,6 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -647,7 +648,7 @@ public class RefundsApproverJourneyFunctionalTest {
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
                                                                                                    s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
-        // assert here contact details registered
+        Assert.assertNotNull(optionalRefundDto.get().getContactDetails());
 
         // Reject the refund
         Response responseReviewRefund
@@ -672,7 +673,9 @@ public class RefundsApproverJourneyFunctionalTest {
         optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
                                                                                s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
 
-        // assert here contact details erased
+        Assert.assertNull(optionalRefundDto.get().getContactDetails());
+
+
     }
 
 

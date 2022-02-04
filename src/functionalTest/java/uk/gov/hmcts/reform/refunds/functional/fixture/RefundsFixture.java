@@ -60,7 +60,7 @@ public final class RefundsFixture {
                                                            .city("London")
                                                            .postalCode("P1 1PO")
                                                            .email("person@gmail.com")
-                                                           .notificationType("email")
+                                                           .notificationType("EMAIL")
                                                            .build())
 
             .build();
