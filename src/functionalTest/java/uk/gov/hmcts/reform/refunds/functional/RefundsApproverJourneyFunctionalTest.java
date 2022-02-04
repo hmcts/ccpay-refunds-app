@@ -666,7 +666,7 @@ public class RefundsApproverJourneyFunctionalTest {
         // verify that contact details is erased
         refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       "Rejected", "false" );
+                                                                       "Rejected", "false");
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         optionalRefundDto = refundsListDto.getRefundList().stream()
@@ -687,8 +687,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .pbaPaymentRequestForProbate(
                 "90.00",
                 "PROBATE",
-                accountNumber
-            );
+                accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
 
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
