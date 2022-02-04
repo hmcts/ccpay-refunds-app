@@ -4,6 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -51,7 +52,8 @@ import static org.springframework.http.HttpStatus.OK;
 @ActiveProfiles({"functional", "liberataMock"})
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
-@Ignore("Ignoring the test cases for the purpose of Pre-implementation plan")
+//@Ignore("Ignoring the test cases for the purpose of Pre-implementation plan")
+
 public class RefundsApproverJourneyFunctionalTest {
 
     @Autowired
@@ -624,6 +626,55 @@ public class RefundsApproverJourneyFunctionalTest {
             .isEqualTo("Sent for approval");
         assertThat(refundListDtoResponse.getRefundList().get(0).getRefundStatus().getDescription())
             .isEqualTo("Refund request submitted");
+
+    }
+
+    @Test
+    public void positive_reject_a_refund_request_verify_contact_details_erased_from_service() {
+
+        final String refundReference = performRefund();
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+
+        // verify that contact details is registered
+        Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                                                             "Sent for approval", "false");
+        assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
+        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
+                                                                                                   s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+        assertThat(optionalRefundDto.get().getContactDetails()).isNotNull();
+
+        // Reject the refund
+        Response responseReviewRefund
+            = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.REJECT.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE003")
+                .reason("The case details don’t match the help with fees details").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund rejected");
+
+
+        // verify that contact details is erased
+        refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                                       SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                                                       "Rejected", "false" );
+        assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
+        optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
+                                                                               s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+
+        assertThat(optionalRefundDto.get().getContactDetails()).isNull();
+
 
     }
 

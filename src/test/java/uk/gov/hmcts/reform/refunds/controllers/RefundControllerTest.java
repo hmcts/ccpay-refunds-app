@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.controllers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
@@ -784,6 +785,7 @@ class RefundControllerTest {
     }
 
     @Test
+    @Disabled("Disabled this unit test as the respective validation is disabled to allow partial refunds")
     void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
