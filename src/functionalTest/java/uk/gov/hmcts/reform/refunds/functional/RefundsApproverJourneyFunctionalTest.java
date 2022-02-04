@@ -648,7 +648,7 @@ public class RefundsApproverJourneyFunctionalTest {
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
                                                                                                    s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
-        Assert.assertNotNull(optionalRefundDto.get().getContactDetails());
+        assertThat(optionalRefundDto.get().getContactDetails()).isNotNull();
 
         // Reject the refund
         Response responseReviewRefund
@@ -673,7 +673,7 @@ public class RefundsApproverJourneyFunctionalTest {
         optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
                                                                                s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
 
-        Assert.assertNull(optionalRefundDto.get().getContactDetails());
+        assertThat(optionalRefundDto.get().getContactDetails()).isNull();
 
 
     }
