@@ -159,17 +159,13 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL.name())) {
                 refundForGivenReference.setNotificationSentFlag("EMAIL_NOT_SENT");
                 refundsRepository.save(refundForGivenReference);
-                throw new UnableToSendNotificationException("Notification Not send ");
             } else {
                 refundForGivenReference.setNotificationSentFlag("LETTER_NOT_SENT");
                 refundsRepository.save(refundForGivenReference);
-                throw new UnableToSendNotificationException("Notification Not send ");
             }
         } else {
             refundForGivenReference.setNotificationSentFlag("ERROR");
             refundsRepository.save(refundForGivenReference);
-            throw new UnableToSendNotificationException("Notification Not send ");
-
         }
 
     }
