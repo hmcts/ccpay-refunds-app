@@ -207,6 +207,12 @@ public class RefundsApproverJourneyFunctionalTest {
         refundListDtoResponse.getRefundList().stream().forEach(refundDto -> {
             assertThat(refundDto.getRefundReference()).isNotEqualTo(refundReference);
         });
+
+        RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
+        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
+            .sorted((s1, s2) ->
+                        s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+        assertThat(optionalRefundDto.get().getContactDetails()).isNotNull();
     }
 
     @Test
