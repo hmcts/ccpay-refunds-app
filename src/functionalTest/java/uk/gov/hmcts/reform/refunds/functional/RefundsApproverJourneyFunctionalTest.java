@@ -599,7 +599,7 @@ public class RefundsApproverJourneyFunctionalTest {
         System.out.println("The value of the Payment Reference : " + paymentReference);
 
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference);
+            = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -728,7 +728,7 @@ public class RefundsApproverJourneyFunctionalTest {
         System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
 
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference);
+            = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -794,7 +794,7 @@ public class RefundsApproverJourneyFunctionalTest {
         System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
 
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference);
+            = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
