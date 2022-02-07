@@ -114,8 +114,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
                     refundForGivenReference.setRefundApproveFlag("SENT");
-                    refundForGivenReference = updateNotification(headers, refundForGivenReference);
                     refundsRepository.save(refundForGivenReference);
+                    updateNotification(headers, refundForGivenReference);
                 } else {
                     refundForGivenReference.setRefundApproveFlag("NOT SENT");
                     refundsRepository.save(refundForGivenReference);
@@ -124,8 +124,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
                 refundForGivenReference.setRefundApproveFlag("NOT SENT");
-                refundForGivenReference = updateNotification(headers, refundForGivenReference);
                 refundsRepository.save(refundForGivenReference);
+                updateNotification(headers, refundForGivenReference);
             }
             statusMessage = "Refund approved";
         }
@@ -148,21 +148,25 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         return new ResponseEntity<>(statusMessage, HttpStatus.CREATED);
     }
 
-    private Refund updateNotification(MultiValueMap<String, String> headers, Refund refundForGivenReference) {
+    private void updateNotification(MultiValueMap<String, String> headers, Refund refundForGivenReference) {
         ResponseEntity<String>  responseEntity =  sendNotification(refundForGivenReference, headers);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refundForGivenReference.setNotificationSentFlag("SENT");
             refundForGivenReference.setContactDetails(null);
+            refundsRepository.save(refundForGivenReference);
         } else if (responseEntity.getStatusCode().is5xxServerError()) {
             if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL.name())) {
                 refundForGivenReference.setNotificationSentFlag("EMAIL_NOT_SENT");
+                refundsRepository.save(refundForGivenReference);
             } else {
                 refundForGivenReference.setNotificationSentFlag("LETTER_NOT_SENT");
+                refundsRepository.save(refundForGivenReference);
             }
         } else {
             refundForGivenReference.setNotificationSentFlag("ERROR");
+            refundsRepository.save(refundForGivenReference);
         }
-        return refundForGivenReference;
+
     }
 
     private Refund validatedAndGetRefundForGivenReference(String reference, String userId) {
