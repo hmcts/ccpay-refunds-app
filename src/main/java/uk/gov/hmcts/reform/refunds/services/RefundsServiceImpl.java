@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
@@ -35,6 +37,7 @@ import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
+
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
@@ -48,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -66,38 +70,35 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
-    private static int reasonPrefixLength = 6;
+    private static final int REASON_PREFIX_LENGTH = 6;
+    private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
+        "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
+        Pattern.CASE_INSENSITIVE
+    );
     @Autowired
     private RefundsRepository refundsRepository;
-
     @Autowired
     private RejectionReasonRepository rejectionReasonRepository;
-
     @Autowired
     private ReferenceUtil referenceUtil;
-
     @Autowired
     private IdamService idamService;
-
     @Autowired
     private PaymentService paymentService;
-
     @Autowired
     private RefundReasonRepository refundReasonRepository;
-
     @Autowired
     private RefundResponseMapper refundResponseMapper;
-
     @Autowired
     private StatusHistoryResponseMapper statusHistoryResponseMapper;
-
     @Autowired
     private StatusHistoryRepository statusHistoryRepository;
-
     @Autowired
     private ContextStartListener contextStartListener;
 
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
+    private static final String EMAIL = "EMAIL";
+    private static final String LETTER = "LETTER";
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {
@@ -253,8 +254,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED)) {
 
             // Refund Reason Validation
-            String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON : validateRefundReason(
-                request.getRefundReason());
+            String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
+                validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
 
             BigDecimal refundAmount = request.getAmount() == null ? refund.getAmount() : request.getAmount();
 
@@ -284,6 +285,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
+                if (null != request.getContactDetails()) {
+                    validateContactDetails(request.getContactDetails());
+                    refund.setContactDetails(request.getContactDetails());
+                }
 
                 // Update Refunds table
                 refundsRepository.save(refund);
@@ -307,7 +312,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             String reasonCode = reason.split("-")[0];
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
-                return refundReason.getName().split(OTHERREASONPATTERN)[1] + "-" + reason.substring(reasonPrefixLength);
+                return refundReason.getName().split(OTHERREASONPATTERN)[1] + "-" + reason.substring(REASON_PREFIX_LENGTH);
             } else {
                 throw new InvalidRefundRequestException("Invalid reason selected");
             }
@@ -424,4 +429,40 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return rawReason;
     }
 
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
+    private void validateContactDetails(ContactDetails contactDetails) {
+        Matcher matcher = null;
+        if (null != contactDetails && null != contactDetails.getEmail()) {
+            matcher = EMAIL_ID_REGEX.matcher(contactDetails.getEmail());
+        }
+        if (null == contactDetails
+            || contactDetails.toString().equals("{}")) {
+            throw new InvalidRefundRequestException("Contact Details should not be null or empty");
+        } else if (null == contactDetails.getNotificationType()
+            || contactDetails.getNotificationType().isEmpty()) {
+            throw new InvalidRefundRequestException("Notification Type should not be null or empty");
+        } else if (! contactDetails.getNotificationType().equals("EMAIL")
+            || contactDetails.getNotificationType().equals("LETTER")) {
+            throw new InvalidRefundRequestException("Notification Type should be EMAIL or LETTER");
+        } else if (EMAIL
+            .equals(contactDetails.getNotificationType())
+            && (null == contactDetails.getEmail()
+            || contactDetails.getEmail().isEmpty())) {
+            throw new InvalidRefundRequestException("Email id should not be null or empty");
+        } else if (LETTER
+            .equals(contactDetails.getNotificationType())
+            && (null == contactDetails.getPostalCode()
+            || contactDetails.getPostalCode().isEmpty())) {
+            throw new InvalidRefundRequestException("Postal code should not be null or empty");
+        } else if (EMAIL
+            .equals(contactDetails.getNotificationType())
+            && null != matcher && !matcher.find()) {
+            throw new InvalidRefundRequestException("Email id is not valid");
+        }
+    }
+
+    private  String  validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
+
+        return validateRefundReason(reason == null ? refund.getReason() : reason);
+    }
 }
