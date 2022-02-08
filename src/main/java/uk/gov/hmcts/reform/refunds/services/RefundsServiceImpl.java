@@ -5,6 +5,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
@@ -97,6 +98,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private ContextStartListener contextStartListener;
 
+    @Value("${notify.email.template}")
+    private String emailTemplateId;
+
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
 
     @Override
@@ -108,7 +112,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
-        validateRefundRequest(refundRequest);
+        //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
         IdamUserIdResponse uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
         refundsRepository.save(refund);
@@ -123,7 +127,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                                String ccdCaseNumber, String excludeCurrentUser) {
 
         Optional<List<Refund>> refundList = Optional.empty();
-
+        LOG.info("emailTemplateId: {}", emailTemplateId);
         //Get the userId
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
         LOG.info("idamUserIdResponse: {}", idamUserIdResponse);
