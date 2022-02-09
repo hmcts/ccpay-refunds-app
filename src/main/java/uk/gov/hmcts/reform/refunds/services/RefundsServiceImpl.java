@@ -433,7 +433,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @SuppressWarnings({"PMD"})
     private void validateContactDetails(ContactDetails contactDetails) {
         Matcher matcher = null;
-        if (null != contactDetails && null != contactDetails.getEmail()) {
+        if (null != contactDetails.getEmail()) {
             matcher = EMAIL_ID_REGEX.matcher(contactDetails.getEmail());
         }
         if (null == contactDetails.getNotificationType()
