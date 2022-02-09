@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.EnumUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.dtos.requests.Notification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -71,10 +73,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static final int REASON_PREFIX_LENGTH = 6;
-    private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
-        "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
-        Pattern.CASE_INSENSITIVE
-    );
     @Autowired
     private RefundsRepository refundsRepository;
     @Autowired
@@ -97,8 +95,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private ContextStartListener contextStartListener;
 
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
-    private static final String EMAIL = "EMAIL";
-    private static final String LETTER = "LETTER";
+    private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
+        "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
+        Pattern.CASE_INSENSITIVE
+    );
 
     @Override
     public RefundEvent[] retrieveActions(String reference) {
@@ -108,7 +108,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
+    public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers)
+        throws CheckDigitException {
         //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
         IdamUserIdResponse uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
@@ -430,32 +431,29 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return rawReason;
     }
 
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD"})
     private void validateContactDetails(ContactDetails contactDetails) {
         Matcher matcher = null;
         if (null != contactDetails && null != contactDetails.getEmail()) {
             matcher = EMAIL_ID_REGEX.matcher(contactDetails.getEmail());
         }
-        if (null == contactDetails
-            || contactDetails.toString().equals("{}")) {
-            throw new InvalidRefundRequestException("Contact Details should not be null or empty");
-        } else if (null == contactDetails.getNotificationType()
+        if (null == contactDetails.getNotificationType()
             || contactDetails.getNotificationType().isEmpty()) {
             throw new InvalidRefundRequestException("Notification Type should not be null or empty");
-        } else if (! contactDetails.getNotificationType().equals("EMAIL")
-            || contactDetails.getNotificationType().equals("LETTER")) {
+        } else if (!EnumUtils
+            .isValidEnum(Notification.class, contactDetails.getNotificationType())) {
             throw new InvalidRefundRequestException("Notification Type should be EMAIL or LETTER");
-        } else if (EMAIL
+        } else if (Notification.EMAIL.getNotification()
             .equals(contactDetails.getNotificationType())
             && (null == contactDetails.getEmail()
             || contactDetails.getEmail().isEmpty())) {
             throw new InvalidRefundRequestException("Email id should not be null or empty");
-        } else if (LETTER
+        } else if (Notification.LETTER.getNotification()
             .equals(contactDetails.getNotificationType())
             && (null == contactDetails.getPostalCode()
             || contactDetails.getPostalCode().isEmpty())) {
             throw new InvalidRefundRequestException("Postal code should not be null or empty");
-        } else if (EMAIL
+        } else if (Notification.EMAIL.getNotification()
             .equals(contactDetails.getNotificationType())
             && null != matcher && !matcher.find()) {
             throw new InvalidRefundRequestException("Email id is not valid");
