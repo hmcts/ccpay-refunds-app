@@ -6,6 +6,7 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
@@ -140,5 +141,13 @@ public class PaymentTestService {
     public RequestSpecification givenWithServiceHeaders(final String serviceToken) {
         return RestAssured.given()
             .header("ServiceAuthorization", serviceToken);
+    }
+
+    public Response putResendNotification(final String userToken, final String serviceToken, final String reference,
+                                       ResendNotificationRequest resendNotificationRequest) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON).when()
+            .body(resendNotificationRequest)
+            .put("/resend/notification/{reference}", reference);
     }
 }
