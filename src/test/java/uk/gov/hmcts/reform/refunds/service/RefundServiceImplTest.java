@@ -769,4 +769,146 @@ public class RefundServiceImplTest {
         assertTrue(actualMessage.contains("Refund list is empty for given criteria"));
     }
 
+    @Test
+    public void givenEmptyNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
+            "RR035-ABCDEG",
+            BigDecimal.valueOf(100),
+            ContactDetails.contactDetailsWith().build());
+        resubmitRefundRequest.setContactDetails(ContactDetails.contactDetailsWith()
+                                                    .notificationType(null)
+                                                    .build());
+        RefundReason refundReason =
+            RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+
+
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Notification Type should not be null or empty"));
+    }
+
+    @Test
+    public void givenInvalidNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
+            "RR035-ABCDEG",
+            BigDecimal.valueOf(100),
+            ContactDetails.contactDetailsWith().build());
+        resubmitRefundRequest.setContactDetails(ContactDetails.contactDetailsWith()
+                                                    .notificationType("POST")
+                                                    .build());
+        RefundReason refundReason =
+            RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+
+
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Notification Type should be EMAIL or LETTER"));
+    }
+
+    @Test
+    public void givenNullEmailForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
+            "RR035-ABCDEG",
+            BigDecimal.valueOf(100),
+            ContactDetails.contactDetailsWith().build());
+        resubmitRefundRequest.setContactDetails(ContactDetails.contactDetailsWith()
+                                                    .notificationType("EMAIL")
+                                                    .email(null)
+                                                    .build());
+        RefundReason refundReason =
+            RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+
+
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Email id should not be null or empty"));
+    }
+
+    @Test
+    public void givenNullPostalcodeForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
+            "RR035-ABCDEG",
+            BigDecimal.valueOf(100),
+            ContactDetails.contactDetailsWith().build());
+        resubmitRefundRequest.setContactDetails(ContactDetails.contactDetailsWith()
+                                                    .notificationType("LETTER")
+                                                    .postalCode(null)
+                                                    .build());
+        RefundReason refundReason =
+            RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+
+
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Postal code should not be null or empty"));
+    }
+
+    @Test
+    public void givenInvalidEmailForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() throws Exception {
+        ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
+            "RR035-ABCDEG",
+            BigDecimal.valueOf(100),
+            ContactDetails.contactDetailsWith().build());
+        resubmitRefundRequest.setContactDetails(ContactDetails.contactDetailsWith()
+                                                    .notificationType("EMAIL")
+                                                    .email("test@")
+                                                    .build());
+        RefundReason refundReason =
+            RefundReason.refundReasonWith().code("A").description("AA").name("Other - AA").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+
+
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("Email id is not valid"));
+    }
 }
