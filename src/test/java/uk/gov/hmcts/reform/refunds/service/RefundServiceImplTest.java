@@ -794,7 +794,7 @@ public class RefundServiceImplTest {
             () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
 
         String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("Notification Type should not be null or empty"));
+        assertTrue(actualMessage.contains("Notification should not be null or empty"));
     }
 
     @Test
@@ -822,7 +822,7 @@ public class RefundServiceImplTest {
             () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
 
         String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("Notification Type should be EMAIL or LETTER"));
+        assertTrue(actualMessage.contains("Contact details should be email or letter"));
     }
 
     @Test
@@ -851,7 +851,7 @@ public class RefundServiceImplTest {
             () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
 
         String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("Email id should not be null or empty"));
+        assertTrue(actualMessage.contains("Email id should not be empty"));
     }
 
     @Test
@@ -880,7 +880,7 @@ public class RefundServiceImplTest {
             () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null));
 
         String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("Postal code should not be null or empty"));
+        assertTrue(actualMessage.contains("Postal code should not be empty"));
     }
 
     @Test
