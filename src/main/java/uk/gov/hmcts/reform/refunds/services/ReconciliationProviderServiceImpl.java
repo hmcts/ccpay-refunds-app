@@ -50,11 +50,11 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             MultiValueMap<String, String> header = new HttpHeaders();
             header.add("X-API-KEY", apiKey);
 
-            LOG.info("apiKey:", apiKey);
-            LOG.info("Headers:", headers);
-            LOG.info("Header:", header);
-            LOG.info("URL:", reconciliationProviderApi + refundStatusUpdatePath);
-            LOG.info("reconciliationProviderRefundRequest:", reconciliationProviderRefundRequest.toString());
+            LOG.info("apiKey: {}", apiKey);
+            LOG.info("Headers: {}", headers);
+            LOG.info("Header: {}", header);
+            LOG.info("URL: {}", reconciliationProviderApi + refundStatusUpdatePath);
+            LOG.info("reconciliationProviderRefundRequest: {}", reconciliationProviderRefundRequest.toString());
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplateLiberata.exchange(
                 builder.toUriString(),
