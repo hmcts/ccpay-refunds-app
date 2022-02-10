@@ -8,10 +8,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
@@ -29,7 +29,7 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
     @Value("${reconciliation-provider.refund-status-update-path}")
     private String refundStatusUpdatePath;
     @Autowired
-    private OAuth2RestOperations restTemplate;
+    private RestTemplate restTemplate;
     @Value("${liberata.api.key}")
     private String apiKey;
 
