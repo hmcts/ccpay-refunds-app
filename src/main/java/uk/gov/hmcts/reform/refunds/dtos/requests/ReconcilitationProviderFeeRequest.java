@@ -22,13 +22,4 @@ public class ReconcilitationProviderFeeRequest {
     private int version;
 
     private String refundAmount;
-
-    @Override
-    public String toString() {
-        return "ReconcilitationProviderFeeRequest{"
-                + "code='" + code + '\''
-                + ", version=" + version
-                + ", refundAmount='" + refundAmount + '\''
-                + '}';
-    }
 }
