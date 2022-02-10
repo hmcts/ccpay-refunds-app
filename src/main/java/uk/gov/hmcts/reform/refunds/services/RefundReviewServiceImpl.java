@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jmx.export.notification.UnableToSendNotificationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
@@ -158,13 +159,17 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL.name())) {
                 refundForGivenReference.setNotificationSentFlag("EMAIL_NOT_SENT");
                 refundsRepository.save(refundForGivenReference);
+                throw new UnableToSendNotificationException("Notification not sent ");
             } else {
                 refundForGivenReference.setNotificationSentFlag("LETTER_NOT_SENT");
                 refundsRepository.save(refundForGivenReference);
+                throw new UnableToSendNotificationException("Notification Not sent ");
             }
         } else {
             refundForGivenReference.setNotificationSentFlag("ERROR");
             refundsRepository.save(refundForGivenReference);
+            throw new UnableToSendNotificationException("Notification Not sent ");
+
         }
 
     }
