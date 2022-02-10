@@ -260,7 +260,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             BigDecimal refundAmount = request.getAmount() == null ? refund.getAmount() : request.getAmount();
 
-            refund.setReason(refundReason);
+            if (!(refund.getReason().equals(RETROSPECTIVE_REMISSION_REASON)) && !(RETROSPECTIVE_REMISSION_REASON.equals(refundReason))) {
+                refund.setReason(refundReason);
+            }
+
             refund.setAmount(refundAmount);
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
@@ -439,20 +442,20 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
         if (null == contactDetails.getNotificationType()
             || contactDetails.getNotificationType().isEmpty()) {
-            throw new InvalidRefundRequestException("Notification Type should not be null or empty");
+            throw new InvalidRefundRequestException("Notification should not be null or empty");
         } else if (!EnumUtils
             .isValidEnum(Notification.class, contactDetails.getNotificationType())) {
-            throw new InvalidRefundRequestException("Notification Type should be EMAIL or LETTER");
+            throw new InvalidRefundRequestException("Contact details should be email or letter");
         } else if (Notification.EMAIL.getNotification()
             .equals(contactDetails.getNotificationType())
             && (null == contactDetails.getEmail()
             || contactDetails.getEmail().isEmpty())) {
-            throw new InvalidRefundRequestException("Email id should not be null or empty");
+            throw new InvalidRefundRequestException("Email id should not be empty");
         } else if (Notification.LETTER.getNotification()
             .equals(contactDetails.getNotificationType())
             && (null == contactDetails.getPostalCode()
             || contactDetails.getPostalCode().isEmpty())) {
-            throw new InvalidRefundRequestException("Postal code should not be null or empty");
+            throw new InvalidRefundRequestException("Postal code should not be empty");
         } else if (Notification.EMAIL.getNotification()
             .equals(contactDetails.getNotificationType())
             && null != matcher && !matcher.find()) {
