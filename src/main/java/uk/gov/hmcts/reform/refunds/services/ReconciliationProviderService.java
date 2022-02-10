@@ -9,6 +9,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse
 public interface ReconciliationProviderService {
 
     ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(
-        MultiValueMap<String, String> headers,ReconciliationProviderRequest reconciliationProviderRequest);
+        ReconciliationProviderRequest reconciliationProviderRequest);
 
 }
