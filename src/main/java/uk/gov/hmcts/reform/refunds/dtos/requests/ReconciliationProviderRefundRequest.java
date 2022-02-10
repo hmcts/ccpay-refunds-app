@@ -11,4 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder(builderMethodName = "refundReconciliationProviderRefundRequestWith")
 public class ReconciliationProviderRefundRequest {
     private ReconciliationProviderRequest refundRequest;
+
+    @Override
+    public String toString() {
+        return "ReconciliationProviderRefundRequest{" +
+                "refundRequest=" + refundRequest +
+                '}';
+    }
 }

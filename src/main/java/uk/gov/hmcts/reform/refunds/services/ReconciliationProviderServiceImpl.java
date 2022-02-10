@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -46,8 +43,14 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             .refundReconciliationProviderRefundRequestWith()
             .refundRequest(reconciliationProviderRequest).build();
         try {
-            headers.add("X-API-KEY", apiKey);
+            MultiValueMap<String, String> header =new HttpHeaders();
+            header.add("X-API-KEY", apiKey);
 
+            LOG.info("apiKey:", apiKey);
+            LOG.info("Headers:", headers);
+            LOG.info("Header:", header);
+            LOG.info("URL:", reconciliationProviderApi + refundStatusUpdatePath);
+            LOG.info("reconciliationProviderRefundRequest:", reconciliationProviderRefundRequest.toString());
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplateLiberata.exchange(
                 builder.toUriString(),
