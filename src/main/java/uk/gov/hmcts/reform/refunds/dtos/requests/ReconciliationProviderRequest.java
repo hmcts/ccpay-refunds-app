@@ -40,18 +40,18 @@ public class ReconciliationProviderRequest {
 
     @Override
     public String toString() {
-        return "ReconciliationProviderRequest{" +
-                "refundReference='" + refundReference + '\'' +
-                ", paymentReference='" + paymentReference + '\'' +
-                ", dateCreated='" + dateCreated + '\'' +
-                ", dateUpdated='" + dateUpdated + '\'' +
-                ", refundReason='" + refundReason + '\'' +
-                ", totalRefundAmount='" + totalRefundAmount + '\'' +
-                ", currency='" + currency + '\'' +
-                ", caseReference='" + caseReference + '\'' +
-                ", ccdCaseNumber='" + ccdCaseNumber + '\'' +
-                ", accountNumber='" + accountNumber + '\'' +
-                ", fees=" + fees +
-                '}';
+        return "ReconciliationProviderRequest{"
+                + "refundReference='" + refundReference + '\''
+                + ", paymentReference='" + paymentReference + '\''
+                + ", dateCreated='" + dateCreated + '\''
+                + ", dateUpdated='" + dateUpdated + '\''
+                + ", refundReason='" + refundReason + '\''
+                + ", totalRefundAmount='" + totalRefundAmount + '\''
+                + ", currency='" + currency + '\''
+                + ", caseReference='" + caseReference + '\''
+                + ", ccdCaseNumber='" + ccdCaseNumber + '\''
+                + ", accountNumber='" + accountNumber + '\''
+                + ", fees=" + fees
+                + '}';
     }
 }

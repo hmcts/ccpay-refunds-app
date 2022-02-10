@@ -14,8 +14,8 @@ public class ReconciliationProviderRefundRequest {
 
     @Override
     public String toString() {
-        return "ReconciliationProviderRefundRequest{" +
-                "refundRequest=" + refundRequest +
-                '}';
+        return "ReconciliationProviderRefundRequest{"
+                + "refundRequest=" + refundRequest
+                + '}';
     }
 }

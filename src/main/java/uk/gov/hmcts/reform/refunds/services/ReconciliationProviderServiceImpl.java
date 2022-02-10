@@ -43,7 +43,7 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             .refundReconciliationProviderRefundRequestWith()
             .refundRequest(reconciliationProviderRequest).build();
         try {
-            MultiValueMap<String, String> header =new HttpHeaders();
+            MultiValueMap<String, String> header = new HttpHeaders();
             header.add("X-API-KEY", apiKey);
 
             LOG.info("apiKey:", apiKey);
