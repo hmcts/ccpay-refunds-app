@@ -37,4 +37,6 @@ public class ReconciliationProviderRequest {
     private String accountNumber;
 
     private List<ReconcilitationProviderFeeRequest> fees;
+
+
 }
