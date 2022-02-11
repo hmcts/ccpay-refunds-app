@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,18 +42,19 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
 
     @Override
     public ResponseEntity<ReconciliationProviderResponse> updateReconciliationProviderWithApprovedRefund(
-        MultiValueMap<String, String> headers, ReconciliationProviderRequest reconciliationProviderRequest) {
+        ReconciliationProviderRequest reconciliationProviderRequest) {
         ReconciliationProviderRefundRequest reconciliationProviderRefundRequest = ReconciliationProviderRefundRequest
             .refundReconciliationProviderRefundRequestWith()
             .refundRequest(reconciliationProviderRequest).build();
         try {
-            headers.add("X-API-KEY", apiKey);
+            MultiValueMap<String, String> header = new HttpHeaders();
+            header.add("X-API-KEY", apiKey);
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplateLiberata.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
-                new HttpEntity<>(reconciliationProviderRefundRequest, headers), ReconciliationProviderResponse.class
+                new HttpEntity<>(reconciliationProviderRefundRequest, header), ReconciliationProviderResponse.class
             );
         } catch (HttpClientErrorException e) {
             LOG.error("HttpClientErrorException", e);
