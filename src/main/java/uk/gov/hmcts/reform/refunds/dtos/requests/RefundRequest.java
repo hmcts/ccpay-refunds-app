@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.dtos.requests;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -57,4 +58,7 @@ public class RefundRequest {
 
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
+
+    @NotNull(message = "Refund Fee  cannot be null")
+   private List<RefundFeeDto> refundFees;
 }
