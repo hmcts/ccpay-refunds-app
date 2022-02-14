@@ -269,9 +269,8 @@ public class RefundsApproverJourneyFunctionalTest {
         //Should be verified as a call out to Liberata....
     }
 
-    // This case added under AY-5368 - Blocked by Approver Journey PAY-5423
+    // This case added under PAY-5368
     @Test
-    @Ignore
     public void positive_resend_notification_request_verify_contact_details() {
 
         final String refundReference = performRefund();
