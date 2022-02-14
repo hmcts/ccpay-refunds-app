@@ -9,7 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -25,5 +27,8 @@ public class ResubmitRefundRequest {
     private String refundReason;
 
     private BigDecimal amount;
+
+    @NotNull(message = "Refund Fee  cannot be null")
+    private List<RefundFeeDto> refundFees;
 
 }
