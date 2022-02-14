@@ -923,12 +923,13 @@ class RefundControllerTest {
             Optional.of(getPaymentGroupDto())
 
         ));
-        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
-                                                   .amount(BigDecimal.valueOf(100))
-                                                   .refundReference("RF-1628-5241-9956-2215")
-                                                   .build()
-        ))).when(restOperations).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class));
+        ReconciliationProviderResponse reconciliationProviderResponse = ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                .amount(BigDecimal.valueOf(100))
+                .refundReference("RF-1628-5241-9956-2215")
+                .build();
+        when(restTemplateLiberata.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(ReconciliationProviderResponse.class)))
+                .thenReturn(ResponseEntity.of(Optional.of(reconciliationProviderResponse)));
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefundWithLetterDetails());
 
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
