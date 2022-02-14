@@ -108,7 +108,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 );
                 ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService
                     .updateReconciliationProviderWithApprovedRefund(
-                    headers,
                     reconciliationProviderRequest
                 );
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {

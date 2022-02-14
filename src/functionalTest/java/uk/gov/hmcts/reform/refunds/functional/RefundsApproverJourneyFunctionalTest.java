@@ -4,9 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -207,6 +205,12 @@ public class RefundsApproverJourneyFunctionalTest {
         refundListDtoResponse.getRefundList().stream().forEach(refundDto -> {
             assertThat(refundDto.getRefundReference()).isNotEqualTo(refundReference);
         });
+
+        RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
+        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
+            .sorted((s1, s2) ->
+                        s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+        assertThat(optionalRefundDto.get().getContactDetails()).isNotNull();
     }
 
     @Test
@@ -682,8 +686,9 @@ public class RefundsApproverJourneyFunctionalTest {
                                                                              "Sent for approval", "false");
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
-        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
-                                                                                                   s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
+            .sorted((s1, s2) ->
+                        s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         assertThat(optionalRefundDto.get().getContactDetails()).isNotNull();
 
         // Reject the refund
@@ -703,11 +708,12 @@ public class RefundsApproverJourneyFunctionalTest {
         // verify that contact details is erased
         refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       "Rejected", "false" );
+                                                                       "Rejected", "false");
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
-        optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
-                                                                               s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+        optionalRefundDto = refundsListDto.getRefundList().stream()
+            .sorted((s1, s2) ->
+                        s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
 
         assertThat(optionalRefundDto.get().getContactDetails()).isNull();
 
@@ -723,8 +729,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .pbaPaymentRequestForProbate(
                 "90.00",
                 "PROBATE",
-                accountNumber
-            );
+                accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
 
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
