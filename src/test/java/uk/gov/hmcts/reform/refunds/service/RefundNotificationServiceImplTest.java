@@ -17,11 +17,14 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
@@ -64,10 +67,18 @@ class RefundNotificationServiceImplTest {
     @Autowired
     RefundNotificationService refundNotificationService;
 
+    @MockBean
+    private PaymentService paymentService;
+
     @Test
     void resendEmailRefundNotificationShouldReturnSuccessResponse_AfterSuccessfulRestcallWithNotificationService() {
         ResendNotificationRequest mockRequest = getMockEmailRequest();
         when(refundsService.getRefundForReference(anyString())).thenReturn(getMockRefund());
+        PaymentGroupResponse paymentData = PaymentGroupResponse.paymentGroupDtoWith()
+                .payments(Arrays.asList(
+                        PaymentResponse.paymentResponseWith().reference("RF-1233-2134-1234-1234").method("cash").channel("bulk scan").build()))
+                .build();
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString())).thenReturn(paymentData);
         when(restTemplateNotify.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class),eq(String.class))).thenReturn(
             new ResponseEntity<String>("Success", HttpStatus.OK)
         );
@@ -81,6 +92,11 @@ class RefundNotificationServiceImplTest {
     void resendLetterRefundNotificationShouldReturnSuccessResponse_AfterSuccessfulRestcallWithNotificationService() {
         ResendNotificationRequest mockRequest = getMockLetterRequest();
         when(refundsService.getRefundForReference(anyString())).thenReturn(getMockRefund());
+        PaymentGroupResponse paymentData = PaymentGroupResponse.paymentGroupDtoWith()
+                .payments(Arrays.asList(
+                        PaymentResponse.paymentResponseWith().reference("RF-1233-2134-1234-1234").method("cash").channel("bulk scan").build()))
+                .build();
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString())).thenReturn(paymentData);
         when(restTemplateNotify.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class),eq(String.class))).thenReturn(
             new ResponseEntity<String>("Success", HttpStatus.OK)
         );

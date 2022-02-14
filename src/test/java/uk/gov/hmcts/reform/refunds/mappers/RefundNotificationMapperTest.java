@@ -27,6 +27,9 @@ class RefundNotificationMapperTest {
             .refundStatus(RefundStatus.SENTFORAPPROVAL)
             .ccdCaseNumber("1234567812345678")
             .reference("RF-1642-6117-6119-7355")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                    .templateId("sgdfj")
+                    .build())
             .build();
 
     private static final Refund REFUND_Email = Refund.refundsWith()

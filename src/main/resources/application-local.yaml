@@ -114,9 +114,13 @@ notification:
   service-url: ${SERVICE_URL:http://service}
 
 notify:
-  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:dummy}
-  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:dummy}
-
+  template:
+    cheque-po-cash:
+      letter: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
+      email: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}
+    card-pba:
+      letter: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
+      email: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}
 
 logging:
   level:

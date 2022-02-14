@@ -98,9 +98,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private ContextStartListener contextStartListener;
 
-    @Value("${notify.email.template}")
-    private String emailTemplateId;
-
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
 
     @Override
@@ -127,7 +124,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                                String ccdCaseNumber, String excludeCurrentUser) {
 
         Optional<List<Refund>> refundList = Optional.empty();
-        LOG.info("emailTemplateId: {}", emailTemplateId);
         //Get the userId
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
         LOG.info("idamUserIdResponse: {}", idamUserIdResponse);

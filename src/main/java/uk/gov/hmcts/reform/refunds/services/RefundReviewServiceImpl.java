@@ -14,9 +14,11 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.ForbiddenToApproveRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
@@ -73,12 +75,17 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     @Autowired
     private RefundNotificationMapper refundNotificationMapper;
 
-    @Value("${notify.letter.template}")
-    private String letterTemplateId;
+    @Value("${notify.template.cheque-po-cash.letter}")
+    private String chequePoCashLetterTemplateId;
 
-    @Value("${notify.email.template}")
-    private String emailTemplateId;
+    @Value("${notify.template.cheque-po-cash.email}")
+    private String chequePoCashEmailTemplateId;
 
+    @Value("${notify.template.card-pba.letter}")
+    private String cardPbaLetterTemplateId;
+
+    @Value("${notify.template.card-pba.email}")
+    private String cardPbaEmailTemplateId;
 
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
@@ -96,13 +103,20 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                                 .build());
         refundForGivenReference.setStatusHistories(statusHistories);
         String statusMessage = "";
+
+        // PAY-5390 Set Template Id based on payment channel
+        PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
+                headers,
+                refundForGivenReference.getPaymentReference()
+        );
+
+        String templateId = findTemplateId(paymentData, refundForGivenReference);
+        refundForGivenReference.getContactDetails().setTemplateId(templateId);
+
         if (refundEvent.equals(RefundEvent.APPROVE)) {
             boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
             if (isRefundLiberata) {
-                PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
-                    headers,
-                    refundForGivenReference.getPaymentReference()
-                );
+
                 ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(
                     paymentData,
                     refundForGivenReference
@@ -200,7 +214,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .email(refund.getContactDetails().getEmail())
-                .templateId(emailTemplateId)
+                .templateId(refund.getContactDetails().getTemplateId())
                 .notificationType(EMAIL.name())
                 .build();
             refund.setContactDetails(newContact);
@@ -210,7 +224,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(letterTemplateId)
+                .templateId(refund.getContactDetails().getTemplateId())
                 .addressLine(refund.getContactDetails().getAddressLine())
                 .county(refund.getContactDetails().getCounty())
                 .postalCode(refund.getContactDetails().getPostalCode())
@@ -229,5 +243,29 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
     }
 
+    private String findTemplateId(PaymentGroupResponse paymentData, Refund refund) {
+
+        if (null != paymentData) {
+            String method = null;
+            for (PaymentResponse paymentResponse : paymentData.getPayments()) {
+                if (refund.getPaymentReference().equals(paymentResponse.getReference())) {
+                    method = paymentResponse.getMethod();
+                }
+            }
+
+            if (method.equals("cheque") || method.contains("postal") || method.equals("cash")) {
+                if (EMAIL.equals(refund.getContactDetails().getNotificationType()))
+                    return chequePoCashEmailTemplateId;
+                else
+                    return chequePoCashLetterTemplateId;
+            } else {
+                if (EMAIL.equals(refund.getContactDetails().getNotificationType()))
+                    return cardPbaEmailTemplateId;
+                else
+                    return cardPbaLetterTemplateId;
+            }
+        } else
+            throw new PaymentServerException("Payment Server Exception");
+    }
 
 }
