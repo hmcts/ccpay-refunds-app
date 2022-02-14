@@ -103,7 +103,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -1470,8 +1469,8 @@ class RefundControllerTest {
 
         PaymentGroupResponse paymentGroupResponse = getPaymentGroupDto();
         paymentGroupResponse.setRemissions(Arrays.asList());
-    when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
-                "refund reason").build()));
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+            "refund reason").build()));
 
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
@@ -1479,9 +1478,9 @@ class RefundControllerTest {
 
         ));
         doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
-           .amount(BigDecimal.valueOf(100))
-           .refundReference("RF-1628-5241-9956-2215")
-           .build()
+            .amount(BigDecimal.valueOf(100))
+            .refundReference("RF-1628-5241-9956-2215")
+            .build()
         ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             ReconciliationProviderResponse.class));
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
@@ -1526,11 +1525,11 @@ class RefundControllerTest {
 
         ));
         doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
-           .amount(BigDecimal.valueOf(100))
-           .refundReference("RF-1628-5241-9956-2215")
-           .build()
+            .amount(BigDecimal.valueOf(100))
+            .refundReference("RF-1628-5241-9956-2215")
+            .build()
         ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class));
+                ReconciliationProviderResponse.class));
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
             "refund reason").build()));
