@@ -22,18 +22,6 @@ public class RefundNotificationMapper {
     @Value("${notification.service-url}")
     private String serviceUrl;
 
-    @Value("${notify.template.cheque-po-cash.letter}")
-    private String chequePoCashLetterTemplateId;
-
-    @Value("${notify.template.cheque-po-cash.email}")
-    private String chequePoCashEmailTemplateId;
-
-    @Value("${notify.template.card-pba.letter}")
-    private String cardPbaLetterTemplateId;
-
-    @Value("${notify.template.card-pba.email}")
-    private String cardPbaEmailTemplateId;
-
     public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund,
                                                                             ResendNotificationRequest resendNotificationRequest) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
@@ -69,7 +57,7 @@ public class RefundNotificationMapper {
 
     public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(Refund refund) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
-            .templateId(chequePoCashEmailTemplateId)
+            .templateId(refund.getContactDetails().getTemplateId())
             .recipientEmailAddress(refund.getContactDetails().getEmail())
             .reference(refund.getReference())
             .emailReplyToId(emailReplyToId)
@@ -90,7 +78,7 @@ public class RefundNotificationMapper {
         recipientPostalAddress.setCity(refund.getContactDetails().getCity());
         recipientPostalAddress.setCountry(refund.getContactDetails().getCountry());
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
-            .templateId(cardPbaLetterTemplateId)
+            .templateId(refund.getContactDetails().getTemplateId())
             .recipientPostalAddress(recipientPostalAddress)
             .reference(refund.getReference())
             .notificationType(NotificationType.LETTER)

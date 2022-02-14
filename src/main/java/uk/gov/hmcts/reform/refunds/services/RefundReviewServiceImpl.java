@@ -87,6 +87,10 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     @Value("${notify.template.card-pba.email}")
     private String cardPbaEmailTemplateId;
 
+    private static final String CHEQUE = "cheque";
+
+    private static final String CASH = "cash";
+
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
                                                RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
@@ -252,19 +256,21 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 }
             }
 
-            if (method.equals("cheque") || method.contains("postal") || method.equals("cash")) {
-                if (EMAIL.equals(refund.getContactDetails().getNotificationType()))
+            if (CHEQUE.equals(method) || method.contains("postal") || CASH.equals(method)) {
+                if (EMAIL.equals(refund.getContactDetails().getNotificationType())) {
                     return chequePoCashEmailTemplateId;
-                else
+                } else {
                     return chequePoCashLetterTemplateId;
+                }
             } else {
-                if (EMAIL.equals(refund.getContactDetails().getNotificationType()))
+                if (EMAIL.equals(refund.getContactDetails().getNotificationType())) {
                     return cardPbaEmailTemplateId;
-                else
+                } else {
                     return cardPbaLetterTemplateId;
+                }
             }
-        } else
-            throw new PaymentServerException("Payment Server Exception");
+        }
+        throw new PaymentServerException("Payment Server Exception");
     }
 
 }

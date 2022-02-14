@@ -54,6 +54,10 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
     @Value("${notify.template.card-pba.email}")
     private String cardPbaEmailTemplateId;
 
+    private static final String CHEQUE = "cheque";
+
+    private static final String CASH = "cash";
+
     @Override
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
                                                            MultiValueMap<String, String> headers) {
@@ -118,16 +122,18 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
             }
         }
 
-        if (method.equals("cheque") || method.contains("postal") || method.equals("cash")) {
-            if (EMAIL.equals(resendNotificationRequest.getNotificationType()))
+        if (CHEQUE.equals(method) || method.contains("postal") || CASH.equals(method)) {
+            if (EMAIL.equals(resendNotificationRequest.getNotificationType())) {
                 return chequePoCashEmailTemplateId;
-            else
+            } else {
                 return chequePoCashLetterTemplateId;
+            }
         } else {
-            if (EMAIL.equals(resendNotificationRequest.getNotificationType()))
+            if (EMAIL.equals(resendNotificationRequest.getNotificationType())) {
                 return cardPbaEmailTemplateId;
-            else
+            } else {
                 return cardPbaLetterTemplateId;
+            }
         }
     }
 
