@@ -35,10 +35,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.*;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
@@ -208,6 +205,14 @@ class RefundControllerTest {
         .refundReason("RR002")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .refundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .contactDetails(ContactDetails.contactDetailsWith()
                 .email("abc@abc.com")
                 .notificationType("EMAIL")
@@ -219,6 +224,14 @@ class RefundControllerTest {
         .refundReason("RR036")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .refundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .contactDetails(ContactDetails.contactDetailsWith()
                 .addressLine("ABC Street")
                 .city("London")
@@ -646,6 +659,14 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .refundFees(Arrays.asList(
+                                                                             RefundFeeDto.refundFeeRequestWith()
+                                                                                 .feeId(1)
+                                                                                 .code("RR001")
+                                                                                 .version("1.0")
+                                                                                 .volume(1)
+                                                                                 .refundAmount(new BigDecimal(100))
+                                                                                 .build()))
                                                                          .contactDetails(ContactDetails.contactDetailsWith()
                                                                                  .email("abc@abc.com")
                                                                                  .notificationType("EMAIL")
@@ -823,6 +844,14 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .refundFees(Arrays.asList(
+                                                                             RefundFeeDto.refundFeeRequestWith()
+                                                                                 .feeId(1)
+                                                                                 .code("RR001")
+                                                                                 .version("1.0")
+                                                                                 .volume(1)
+                                                                                 .refundAmount(new BigDecimal(100))
+                                                                                 .build()))
                                                                          .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                          .build()))
                                                .header("Authorization", "user")

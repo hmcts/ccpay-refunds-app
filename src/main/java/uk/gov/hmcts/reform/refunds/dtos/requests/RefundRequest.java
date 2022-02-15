@@ -50,6 +50,10 @@ public class RefundRequest {
     @Digits(integer = 10, fraction = 2, message = "Refund amount cannot have more than 2 decimal places")
     private BigDecimal refundAmount;
 
+    @DecimalMin(value = "0.01", message = "Payment Amount must be greater than or equal to 0.01")
+    @Positive(message = "Payment Amount must be greater than 0")
+    @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
+    private BigDecimal paymentAmount;
 
     @NotNull(message = "fee_ids cannot be null")
     @NotEmpty(message = "fee_ids cannot be blank")

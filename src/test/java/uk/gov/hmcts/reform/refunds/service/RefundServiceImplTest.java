@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
@@ -24,6 +25,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -183,6 +185,8 @@ public class RefundServiceImplTest {
     private StatusHistoryResponseMapper statusHistoryResponseMapper;
     @Spy
     private RefundResponseMapper refundResponseMapper;
+    @Spy
+    private RefundFeeMapper refundFeeMapper;
 
     @Mock
     private ContextStartListener contextStartListener;
@@ -601,7 +605,18 @@ public class RefundServiceImplTest {
     }
 
     private ResubmitRefundRequest buildResubmitRefundRequest(String refundReason, BigDecimal amount) {
-        return ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason(refundReason).amount(amount).build();
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .refundReason(refundReason)
+            .amount(amount)
+            .refundFees(Arrays.asList(
+                RefundFeeDto.refundFeeRequestWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1.0")
+                    .volume(1)
+                    .refundAmount(amount)
+                    .build()))
+            .build();
     }
 
     @Test
