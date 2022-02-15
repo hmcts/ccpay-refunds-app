@@ -37,9 +37,9 @@ public class RefundStatusUpdateRequest {
 
     @Override
     public String toString() {
-        return "RefundStatusUpdateRequest{" +
-                "reason='" + reason + '\'' +
-                ", status=" + status +
-                '}';
+        return "RefundStatusUpdateRequest{"
+                + "reason='" + reason + '\''
+                + ", status=" + status
+                + '}';
     }
 }
