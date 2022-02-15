@@ -108,16 +108,17 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         refundForGivenReference.setStatusHistories(statusHistories);
         String statusMessage = "";
 
-        // PAY-5390 Set Template Id based on payment channel
-        PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
-                headers,
-                refundForGivenReference.getPaymentReference()
-        );
-
-        String templateId = findTemplateId(paymentData, refundForGivenReference);
-        refundForGivenReference.getContactDetails().setTemplateId(templateId);
-
         if (refundEvent.equals(RefundEvent.APPROVE)) {
+
+            // PAY-5390 Set Template Id based on payment channel
+            PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
+                    headers,
+                    refundForGivenReference.getPaymentReference()
+            );
+
+            String templateId = findTemplateId(paymentData, refundForGivenReference);
+            refundForGivenReference.getContactDetails().setTemplateId(templateId);
+
             boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
             if (isRefundLiberata) {
 
