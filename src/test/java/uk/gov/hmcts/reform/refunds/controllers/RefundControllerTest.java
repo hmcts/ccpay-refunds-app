@@ -656,6 +656,10 @@ class RefundControllerTest {
                     .refundReason("RR035-Other-Reason")
                     .ccdCaseNumber("1111222233334444")
                     .feeIds("1")
+                    .contactDetails(ContactDetails.contactDetailsWith()
+                            .email("abc@abc.com")
+                            .notificationType("EMAIL")
+                            .build())
                     .build()))
             .header("Authorization", "user")
             .header("ServiceAuthorization", "Services")
@@ -829,6 +833,10 @@ class RefundControllerTest {
                     .refundReason("RR035-Other-Reason")
                     .ccdCaseNumber("1111222233334444")
                     .feeIds("1")
+                    .contactDetails(ContactDetails.contactDetailsWith()
+                            .email("abc@abc.com")
+                            .notificationType("EMAIL")
+                            .build())
                     .build()))
             .header("Authorization", "user")
             .header("ServiceAuthorization", "Services")
@@ -1018,6 +1026,13 @@ class RefundControllerTest {
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+        ReconciliationProviderResponse reconciliationProviderResponse = ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                .amount(BigDecimal.valueOf(100))
+                .refundReference("RF-1628-5241-9956-2215")
+                .build();
+        when(restTemplateLiberata.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(ReconciliationProviderResponse.class)))
+                .thenReturn(ResponseEntity.of(Optional.of(reconciliationProviderResponse)));
         MvcResult result = mockMvc.perform(patch(
             "/refund/{reference}/action/{reviewer-action}",
             "RF-1628-5241-9956-2215",
@@ -1098,6 +1113,13 @@ class RefundControllerTest {
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+        ReconciliationProviderResponse reconciliationProviderResponse = ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                .amount(BigDecimal.valueOf(100))
+                .refundReference("RF-1628-5241-9956-2215")
+                .build();
+        when(restTemplateLiberata.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(ReconciliationProviderResponse.class)))
+                .thenReturn(ResponseEntity.of(Optional.of(reconciliationProviderResponse)));
         MvcResult result = mockMvc.perform(patch(
             "/refund/{reference}/action/{reviewer-action}",
             "RF-1628-5241-9956-2215",
