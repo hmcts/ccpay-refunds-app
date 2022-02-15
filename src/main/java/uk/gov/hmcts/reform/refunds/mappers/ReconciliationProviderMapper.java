@@ -12,11 +12,11 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentExceptio
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
+import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -30,6 +30,9 @@ public class ReconciliationProviderMapper {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+
+    @Autowired
+    private RefundFeeMapper refundFeeMapper;
 
     public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund) {
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
@@ -46,7 +49,6 @@ public class ReconciliationProviderMapper {
             .fees(getRefundRequestFees(refund, paymentDto))
             .build();
     }
-
 
     private List<ReconcilitationProviderFeeRequest> getRefundRequestFees(Refund refund, PaymentGroupResponse paymentGroupResponse) {
         String feeIds = refund.getFeeIds();
@@ -66,20 +68,8 @@ public class ReconciliationProviderMapper {
                                          .build());
             }
 
-            return paymentGroupResponse.getFees().stream().map(paymentFeeResponse -> {
-                List<RemissionResponse> remissionForGivenFee = remissionsAppliedForRefund.stream()
-                                                                    .filter(remissionResponse ->
-                                                                      remissionResponse.getFeeId().equals(paymentFeeResponse.getId()))
-                                                                    .collect(Collectors.toList());
-                BigDecimal refundAmount = remissionForGivenFee.isEmpty() ? paymentFeeResponse.getApportionAmount()
-                    : paymentFeeResponse.getApportionAmount()
-                    .subtract(remissionForGivenFee.get(0).getHwfAmount());
-                return ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
-                    .code(paymentFeeResponse.getCode())
-                    .version(Integer.parseInt(paymentFeeResponse.getVersion()))
-                    .refundAmount(refundAmount.toString())
-                    .build();
-            }).collect(Collectors.toList());
+            return refund.getRefundFees().stream().map(refundFeeMapper::toRefundFeeForReconcilitationProvider
+            ).collect(Collectors.toList());
         }
         throw new FeesNotFoundForRefundException("Fee not found in Refund");
     }

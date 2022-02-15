@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -30,7 +29,6 @@ import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundFees;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
@@ -115,6 +113,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
+        validateRefundPaymentAmount(refundRequest);
         IdamUserIdResponse uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
         refundsRepository.save(refund);
@@ -433,4 +432,28 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
         return rawReason;
     }
+
+    private void validateRefundPaymentAmount(RefundRequest refundRequest) {
+
+        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
+        BigDecimal amount = BigDecimal.ZERO;
+
+        if (refundsList.isPresent()) {
+            List<Refund> refundsListStatus = refundsList.get().stream().filter(refund -> refund.getRefundStatus().equals(
+                    RefundStatus.ACCEPTED) || refund.getRefundStatus().equals(RefundStatus.APPROVED))
+                .collect(Collectors.toList());
+            for (Refund ref : refundsListStatus) {
+                amount = ref.getAmount().add(amount);
+            }
+            amount = refundRequest.getRefundAmount().add(amount);
+            int amountCompare = amount.compareTo(refundRequest.getPaymentAmount());
+
+            if (amountCompare == 1) {
+                throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
+
+            }
+        }
+
+    }
+
 }
