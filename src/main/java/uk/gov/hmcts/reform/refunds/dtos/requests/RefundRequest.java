@@ -66,8 +66,4 @@ public class RefundRequest {
     @NotNull(message = "Refund Fee  cannot be null")
    private List<RefundFeeDto> refundFees;
 
-    @DecimalMin(value = "0.01", message = "Amount must be greater than or equal to 0.01")
-    @Positive(message = "Amount must be greater than 0")
-    @Digits(integer = 10, fraction = 2, message = "Refund amount cannot have more than 2 decimal places")
-    private BigDecimal paymentAmount;
 }

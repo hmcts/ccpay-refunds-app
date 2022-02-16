@@ -28,11 +28,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
-import uk.gov.hmcts.reform.refunds.model.ContactDetails;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
@@ -81,6 +77,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber1 = () -> Refund.refundsWith()
         .id(1)
         .amount(BigDecimal.valueOf(100))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
         .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .reference("RF-1111-2234-1077-1123")
@@ -101,6 +105,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber2 = () -> Refund.refundsWith()
         .id(1)
         .amount(BigDecimal.valueOf(100))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
         .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
         .reference("RF-1111-2234-1077-1123")
@@ -114,6 +126,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber3 = () -> Refund.refundsWith()
         .id(1)
         .amount(BigDecimal.valueOf(100))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
         .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
         .reference("RF-1111-2234-1077-1123")
@@ -127,6 +147,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierForSubmittedStatus = () -> Refund.refundsWith()
         .id(2)
         .amount(BigDecimal.valueOf(200))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_SUBMITTED_REFUND_STATUS)
         .createdBy(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
         .updatedBy(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
@@ -140,6 +168,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierForSendBackStatus = () -> Refund.refundsWith()
         .id(3)
         .amount(BigDecimal.valueOf(300))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_SENDBACK_REFUND_STATUS)
         .createdBy(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
         .updatedBy(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)

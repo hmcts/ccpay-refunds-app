@@ -54,12 +54,8 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.model.ContactDetails;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.RejectionReason;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -202,6 +198,7 @@ class RefundControllerTest {
     private RefundRequest refundRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundAmount(new BigDecimal(100))
+        .paymentAmount(new BigDecimal(100))
         .refundReason("RR002")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
@@ -209,7 +206,7 @@ class RefundControllerTest {
             RefundFeeDto.refundFeeRequestWith()
                 .feeId(1)
                 .code("RR001")
-                .version("1.0")
+                .version("1")
                 .volume(1)
                 .refundAmount(new BigDecimal(100))
                 .build()))
@@ -221,6 +218,7 @@ class RefundControllerTest {
     private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundAmount(new BigDecimal(100))
+        .paymentAmount(new BigDecimal(100))
         .refundReason("RR036")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
@@ -228,7 +226,7 @@ class RefundControllerTest {
             RefundFeeDto.refundFeeRequestWith()
                 .feeId(1)
                 .code("RR001")
-                .version("1.0")
+                .version("1")
                 .volume(1)
                 .refundAmount(new BigDecimal(100))
                 .build()))
@@ -656,6 +654,7 @@ class RefundControllerTest {
                                                .content(asJsonString(RefundRequest.refundRequestWith()
                                                                          .paymentReference("RC-1234-1234-1234-1234")
                                                                          .refundAmount(new BigDecimal(100))
+                                                                         .paymentAmount(new BigDecimal(100))
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
@@ -663,7 +662,7 @@ class RefundControllerTest {
                                                                              RefundFeeDto.refundFeeRequestWith()
                                                                                  .feeId(1)
                                                                                  .code("RR001")
-                                                                                 .version("1.0")
+                                                                                 .version("1")
                                                                                  .volume(1)
                                                                                  .refundAmount(new BigDecimal(100))
                                                                                  .build()))
@@ -841,6 +840,7 @@ class RefundControllerTest {
                                                .content(asJsonString(RefundRequest.refundRequestWith()
                                                                          .paymentReference("RC-1234-1234-1234-1234")
                                                                          .refundAmount(new BigDecimal(100))
+                                                                         .paymentAmount(new BigDecimal(100))
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
@@ -848,7 +848,7 @@ class RefundControllerTest {
                                                                              RefundFeeDto.refundFeeRequestWith()
                                                                                  .feeId(1)
                                                                                  .code("RR001")
-                                                                                 .version("1.0")
+                                                                                 .version("1")
                                                                                  .volume(1)
                                                                                  .refundAmount(new BigDecimal(100))
                                                                                  .build()))
@@ -1930,6 +1930,14 @@ class RefundControllerTest {
         return Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
+            .refundFees(Arrays.asList(
+                RefundFees.refundFeesWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1")
+                    .volume(1)
+                    .refundAmount(new BigDecimal(100))
+                    .build()))
             .reason("RR0001")
             .reference("RF-1628-5241-9956-2215")
             .paymentReference("RC-1628-5241-9956-2315")
