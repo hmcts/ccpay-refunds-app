@@ -397,6 +397,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .feeIds(refundRequest.getFeeIds())
+            .serviceType(refundRequest.getServiceType())
             .createdBy(uid)
             .updatedBy(uid)
             .contactDetails(refundRequest.getContactDetails())

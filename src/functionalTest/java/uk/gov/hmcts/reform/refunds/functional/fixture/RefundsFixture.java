@@ -54,6 +54,7 @@ public final class RefundsFixture {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
+            .serviceType("cmc")
             .refundAmount(new BigDecimal(refundAmount))
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
@@ -64,6 +65,7 @@ public final class RefundsFixture {
                     .id(0)
                     .version("1")
                     .volume(1)
+
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()
