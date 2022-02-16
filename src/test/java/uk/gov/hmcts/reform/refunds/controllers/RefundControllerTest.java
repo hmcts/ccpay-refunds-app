@@ -214,6 +214,7 @@ class RefundControllerTest {
                 .email("abc@abc.com")
                 .notificationType("EMAIL")
                 .build())
+        .serviceType("dummy")
         .build();
     private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
@@ -229,6 +230,7 @@ class RefundControllerTest {
                 .postalCode("E1 6AN")
                 .notificationType("LETTER")
                 .build())
+        .serviceType("xyz")
         .build();
 
     @Autowired
@@ -664,6 +666,7 @@ class RefundControllerTest {
                             .email("abc@abc.com")
                             .notificationType("EMAIL")
                             .build())
+                    .serviceType("sample")
                     .build()))
             .header("Authorization", "user")
             .header("ServiceAuthorization", "Services")
@@ -841,6 +844,7 @@ class RefundControllerTest {
                             .email("abc@abc.com")
                             .notificationType("EMAIL")
                             .build())
+                    .serviceType("abc")
                     .build()))
             .header("Authorization", "user")
             .header("ServiceAuthorization", "Services")
