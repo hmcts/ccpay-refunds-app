@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jmx.export.notification.UnableToSendNotificationException;
@@ -29,6 +28,7 @@ import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.ArrayList;
@@ -75,21 +75,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     @Autowired
     private RefundNotificationMapper refundNotificationMapper;
 
-    @Value("${notify.template.cheque-po-cash.letter}")
-    private String chequePoCashLetterTemplateId;
-
-    @Value("${notify.template.cheque-po-cash.email}")
-    private String chequePoCashEmailTemplateId;
-
-    @Value("${notify.template.card-pba.letter}")
-    private String cardPbaLetterTemplateId;
-
-    @Value("${notify.template.card-pba.email}")
-    private String cardPbaEmailTemplateId;
-
-    private static final String CHEQUE = "cheque";
-
-    private static final String CASH = "cash";
+    @Autowired
+    private RefundsUtil refundsUtil;
 
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
@@ -256,20 +243,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                     method = paymentResponse.getMethod();
                 }
             }
-
-            if (CHEQUE.equals(method) || method.contains("postal") || CASH.equals(method)) {
-                if (EMAIL.equals(refund.getContactDetails().getNotificationType())) {
-                    return chequePoCashEmailTemplateId;
-                } else {
-                    return chequePoCashLetterTemplateId;
-                }
-            } else {
-                if (EMAIL.equals(refund.getContactDetails().getNotificationType())) {
-                    return cardPbaEmailTemplateId;
-                } else {
-                    return cardPbaLetterTemplateId;
-                }
-            }
+            return refundsUtil.getTemplate(method, refund.getContactDetails().getNotificationType());
         }
         throw new PaymentServerException("Payment Server Exception");
     }

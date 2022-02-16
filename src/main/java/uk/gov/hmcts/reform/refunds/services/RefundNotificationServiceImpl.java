@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -16,6 +15,7 @@ import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
@@ -42,21 +42,8 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
     @Autowired
     private PaymentService paymentService;
 
-    @Value("${notify.template.cheque-po-cash.letter}")
-    private String chequePoCashLetterTemplateId;
-
-    @Value("${notify.template.cheque-po-cash.email}")
-    private String chequePoCashEmailTemplateId;
-
-    @Value("${notify.template.card-pba.letter}")
-    private String cardPbaLetterTemplateId;
-
-    @Value("${notify.template.card-pba.email}")
-    private String cardPbaEmailTemplateId;
-
-    private static final String CHEQUE = "cheque";
-
-    private static final String CASH = "cash";
+    @Autowired
+    private RefundsUtil refundsUtil;
 
     @Override
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
@@ -121,20 +108,8 @@ public class RefundNotificationServiceImpl implements RefundNotificationService 
                 method = paymentResponse.getMethod();
             }
         }
+        return refundsUtil.getTemplate(method, resendNotificationRequest.getNotificationType().name());
 
-        if (CHEQUE.equals(method) || method.contains("postal") || CASH.equals(method)) {
-            if (EMAIL.equals(resendNotificationRequest.getNotificationType())) {
-                return chequePoCashEmailTemplateId;
-            } else {
-                return chequePoCashLetterTemplateId;
-            }
-        } else {
-            if (EMAIL.equals(resendNotificationRequest.getNotificationType())) {
-                return cardPbaEmailTemplateId;
-            } else {
-                return cardPbaLetterTemplateId;
-            }
-        }
     }
 
     private void validateResendNotificationRequest(ResendNotificationRequest resendNotificationRequest) {

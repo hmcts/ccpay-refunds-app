@@ -72,6 +72,7 @@ import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -289,6 +290,9 @@ class RefundControllerTest {
 
     @MockBean
     private RefundNotificationService refundNotificationService;
+
+    @MockBean
+    private RefundsUtil refundsUtil;
 
     @MockBean
     @Qualifier("restTemplateNotify")
@@ -869,7 +873,7 @@ class RefundControllerTest {
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
@@ -918,7 +922,7 @@ class RefundControllerTest {
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
@@ -1273,7 +1277,7 @@ class RefundControllerTest {
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
@@ -1314,7 +1318,7 @@ class RefundControllerTest {
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
@@ -1360,7 +1364,7 @@ class RefundControllerTest {
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
@@ -1438,12 +1442,12 @@ class RefundControllerTest {
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
 
         ));
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         ReconciliationProviderResponse reconciliationProviderResponse = ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
                 .amount(BigDecimal.valueOf(100))
                 .refundReference("RF-1628-5241-9956-2215")
@@ -1480,7 +1484,7 @@ class RefundControllerTest {
         when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
-
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
@@ -1539,7 +1543,7 @@ class RefundControllerTest {
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
-
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
@@ -1588,7 +1592,7 @@ class RefundControllerTest {
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
-
+        when(refundsUtil.getTemplate(anyString(), anyString())).thenReturn("templateId");
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getPaymentGroupDto())
@@ -1756,7 +1760,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void updateRefundStatusRejectedWithOutReason() throws Exception {
+    void updateRefundStatusRejectedWithoutReason() throws Exception {
         RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith()
             .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED).build();
         refund.setRefundStatus(RefundStatus.APPROVED);
