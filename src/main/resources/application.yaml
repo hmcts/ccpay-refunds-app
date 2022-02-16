@@ -142,7 +142,7 @@ launchDarkly:
 
 payments:
   api:
-    url: ${PAYMENT_API_URL:http://localhost:8095}
+    url: ${PAYMENT_API_URL:}
 
 
 reconciliation-provider:
