@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.refunds.dtos.requests;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +12,7 @@ import lombok.Setter;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;

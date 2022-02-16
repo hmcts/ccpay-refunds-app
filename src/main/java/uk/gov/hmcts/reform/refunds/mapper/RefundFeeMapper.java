@@ -18,7 +18,7 @@ public class RefundFeeMapper {
             .build();
     }
 
-    public ReconcilitationProviderFeeRequest toRefundFeeForReconcilitationProvider(RefundFees refundFees){
+    public ReconcilitationProviderFeeRequest toRefundFeeForReconcilitationProvider(RefundFees refundFees) {
 
         return ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
             .code(refundFees.getCode())

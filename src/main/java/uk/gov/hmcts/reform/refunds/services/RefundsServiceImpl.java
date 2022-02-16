@@ -68,6 +68,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
+    private static int amountCompareValue = 1;
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -448,7 +449,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             amount = refundRequest.getRefundAmount().add(amount);
             int amountCompare = amount.compareTo(refundRequest.getPaymentAmount());
 
-            if (amountCompare == 1) {
+            if (amountCompare == amountCompareValue) {
                 throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
 
             }
