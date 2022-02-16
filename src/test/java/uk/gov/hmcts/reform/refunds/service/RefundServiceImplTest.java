@@ -911,4 +911,26 @@ public class RefundServiceImplTest {
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("Email id is not valid"));
     }
+
+    @Test
+    void givenValidAmountInput_whenResubmitRefund_thenRefundStatusUpdated1() {
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
+        RefundReason refundReason =
+            RefundReason.refundReasonWith().code("BBB").description("CCC").name("DDD").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+
+        ResubmitRefundResponseDto response =
+            refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
+
+        assertNotNull(response);
+        assertEquals(BigDecimal.valueOf(100), response.getRefundAmount());
+        assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
+    }
 }
