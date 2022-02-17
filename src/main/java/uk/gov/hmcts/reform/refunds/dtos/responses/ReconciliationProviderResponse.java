@@ -19,4 +19,12 @@ public class ReconciliationProviderResponse {
     private String refundReference;
 
     private BigDecimal amount;
+
+    @Override
+    public String toString() {
+        return "ReconciliationProviderResponse{"
+                + "refundReference='" + refundReference + '\''
+                + ", amount=" + amount
+                + '}';
+    }
 }

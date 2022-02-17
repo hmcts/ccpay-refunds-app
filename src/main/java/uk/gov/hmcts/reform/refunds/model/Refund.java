@@ -80,5 +80,22 @@ public class Refund {
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
-
+    @Override
+    public String toString() {
+        return "Refund{"
+                + "id=" + id
+                + ", ccdCaseNumber='" + ccdCaseNumber + '\''
+                + ", amount=" + amount
+                + ", reason='" + reason + '\''
+                + ", refundStatus=" + refundStatus
+                + ", reference='" + reference + '\''
+                + ", feeIds='" + feeIds + '\''
+                + ", paymentReference='" + paymentReference + '\''
+                + ", dateCreated=" + dateCreated
+                + ", dateUpdated=" + dateUpdated
+                + ", createdBy='" + createdBy + '\''
+                + ", updatedBy='" + updatedBy + '\''
+                + ", statusHistories=" + statusHistories
+                + '}';
+    }
 }
