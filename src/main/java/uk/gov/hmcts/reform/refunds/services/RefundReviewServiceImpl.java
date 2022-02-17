@@ -91,7 +91,10 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                     .updateReconciliationProviderWithApprovedRefund(
                     reconciliationProviderRequest
                 );
-                LOG.info("reconciliationProviderResponseResponse: {}", reconciliationProviderResponseResponse.getBody().toString());
+                if (null != reconciliationProviderResponseResponse && null != reconciliationProviderResponseResponse.getBody()) {
+                    LOG.info("reconciliationProviderResponseResponse: {}",
+                            reconciliationProviderResponseResponse.getBody().toString());
+                }
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
                 } else {
