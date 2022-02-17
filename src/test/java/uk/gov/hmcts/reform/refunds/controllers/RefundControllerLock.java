@@ -93,6 +93,7 @@ public class RefundControllerLock {
                                                                                     .volume(1)
                                                                                     .refundAmount(new BigDecimal(100))
                                                                                     .build()))
+                                                                            .serviceType("cmc")
                                                                             .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                             .build()))
                                                   .header("Authorization", "user")

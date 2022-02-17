@@ -65,6 +65,10 @@ public class RefundRequest {
     private ContactDetails contactDetails;
 
     @NotNull(message = "Refund Fee  cannot be null")
-   private List<RefundFeeDto> refundFees;
+    private List<RefundFeeDto> refundFees;
+
+    @NotNull(message = "Service type cannot be null")
+    @NotEmpty(message = "Service type cannot be blank")
+    private String serviceType;
 
 }
