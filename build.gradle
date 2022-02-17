@@ -207,8 +207,6 @@ configurations {
   }
 }
 
-apply from: "${rootDir}/cve-resolution-strategy.gradle"
-
 dependencies {
 
   compile ('com.sun.xml.bind:jaxb-osgi:2.3.1')

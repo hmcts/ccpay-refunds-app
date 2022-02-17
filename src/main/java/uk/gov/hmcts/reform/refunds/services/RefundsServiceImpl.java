@@ -405,6 +405,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .feeIds(refundRequest.getFeeIds())
+            .serviceType(refundRequest.getServiceType())
             .createdBy(uid)
             .updatedBy(uid)
             .contactDetails(refundRequest.getContactDetails())
@@ -422,7 +423,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
-        if (rawReason.startsWith("RR")) {
+        if (null != rawReason && rawReason.startsWith("RR")) {
             List<RefundReason> refundReasonOptional =  refundReasonList.stream()
                 .filter(refundReason -> refundReason.getCode().equalsIgnoreCase(rawReason))
                 .collect(Collectors.toList());

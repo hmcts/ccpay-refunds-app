@@ -44,6 +44,8 @@ public class RefundDto {
 
     private String dateUpdated;
 
+    private String serviceType;
+
     private ContactDetails contactDetails;
 
 }
