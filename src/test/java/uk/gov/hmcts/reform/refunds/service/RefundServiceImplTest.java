@@ -913,7 +913,7 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void givenValidAmountInput_whenResubmitRefund_thenRefundStatusUpdated1() {
+    void givenValidAmountInput_whenResubmitRefund_thenRefundStatusUpdated() {
         ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
         resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
         RefundReason refundReason =
@@ -931,6 +931,56 @@ public class RefundServiceImplTest {
 
         assertNotNull(response);
         assertEquals(BigDecimal.valueOf(100), response.getRefundAmount());
+        assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
+    }
+
+    @Test
+    void givenValidReasonInput_whenResubmitRefund_thenRefundStatusUpdated() {
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setRefundReason("RR002");
+        RefundReason refundReason =
+            RefundReason.refundReasonWith().code("RR001").description("The claim is amended").name("Amended claim").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+
+        ResubmitRefundResponseDto response =
+            refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
+
+        assertNotNull(response);
+        assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
+    }
+
+    @Test
+    void givenValidContactDeatilsInput_whenResubmitRefund_thenRefundStatusUpdated() {
+        ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setContactDetails(ContactDetails.contactDetailsWith()
+                                                    .addressLine("High Street 112")
+                                                    .country("UK")
+                                                    .county("Londonshire")
+                                                    .city("London")
+                                                    .postalCode("P1 1PO")
+                                                    .email("person@somemail.com")
+                                                    .notificationType("EMAIL")
+                                                    .build());
+        RefundReason refundReason =
+            RefundReason.refundReasonWith().code("RR001").description("The claim is amended").name("Amended claim").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(refundListSupplierForSendBackStatus.get());
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(PAYMENT_GROUP_RESPONSE.get());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(true);
+
+        ResubmitRefundResponseDto response =
+            refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null);
+
+        assertNotNull(response);
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
 }
