@@ -36,13 +36,13 @@ public class PaymentRefundRequest {
     @NotEmpty(message = "Refund Reason cannot be blank")
     private String refundReason;
 
-    @Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
+    /*@Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
     @NotNull(message = "You need to enter a refund amount")
     private BigDecimal refundAmount;
 
     @NotEmpty
     @Valid
-    private List<FeeDto> fees;
+    private List<FeeDto> fees;*/
 
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;

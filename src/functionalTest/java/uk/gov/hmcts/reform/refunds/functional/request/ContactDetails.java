@@ -27,4 +27,6 @@ public class ContactDetails {
     private String email;
 
     private String notificationType;
+
+    private String templateId;
 }
