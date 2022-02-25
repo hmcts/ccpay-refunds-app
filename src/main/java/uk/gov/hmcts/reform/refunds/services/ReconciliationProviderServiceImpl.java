@@ -42,6 +42,7 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
         try {
             headers.add("X-API-KEY", apiKey);
 
+            LOG.info("Request Headers sent to Liberata: {}", headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplate.exchange(
                 builder.toUriString(),
