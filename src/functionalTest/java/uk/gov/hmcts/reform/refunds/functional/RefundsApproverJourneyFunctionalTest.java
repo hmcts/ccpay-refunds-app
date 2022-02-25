@@ -259,13 +259,11 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
         Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-        if(refund.get().getContactDetails().getNotificationType().equalsIgnoreCase("EMAIL")){
+        if (refund.get().getContactDetails().getNotificationType().equalsIgnoreCase("EMAIL")) {
             assertThat(refund.get().getNotificationSentFlag()).isEqualTo("EMAIL_SENT");
-
         }
-        if(refund.get().getContactDetails().getNotificationType().equalsIgnoreCase("LETTER")){
+        if (refund.get().getContactDetails().getNotificationType().equalsIgnoreCase("LETTER")) {
             assertThat(refund.get().getNotificationSentFlag()).isEqualTo("LETTER_SENT");
-
         }
 
         Response refundStatusHistoryListResponse =
