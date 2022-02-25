@@ -28,7 +28,9 @@ import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
 import uk.gov.hmcts.reform.refunds.functional.response.PaymentsResponse;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
+import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -66,6 +68,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Inject
     private PaymentTestService paymentTestService;
+    @Autowired
+    private RefundsRepository refundsRepository;
 
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
@@ -235,7 +239,6 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_approve_a_refund_request() {
 
         final String refundReference = performRefund();
-
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -255,6 +258,15 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
+        if(refund.get().getContactDetails().getNotificationType().equalsIgnoreCase("EMAIL")){
+            assertThat(refund.get().getNotificationSentFlag()).isEqualTo("EMAIL_SENT");
+
+        }
+        if(refund.get().getContactDetails().getNotificationType().equalsIgnoreCase("LETTER")){
+            assertThat(refund.get().getNotificationSentFlag()).isEqualTo("LETTER_SENT");
+
+        }
 
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -444,6 +456,10 @@ public class RefundsApproverJourneyFunctionalTest {
                 .status(RefundStatus.ACCEPTED).build()
         );
         assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
+        assertThat(refund.get().getRefundApproveFlag()).isEqualTo("SENT");
+
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
