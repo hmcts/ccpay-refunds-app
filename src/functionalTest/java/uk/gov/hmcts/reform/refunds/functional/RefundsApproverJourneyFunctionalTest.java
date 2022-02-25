@@ -551,6 +551,9 @@ public class RefundsApproverJourneyFunctionalTest {
                 .status(RefundStatus.REJECTED).build()
         );
         assertThat(updateReviewRefund.getStatusCode()).isEqualTo(NO_CONTENT.value());
+        Optional<Refund> refund = refundsRepository.findByReference(refundReference);
+        assertThat(refund.get().getRefundApproveFlag()).isEqualTo("NOT SENT");
+
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
