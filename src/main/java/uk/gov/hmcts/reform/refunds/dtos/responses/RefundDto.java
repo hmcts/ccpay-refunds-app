@@ -48,4 +48,6 @@ public class RefundDto {
 
     private ContactDetails contactDetails;
 
+    private String feeIds;
+
 }
