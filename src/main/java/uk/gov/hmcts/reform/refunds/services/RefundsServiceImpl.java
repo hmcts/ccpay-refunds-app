@@ -117,6 +117,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         validateRefundPaymentAmount(refundRequest);
         IdamUserIdResponse uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
+        LOG.info("Saving refund: {}", refund);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
