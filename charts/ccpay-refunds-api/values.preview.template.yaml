@@ -57,7 +57,7 @@ java:
           alias: NOTIFICATIONS_LETTER_CHEQUE_PO_CASH_TEMPLATE_ID
         - name: notifications-email-cheque-po-cash-template-id
           alias: NOTIFICATIONS_EMAIL_CHEQUE_PO_CASH_TEMPLATE_ID
-        - name: notifications-email-card-pba-template-id
+        - name: notifications-letter-card-pba-template-id
           alias: NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID
         - name: notifications-email-card-pba-template-id
           alias: NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID
