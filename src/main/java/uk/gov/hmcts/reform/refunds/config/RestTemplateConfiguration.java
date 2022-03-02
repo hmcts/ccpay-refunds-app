@@ -27,8 +27,9 @@ public class RestTemplateConfiguration {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
-    @Bean("restTemplateNotify")
-    public RestTemplate restTemplateNotify() {
+    @Bean("restTemplateLiberata")
+    public RestTemplate restTemplateLiberata() {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
+
 }

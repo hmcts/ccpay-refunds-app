@@ -82,6 +82,7 @@ public class RefundControllerLock {
                                                                             .refundReason("RR035-Other-Reason")
                                                                             .ccdCaseNumber("1111222233334444")
                                                                             .feeIds("1")
+                                                                            .serviceType("cmc")
                                                                             .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                             .build()))
                                                   .header("Authorization", "user")

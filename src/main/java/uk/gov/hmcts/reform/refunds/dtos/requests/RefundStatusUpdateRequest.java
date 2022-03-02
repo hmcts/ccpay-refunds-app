@@ -35,4 +35,11 @@ public class RefundStatusUpdateRequest {
         return status == REJECTED && StringUtils.isBlank(reason);
     }
 
+    @Override
+    public String toString() {
+        return "RefundStatusUpdateRequest{"
+                + "reason='" + reason + '\''
+                + ", status=" + status
+                + '}';
+    }
 }

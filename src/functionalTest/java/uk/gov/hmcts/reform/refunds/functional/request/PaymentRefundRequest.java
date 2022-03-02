@@ -46,4 +46,8 @@ public class PaymentRefundRequest {
 
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
+
+    @NotNull(message = "Service type cannot be null")
+    @NotEmpty(message = "Service type cannot be blank")
+    private String serviceType;
 }

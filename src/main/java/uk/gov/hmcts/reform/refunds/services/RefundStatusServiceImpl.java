@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     private static final String LIBERATA_NAME = "Middle office provider";
     private static final String ACCEPTED = "Accepted";
+    private static final Logger LOG = LoggerFactory.getLogger(RefundStatusServiceImpl.class);
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -35,6 +38,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     @Override
     public ResponseEntity updateRefundStatus(String reference, RefundStatusUpdateRequest statusUpdateRequest, MultiValueMap<String, String> headers) {
+        LOG.info("statusUpdateRequest: {}", statusUpdateRequest);
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         if (currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
@@ -54,9 +58,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     statusUpdateRequest.getReason()
                                                         )
                 ));
+                refund.setReason(statusUpdateRequest.getReason());
             }
             refund.setUpdatedBy(LIBERATA_NAME);
-            refund.setReason(statusUpdateRequest.getReason());
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
         }
