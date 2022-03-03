@@ -35,13 +35,7 @@ public class ReconciliationProviderMapper {
 
     public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund) {
         LOG.info("paymentDto != null: {}", paymentDto != null);
-        if (paymentDto != null) {
-            LOG.info("paymentDto.getPayments(): {}", paymentDto.getPayments());
-            if (paymentDto.getPayments() != null
-                    && !paymentDto.getPayments().isEmpty()) {
-                LOG.info("paymentDto.getPayments().get(0): {}", paymentDto.getPayments().get(0));
-            }
-        }
+        logPaymentDto(paymentDto);
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
             .refundReference(refund.getReference())
             .paymentReference(paymentDto.getPayments().get(0).getReference())
@@ -57,6 +51,15 @@ public class ReconciliationProviderMapper {
             .build();
     }
 
+    private void logPaymentDto(PaymentGroupResponse paymentDto) {
+        if (paymentDto != null) {
+            LOG.info("paymentDto.getPayments(): {}", paymentDto.getPayments());
+            if (paymentDto.getPayments() != null
+                && !paymentDto.getPayments().isEmpty()) {
+                LOG.info("paymentDto.getPayments().get(0): {}", paymentDto.getPayments().get(0));
+            }
+        }
+    }
 
     private List<ReconcilitationProviderFeeRequest> getRefundRequestFees(Refund refund, PaymentGroupResponse paymentGroupResponse) {
         String feeIds = refund.getFeeIds();
