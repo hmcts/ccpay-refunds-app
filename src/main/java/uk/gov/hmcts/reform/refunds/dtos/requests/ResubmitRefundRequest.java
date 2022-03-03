@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 
 import java.math.BigDecimal;
 
@@ -25,5 +26,7 @@ public class ResubmitRefundRequest {
     private String refundReason;
 
     private BigDecimal amount;
+
+    private ContactDetails contactDetails;
 
 }
