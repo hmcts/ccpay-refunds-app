@@ -49,7 +49,7 @@ public class PaymentServiceImpl implements PaymentService {
             ResponseEntity<PaymentGroupResponse> paymentGroupResponse =
                     fetchPaymentGroupDataFromPayhub(headers, paymentReference);
             logger.info("paymentGroupResponse != null: {}", (paymentGroupResponse != null));
-            if(paymentGroupResponse != null){
+            if (paymentGroupResponse != null) {
                 logger.info("paymentGroupResponse.getBody(): {}", paymentGroupResponse.getBody());
             }
             return paymentGroupResponse.getBody();
