@@ -240,6 +240,7 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_approve_a_refund_request() {
 
         final String refundReference = performRefund();
+
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -711,8 +712,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .pbaPaymentRequestForProbate(
                 "90.00",
                 "PROBATE",
-                accountNumber
-            );
+                accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
 
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();

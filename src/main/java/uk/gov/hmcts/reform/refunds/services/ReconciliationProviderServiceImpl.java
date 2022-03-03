@@ -50,7 +50,6 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             MultiValueMap<String, String> header = new HttpHeaders();
             header.add("X-API-KEY", apiKey);
 
-            LOG.info("Request Headers sent to Liberata: {}", header);
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplateLiberata.exchange(
                 builder.toUriString(),
