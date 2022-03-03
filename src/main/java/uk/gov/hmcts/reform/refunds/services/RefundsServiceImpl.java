@@ -164,6 +164,16 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
+    private void logPaymentsRefund() {
+        if (contextStartListener != null) {
+            LOG.info("contextStartListener is not null");
+            LOG.info("contextStartListener.getUserMap(): {}", contextStartListener.getUserMap());
+            if (contextStartListener.getUserMap() != null) {
+                LOG.info("contextStartListener.getUserMap().get(payments-refund): {}", contextStartListener.getUserMap().get("payments-refund"));
+            }
+        }
+    }
+
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
@@ -171,6 +181,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
 
         if (!roles.isEmpty()) {
+            logPaymentsRefund();
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
@@ -401,6 +412,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .refundStatus(SENTFORAPPROVAL)
             .reference(referenceUtil.getNext("RF"))
             .feeIds(refundRequest.getFeeIds())
+            .serviceType(refundRequest.getServiceType())
             .createdBy(uid)
             .updatedBy(uid)
             .contactDetails(refundRequest.getContactDetails())
@@ -416,7 +428,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
-        if (rawReason.startsWith("RR")) {
+        if (null != rawReason && rawReason.startsWith("RR")) {
             List<RefundReason> refundReasonOptional =  refundReasonList.stream()
                 .filter(refundReason -> refundReason.getCode().equalsIgnoreCase(rawReason))
                 .collect(Collectors.toList());
