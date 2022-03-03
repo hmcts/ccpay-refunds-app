@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.mappers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
@@ -27,11 +29,18 @@ import java.util.stream.Collectors;
 
 @Component
 public class ReconciliationProviderMapper {
-
+    private static final Logger LOG = LoggerFactory.getLogger(ReconciliationProviderMapper.class);
     @Autowired
     private RefundReasonRepository refundReasonRepository;
 
     public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund) {
+        LOG.info("paymentDto != null: {}", (paymentDto != null));
+        if(paymentDto != null){
+            LOG.info("paymentDto.getPayments(): {}", paymentDto.getPayments());
+            if((paymentDto.getPayments() != null) && !paymentDto.getPayments().isEmpty()){
+                LOG.info("paymentDto.getPayments().get(0): {}", paymentDto.getPayments().get(0));
+            }
+        }
         return ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
             .refundReference(refund.getReference())
             .paymentReference(paymentDto.getPayments().get(0).getReference())

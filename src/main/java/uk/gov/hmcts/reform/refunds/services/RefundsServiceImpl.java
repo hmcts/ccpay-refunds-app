@@ -167,6 +167,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
 
         if (!roles.isEmpty()) {
+            if(contextStartListener != null){
+                LOG.info("contextStartListener is not null");
+                LOG.info("contextStartListener.getUserMap(): {}", contextStartListener.getUserMap());
+                if(contextStartListener.getUserMap() != null) {
+                    LOG.info("contextStartListener.getUserMap().get(payments-refund): {}", contextStartListener.getUserMap().get("payments-refund"));
+                }
+            }
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
             LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
