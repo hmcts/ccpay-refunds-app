@@ -34,10 +34,11 @@ public class ReconciliationProviderMapper {
     private RefundReasonRepository refundReasonRepository;
 
     public ReconciliationProviderRequest getReconciliationProviderRequest(PaymentGroupResponse paymentDto, Refund refund) {
-        LOG.info("paymentDto != null: {}", (paymentDto != null));
+        LOG.info("paymentDto != null: {}", paymentDto != null);
         if (paymentDto != null) {
             LOG.info("paymentDto.getPayments(): {}", paymentDto.getPayments());
-            if ((paymentDto.getPayments() != null) && !paymentDto.getPayments().isEmpty()) {
+            if (paymentDto.getPayments() != null
+                    && !paymentDto.getPayments().isEmpty()) {
                 LOG.info("paymentDto.getPayments().get(0): {}", paymentDto.getPayments().get(0));
             }
         }
