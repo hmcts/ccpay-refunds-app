@@ -859,7 +859,7 @@ class RefundControllerTest {
     void approveRefundRequestReturnsSuccessResponse() throws Exception {
         when(restTemplateNotify.exchange(anyString(),
                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
-            new ResponseEntity<String>("Success", HttpStatus.OK)
+             new ResponseEntity<String>("Success", HttpStatus.OK)
         );
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
@@ -909,7 +909,7 @@ class RefundControllerTest {
     void approveRefundRequestReturnsSuccessResponsewithLetternotification() throws Exception {
         when(restTemplateNotify.exchange(anyString(),
                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
-            new ResponseEntity<String>("Success", HttpStatus.OK)
+             new ResponseEntity<String>("Success", HttpStatus.OK)
         );
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
@@ -1160,7 +1160,8 @@ class RefundControllerTest {
 
     @Test
     void approveRefundRequestForNotExistingPaymentReturnsBadRequest() throws Exception {
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR001", "reason1");
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         when(authTokenGenerator.generate()).thenReturn("service auth token");
@@ -1194,7 +1195,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestPaymentServerIsUnAvailableReturnsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1226,7 +1228,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenSendingMalformedRequestToPaymentReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1258,7 +1261,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenSendingInvalidRequestToReconciliationProviderReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1299,7 +1303,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenReconciliationProviderIsUnavailableReturnsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1345,7 +1350,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenReconciliationProviderReceivesDuplicateRequestReturnsDuplicateRequestMessage() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1424,7 +1430,8 @@ class RefundControllerTest {
             new ResponseEntity<String>("Success", HttpStatus.OK)
         );
         refundWithRetroRemission.setReason("RR036");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1478,7 +1485,8 @@ class RefundControllerTest {
 
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
 
@@ -1530,7 +1538,8 @@ class RefundControllerTest {
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
         refundWithRetroRemission.setAmount(BigDecimal.valueOf(10));
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1580,7 +1589,8 @@ class RefundControllerTest {
         );
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
