@@ -57,7 +57,7 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
                 new HttpEntity<>(reconciliationProviderRefundRequest, header), ReconciliationProviderResponse.class
             );
         } catch (HttpClientErrorException e) {
-            LOG.error("HttpClientErrorException", e);
+            LOG.error("HttpClientErrorException Error", e);
             if (e.getStatusCode().equals(HttpStatus.CONFLICT)) {
                 throw new ReconciliationProviderInvalidRequestException("Duplicate request.", e);
             }
