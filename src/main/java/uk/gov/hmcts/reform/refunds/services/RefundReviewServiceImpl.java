@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jmx.export.notification.UnableToSendNotificationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
@@ -36,8 +37,6 @@ import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
 
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.NOTAPPLICABLE;
 import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
-
-
 
 @Service
 public class RefundReviewServiceImpl extends StateUtil implements RefundReviewService {
@@ -113,8 +112,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
                     refundForGivenReference.setRefundApproveFlag("SENT");
-                    refundForGivenReference = updateNotification(headers, refundForGivenReference);
                     refundsRepository.save(refundForGivenReference);
+                    updateNotification(headers, refundForGivenReference);
                 } else {
                     refundForGivenReference.setRefundApproveFlag("NOT SENT");
                     refundsRepository.save(refundForGivenReference);
@@ -123,8 +122,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             } else {
                 updateRefundStatus(refundForGivenReference, refundEvent);
                 refundForGivenReference.setRefundApproveFlag("NOT SENT");
-                refundForGivenReference = updateNotification(headers, refundForGivenReference);
                 refundsRepository.save(refundForGivenReference);
+                updateNotification(headers, refundForGivenReference);
             }
             statusMessage = "Refund approved";
         }
@@ -147,21 +146,29 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         return new ResponseEntity<>(statusMessage, HttpStatus.CREATED);
     }
 
-    private Refund updateNotification(MultiValueMap<String, String> headers, Refund refundForGivenReference) {
+    private void updateNotification(MultiValueMap<String, String> headers, Refund refundForGivenReference) {
         ResponseEntity<String>  responseEntity =  sendNotification(refundForGivenReference, headers);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refundForGivenReference.setNotificationSentFlag("SENT");
             refundForGivenReference.setContactDetails(null);
+            refundsRepository.save(refundForGivenReference);
         } else if (responseEntity.getStatusCode().is5xxServerError()) {
             if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL.name())) {
                 refundForGivenReference.setNotificationSentFlag("EMAIL_NOT_SENT");
+                refundsRepository.save(refundForGivenReference);
+                throw new UnableToSendNotificationException("Notification not sent ");
             } else {
                 refundForGivenReference.setNotificationSentFlag("LETTER_NOT_SENT");
+                refundsRepository.save(refundForGivenReference);
+                throw new UnableToSendNotificationException("Notification Not sent ");
             }
         } else {
             refundForGivenReference.setNotificationSentFlag("ERROR");
+            refundsRepository.save(refundForGivenReference);
+            throw new UnableToSendNotificationException("Notification Not sent ");
+
         }
-        return refundForGivenReference;
+
     }
 
     private Refund validatedAndGetRefundForGivenReference(String reference, String userId) {
