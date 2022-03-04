@@ -414,8 +414,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Optional<PaymentDto> paymentDtoOptional
                 = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
+                    return s2.getDateCreated().compareTo(s1.getDateCreated());
+                }).findFirst();
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
@@ -615,8 +615,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Optional<PaymentDto> paymentDtoOptional
                 = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
+                    return s2.getDateCreated().compareTo(s1.getDateCreated());
+                }).findFirst();
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
@@ -738,8 +738,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Optional<PaymentDto> paymentDtoOptional
                 = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
+                    return s2.getDateCreated().compareTo(s1.getDateCreated());
+                }).findFirst();
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 ccdCaseNumber,"5",
@@ -804,8 +804,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Optional<PaymentDto> paymentDtoOptional
                 = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
+                    return s2.getDateCreated().compareTo(s1.getDateCreated());
+                }).findFirst();
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 ccdCaseNumber,"5",
