@@ -105,6 +105,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     public ResponseEntity return413(LargePayloadException ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.PAYLOAD_TOO_LARGE);
+    }
 
     @ExceptionHandler(UnableToSendNotificationException.class)
     public ResponseEntity return501(UnableToSendNotificationException ex) {

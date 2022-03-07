@@ -544,6 +544,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 return criteriaBuilder.or(predicates.toArray(REF));
             }
         }));
+    }
 
     @SuppressWarnings({"PMD"})
     private void validateContactDetails(ContactDetails contactDetails) {
