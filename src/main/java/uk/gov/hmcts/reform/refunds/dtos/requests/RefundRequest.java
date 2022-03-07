@@ -61,4 +61,6 @@ public class RefundRequest {
     @NotNull(message = "Service type cannot be null")
     @NotEmpty(message = "Service type cannot be blank")
     private String serviceType;
+
+    private String method;
 }

@@ -5,14 +5,18 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLibarata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -37,12 +41,14 @@ import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
+import uk.gov.hmcts.reform.refunds.utils.PaymentMethodType;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,6 +56,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
@@ -67,6 +79,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
+    private static final Predicate[] REF = new Predicate[0];
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -109,8 +122,20 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
+        String paymnetMethod = null;
         IdamUserIdResponse uid = idamService.getUserId(headers);
-        Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
+
+        if (refundRequest.getMethod() != null) {
+
+            if (refundRequest.getMethod().equals(PaymentMethodType.CHEQUE) || refundRequest.getMethod().equals(PaymentMethodType.CASH)
+                || refundRequest.getMethod().equals(PaymentMethodType.POSTAL_ORDER)) {
+
+                paymnetMethod = "RefundWhenContacted";
+            } else {
+                paymnetMethod = "SendRefund";
+            }
+        }
+        Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), paymnetMethod);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -388,7 +413,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     }
 
-    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
+    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String paymentMethod) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .ccdCaseNumber(refundRequest.getCcdCaseNumber())
@@ -409,6 +434,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                   .build()
                 )
             )
+            .refundInstructionType(paymentMethod)
+
             .build();
     }
 
@@ -425,4 +452,71 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return rawReason;
     }
 
+    @Override
+    public List<RefundLibarata> search(RefundSearchCriteria searchCriteria) {
+
+        Optional<List<Refund>> refundList;
+        List<String> reference =  new ArrayList<>();
+        List<RefundLibarata> refundLibaratas = new ArrayList<>();
+        List<Refund> refundListWithAceepted = new ArrayList<>();
+        refundList =  searchByCriteria(searchCriteria);
+
+        if (refundList.isPresent()) {
+
+            refundListWithAceepted = refundList.get().stream().filter(refund -> refund.getRefundStatus().equals(
+                    RefundStatus.ACCEPTED))
+                .collect(Collectors.toList());
+            for (Refund ref : refundListWithAceepted) {
+                reference.add(ref.getPaymentReference());
+            }
+
+        }
+
+        List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(reference);
+
+        refundListWithAceepted.stream()
+            .filter(e -> paymentData.stream()
+                .anyMatch(id -> id.getPaymentReference().equals(e.getPaymentReference())))
+            .collect(Collectors.toList())
+            .forEach(refund -> {
+                // String reason = getRefundReason(refund.getReason(), refundReasonList);
+                LOG.info("refund: {}", refund);
+                refundLibaratas.add(refundResponseMapper.getRefundLibrata(
+                    refund,
+                    paymentData.stream()
+                        .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
+                        .findAny().get()
+                ));
+            });
+        return refundLibaratas;
+    }
+
+
+    public Optional<List<Refund>> searchByCriteria(RefundSearchCriteria searchCriteria) {
+        return Optional.of(refundsRepository.findAll(new Specification<Refund>() {
+            @Override
+            public Predicate toPredicate(Root<Refund> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+                List<Predicate> predicates = new ArrayList<>();
+                final Expression<Date> dateUpdatedExpr = criteriaBuilder.function(
+                    "date_trunc",
+                    Date.class,
+                    criteriaBuilder.literal("seconds"),
+                    root.get("dateUpdated")
+                );
+
+                if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+                    predicates.add(criteriaBuilder.between(
+                        dateUpdatedExpr,
+                        searchCriteria.getStartDate(),
+                        searchCriteria.getEndDate()
+                    ));
+                }
+                if (null != searchCriteria.getRefundReference()) {
+                    predicates.add(criteriaBuilder.equal(root.get("reference"), searchCriteria.getRefundReference()));
+                }
+                query.groupBy(root.get("id"));
+                return criteriaBuilder.or(predicates.toArray(REF));
+            }
+        }));
+    }
 }

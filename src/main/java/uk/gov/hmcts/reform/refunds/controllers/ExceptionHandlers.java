@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.ForbiddenToApproveRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
@@ -97,4 +98,9 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
     }
 
+    @ExceptionHandler(LargePayloadException.class)
+    public ResponseEntity return413(LargePayloadException ex) {
+        LOG.error(ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.PAYLOAD_TOO_LARGE);
+    }
 }

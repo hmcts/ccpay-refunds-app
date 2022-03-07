@@ -9,7 +9,6 @@ databaseChangeLog:
             baseTableName: refunds
             constraintName: FK_1000081
             deferrable: false
-            onUpdate: CASCADE
             initiallyDeferred: false
             referencedColumnNames: name
             referencedTableName: refund_status
@@ -48,3 +47,13 @@ databaseChangeLog:
               - column:
                   name: service_type
                   type: varchar(100)
+  -  changeSet:
+      id: 100008-5
+      author: Ranjeet
+      changes:
+        - addColumn:
+            tableName: refunds
+            columns:
+              - column:
+                  name: refund_instruction_type
+                  type: varchar(255)

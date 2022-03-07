@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +24,17 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLibarata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
@@ -37,16 +42,21 @@ import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
+import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @Api(tags = {"Refund Journey group"})
-@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals","PMD.ExcessiveImports","PMD.LawOfDemeter"})
 public class RefundsController {
 
     @Autowired
@@ -63,6 +73,14 @@ public class RefundsController {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    private static int numberOfDays = 5;
+
+    @Autowired
+    private  RefundValidator refundValidator;
+    DateUtil dateUtil = new DateUtil();
+
+    private final DateTimeFormatter formatter = dateUtil.getIsoDateTimeFormatter();
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -220,4 +238,64 @@ public class RefundsController {
 
     }
 
+    @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
+        + "You can provide start date and end dates which can include times as well."
+        + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
+        + "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "successful operation"),
+        @ApiResponse(code = 204, message = "Refunds Unavailable"),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 413, message = "Payload too large"),
+        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
+    })
+
+    @GetMapping("/reconciliation-refunds/{start_date}/{end_date}")
+    public ResponseEntity<List<RefundLibarata>> retrieveRefundReconciliation(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
+                                                        @PathVariable(name = "end_date") Optional<String> endDateTimeString,
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference
+    ) {
+
+        refundValidator.validate(startDateTimeString, endDateTimeString);
+
+        Date fromDateTime = getFromDateTime(startDateTimeString);
+
+        Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
+
+        long days = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
+
+        if (days > numberOfDays) {
+
+            throw new LargePayloadException("Payload too large");
+        }
+
+        List<RefundLibarata> refunds = refundsService
+            .search(
+                getSearchCriteria(fromDateTime, toDateTime, refundReference)
+            );
+
+
+        return new ResponseEntity<>(refunds,HttpStatus.OK);
+    }
+
+    private Date getFromDateTime(@PathVariable(name = "start_date") Optional<String> startDateTimeString) {
+        return Optional.ofNullable(startDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
+            .map(LocalDateTime::toDate)
+            .orElse(null);
+    }
+
+    private Date getToDateTime(@PathVariable(name = "end_date") Optional<String> endDateTimeString, Date fromDateTime) {
+        return Optional.ofNullable(endDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
+            .map(s -> fromDateTime != null && s.getHourOfDay() == 0 ? s.plusDays(1).minusSeconds(1).toDate() : s.toDate())
+            .orElse(null);
+    }
+
+    private RefundSearchCriteria getSearchCriteria(Date fromDateTime, Date toDateTime, String refundReference) {
+        return RefundSearchCriteria
+            .searchCriteriaWith()
+            .startDate(fromDateTime)
+            .endDate(toDateTime)
+            .refundReference(refundReference)
+            .build();
+    }
 }

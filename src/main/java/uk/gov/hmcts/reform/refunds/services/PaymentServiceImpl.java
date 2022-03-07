@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -17,14 +18,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -88,6 +93,44 @@ public class PaymentServiceImpl implements PaymentService {
                         getHeadersEntity(headers), PaymentGroupResponse.class);
     }
 
+    @SuppressWarnings({"PMD.UselessOverridingMethod"})
+    private ResponseEntity<List<PaymentDto>> fetchRefundPaymentFromPayhub(List<String> paymentReference) {
+        /* UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
+            new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference)
+                .toString());*/
+        String referenceId = paymentReference.stream()
+            .map(Object::toString)
+            .collect(Collectors.joining(","));
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(paymentApiUrl + "/refunds/payments")
+            .queryParam("paymentReferenceList", referenceId);
+
+        logger.info("URI {}", builder.toUriString());
+        return restTemplatePayment
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                getHeaders(), new ParameterizedTypeReference<List<PaymentDto>>() {
+                    @Override
+                    public Type getType() {
+                        return super.getType();
+                    }
+                }
+            );
+    }
+
+    private HttpEntity<String> getHeaders() {
+
+        return new HttpEntity<>(getFormatedHeadersForS2S());
+    }
+
+    private MultiValueMap<String, String> getFormatedHeadersForS2S() {
+        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.put("ServiceAuthorization", servauthtoken);
+        return inputHeaders;
+    }
+
     @Override
     public boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference,
                                                  RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
@@ -137,6 +180,26 @@ public class PaymentServiceImpl implements PaymentService {
     private HttpEntity<RefundResubmitPayhubRequest> getHttpEntityForResubmitRefundsPatch(
             MultiValueMap<String, String> headers, RefundResubmitPayhubRequest request) {
         return new HttpEntity<>(request, getFormatedHeaders(headers));
+    }
+
+    @Override
+    public List<PaymentDto> fetchPaymentResponse(List<String> paymentReference) {
+
+        try {
+
+            ResponseEntity<List<PaymentDto>> paymentGroupResponse =
+                fetchRefundPaymentFromPayhub(paymentReference);
+            return  paymentGroupResponse.getBody();
+        } catch (HttpClientErrorException e) {
+            logger.error(e.getMessage());
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
+            }
+            throw new PaymentInvalidRequestException("Invalid Request: Payhub", e);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new PaymentServerException("Payment Server Exception", e);
+        }
     }
 
 }
