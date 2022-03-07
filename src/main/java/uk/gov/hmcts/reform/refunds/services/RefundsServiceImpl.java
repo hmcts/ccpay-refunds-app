@@ -45,7 +45,6 @@ import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
-import uk.gov.hmcts.reform.refunds.utils.PaymentMethodType;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
@@ -136,9 +135,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (refundRequest.getMethod() != null) {
 
-            if (refundRequest.getMethod().equals(PaymentMethodType.CHEQUE) || refundRequest.getMethod().equals(PaymentMethodType.CASH)
-                || refundRequest.getMethod().equals(PaymentMethodType.POSTAL_ORDER)) {
-
+            if (refundRequest.getMethod().equals("cheque") || refundRequest.getMethod().equals("cash")
+                || refundRequest.getMethod().equals("postal order")) {
                 paymnetMethod = "RefundWhenContacted";
             } else {
                 paymnetMethod = "SendRefund";

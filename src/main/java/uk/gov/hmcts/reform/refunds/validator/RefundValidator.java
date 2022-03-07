@@ -22,8 +22,10 @@ public class RefundValidator {
         Optional<LocalDateTime> startDate = parseAndValidateDate(startDateString);
         Optional<LocalDateTime> endDate = parseAndValidateDate(endDateString);
 
-        if (startDate.get().isAfter(endDate.get())) {
+        if (startDate.isPresent() && endDate.isPresent() && startDate.get().isAfter(endDate.get())) {
+
             throw new InvalidRefundRequestException("Start date cannot be greater than end date");
+
         }
 
     }

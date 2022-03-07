@@ -80,6 +80,7 @@ public class RefundsController {
     private LaunchDarklyFeatureToggler featureToggler;
 
     private static int numberOfDays = 5;
+    private  long daysDiffernec;
 
     @Autowired
     private  RefundValidator refundValidator;
@@ -272,9 +273,11 @@ public class RefundsController {
 
         Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
 
-        long days = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
+        if (null != fromDateTime && null != toDateTime) {
+            daysDiffernec = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
+        }
 
-        if (days > numberOfDays) {
+        if (daysDiffernec > numberOfDays) {
 
             throw new LargePayloadException("Payload too large");
         }
