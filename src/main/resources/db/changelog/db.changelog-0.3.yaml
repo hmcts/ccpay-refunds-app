@@ -42,7 +42,7 @@ databaseChangeLog:
             sql: >
               INSERT INTO refund_reasons (code, name, description)
                 VALUES
-                  ('RR005', 'Overpayment', 'Refund for Overpayment')
+                  ('RR006', 'Overpayment', 'Refund for Overpayment')
 #  - changeSet:
 #      id: 100003-2
 #      author: Vignesh
