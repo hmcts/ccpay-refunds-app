@@ -21,7 +21,7 @@ module "ccpay-refund-list-api" {
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-list.json"
 }
 
-data "template_file" "refund_status_policy_template" {
+data "template_file" "refund_list_policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
 
   vars = {
