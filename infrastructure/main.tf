@@ -7,6 +7,8 @@ locals {
   # Api Management config
   api_mgmt_name     = join("-", ["core-api-mgmt", var.env])
   api_mgmt_rg       = join("-", ["core-infra", var.env])
+  api_mgmt_name_cft = join("-", ["cft-api-mgmt", var.env])
+
 
   vaultName = join("-", [var.core_product, var.env])
   s2sUrl = "http://rpe-service-auth-provider-${var.env}.service.core-compute-${var.env}.internal"
@@ -14,7 +16,7 @@ locals {
   s2s_key_vault_name          = var.env == "preview" || var.env == "spreview" ? join("-", ["s2s", "aat"]) : join("-", ["s2s", var.env])
   s2s_vault_resource_group    = var.env == "preview" || var.env == "spreview" ? join("-", [local.s2s_rg_prefix, "aat"]) : join("-", [local.s2s_rg_prefix, var.env])
   refunds_api_url = join("", ["http://ccpay-refunds-api-", var.env, ".service.core-compute-", var.env, ".internal"])
-  # list of the thumbprints of the SSL certificates that should be accepted by the refund status API (gateway)
+  # list of the thumbprints of the SSL certificates that should be accepted by the refund status API (gateway) and refund list
   refund_status_thumbprints_in_quotes = formatlist("&quot;%s&quot;", var.refunds_api_gateway_certificate_thumbprints)
   refund_status_thumbprints_in_quotes_str = join(",", local.refund_status_thumbprints_in_quotes)
 }
