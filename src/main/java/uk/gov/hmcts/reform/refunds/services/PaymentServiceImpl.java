@@ -25,7 +25,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -114,11 +113,8 @@ public class PaymentServiceImpl implements PaymentService {
             .exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
-                getHeaders(), new ParameterizedTypeReference<List<PaymentDto>>() {
-                    @Override
-                    public Type getType() {
-                        return super.getType();
-                    }
+                getHeaders(),new ParameterizedTypeReference<List<PaymentDto>>() {
+
                 }
             );
     }
@@ -191,9 +187,9 @@ public class PaymentServiceImpl implements PaymentService {
 
         try {
 
-            ResponseEntity<List<PaymentDto>> paymentGroupResponse =
+            ResponseEntity<List<PaymentDto>> paymentResponse =
                 fetchRefundPaymentFromPayhub(paymentReference);
-            return  paymentGroupResponse.getBody();
+            return  paymentResponse.getBody();
         } catch (HttpClientErrorException e) {
             logger.error(e.getMessage());
             if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
@@ -205,5 +201,4 @@ public class PaymentServiceImpl implements PaymentService {
             throw new PaymentServerException("Payment Server Exception", e);
         }
     }
-
 }

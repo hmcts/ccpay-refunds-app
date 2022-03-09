@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,9 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
+import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
@@ -31,8 +34,10 @@ import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -48,6 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
+@SuppressWarnings({"PMD"})
 public class PaymentServiceTest {
 
     @Autowired
@@ -188,6 +194,64 @@ public class PaymentServiceTest {
         assertFalse(updateResult);
     }
 
+    @Test
+    void fetchPaymentDetailsReturnsValidResponseForRefundReconciliation() throws ParseException {
+        List<String> referenceList = new ArrayList<>();
+        referenceList.add("RC-1628-5241-9956-2315");
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+
+        List<PaymentDto> paymentDtos = new ArrayList<>();
+        paymentDtos.add(getPayments());
+        ResponseEntity<List<PaymentDto>> responseEntity = new ResponseEntity<>(paymentDtos, HttpStatus.OK);
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                   eq(new ParameterizedTypeReference<List<PaymentDto>>() {
+                                   }))).thenReturn(responseEntity);
+
+        List<PaymentDto> paymentDto =
+            paymentService.fetchPaymentResponse(referenceList);
+
+        assertThat(paymentDto).usingRecursiveComparison().isEqualTo(paymentDtos);
+    }
+
+    @Test
+    void  fetchPaymentDetailsForRefundReconciliationReturnsNotFoundException() throws Exception {
+
+        List<String> referenceList = new ArrayList<>();
+        referenceList.add("RC-1628-5241-9956-2315");
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                          eq(new ParameterizedTypeReference<List<PaymentDto>>() {
+                                          }))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        assertThrows(PaymentReferenceNotFoundException.class, () -> {
+            paymentService.fetchPaymentResponse(referenceList);
+        });
+    }
+
+    @Test
+    void  fetchPaymentDetailsForRefundReconciliationReturnsPaymentServerException() throws Exception {
+
+        List<String> referenceList = new ArrayList<>();
+        referenceList.add("RC-1628-5241-9956-2315");
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("ServiceAuthorization", "service-auth");
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                          eq(new ParameterizedTypeReference<List<PaymentDto>>() {
+                                          }))).thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
+
+        assertThrows(PaymentServerException.class, () -> {
+            paymentService.fetchPaymentResponse(referenceList);
+        });
+    }
+
     private PaymentGroupResponse getPaymentGroupDto() throws ParseException {
         return PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
@@ -253,6 +317,51 @@ public class PaymentServiceTest {
                     .amountDue(BigDecimal.valueOf(0))
                     .build()
             )).build();
+    }
+
+    private PaymentDto getPayments() throws ParseException {
+
+        PaymentDto payments = PaymentDto.payment2DtoWith()
+            .accountNumber("123")
+            .amount(BigDecimal.valueOf(100.00))
+            .bankedDate(formatter.parse("7-Jun-2013"))
+            .caseReference("test")
+            .ccdCaseNumber("1111221383640739")
+            .channel("bulk scan")
+            .customerReference("123")
+            .dateUpdated(formatter.parse("7-Jun-2013"))
+            .description("abc")
+            .dateCreated(formatter.parse("7-Jun-2013"))
+            .documentControlNumber("123")
+            .externalProvider("test")
+            .externalReference("test123")
+            .giroSlipNo("tst")
+            .paymentReference("RC-1636-6317-3240-8715")
+            .organisationName("abc")
+            .method("cheque")
+            .status("success")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                                    .allocatedAmount(BigDecimal.valueOf(100.00))
+                                    .amountDue(BigDecimal.valueOf(100.00))
+                                    .apportionedPayment(BigDecimal.valueOf(100.00))
+                                    .apportionAmount(BigDecimal.valueOf(10.00))
+                                    .calculatedAmount(BigDecimal.valueOf(50.00))
+                                    .caseReference("ref_123")
+                                    .ccdCaseNumber("1111221383640739")
+                                    .code("1")
+                                    .dateApportioned(formatter.parse("7-Jun-2013"))
+                                    .dateCreated(formatter.parse("7-Jun-2013"))
+                                    .dateReceiptProcessed(formatter.parse("7-Jun-2013"))
+                                    .feeAmount(BigDecimal.valueOf(10.00))
+                                    .jurisdiction1("test1")
+                                    .jurisdiction2("test2")
+                                    .version("1")
+                                    .build()
+                  )
+            ).build();
+
+
+        return payments;
     }
 
 }

@@ -5,7 +5,7 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLibarata;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -33,5 +33,5 @@ public interface RefundsService {
 
     ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request, MultiValueMap<String, String> headers);
 
-    List<RefundLibarata> search(RefundSearchCriteria searchCriteria);
+    List<RefundLiberata> search(RefundSearchCriteria searchCriteria);
 }

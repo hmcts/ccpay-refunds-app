@@ -30,10 +30,11 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLibarata;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
@@ -262,7 +263,7 @@ public class RefundsController {
     })
 
     @GetMapping("/reconciliation-refunds/{start_date}/{end_date}")
-    public ResponseEntity<List<RefundLibarata>> retrieveRefundReconciliation(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
+    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
                                                         @PathVariable(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference
     ) {
@@ -279,16 +280,15 @@ public class RefundsController {
 
         if (daysDiffernec > numberOfDays) {
 
-            throw new LargePayloadException("Payload too large");
+            throw new LargePayloadException("Date range exceeds the maximum supported by the system");
         }
 
-        List<RefundLibarata> refunds = refundsService
+        List<RefundLiberata> refunds = refundsService
             .search(
                 getSearchCriteria(fromDateTime, toDateTime, refundReference)
             );
 
-
-        return new ResponseEntity<>(refunds,HttpStatus.OK);
+        return new ResponseEntity<>(new RerfundLiberataResponse(refunds),HttpStatus.OK);
     }
 
     private Date getFromDateTime(@PathVariable(name = "start_date") Optional<String> startDateTimeString) {

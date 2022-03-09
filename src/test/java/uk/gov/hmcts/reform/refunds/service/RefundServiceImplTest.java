@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.service;
 
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -8,13 +9,18 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
@@ -96,6 +102,8 @@ public class RefundServiceImplTest {
                             .notificationType("LETTER")
                             .build())
         .build();
+
+
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber2 = () -> Refund.refundsWith()
         .id(1)
         .amount(BigDecimal.valueOf(100))
@@ -184,6 +192,7 @@ public class RefundServiceImplTest {
         IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
             .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ")
             .build();
+
     @InjectMocks
     private RefundsServiceImpl refundsService;
     @MockBean
@@ -205,6 +214,91 @@ public class RefundServiceImplTest {
 
     @Mock
     private ContextStartListener contextStartListener;
+
+    @MockBean
+    private Specification<Refund> mockSpecification;
+
+    @MockBean
+    private List<Refund> refund;
+
+    @MockBean
+    private RefundSearchCriteria refundSearchCriteria;
+
+
+    private  RefundSearchCriteria getRefundSearchCriteria() {
+
+        return RefundSearchCriteria.searchCriteriaWith()
+            .startDate(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .endDate(Timestamp.valueOf("2021-10-15 10:10:10"))
+            .build();
+    }
+
+    private List<PaymentDto> getPayments() {
+
+        List<PaymentDto> payments = new ArrayList<>();
+
+        PaymentDto payments1 = PaymentDto.payment2DtoWith()
+            .accountNumber("123")
+            .amount(BigDecimal.valueOf(100.00))
+            .bankedDate(Timestamp.valueOf(LocalDateTime.now()))
+            .caseReference("test")
+            .ccdCaseNumber("1111221383640739")
+            .channel("bulk scan")
+            .customerReference("123")
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .description("abc")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .documentControlNumber("123")
+            .externalProvider("test")
+            .externalReference("test123")
+            .giroSlipNo("tst")
+            .paymentReference("RC-1111-2234-1077-1123")
+            .organisationName("abc")
+            .method("cheque")
+            .status("success")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                                    .allocatedAmount(BigDecimal.valueOf(100.00))
+                                    .amountDue(BigDecimal.valueOf(100.00))
+                                    .apportionedPayment(BigDecimal.valueOf(100.00))
+                                    .apportionAmount(BigDecimal.valueOf(10.00))
+                                    .calculatedAmount(BigDecimal.valueOf(50.00))
+                                    .caseReference("ref_123")
+                                    .ccdCaseNumber("1111221383640739")
+                                    .code("1")
+                                    .dateApportioned(Timestamp.valueOf(LocalDateTime.now()))
+                                    .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                    .dateReceiptProcessed(Timestamp.valueOf(LocalDateTime.now()))
+                                    .feeAmount(BigDecimal.valueOf(10.00))
+                                    .jurisdiction1("test1")
+                                    .jurisdiction2("test2")
+                                    .version("1")
+                                    .build()
+                  )
+            ).build();
+
+        payments.add(payments1);
+        return payments;
+    }
+
+    private List<Refund> getRefundList() {
+        List<Refund> refunds = new ArrayList<>();
+        Refund ref =  Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
+            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .reference("RF-1111-2234-1077-1123")
+            .refundStatus(RefundStatus.ACCEPTED)
+            .reason("RR001")
+            .paymentReference("RC-1111-2234-1077-1123")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .build();
+
+        refunds.add(ref);
+        return refunds;
+    }
 
     @BeforeEach
     public void init() {
@@ -983,4 +1077,36 @@ public class RefundServiceImplTest {
         assertNotNull(response);
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
+
+    @Test
+    void testRefundListEmptyForSearchCritieria() {
+        when(refundsRepository.findAll()).thenReturn(null);
+
+        Exception exception = assertThrows(RefundNotFoundException.class, () -> refundsService.search(getRefundSearchCriteria()
+        ));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("No refunds available for the given date range"));
+    }
+
+    @Test
+    void testRefundResponseWhenRefundListForSearchCriteraReturnsuccess() {
+        RefundsServiceImpl mock = org.mockito.Mockito.mock(RefundsServiceImpl.class);
+        when(mock.searchByCriteria(getRefundSearchCriteria())).thenReturn(mockSpecification);
+
+        when(refundsRepository.findAll(any()))
+            .thenReturn(getRefundList());
+        List<String> referenceList = new ArrayList<>();
+        referenceList.add("RC-1111-2234-1077-1123");
+        when(paymentService.fetchPaymentResponse(referenceList)).thenReturn(getPayments());
+
+        List<RefundLiberata>
+                      refundListDtoResponse = refundsService.search(
+            getRefundSearchCriteria()
+        );
+
+        Assert.assertEquals("RF-1111-2234-1077-1123",refundListDtoResponse.get(0).getReference());
+
+    }
+
 }

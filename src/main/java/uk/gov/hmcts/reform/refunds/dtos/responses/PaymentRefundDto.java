@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @JsonNaming(SnakeCaseStrategy.class)
@@ -18,7 +19,7 @@ import java.util.Date;
 
 public class PaymentRefundDto {
 
-    private String paymentReference;
+    private String reference;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateReceiptCreated;
@@ -29,9 +30,9 @@ public class PaymentRefundDto {
     private String ccdCaseNumber;
     private String caseReference;
     private String customerReference;
-    private String accountNumber;
+    private String pbaNumber;
     private String govUkId;
     private String bgcNumber;
-    private String availableFunds;
+    private BigDecimal availableFunds;
 
 }

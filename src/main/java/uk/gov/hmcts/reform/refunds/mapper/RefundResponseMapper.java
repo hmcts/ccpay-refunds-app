@@ -6,7 +6,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeLibarataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentRefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLibarata;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 
@@ -37,27 +37,27 @@ public class RefundResponseMapper {
 
     }
 
-    public RefundLibarata getRefundLibrata(Refund refund, PaymentDto paymentDto) {
+    public RefundLiberata getRefundLibrata(Refund refund, PaymentDto paymentDto) {
 
-        return RefundLibarata.buildRefundLibarataWith()
-                        .refundDateApproved(refund.getDateUpdated())
+        return RefundLiberata.buildRefundLibarataWith()
+                        .dateApproved(refund.getDateUpdated())
                         .totalRefundAmount(refund.getAmount())
-                        .refundInstructionType(refund.getRefundInstructionType())
-                        .refundReason(refund.getReason())
-                        .refundReference(refund.getReference())
-                        .payment(toPayment(paymentDto))
+                        .instructionType(refund.getRefundInstructionType())
+                        .reason(refund.getReason())
+                        .reference(refund.getReference())
+                        .payment(toPayment(paymentDto, refund))
                         .fees(toFeeDtos(paymentDto.getFees(), refund))
                         .build();
 
     }
 
-    private  PaymentRefundDto toPayment(PaymentDto payment) {
+    private  PaymentRefundDto toPayment(PaymentDto payment, Refund refund) {
 
         return   PaymentRefundDto.paymentRefundDtoWith()
-            .accountNumber(payment.getAccountNumber())
+            .pbaNumber(payment.getAccountNumber())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .bgcNumber(payment.getGiroSlipNo())
-            .paymentReference(payment.getPaymentReference())
+            .reference(payment.getPaymentReference())
             .caseReference(payment.getCaseReference())
             .channel(payment.getChannel())
             .customerReference(payment.getCustomerReference())
@@ -66,6 +66,7 @@ public class RefundResponseMapper {
             .method(payment.getMethod())
             .serviceName(payment.getServiceName())
             .siteId(payment.getSiteId())
+            .availableFunds(payment.getAmount().subtract(refund.getAmount()))
             .build();
 
 

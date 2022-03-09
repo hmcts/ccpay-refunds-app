@@ -19,7 +19,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLibarata;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -477,71 +477,73 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public List<RefundLibarata> search(RefundSearchCriteria searchCriteria) {
+    @SuppressWarnings({"PMD.ConfusingTernary"})
+    public List<RefundLiberata> search(RefundSearchCriteria searchCriteria) {
 
-        Optional<List<Refund>> refundList;
         List<String> reference =  new ArrayList<>();
-        List<RefundLibarata> refundLibaratas = new ArrayList<>();
-        List<Refund> refundListWithAceepted = new ArrayList<>();
-        refundList =  searchByCriteria(searchCriteria);
+        List<RefundLiberata> refundLiberatas = new ArrayList<>();
+        List<Refund> refundListWithAccepted = new ArrayList<>();
 
-        if (refundList.isPresent()) {
-
-            refundListWithAceepted = refundList.get().stream().filter(refund -> refund.getRefundStatus().equals(
+        List<Refund> refundList = refundsRepository.findAll(searchByCriteria(searchCriteria));
+        if (!refundList.isEmpty()) {
+            refundListWithAccepted = refundList.stream().filter(refund -> refund.getRefundStatus().equals(
                     RefundStatus.ACCEPTED))
                 .collect(Collectors.toList());
-            for (Refund ref : refundListWithAceepted) {
+            for (Refund ref : refundListWithAccepted) {
                 reference.add(ref.getPaymentReference());
             }
-
+        } else {
+            throw new RefundNotFoundException("No refunds available for the given date range");
         }
 
         List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(reference);
 
-        refundListWithAceepted.stream()
+        refundListWithAccepted.stream()
             .filter(e -> paymentData.stream()
                 .anyMatch(id -> id.getPaymentReference().equals(e.getPaymentReference())))
             .collect(Collectors.toList())
             .forEach(refund -> {
-                // String reason = getRefundReason(refund.getReason(), refundReasonList);
                 LOG.info("refund: {}", refund);
-                refundLibaratas.add(refundResponseMapper.getRefundLibrata(
+                refundLiberatas.add(refundResponseMapper.getRefundLibrata(
                     refund,
                     paymentData.stream()
                         .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
                         .findAny().get()
                 ));
             });
-        return refundLibaratas;
+        return refundLiberatas;
     }
 
+    @SuppressWarnings({"PMD.UselessParentheses"})
+    public  Specification<Refund> searchByCriteria(RefundSearchCriteria searchCriteria) {
+        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
+    }
 
-    public Optional<List<Refund>> searchByCriteria(RefundSearchCriteria searchCriteria) {
-        return Optional.of(refundsRepository.findAll(new Specification<Refund>() {
-            @Override
-            public Predicate toPredicate(Root<Refund> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                List<Predicate> predicates = new ArrayList<>();
-                final Expression<Date> dateUpdatedExpr = criteriaBuilder.function(
-                    "date_trunc",
-                    Date.class,
-                    criteriaBuilder.literal("seconds"),
-                    root.get("dateUpdated")
-                );
+    private static Predicate getPredicate(
+        Root<Refund> root,
+        CriteriaBuilder cb,
+        RefundSearchCriteria searchCriteria, CriteriaQuery<?> query) {
+        List<Predicate> predicates = new ArrayList<>();
 
-                if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
-                    predicates.add(criteriaBuilder.between(
-                        dateUpdatedExpr,
-                        searchCriteria.getStartDate(),
-                        searchCriteria.getEndDate()
-                    ));
-                }
-                if (null != searchCriteria.getRefundReference()) {
-                    predicates.add(criteriaBuilder.equal(root.get("reference"), searchCriteria.getRefundReference()));
-                }
-                query.groupBy(root.get("id"));
-                return criteriaBuilder.or(predicates.toArray(REF));
-            }
-        }));
+        final Expression<Date> dateUpdatedExpr = cb.function(
+            "date_trunc",
+            Date.class,
+            cb.literal("seconds"),
+            root.get("dateUpdated")
+        );
+
+        if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+            predicates.add(cb.between(
+                dateUpdatedExpr,
+                searchCriteria.getStartDate(),
+                searchCriteria.getEndDate()
+            ));
+        }
+        if (null != searchCriteria.getRefundReference()) {
+            predicates.add(cb.equal(root.get("reference"), searchCriteria.getRefundReference()));
+        }
+        query.groupBy(root.get("id"));
+        return cb.or(predicates.toArray(REF));
     }
 
     @SuppressWarnings({"PMD"})

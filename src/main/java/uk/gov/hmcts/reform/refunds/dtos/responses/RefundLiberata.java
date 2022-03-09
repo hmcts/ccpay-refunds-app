@@ -23,14 +23,14 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Getter
 @NoArgsConstructor
 
-public class RefundLibarata {
+public class RefundLiberata {
 
 
-    private String refundReference;
-    private String refundReason;
-    private String refundInstructionType;
+    private String reference;
+    private String reason;
+    private String instructionType;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
-    private Date refundDateApproved;
+    private Date dateApproved;
     private BigDecimal totalRefundAmount;
     private List<PaymentFeeLibarataResponse> fees;
 
