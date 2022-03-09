@@ -40,8 +40,6 @@ import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.NOTAPPLICABLE;
 import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
 
-
-
 @Service
 public class RefundReviewServiceImpl extends StateUtil implements RefundReviewService {
 

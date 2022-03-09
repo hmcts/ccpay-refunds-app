@@ -155,16 +155,16 @@ public class RefundsController {
 
     @ApiOperation(value = "Update refund reason and amount by refund reference", notes = "Update refund reason and amount by refund reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 204, message = "No content"),
-        @ApiResponse(code = 404, message = "Refund details not found")
+            @ApiResponse(code = 204, message = "No content"),
+            @ApiResponse(code = 404, message = "Refund details not found")
     })
     @PatchMapping("/refund/resubmit/{reference}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<ResubmitRefundResponseDto> resubmitRefund(
-        @RequestHeader("Authorization") String authorization,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @PathVariable("reference") String reference,
-        @RequestBody @Valid ResubmitRefundRequest request) {
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @PathVariable("reference") String reference,
+            @RequestBody @Valid ResubmitRefundRequest request) {
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
@@ -181,9 +181,9 @@ public class RefundsController {
 
     @GetMapping("/refund/{reference}/status-history")
     public ResponseEntity<StatusHistoryResponseDto> getStatusHistory(
-        @RequestHeader("Authorization") String authorization,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @PathVariable String reference) {
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @PathVariable String reference) {
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
@@ -204,11 +204,11 @@ public class RefundsController {
     @PatchMapping("/refund/{reference}/action/{reviewer-action}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> reviewRefund(
-        @RequestHeader("Authorization") String authorization,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @PathVariable(value = "reference", required = true) String reference,
-        @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
-        @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @PathVariable(value = "reference", required = true) String reference,
+            @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+            @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }

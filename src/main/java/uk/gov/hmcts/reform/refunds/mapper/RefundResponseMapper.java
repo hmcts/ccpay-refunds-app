@@ -24,6 +24,7 @@ public class RefundResponseMapper {
             .dateUpdated(refund.getDateUpdated().toString())
             .contactDetails(refund.getContactDetails())
             .serviceType(refund.getServiceType())
+            .feeIds(refund.getFeeIds())
             .build();
 
     }
