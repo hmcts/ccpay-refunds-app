@@ -85,6 +85,14 @@ public class PaymentServiceImpl implements PaymentService {
                 new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference)
                         .toString());
         logger.info("URI {}", builder.toUriString());
+        ResponseEntity<String> responseJson = restTemplatePayment
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                getHeadersEntity(headers), String.class);
+        if (responseJson != null) {
+            logger.info("responseJson.getBody: {}", responseJson.getBody());
+        }
         return restTemplatePayment
                 .exchange(
                         builder.toUriString(),
