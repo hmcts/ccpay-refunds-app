@@ -482,7 +482,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         List<String> reference =  new ArrayList<>();
         List<RefundLiberata> refundLiberatas = new ArrayList<>();
-        List<Refund> refundListWithAccepted = new ArrayList<>();
+        List<Refund> refundListWithAccepted;
 
         List<Refund> refundList = refundsRepository.findAll(searchByCriteria(searchCriteria));
         if (!refundList.isEmpty()) {

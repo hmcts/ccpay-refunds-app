@@ -2243,7 +2243,7 @@ class RefundControllerTest {
     }
 
     @Test
-    public void returnException413_withValidBetweenDates_ExceedSearchCriteria() throws Exception {
+     void returnException413_withValidBetweenDates_ExceedSearchCriteria() throws Exception {
 
         String startDate = LocalDate.now().minusDays(10).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -2257,7 +2257,7 @@ class RefundControllerTest {
     }
 
     @Test
-    public void returnException400_withInvaliddBetweenDates_WhenStartDateIsBigger() throws Exception {
+     void returnException400_withInvaliddBetweenDates_WhenStartDateIsBigger() throws Exception {
 
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
@@ -2271,7 +2271,7 @@ class RefundControllerTest {
     }
 
     @Test
-    public void returnException400_withInvaliddBetweenDates_WhenStartDateIsInFuture() throws Exception {
+     void returnException400_withInvaliddBetweenDates_WhenStartDateIsInFuture() throws Exception {
 
         String startDate = LocalDate.now().plusDays(2).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -2285,7 +2285,7 @@ class RefundControllerTest {
     }
 
     @Test
-    public void returnException400_withInvaliddBetweenDates_WhenInvalidFormat() throws Exception {
+      void returnException400_withInvaliddBetweenDates_WhenInvalidFormat() throws Exception {
 
         String startDate = LocalDate.now().minusDays(1).toString(INVALID_FORMAT);
         String endDate = LocalDate.now().toString(INVALID_FORMAT);

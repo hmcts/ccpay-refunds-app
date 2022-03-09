@@ -105,7 +105,7 @@ public class PaymentServiceImpl implements PaymentService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(paymentApiUrl + "/refunds/payments")
             .queryParam("paymentReferenceList", referenceId);
 
-        logger.info("URI {}", builder.toUriString());
+        logger.info("refunds payments URI {}", builder.toUriString());
         return restTemplatePayment
             .exchange(
                 builder.toUriString(),
