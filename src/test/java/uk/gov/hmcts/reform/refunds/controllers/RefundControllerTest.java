@@ -249,14 +249,6 @@ class RefundControllerTest {
                 .build())
         .build();
 
-    private RefundSearchCriteria getRefundSearchCriteria() {
-
-        return RefundSearchCriteria.searchCriteriaWith()
-            .startDate(Timestamp.valueOf("2021-10-10 10:10:10"))
-            .endDate(Timestamp.valueOf("2021-10-15 10:10:10"))
-            .build();
-    }
-
     private List<Refund> getRefundList() {
         List<Refund> refunds = new ArrayList<>();
         Refund ref =  Refund.refundsWith()
@@ -284,35 +276,19 @@ class RefundControllerTest {
         PaymentDto payments1 = PaymentDto.payment2DtoWith()
             .accountNumber("123")
             .amount(BigDecimal.valueOf(100.00))
-            .bankedDate(Timestamp.valueOf(LocalDateTime.now()))
             .caseReference("test")
             .ccdCaseNumber("1111221383640739")
             .channel("bulk scan")
             .customerReference("123")
-            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .description("abc")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-            .documentControlNumber("123")
-            .externalProvider("test")
             .externalReference("test123")
             .giroSlipNo("tst")
-            .paymentReference("RC-1111-2234-1077-1123")
-            .organisationName("abc")
             .method("cheque")
-            .status("success")
+            .id("1")
+            .reference("RC-1111-2234-1077-1123")
+            .serviceName("Service")
             .fees(Arrays.asList(FeeDto.feeDtoWith()
-                                    .allocatedAmount(BigDecimal.valueOf(100.00))
-                                    .amountDue(BigDecimal.valueOf(100.00))
-                                    .apportionedPayment(BigDecimal.valueOf(100.00))
-                                    .apportionAmount(BigDecimal.valueOf(10.00))
-                                    .calculatedAmount(BigDecimal.valueOf(50.00))
-                                    .caseReference("ref_123")
-                                    .ccdCaseNumber("1111221383640739")
                                     .code("1")
-                                    .dateApportioned(Timestamp.valueOf(LocalDateTime.now()))
-                                    .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-                                    .dateReceiptProcessed(Timestamp.valueOf(LocalDateTime.now()))
-                                    .feeAmount(BigDecimal.valueOf(10.00))
                                     .jurisdiction1("test1")
                                     .jurisdiction2("test2")
                                     .version("1")
@@ -322,6 +298,14 @@ class RefundControllerTest {
 
         payments.add(payments1);
         return payments;
+    }
+
+    private  RefundSearchCriteria getRefundSearchCriteria() {
+        return RefundSearchCriteria.searchCriteriaWith()
+            .startDate(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .endDate(Timestamp.valueOf("2021-10-15 10:10:10"))
+            .refundReference("RF-1111-2234-1077-1123")
+            .build();
     }
 
     @Autowired

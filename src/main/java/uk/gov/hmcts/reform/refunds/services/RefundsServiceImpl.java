@@ -500,14 +500,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         refundListWithAccepted.stream()
             .filter(e -> paymentData.stream()
-                .anyMatch(id -> id.getPaymentReference().equals(e.getPaymentReference())))
+                .anyMatch(id -> id.getReference().equals(e.getPaymentReference())))
             .collect(Collectors.toList())
             .forEach(refund -> {
                 LOG.info("refund: {}", refund);
                 refundLiberatas.add(refundResponseMapper.getRefundLibrata(
                     refund,
                     paymentData.stream()
-                        .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
+                        .filter(dto -> refund.getPaymentReference().equals(dto.getReference()))
                         .findAny().get()
                 ));
             });

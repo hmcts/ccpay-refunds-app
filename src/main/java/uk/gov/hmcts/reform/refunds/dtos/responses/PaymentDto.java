@@ -31,32 +31,18 @@ public class PaymentDto {
     @NotEmpty
     private BigDecimal amount;
 
-    @NotEmpty
-    private String description;
-
     private String reference;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
-    private Date dateUpdated;
-
-    private CurrencyCode currency;
-
     private String ccdCaseNumber;
 
     private String caseReference;
 
-    private String paymentReference;
-
     private String channel;
 
     private String method;
-
-    private String externalProvider;
-
-    private String status;
 
     private String externalReference;
 
@@ -69,23 +55,8 @@ public class PaymentDto {
 
     private String accountNumber;
 
-    private String organisationName;
-
-    private String paymentGroupReference;
-
-    private Date reportedDateOffline;
-
-    private String documentControlNumber;
-
-    private Date bankedDate;
-
-    private String payerName;
-
     @NotNull
     private List<FeeDto> fees;
-
-    private List<StatusHistoryDto> statusHistories;
-
 
     private String giroSlipNo;
 
