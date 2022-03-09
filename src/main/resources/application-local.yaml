@@ -113,15 +113,6 @@ notification:
   service-mailbox: ${SERVICE_MAIL_BOX:}
   service-url: ${SERVICE_URL:http://service}
 
-notify:
-  template:
-    cheque-po-cash:
-      letter: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
-      email: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}
-    card-pba:
-      letter: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
-      email: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}
-
 logging:
   level:
     org:
