@@ -6,10 +6,6 @@ public class LargePayloadException extends RuntimeException implements Serializa
 
     public static final long serialVersionUID = 413287439;
 
-    public LargePayloadException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     public LargePayloadException(String message) {
         super(message);
     }

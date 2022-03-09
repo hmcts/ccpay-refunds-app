@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -62,6 +63,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
@@ -2298,5 +2300,38 @@ class RefundControllerTest {
 
     }
 
+    @Test
+     void validateSuccessResponseWhenValidSearchDateProvided() throws Exception {
+
+        RefundsServiceImpl mock = org.mockito.Mockito.mock(RefundsServiceImpl.class);
+        when(mock.searchByCriteria(getRefundSearchCriteria())).thenReturn(mockSpecification);
+
+        when(refundsRepository.findAll(any()))
+            .thenReturn(getRefundList());
+        List<String> referenceList = new ArrayList<>();
+        referenceList.add("RC-1111-2234-1077-1123");
+        when(paymentService.fetchPaymentResponse(referenceList)).thenReturn(getPayments());
+
+        ResponseEntity<List<PaymentDto>> responseEntity = new ResponseEntity<>(getPayments(), HttpStatus.OK);
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                   eq(new ParameterizedTypeReference<List<PaymentDto>>() {
+                                   }))).thenReturn(responseEntity);
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk()).andReturn();
+
+        RerfundLiberataResponse rerfundLiberataResponse = mapper.readValue(
+            mvcResult.getResponse().getContentAsString(), RerfundLiberataResponse.class
+        );
+
+        Assertions.assertEquals("RF-1111-2234-1077-1123", rerfundLiberataResponse.getRefunds().get(0).getReference());
+
+    }
 
 }
