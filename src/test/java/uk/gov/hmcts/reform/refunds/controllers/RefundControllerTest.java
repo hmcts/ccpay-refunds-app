@@ -1909,11 +1909,11 @@ class RefundControllerTest {
         MvcResult result = mockMvc.perform(patch(
             "/refund/resubmit/{reference}",
             "RF-1234-1234-1234-1234")
-           .content(asJsonString(resubmitRefundRequest))
-           .header("Authorization", "user")
-           .header("ServiceAuthorization", "Services")
-           .contentType(MediaType.APPLICATION_JSON)
-           .accept(MediaType.APPLICATION_JSON))
+            .content(asJsonString(resubmitRefundRequest))
+            .header("Authorization", "user")
+            .header("ServiceAuthorization", "Services")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest())
             .andReturn();
     }
