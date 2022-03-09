@@ -133,10 +133,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         String paymnetMethod = null;
         IdamUserIdResponse uid = idamService.getUserId(headers);
 
-        if (refundRequest.getMethod() != null) {
+        if (refundRequest.getPaymentMethod() != null) {
 
-            if (refundRequest.getMethod().equals("cheque") || refundRequest.getMethod().equals("cash")
-                || refundRequest.getMethod().equals("postal order")) {
+            if (refundRequest.getPaymentMethod().equals("cheque") || refundRequest.getPaymentMethod().equals("cash")
+                || refundRequest.getPaymentMethod().equals("postal order")) {
                 paymnetMethod = "RefundWhenContacted";
             } else {
                 paymnetMethod = "SendRefund";

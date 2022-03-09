@@ -62,5 +62,6 @@ public class RefundRequest {
     @NotEmpty(message = "Service type cannot be blank")
     private String serviceType;
 
-    private String method;
+    private String paymentMethod;
+    private String paymentChannel;
 }

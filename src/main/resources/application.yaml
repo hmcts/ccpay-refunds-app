@@ -182,3 +182,7 @@ notification:
 notify:
   letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
   email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}
+
+refund:
+  search:
+    days: 2

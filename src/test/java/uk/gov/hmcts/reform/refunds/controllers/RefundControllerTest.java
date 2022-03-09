@@ -2,6 +2,10 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -15,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -38,14 +43,17 @@ import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
@@ -71,6 +79,7 @@ import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
+import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
@@ -79,6 +88,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -116,6 +126,7 @@ import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFU
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SuppressWarnings("PMD")
 class RefundControllerTest {
 
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier =
@@ -225,6 +236,7 @@ class RefundControllerTest {
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
         .serviceType("cmc")
+        .paymentMethod("cash")
         .contactDetails(ContactDetails.contactDetailsWith()
                 .addressLine("ABC Street")
                 .city("London")
@@ -234,6 +246,81 @@ class RefundControllerTest {
                 .notificationType("LETTER")
                 .build())
         .build();
+
+    private RefundSearchCriteria getRefundSearchCriteria() {
+
+        return RefundSearchCriteria.searchCriteriaWith()
+            .startDate(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .endDate(Timestamp.valueOf("2021-10-15 10:10:10"))
+            .build();
+    }
+
+    private List<Refund> getRefundList() {
+        List<Refund> refunds = new ArrayList<>();
+        Refund ref =  Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+            .reference("RF-1111-2234-1077-1123")
+            .refundStatus(RefundStatus.ACCEPTED)
+            .reason("RR001")
+            .paymentReference("RC-1111-2234-1077-1123")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+            .build();
+
+        refunds.add(ref);
+        return refunds;
+    }
+
+    private List<PaymentDto> getPayments() {
+
+        List<PaymentDto> payments = new ArrayList<>();
+
+        PaymentDto payments1 = PaymentDto.payment2DtoWith()
+            .accountNumber("123")
+            .amount(BigDecimal.valueOf(100.00))
+            .bankedDate(Timestamp.valueOf(LocalDateTime.now()))
+            .caseReference("test")
+            .ccdCaseNumber("1111221383640739")
+            .channel("bulk scan")
+            .customerReference("123")
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .description("abc")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .documentControlNumber("123")
+            .externalProvider("test")
+            .externalReference("test123")
+            .giroSlipNo("tst")
+            .paymentReference("RC-1111-2234-1077-1123")
+            .organisationName("abc")
+            .method("cheque")
+            .status("success")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                                    .allocatedAmount(BigDecimal.valueOf(100.00))
+                                    .amountDue(BigDecimal.valueOf(100.00))
+                                    .apportionedPayment(BigDecimal.valueOf(100.00))
+                                    .apportionAmount(BigDecimal.valueOf(10.00))
+                                    .calculatedAmount(BigDecimal.valueOf(50.00))
+                                    .caseReference("ref_123")
+                                    .ccdCaseNumber("1111221383640739")
+                                    .code("1")
+                                    .dateApportioned(Timestamp.valueOf(LocalDateTime.now()))
+                                    .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                    .dateReceiptProcessed(Timestamp.valueOf(LocalDateTime.now()))
+                                    .feeAmount(BigDecimal.valueOf(10.00))
+                                    .jurisdiction1("test1")
+                                    .jurisdiction2("test2")
+                                    .version("1")
+                                    .build()
+                  )
+            ).build();
+
+        payments.add(payments1);
+        return payments;
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -296,8 +383,17 @@ class RefundControllerTest {
     private RefundNotificationService refundNotificationService;
 
     @MockBean
+    private Specification<Refund> mockSpecification;
+
+    @Mock
+    private PaymentService paymentService;
+
+    @MockBean
     @Qualifier("restTemplateNotify")
     private RestTemplate restTemplateNotify;
+
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter INVALID_FORMAT = DateTimeFormat.forPattern("yyyy-MM");
 
     private static String asJsonString(final Object obj) {
         try {
@@ -662,6 +758,7 @@ class RefundControllerTest {
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
                                                                          .serviceType("cmc")
+                                                                         .paymentMethod("cash")
                                                                          .contactDetails(ContactDetails.contactDetailsWith()
                                                                                  .email("abc@abc.com")
                                                                                  .notificationType("EMAIL")
@@ -743,6 +840,7 @@ class RefundControllerTest {
             .refundReason("RR031")
             .ccdCaseNumber("1111222233334444")
             .feeIds("1")
+            .paymentMethod("card")
             .build();
 
         MvcResult result = mockMvc.perform(post("/refund")
@@ -2142,6 +2240,62 @@ class RefundControllerTest {
             .andReturn();
 
         //assertEquals("Refund approved", result.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void returnException413_withValidBetweenDates_ExceedSearchCriteria() throws Exception {
+
+        String startDate = LocalDate.now().minusDays(10).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isPayloadTooLarge()).andReturn();
+        Assertions.assertEquals("Date range exceeds the maximum supported by the system", mvcResult.getResolvedException().getMessage());
+
+    }
+
+    @Test
+    public void returnException400_withInvaliddBetweenDates_WhenStartDateIsBigger() throws Exception {
+
+        String startDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+
+        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError()).andReturn();
+        Assertions.assertEquals("Start date cannot be greater than end date", mvcResult.getResolvedException().getMessage());
+
+    }
+
+    @Test
+    public void returnException400_withInvaliddBetweenDates_WhenStartDateIsInFuture() throws Exception {
+
+        String startDate = LocalDate.now().plusDays(2).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError()).andReturn();
+        Assertions.assertEquals("Date cannot be in the future", mvcResult.getResolvedException().getMessage());
+
+    }
+
+    @Test
+    public void returnException400_withInvaliddBetweenDates_WhenInvalidFormat() throws Exception {
+
+        String startDate = LocalDate.now().minusDays(1).toString(INVALID_FORMAT);
+        String endDate = LocalDate.now().toString(INVALID_FORMAT);
+
+        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError()).andReturn();
+        Assertions.assertEquals("Invalid date format received, required data format is ISO", mvcResult.getResolvedException().getMessage());
+
     }
 
 

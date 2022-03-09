@@ -98,9 +98,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     @SuppressWarnings({"PMD.UselessOverridingMethod"})
     private ResponseEntity<List<PaymentDto>> fetchRefundPaymentFromPayhub(List<String> paymentReference) {
-        /* UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
-            new StringBuilder(paymentApiUrl).append("/payment-groups/fee-pay-apportion/").append(paymentReference)
-                .toString());*/
         String referenceId = paymentReference.stream()
             .map(Object::toString)
             .collect(Collectors.joining(","));

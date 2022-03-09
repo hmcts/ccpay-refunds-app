@@ -9,6 +9,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,8 +81,7 @@ public class RefundsController {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
-    private static int numberOfDays = 5;
-    private  long daysDiffernec;
+    private  long daysDifference;
 
     @Autowired
     private  RefundValidator refundValidator;
@@ -92,6 +92,8 @@ public class RefundsController {
     @Autowired
     private RefundNotificationService refundNotificationService;
 
+    @Value("${refund.search.days}")
+    private Integer numberOfDays;
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -256,9 +258,9 @@ public class RefundsController {
         + "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "successful operation"),
-        @ApiResponse(code = 204, message = "Refunds Unavailable"),
+        @ApiResponse(code = 404, message = "No refunds available for the given date range"),
         @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 413, message = "Payload too large"),
+        @ApiResponse(code = 413, message = "Date range exceeds the maximum supported by the system"),
         @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
     })
 
@@ -275,10 +277,10 @@ public class RefundsController {
         Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
 
         if (null != fromDateTime && null != toDateTime) {
-            daysDiffernec = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
+            daysDifference = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
         }
 
-        if (daysDiffernec > numberOfDays) {
+        if (daysDifference > numberOfDays) {
 
             throw new LargePayloadException("Date range exceeds the maximum supported by the system");
         }
