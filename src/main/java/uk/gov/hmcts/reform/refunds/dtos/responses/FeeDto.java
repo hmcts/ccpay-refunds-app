@@ -17,6 +17,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "feeDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @SuppressWarnings("PMD.TooManyFields")
 public class FeeDto {
 

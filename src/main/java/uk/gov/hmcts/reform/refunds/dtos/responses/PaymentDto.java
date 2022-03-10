@@ -22,6 +22,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "payment2DtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @SuppressWarnings("PMD.TooManyFields")
 public class PaymentDto {
 
