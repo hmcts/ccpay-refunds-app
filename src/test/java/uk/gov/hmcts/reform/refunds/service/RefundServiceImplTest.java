@@ -1122,12 +1122,11 @@ public class RefundServiceImplTest {
     @Test
     void testsearchByCriteriaWhenValidInputProvided() {
 
-        when(mockSpecification.toPredicate(any(),any(),any())).thenReturn(predicate);
+        when(mockSpecification.toPredicate(root, query, builder)).thenReturn(predicate);
 
-        when(root.<String>get("status")).thenReturn(stringPath);
+        when(root.<String>get("dateUpdated")).thenReturn(stringPath);
         when(builder.in(stringPath)).thenReturn(inCriteriaForStatus);
         Specification<Refund> refunds = refundsService.searchByCriteria(getRefundSearchCriteria());
         assertNotNull(refunds);
-
     }
 }
