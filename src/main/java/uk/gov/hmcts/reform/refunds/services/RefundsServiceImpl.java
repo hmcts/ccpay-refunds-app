@@ -130,19 +130,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
-        String paymnetMethod = null;
         IdamUserIdResponse uid = idamService.getUserId(headers);
-
-        if (refundRequest.getPaymentMethod() != null) {
-
-            if (refundRequest.getPaymentMethod().equals("cheque") || refundRequest.getPaymentMethod().equals("cash")
-                || refundRequest.getPaymentMethod().equals("postal order")) {
-                paymnetMethod = "RefundWhenContacted";
-            } else {
-                paymnetMethod = "SendRefund";
-            }
-        }
-        Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), paymnetMethod);
+        Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -410,7 +399,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return userFullNameMap;
     }
 
-    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String paymentMethod) throws CheckDigitException {
+    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .ccdCaseNumber(refundRequest.getCcdCaseNumber())
@@ -431,7 +420,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                   .build()
                 )
             )
-            .refundInstructionType(paymentMethod)
 
             .build();
     }

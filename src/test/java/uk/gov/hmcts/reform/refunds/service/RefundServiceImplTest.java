@@ -1092,5 +1092,4 @@ public class RefundServiceImplTest {
         Assert.assertEquals("RF-1111-2234-1077-1123",refundListDtoResponse.get(0).getReference());
 
     }
-
 }
