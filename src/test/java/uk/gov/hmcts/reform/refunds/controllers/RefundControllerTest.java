@@ -84,6 +84,7 @@ import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
+import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
 import java.math.BigDecimal;
@@ -298,14 +299,6 @@ class RefundControllerTest {
 
         payments.add(payments1);
         return payments;
-    }
-
-    private  RefundSearchCriteria getRefundSearchCriteria() {
-        return RefundSearchCriteria.searchCriteriaWith()
-            .startDate(Timestamp.valueOf("2021-10-10 10:10:10"))
-            .endDate(Timestamp.valueOf("2021-10-15 10:10:10"))
-            .refundReference("RF-1111-2234-1077-1123")
-            .build();
     }
 
     @Autowired
@@ -2288,7 +2281,7 @@ class RefundControllerTest {
      void validateSuccessResponseWhenValidSearchDateProvided() throws Exception {
 
         RefundsServiceImpl mock = org.mockito.Mockito.mock(RefundsServiceImpl.class);
-        when(mock.searchByCriteria(getRefundSearchCriteria())).thenReturn(mockSpecification);
+        when(mock.searchByCriteria(getSearchCriteria())).thenReturn(mockSpecification);
 
         when(refundsRepository.findAll(any()))
             .thenReturn(getRefundList());
@@ -2316,6 +2309,30 @@ class RefundControllerTest {
 
         Assertions.assertEquals("RF-1111-2234-1077-1123", rerfundLiberataResponse.getRefunds().get(0).getReference());
 
+    }
+
+
+    @Test
+    public void retireveCardPayments_forBetweenDates_WhereProviderIsGovPayTest() throws Exception {
+
+        Assertions.assertEquals("Tue Nov 02 21:48:07 GMT 2021",getSearchCriteria().getStartDate().toString());
+        Assertions.assertEquals("Wed Nov 03 21:48:07 GMT 2021",getSearchCriteria().getEndDate().toString());
+        Assertions.assertEquals("RF-1111-2234-1077-1123",getSearchCriteria().getRefundReference());
+
+    }
+
+    private RefundSearchCriteria getSearchCriteria() {
+        DateUtil date = new DateUtil();
+        Date fromDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-02T21:48:07")
+            .toDate();
+
+        Date toDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-03T21:48:07")
+            .toDate();
+        return RefundSearchCriteria.searchCriteriaWith()
+            .startDate(fromDate)
+            .endDate(toDate)
+            .refundReference("RF-1111-2234-1077-1123")
+            .build();
     }
 
 }
