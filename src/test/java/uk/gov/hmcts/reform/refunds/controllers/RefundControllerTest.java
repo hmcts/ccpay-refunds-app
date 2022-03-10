@@ -35,8 +35,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
@@ -2120,6 +2120,14 @@ class RefundControllerTest {
                                 .postalCode("E1 6AN")
                                 .notificationType("LETTER")
                                 .build())
+            .refundFees(Arrays.asList(
+                RefundFees.refundFeesWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1")
+                    .volume(1)
+                    .refundAmount(new BigDecimal(100))
+                    .build()))
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
                                                .status(RefundStatus.SENTFORAPPROVAL.getName())

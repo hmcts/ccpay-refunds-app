@@ -769,9 +769,19 @@ public class RefundServiceImplTest {
                     .refundAmount(amount)
                     .build()))
             .build();
+    }
+
     private ResubmitRefundRequest buildResubmitRefundRequest(String refundReason, BigDecimal amount, ContactDetails contactDetails) {
         return ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason(refundReason).amount(amount).contactDetails(
-            ContactDetails.contactDetailsWith().build()).build();
+            ContactDetails.contactDetailsWith().build())
+            .refundFees(Arrays.asList(
+                RefundFeeDto.refundFeeRequestWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1.0")
+                    .volume(1)
+                    .refundAmount(amount)
+                    .build())).build();
     }
 
     @Test
@@ -974,6 +984,14 @@ public class RefundServiceImplTest {
     void givenValidAmountInput_whenResubmitRefund_thenRefundStatusUpdated() {
         ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
         resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
+        resubmitRefundRequest.setRefundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(1))
+                .build()));
         RefundReason refundReason =
             RefundReason.refundReasonWith().code("BBB").description("CCC").name("DDD").build();
         when(refundsRepository.findByReferenceOrThrow(anyString()))
@@ -995,6 +1013,14 @@ public class RefundServiceImplTest {
     @Test
     void givenValidReasonInput_whenResubmitRefund_thenRefundStatusUpdated() {
         ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setRefundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(1))
+                .build()));
         resubmitRefundRequest.setRefundReason("RR002");
         RefundReason refundReason =
             RefundReason.refundReasonWith().code("RR001").description("The claim is amended").name("Amended claim").build();
@@ -1025,6 +1051,14 @@ public class RefundServiceImplTest {
                                                     .email("person@somemail.com")
                                                     .notificationType("EMAIL")
                                                     .build());
+        resubmitRefundRequest.setRefundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(1))
+                .build()));
         RefundReason refundReason =
             RefundReason.refundReasonWith().code("RR001").description("The claim is amended").name("Amended claim").build();
         when(refundsRepository.findByReferenceOrThrow(anyString()))
