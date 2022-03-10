@@ -41,7 +41,23 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.*;
+import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -2020,7 +2036,7 @@ class RefundControllerTest {
                                                    .amount(BigDecimal.valueOf(100))
                                                    .refundReference("RF-1628-5241-9956-2215")
                                                    .build()
-        ))).when(restOperations).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+        ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             ReconciliationProviderResponse.class));
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
