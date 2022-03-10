@@ -41,14 +41,13 @@ oidc:
   issuer: ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat.internal:8443/openam/oauth2/hmcts}
 
 auth:
-  idam:
-    client:
-      baseUrl: ${AUTH_IDAM_CLIENT_BASEURL:https://idam-api.aat.platform.hmcts.net}
   provider:
     service:
       client:
-        baseUrl: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
-
+        baseUrl: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+  idam:
+    client:
+      baseUrl: https://idam-api.aat.platform.hmcts.net
 test:
   url: ${TEST_URL:http://localhost:8080}
   user:

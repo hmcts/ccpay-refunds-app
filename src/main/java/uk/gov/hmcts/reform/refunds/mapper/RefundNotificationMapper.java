@@ -3,7 +3,11 @@ package uk.gov.hmcts.reform.refunds.mapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
-import uk.gov.hmcts.reform.refunds.dtos.requests.*;
+import uk.gov.hmcts.reform.refunds.dtos.requests.Personalisation;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 
 @Component
@@ -57,7 +61,42 @@ public class RefundNotificationMapper {
             .build();
     }
 
-    public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund) {
+   public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(Refund refund) {
+        return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
+            .templateId(emailTemplateId)
+            .recipientEmailAddress(refund.getContactDetails().getEmail())
+            .reference(refund.getReference())
+            .emailReplyToId(emailReplyToId)
+            .notificationType(NotificationType.EMAIL)
+            .personalisation(Personalisation.personalisationRequestWith()
+                                 .ccdCaseNumber(refund.getCcdCaseNumber())
+                                 .refundReference(refund.getReference())
+                                 .serviceMailBox(serviceMailBox)
+                                 .serviceUrl(serviceUrl)
+                                 .build())
+            .build();
+    }
+
+    public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(Refund refund) {
+        RecipientPostalAddress recipientPostalAddress = new RecipientPostalAddress();
+        recipientPostalAddress.setAddressLine(refund.getContactDetails().getAddressLine());
+        recipientPostalAddress.setPostalCode(refund.getContactDetails().getPostalCode());
+        recipientPostalAddress.setCity(refund.getContactDetails().getCity());
+        recipientPostalAddress.setCountry(refund.getContactDetails().getCountry());
+        return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
+            .templateId(letterTemplateId)
+            .recipientPostalAddress(recipientPostalAddress)
+            .reference(refund.getReference())
+            .notificationType(NotificationType.LETTER)
+            .personalisation(Personalisation.personalisationRequestWith()
+                                 .ccdCaseNumber(refund.getCcdCaseNumber())
+                                 .refundReference(refund.getReference())
+                                 .serviceMailBox(serviceMailBox)
+                                 .serviceUrl(serviceUrl)
+                                 .build())
+            .build();
+    }
+  public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
             .templateId(emailTemplateId)
             .recipientEmailAddress(refund.getContactDetails().getEmail())

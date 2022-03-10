@@ -14,7 +14,9 @@ import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+
 import java.sql.Timestamp;
+
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -61,6 +63,9 @@ public class Refund {
 
     @Column(name = "fee_ids")
     private String feeIds;
+
+    @Column(name = "service_type")
+    private String serviceType;
 
     @Column(name = "payment_reference")
     private String paymentReference;

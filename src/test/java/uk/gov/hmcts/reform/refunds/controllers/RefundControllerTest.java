@@ -3,10 +3,12 @@ package uk.gov.hmcts.reform.refunds.controllers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +20,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -187,12 +188,14 @@ class RefundControllerTest {
         .feeIds("1")
         .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
         .reference("RF-1234-1234-1234-1234")
+        .serviceType("cmc")
         .build();
     private ObjectMapper mapper = new ObjectMapper();
     private RefundRequest refundRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundAmount(new BigDecimal(100))
         .refundReason("RR002")
+        .serviceType("cmc")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
         .contactDetails(ContactDetails.contactDetailsWith()
@@ -206,6 +209,7 @@ class RefundControllerTest {
         .refundReason("RR036")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .serviceType("cmc")
         .contactDetails(ContactDetails.contactDetailsWith()
                 .addressLine("ABC Street")
                 .city("London")
@@ -244,6 +248,11 @@ class RefundControllerTest {
     @MockBean
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
+
+    @MockBean
+    @Qualifier("restTemplateLiberata")
+    private RestTemplate restTemplateLiberata;
+
     @Value("${idam.api.url}")
     private String idamBaseUrl;
     @Mock
@@ -252,9 +261,6 @@ class RefundControllerTest {
     @MockBean
     @Qualifier("restTemplatePayment")
     private RestTemplate restTemplatePayment;
-
-    @MockBean
-    private OAuth2RestOperations restOperations;
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -276,6 +282,10 @@ class RefundControllerTest {
 
     @MockBean
     private RefundNotificationService refundNotificationService;
+
+    @MockBean
+    @Qualifier("restTemplateNotify")
+    private RestTemplate restTemplateNotify;
 
     private static String asJsonString(final Object obj) {
         try {
@@ -639,6 +649,7 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .serviceType("cmc")
                                                                          .contactDetails(ContactDetails.contactDetailsWith()
                                                                                  .email("abc@abc.com")
                                                                                  .notificationType("EMAIL")
@@ -767,6 +778,7 @@ class RefundControllerTest {
     }
 
     @Test
+    @Disabled("Disabled this unit test as the respective validation is disabled to allow partial refunds")
     void createRefundReturns400ForAlreadyRefundedPaymentReference() throws Exception {
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
@@ -815,6 +827,7 @@ class RefundControllerTest {
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .serviceType("cmc")
                                                                          .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                          .build()))
                                                .header("Authorization", "user")
@@ -832,9 +845,63 @@ class RefundControllerTest {
 
     @Test
     void approveRefundRequestReturnsSuccessResponse() throws Exception {
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+             new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+        ReconciliationProviderResponse reconciliationProviderResponse = ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                .amount(BigDecimal.valueOf(100))
+                .refundReference("RF-1628-5241-9956-2215")
+                .build();
+        when(restTemplateLiberata.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(ReconciliationProviderResponse.class)))
+                .thenReturn(ResponseEntity.of(Optional.of(reconciliationProviderResponse)));
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+            "refund reason").build()));
+
+        MvcResult result = mockMvc.perform(patch(
+            "/refund/{reference}/action/{reviewer-action}",
+            "RF-1628-5241-9956-2215",
+            "APPROVE"
+        )
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andReturn();
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
+    }
+
+    @Test
+    void approveRefundRequestReturnsSuccessResponsewithLetternotification() throws Exception {
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+             new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefundWithLetterDetails()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
 
@@ -853,18 +920,18 @@ class RefundControllerTest {
                                                    .amount(BigDecimal.valueOf(100))
                                                    .refundReference("RF-1628-5241-9956-2215")
                                                    .build()
-        ))).when(restOperations).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+        ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             ReconciliationProviderResponse.class));
-        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefundWithLetterDetails());
 
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
             "refund reason").build()));
 
         MvcResult result = mockMvc.perform(patch(
-            "/refund/{reference}/action/{reviewer-action}",
-            "RF-1628-5241-9956-2215",
-            "APPROVE"
-        )
+                "/refund/{reference}/action/{reviewer-action}",
+                "RF-1628-5241-9956-2215",
+                "APPROVE"
+            )
                                                .content(asJsonString(refundReviewRequest))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
@@ -1081,7 +1148,8 @@ class RefundControllerTest {
 
     @Test
     void approveRefundRequestForNotExistingPaymentReturnsBadRequest() throws Exception {
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR001", "reason1");
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
         when(authTokenGenerator.generate()).thenReturn("service auth token");
@@ -1115,7 +1183,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestPaymentServerIsUnAvailableReturnsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1147,7 +1216,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenSendingMalformedRequestToPaymentReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1179,7 +1249,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenSendingInvalidRequestToReconciliationProviderReturnsBadRequest() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1199,7 +1270,7 @@ class RefundControllerTest {
             "RR002").name("refund reason").build()));
 
 
-        when(restOperations.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+        when(restTemplateLiberata.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             ReconciliationProviderResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
 
         MvcResult result = mockMvc.perform(patch(
@@ -1220,7 +1291,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenReconciliationProviderIsUnavailableReturnsInternalServerError() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1237,8 +1309,9 @@ class RefundControllerTest {
 
         ));
 
-        when(restOperations.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
+        when(restTemplateLiberata.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(ReconciliationProviderResponse.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
 
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code(
             "RR002").name("refund reason").build()));
@@ -1265,7 +1338,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestWhenReconciliationProviderReceivesDuplicateRequestReturnsDuplicateRequestMessage() throws Exception {
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1282,8 +1356,10 @@ class RefundControllerTest {
 
         ));
 
-        when(restOperations.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
+        when(restTemplateLiberata.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(ReconciliationProviderResponse.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
+
 
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code(
             "RR002").name("refund reason").build()));
@@ -1337,8 +1413,13 @@ class RefundControllerTest {
     void approveRefundRequestWithRetrospectiveRemissionReturnsSuccessResponse() throws Exception {
 
         Refund refundWithRetroRemission = getRefund();
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+            new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
         refundWithRetroRemission.setReason("RR036");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1354,15 +1435,22 @@ class RefundControllerTest {
             Optional.of(getPaymentGroupDto())
 
         ));
-        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
-                                                   .amount(BigDecimal.valueOf(100))
-                                                   .refundReference("RF-1628-5241-9956-2215")
-                                                   .build()
-        ))).when(restOperations).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class));
+        ReconciliationProviderResponse reconciliationProviderResponse = ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                .amount(BigDecimal.valueOf(100))
+                .refundReference("RF-1628-5241-9956-2215")
+                .build();
+        when(restTemplateLiberata.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                eq(ReconciliationProviderResponse.class)))
+                .thenReturn(ResponseEntity.of(Optional.of(reconciliationProviderResponse)));
+
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
         when(refundReasonRepository.findByCode(anyString())).thenReturn(
             Optional.of(RefundReason.refundReasonWith().code("RR036").name("Retrospective Remission").build()));
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+            new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
+
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
 
         MvcResult result = mockMvc.perform(patch(
@@ -1385,7 +1473,8 @@ class RefundControllerTest {
 
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
 
@@ -1410,7 +1499,7 @@ class RefundControllerTest {
                                                    .amount(BigDecimal.valueOf(100))
                                                    .refundReference("RF-1628-5241-9956-2215")
                                                    .build()
-        ))).when(restOperations).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+        ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             ReconciliationProviderResponse.class));
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
 
@@ -1437,7 +1526,8 @@ class RefundControllerTest {
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
         refundWithRetroRemission.setAmount(BigDecimal.valueOf(10));
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1457,7 +1547,7 @@ class RefundControllerTest {
                                                    .amount(BigDecimal.valueOf(100))
                                                    .refundReference("RF-1628-5241-9956-2215")
                                                    .build()
-        ))).when(restOperations).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+        ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             ReconciliationProviderResponse.class));
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
@@ -1481,10 +1571,14 @@ class RefundControllerTest {
 
     @Test
     void approveRefundRequestWhenReconciliationProviderThrowsServerExceptionItSendsInternalServerError() throws Exception {
-
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class),
+                                         eq(String.class))).thenReturn(new ResponseEntity<String>("Success", HttpStatus.OK)
+        );
         Refund refundWithRetroRemission = getRefund();
         refundWithRetroRemission.setReason("RR036");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(false);
+        when(featureToggler.getBooleanValue(eq("refund-liberata"),anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(refundWithRetroRemission));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1499,7 +1593,7 @@ class RefundControllerTest {
             Optional.of(getPaymentGroupDto())
 
         ));
-        doReturn(new ResponseEntity(HttpStatus.PERMANENT_REDIRECT)).when(restOperations).exchange(
+        doReturn(new ResponseEntity(HttpStatus.PERMANENT_REDIRECT)).when(restTemplateLiberata).exchange(
             anyString(),
             any(HttpMethod.class),
             any(HttpEntity.class),
@@ -2037,6 +2131,41 @@ class RefundControllerTest {
             .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .feeIds("50")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .email("abc@abc.com")
+                                .notificationType("EMAIL")
+                                .build())
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                                               .id(1)
+                                               .status(RefundStatus.SENTFORAPPROVAL.getName())
+                                               .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+                                               .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                               .notes("Refund initiated and sent to team leader")
+                                               .build()))
+            .build();
+    }
+
+    private Refund getRefundWithLetterDetails() {
+        return Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .reason("RR0001")
+            .reference("RF-1628-5241-9956-2215")
+            .paymentReference("RC-1628-5241-9956-2315")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
+            .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .feeIds("50")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("ABC Street")
+                                .city("London")
+                                .county("Greater London")
+                                .country("UK")
+                                .postalCode("E1 6AN")
+                                .notificationType("LETTER")
+                                .build())
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
                                                .status(RefundStatus.SENTFORAPPROVAL.getName())
@@ -2057,4 +2186,55 @@ class RefundControllerTest {
             .uid("986-erfg-kjhg-123")
             .build();
     }
+
+    @Test
+    void approveRefundRequestReturnsNotificationExceptionResponse() throws Exception {
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenThrow(
+            new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
+        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+                                                   .amount(BigDecimal.valueOf(100))
+                                                   .refundReference("RF-1628-5241-9956-2215")
+                                                   .build()
+        ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            ReconciliationProviderResponse.class));
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+            "refund reason").build()));
+        MvcResult result = mockMvc.perform(patch(
+                "/refund/{reference}/action/{reviewer-action}",
+                "RF-1628-5241-9956-2215",
+                "APPROVE"
+            )
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+
+        //assertEquals("Refund approved", result.getResponse().getContentAsString());
+    }
+
+
 }

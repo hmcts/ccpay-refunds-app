@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.refunds.functional.request.ContactDetails;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.FeeDto;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -50,20 +51,84 @@ public final class RefundsFixture {
     }
 
     public static final PaymentRefundRequest refundRequest(final String refundReason,
-                                                           final String paymentReference) {
+                                                           final String paymentReference, final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
-            .refundReason(refundReason).contactDetails(ContactDetails.contactDetailsWith()
+            .refundReason(refundReason)
+            .serviceType("cmc")
+            .refundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .apportionedPayment(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(0)
+                    .version("1")
+                    .volume(1)
+
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
                                                            .addressLine("High Street 112")
                                                            .country("UK")
                                                            .county("Londonshire")
                                                            .city("London")
                                                            .postalCode("P1 1PO")
-                                                           .email("person@gmail.com")
-                                                           .notificationType("email")
+                                                           .email("person@somemail.com")
+                                                           .notificationType("EMAIL")
                                                            .build())
 
             .build();
 
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundAllInput() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .amount(new BigDecimal("80.00"))
+            .refundReason("RR002")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 112")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("P1 1PO")
+                                .email("testperson@somemail.com")
+                                .notificationType("EMAIL")
+                                .build())
+
+            .build();
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundWithAmount() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .amount(new BigDecimal("85.00"))
+            .build();
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundWithReason() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .refundReason("RR011")
+            .build();
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundWithContact() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 115")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("P1 1PO")
+                                .email("testperson@somemail.com")
+                                .notificationType("EMAIL")
+                                .build())
+            .build();
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundWithRetroRemissionReason() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .refundReason("RR036")
+            .build();
     }
 }

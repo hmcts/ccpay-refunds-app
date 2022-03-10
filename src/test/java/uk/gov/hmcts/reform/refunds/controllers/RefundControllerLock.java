@@ -82,6 +82,7 @@ public class RefundControllerLock {
                                                                             .refundReason("RR035-Other-Reason")
                                                                             .ccdCaseNumber("1111222233334444")
                                                                             .feeIds("1")
+                                                                            .serviceType("cmc")
                                                                             .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                             .build()))
                                                   .header("Authorization", "user")
@@ -128,6 +129,7 @@ public class RefundControllerLock {
         when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(true);
         ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(BigDecimal.valueOf(100))
+            .contactDetails(ContactDetails.contactDetailsWith().build())
             .refundReason("RR003").build();
         MvcResult result = mockMvc.perform(patch(
             "/refund/resubmit/{reference}",

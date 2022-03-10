@@ -12,22 +12,8 @@
     <notes> Suppressing this CVE as it occurs even in the latest version of lang-tag-1.5</notes>
     <cve>CVE-2020-23171</cve>
   </suppress>
-
-  <suppress until="2022-03-30">
-    <notes>The SslHandler in Netty before 3.9.2 allows remote attackers to cause a denial of service
-      (infinite loop and CPU consumption) via a crafted SSLv2Hello message.
-      and hence it is suppressed
-    </notes>
-    <cve>CVE-2014-3488</cve>
-    <cve>CVE-2015-2156</cve>
-    <cve>CVE-2019-16869</cve>
-    <cve>CVE-2019-20444</cve>
-    <cve>CVE-2019-20445</cve>
-    <cve>CVE-2021-21290</cve>
-    <cve>CVE-2021-21295</cve>
-    <cve>CVE-2021-21409</cve>
-    <cve>CVE-2021-37136</cve>
-    <cve>CVE-2021-37137</cve>
-    <cve>CVE-2021-43797</cve>
+  <suppress>
+    <notes> Suppressing this CVE as it occurs even in the latest version of logback-core and logback-classic 1.2.10</notes>
+    <cve>CVE-2021-42550</cve>
   </suppress>
 </suppressions>
