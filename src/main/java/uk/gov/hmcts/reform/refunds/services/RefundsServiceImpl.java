@@ -131,7 +131,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
         IdamUserIdResponse uid = idamService.getUserId(headers);
-        Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
+        String paymnetMethod = null;
+
+        if (refundRequest.getPaymentMethod() != null) {
+
+            if (refundRequest.getPaymentMethod().equals("cheque") || refundRequest.getPaymentMethod().equals("cash")
+                || refundRequest.getPaymentMethod().equals("postal order") && (refundRequest.getPaymentChannel().equals("bulk scan"))) {
+                paymnetMethod = "RefundWhenContacted";
+            } else {
+                paymnetMethod = "SendRefund";
+            }
+        }
+
+        Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), paymnetMethod);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -399,7 +411,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return userFullNameMap;
     }
 
-    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
+    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String paymentMethod) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .ccdCaseNumber(refundRequest.getCcdCaseNumber())
@@ -412,6 +424,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .createdBy(uid)
             .updatedBy(uid)
             .contactDetails(refundRequest.getContactDetails())
+            .refundInstructionType(paymentMethod)
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
@@ -480,7 +493,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
     }
 
-    private static Predicate getPredicate(
+    public Predicate getPredicate(
         Root<Refund> root,
         CriteriaBuilder cb,
         RefundSearchCriteria searchCriteria, CriteriaQuery<?> query) {
