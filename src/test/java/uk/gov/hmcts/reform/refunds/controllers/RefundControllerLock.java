@@ -148,6 +148,7 @@ public class RefundControllerLock {
                     .volume(1)
                     .refundAmount(new BigDecimal(100))
                     .build()))
+            .contactDetails(ContactDetails.contactDetailsWith().build())
             .refundReason("RR003").build();
         MvcResult result = mockMvc.perform(patch(
             "/refund/resubmit/{reference}",

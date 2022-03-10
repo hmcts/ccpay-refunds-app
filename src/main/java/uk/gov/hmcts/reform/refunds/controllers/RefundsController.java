@@ -15,14 +15,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
@@ -32,6 +35,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
@@ -46,7 +50,7 @@ import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @Api(tags = {"Refund Journey group"})
-@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
 
     @Autowired
@@ -63,6 +67,9 @@ public class RefundsController {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @Autowired
+    private RefundNotificationService refundNotificationService;
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -218,6 +225,29 @@ public class RefundsController {
         }
         return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
 
+    }
+
+    @ApiOperation(value = "PUT resend/notification/{reference} ", notes = "Resend Refund Notification")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Ok"),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "IDAM User Authorization Failed"),
+        @ApiResponse(code = 403, message = "RPE Service Authentication Failed"),
+        @ApiResponse(code = 404, message = "Refund Not found"),
+        @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
+
+    })
+    @PutMapping("resend/notification/{reference}")
+    public ResponseEntity<String> resendNotification(
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @RequestBody ResendNotificationRequest resendNotificationRequest,
+        @PathVariable String reference,
+        @RequestParam NotificationType notificationType
+    ) {
+        resendNotificationRequest.setReference(reference);
+        resendNotificationRequest.setNotificationType(notificationType);
+        return refundNotificationService.resendRefundNotification(resendNotificationRequest,headers);
     }
 
 }
