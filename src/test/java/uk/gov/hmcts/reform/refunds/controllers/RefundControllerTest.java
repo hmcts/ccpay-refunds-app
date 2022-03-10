@@ -75,6 +75,7 @@ import uk.gov.hmcts.reform.refunds.services.NotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
