@@ -2313,20 +2313,27 @@ class RefundControllerTest {
 
 
     @Test
-    public void retireveCardPayments_forBetweenDates_WhereProviderIsGovPayTest() throws Exception {
+      void testRefundSearchCriteria() throws Exception {
 
-        Assertions.assertEquals("Tue Nov 02 21:48:07 GMT 2021",getSearchCriteria().getStartDate().toString());
-        Assertions.assertEquals("Wed Nov 03 21:48:07 GMT 2021",getSearchCriteria().getEndDate().toString());
+        DateUtil date = new DateUtil();
+        Date fromDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-02")
+            .toDate();
+
+        Date toDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-03")
+            .toDate();
+
+        Assertions.assertEquals(fromDate,getSearchCriteria().getStartDate());
+        Assertions.assertEquals(toDate,getSearchCriteria().getEndDate());
         Assertions.assertEquals("RF-1111-2234-1077-1123",getSearchCriteria().getRefundReference());
 
     }
 
     private RefundSearchCriteria getSearchCriteria() {
         DateUtil date = new DateUtil();
-        Date fromDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-02T21:48:07")
+        Date fromDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-02")
             .toDate();
 
-        Date toDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-03T21:48:07")
+        Date toDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-03")
             .toDate();
         return RefundSearchCriteria.searchCriteriaWith()
             .startDate(fromDate)
