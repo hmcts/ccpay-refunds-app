@@ -55,6 +55,12 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -223,6 +229,26 @@ public class RefundServiceImplTest {
 
     @MockBean
     private RefundSearchCriteria refundSearchCriteria;
+
+    @Mock
+    private Predicate predicate;
+
+    @Mock
+    private CriteriaBuilder builder;
+
+    @Mock
+    private Root<Refund> root;
+
+    @Mock
+    private CriteriaQuery<?> query;
+
+
+
+    @Mock
+    private CriteriaBuilder.In<String> inCriteriaForStatus;
+
+    @Mock
+    private Path<String> stringPath;
 
 
     private  RefundSearchCriteria getRefundSearchCriteria() {
@@ -1090,6 +1116,18 @@ public class RefundServiceImplTest {
         );
 
         Assert.assertEquals("RF-1111-2234-1077-1123",refundListDtoResponse.get(0).getReference());
+
+    }
+
+    @Test
+    void testsearchByCriteriaWhenValidInputProvided() {
+
+        when(mockSpecification.toPredicate(any(),any(),any())).thenReturn(predicate);
+
+        when(root.<String>get("status")).thenReturn(stringPath);
+        when(builder.in(stringPath)).thenReturn(inCriteriaForStatus);
+        Specification<Refund> refunds = refundsService.searchByCriteria(getRefundSearchCriteria());
+        assertNotNull(refunds);
 
     }
 }
