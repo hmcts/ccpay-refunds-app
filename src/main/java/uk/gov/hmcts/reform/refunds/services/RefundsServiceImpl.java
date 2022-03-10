@@ -118,8 +118,20 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
+
+        String paymnetMethod = null;
+
+        if (refundRequest.getPaymentMethod() != null) {
+
+            if (refundRequest.getPaymentMethod().equals("cheque") || refundRequest.getPaymentMethod().equals("cash")
+                || refundRequest.getPaymentMethod().equals("postal order") && (refundRequest.getPaymentChannel().equals("bulk scan"))) {
+                paymnetMethod = "RefundWhenContacted";
+            } else {
+                paymnetMethod = "SendRefund";
+            }
+        }
         IdamUserIdResponse uid = idamService.getUserId(headers);
-        Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
+        Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), paymnetMethod);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -414,7 +426,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     }
 
-    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
+    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String paymentMethod) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .ccdCaseNumber(refundRequest.getCcdCaseNumber())
@@ -427,6 +439,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .createdBy(uid)
             .updatedBy(uid)
             .contactDetails(refundRequest.getContactDetails())
+            .refundInstructionType(paymentMethod)
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)

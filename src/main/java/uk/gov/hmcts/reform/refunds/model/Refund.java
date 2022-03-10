@@ -99,4 +99,7 @@ public class Refund {
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
+    @Column(name = "refund_instruction_type")
+    private String refundInstructionType;
+
 }
