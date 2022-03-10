@@ -223,7 +223,6 @@ public class RefundNotificationServiceImpl extends StateUtil  implements RefundN
                     );
                     ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService
                         .updateReconciliationProviderWithApprovedRefund(
-                            getHttpHeaders(),
                             reconciliationProviderRequest
                         );
                     if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
