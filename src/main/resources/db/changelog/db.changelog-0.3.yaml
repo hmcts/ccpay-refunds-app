@@ -33,6 +33,16 @@ databaseChangeLog:
                   ('RR002', 'Human Error', 'Refund request for human error scenario'),
                   ('RR003', 'Case Withdrawn', 'Refund request when case has been withdrawn'),
                   ('RR004', 'Other', 'Any other refund reason category');
+  - changeSet:
+      id: 100003-2
+      author: Anshika
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_reasons (code, name, description)
+                VALUES
+                  ('RR040', 'Overpayment', 'Refund for Overpayment')
 #  - changeSet:
 #      id: 100003-2
 #      author: Vignesh
