@@ -191,9 +191,8 @@ public class PaymentServiceImpl implements PaymentService {
             ResponseEntity<List<PaymentDto>> paymentResponse =
                 fetchRefundPaymentFromPayhub(paymentReference);
             logger.info("payment Response status code {}", paymentResponse.getStatusCode());
-            if (null != paymentResponse) {
-                logger.info("payment Response --> {}", paymentResponse.getBody().stream().count());
-                logger.info("payment Response --> {}", paymentResponse.getBody().stream().findFirst());
+            if (paymentResponse != null) {
+                logger.info("payment Response --> {}", paymentResponse.getBody());
             }
             return  paymentResponse.getBody();
         } catch (HttpClientErrorException e) {
