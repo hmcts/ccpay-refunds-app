@@ -376,7 +376,7 @@ class RefundControllerTest {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
     private static final DateTimeFormatter INVALID_FORMAT = DateTimeFormat.forPattern("yyyy-MM");
    
-   @Mock
+    @Mock
     private NotificationServiceImpl notificationService;
 
     private static String asJsonString(final Object obj) {
