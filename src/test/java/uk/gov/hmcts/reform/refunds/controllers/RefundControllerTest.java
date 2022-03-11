@@ -72,7 +72,7 @@ import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
-import uk.gov.hmcts.reform.refunds.services.NotificationService;
+import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
@@ -301,8 +301,8 @@ class RefundControllerTest {
     @Qualifier("restTemplateNotify")
     private RestTemplate restTemplateNotify;
 
-    @MockBean
-    private NotificationService notificationService;
+    @Mock
+    private NotificationServiceImpl notificationService;
 
     private static String asJsonString(final Object obj) {
         try {
