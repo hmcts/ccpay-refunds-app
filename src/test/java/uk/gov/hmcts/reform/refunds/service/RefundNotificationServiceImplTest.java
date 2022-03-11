@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.refunds.service;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,18 +19,27 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
+import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
+import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
+import uk.gov.hmcts.reform.refunds.services.RefundNotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -64,6 +75,14 @@ class RefundNotificationServiceImplTest {
     @Autowired
     RefundNotificationService refundNotificationService;
 
+
+    @MockBean
+    private NotificationServiceImpl notificationService;
+
+    @MockBean
+    private IdamServiceImpl idamService;
+
+
     @Test
     void resendEmailRefundNotificationShouldReturnSuccessResponse_AfterSuccessfulRestcallWithNotificationService() {
         ResendNotificationRequest mockRequest = getMockEmailRequest();
@@ -73,6 +92,8 @@ class RefundNotificationServiceImplTest {
         );
         when(authTokenGenerator.generate()).thenReturn("Service.Auth.Token");
         when(refundsRepository.save(any(Refund.class))).thenReturn(getMockRefund());
+        when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         ResponseEntity<String> responseEntity = refundNotificationService.resendRefundNotification(mockRequest,getHeaders());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -86,6 +107,8 @@ class RefundNotificationServiceImplTest {
         );
         when(authTokenGenerator.generate()).thenReturn("Service.Auth.Token");
         when(refundsRepository.save(any(Refund.class))).thenReturn(getMockRefund());
+        when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         ResponseEntity<String> responseEntity = refundNotificationService.resendRefundNotification(mockRequest,getHeaders());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -157,4 +180,89 @@ class RefundNotificationServiceImplTest {
         inputHeaders.put("ServiceAuthorization", Arrays.asList("servauthtoken"));
         return inputHeaders;
     }
+
+    @Test
+    void processFailedNotificationsEmailTest() throws Exception {
+
+        IdamTokenResponse tokenres =  IdamTokenResponse
+            .idamFullNameRetrivalResponseWith()
+            .accessToken("test token")
+            .refreshToken("mock token")
+            .scope("mock-scope")
+            .idToken("mock-token")
+            .tokenType("mock-type")
+            .expiresIn("2021-07-20T11:03:08.067Z")
+            .build();
+
+        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
+
+        when(refundsRepository.findByNotificationSentFlag(anyString())).thenReturn(Optional.ofNullable(List.of(
+            RefundServiceImplTest.refundListContactDetailsEmail.get())));
+
+        when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        when(idamService.getSecurityTokens()).thenReturn(tokenres);
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+
+        refundNotificationService.processFailedNotificationsEmail();
+
+    }
+
+    private Refund getRefund() {
+        return Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .reason("RR0001")
+            .reference("RF-1628-5241-9956-2215")
+            .paymentReference("RC-1628-5241-9956-2315")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
+            .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .feeIds("50")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .email("abc@abc.com")
+                                .notificationType("EMAIL")
+                                .build())
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                                               .id(1)
+                                               .status(RefundStatus.SENTFORAPPROVAL.getName())
+                                               .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+                                               .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                               .notes("Refund initiated and sent to team leader")
+                                               .build()))
+            .build();
+    }
+
+
+    @Test
+    void processFailedNotificationsLetterTest() throws Exception {
+
+        IdamTokenResponse tokenres =  IdamTokenResponse
+            .idamFullNameRetrivalResponseWith()
+            .accessToken("test token")
+            .refreshToken("mock token")
+            .scope("mock-scope")
+            .idToken("mock-token")
+            .tokenType("mock-type")
+            .expiresIn("2021-07-20T11:03:08.067Z")
+            .build();
+
+        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
+
+        when(refundsRepository.findByNotificationSentFlag(anyString())).thenReturn(Optional.ofNullable(List.of(
+            RefundServiceImplTest.refundListContactDetailsLetter.get())));
+
+        when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(authTokenGenerator.generate()).thenReturn("service auth token");
+        when(idamService.getSecurityTokens()).thenReturn(tokenres);
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+
+        refundNotificationService.processFailedNotificationsLetter();
+
+    }
+
 }

@@ -73,7 +73,7 @@ import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
-import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
+import uk.gov.hmcts.reform.refunds.services.RefundNotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
@@ -294,8 +294,8 @@ class RefundControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private RefundNotificationService refundNotificationService;
+    @Mock
+    private RefundNotificationServiceImpl refundNotificationService;
 
     @MockBean
     @Qualifier("restTemplateNotify")
@@ -2147,62 +2147,6 @@ class RefundControllerTest {
             .andReturn();
 
         //assertEquals("Refund approved", result.getResponse().getContentAsString());
-    }
-
-    @Test
-    void processFailedNotificationsEmailTest() throws Exception {
-
-        IdamTokenResponse tokenres =  IdamTokenResponse
-            .idamFullNameRetrivalResponseWith()
-            .accessToken("test token")
-            .refreshToken("mock token")
-            .scope("mock-scope")
-            .idToken("mock-token")
-            .tokenType("mock-type")
-            .expiresIn("2021-07-20T11:03:08.067Z")
-            .build();
-
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
-
-        when(refundsRepository.findByNotificationSentFlag(anyString())).thenReturn(Optional.ofNullable(List.of(
-            RefundServiceImplTest.refundListContactDetailsEmail.get())));
-
-        when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-        when(idamService.getSecurityTokens()).thenReturn(tokenres);
-        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
-
-        refundNotificationService.processFailedNotificationsEmail();
-
-    }
-
-    @Test
-    void processFailedNotificationsLetterTest() throws Exception {
-
-        IdamTokenResponse tokenres =  IdamTokenResponse
-            .idamFullNameRetrivalResponseWith()
-            .accessToken("test token")
-            .refreshToken("mock token")
-            .scope("mock-scope")
-            .idToken("mock-token")
-            .tokenType("mock-type")
-            .expiresIn("2021-07-20T11:03:08.067Z")
-            .build();
-
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
-
-        when(refundsRepository.findByNotificationSentFlag(anyString())).thenReturn(Optional.ofNullable(List.of(
-            RefundServiceImplTest.refundListContactDetailsLetter.get())));
-
-        when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-        when(idamService.getSecurityTokens()).thenReturn(tokenres);
-        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
-
-        refundNotificationService.processFailedNotificationsLetter();
-
     }
 
     @Test
