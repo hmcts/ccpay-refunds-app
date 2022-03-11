@@ -14,7 +14,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
@@ -86,14 +85,6 @@ class RefundNotificationServiceImplTest {
 
     @MockBean
     private IdamServiceImpl idamService;
-
-    @MockBean
-    private LaunchDarklyFeatureToggler featureToggler;
-
-    @MockBean
-    @Qualifier("restTemplatePayment")
-    private RestTemplate restTemplatePayment;
-
 
     @Test
     void resendEmailRefundNotificationShouldReturnSuccessResponse_AfterSuccessfulRestcallWithNotificationService() {
