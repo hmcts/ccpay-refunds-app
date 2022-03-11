@@ -2345,7 +2345,9 @@ class RefundControllerTest {
             .endDate(toDate)
             .refundReference("RF-1111-2234-1077-1123")
             .build();
+    }
 
+    @Test
     void processFailedLiberataRefundsApproveJourneyTest() throws Exception {
         MvcResult result = mockMvc.perform(patch("/jobs/refund-approved-update").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is2xxSuccessful())
