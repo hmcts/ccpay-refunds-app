@@ -78,6 +78,7 @@ public class RefundsApproverJourneyFunctionalTest {
     private static String USER_TOKEN_CITIZEN_WITH_PAYMENTS_ROLE;
     private static String USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
+    private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
     private static String SERVICE_TOKEN_CMC;
     private static boolean TOKENS_INITIALIZED;
@@ -99,6 +100,10 @@ public class RefundsApproverJourneyFunctionalTest {
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE =
                 idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver")
+                    .getAuthorisationToken();
+
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE =
+                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver", "payments")
                     .getAuthorisationToken();
 
             SERVICE_TOKEN_CMC =
@@ -252,7 +257,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundEvents.size()).isEqualTo(3);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             ReviewerAction.APPROVE.name(),
@@ -432,7 +437,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final String refundReference = performRefund();
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             RefundEvent.APPROVE.name(),
@@ -486,7 +491,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final String refundReference = performRefund();
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             RefundEvent.APPROVE.name(),
@@ -529,7 +534,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final String refundReference = performRefund();
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             RefundEvent.APPROVE.name(),
