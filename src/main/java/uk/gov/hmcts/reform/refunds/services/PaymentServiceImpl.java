@@ -188,8 +188,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         try {
 
-           // return getPayments();
-           ResponseEntity<List<PaymentDto>> paymentResponse =
+            ResponseEntity<List<PaymentDto>> paymentResponse =
                 fetchRefundPaymentFromPayhub(paymentReference);
             return  paymentResponse.getBody();
         } catch (HttpClientErrorException e) {
