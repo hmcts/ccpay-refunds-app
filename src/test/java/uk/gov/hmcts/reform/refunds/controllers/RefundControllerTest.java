@@ -2148,5 +2148,17 @@ class RefundControllerTest {
         //assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
+    @Test
+    void processFailedLiberataRefundsApproveJourneyTest() throws Exception {
+        MvcResult result = mockMvc.perform(patch("/jobs/refund-approved-update").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is2xxSuccessful())
+            .andReturn();
+    }
 
+    @Test
+    void processFailedNotifcationsTest() throws Exception {
+        MvcResult result = mockMvc.perform(patch("/jobs/refund-notification-update").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is2xxSuccessful())
+            .andReturn();
+    }
 }
