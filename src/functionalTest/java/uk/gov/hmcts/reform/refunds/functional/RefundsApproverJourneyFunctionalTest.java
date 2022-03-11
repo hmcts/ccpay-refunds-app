@@ -224,7 +224,8 @@ public class RefundsApproverJourneyFunctionalTest {
                         s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         assertThat(optionalRefundDto.get().getContactDetails()).isNotNull();
     }
-
+    
+    @Ignore
     @Test
     public void negative_approver_can_request_refund_but_not_self_approve() {
 
