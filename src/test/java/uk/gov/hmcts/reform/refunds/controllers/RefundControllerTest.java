@@ -254,8 +254,9 @@ class RefundControllerTest {
     @MockBean
     private ContextStartListener contextStartListener;
 
-    @Mock
+    @MockBean
     private IdamServiceImpl idamService;
+
     @InjectMocks
     private RefundsController refundsController;
     @Mock
