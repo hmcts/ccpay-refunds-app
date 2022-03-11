@@ -268,7 +268,8 @@ public class RefundsController {
     @GetMapping("/reconciliation-refunds/{start_date}/{end_date}")
     public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
                                                         @PathVariable(name = "end_date") Optional<String> endDateTimeString,
-                                                        @RequestParam(name = "refund_reference", required = false) String refundReference
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference,
+                                                                              @RequestHeader(required = false) MultiValueMap<String, String> headers
     ) {
 
         refundValidator.validate(startDateTimeString, endDateTimeString);

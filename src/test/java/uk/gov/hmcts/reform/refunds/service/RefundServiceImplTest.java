@@ -49,6 +49,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,6 +58,7 @@ import java.util.function.Supplier;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -241,11 +243,12 @@ public class RefundServiceImplTest {
 
     @Mock
     private CriteriaQuery<?> query;
-
+    @Mock
+   private  Expression<Date> expression;
 
 
     @Mock
-    private CriteriaBuilder.In<String> inCriteriaForStatus;
+    private CriteriaBuilder.In<Date> inCriteriaForStatus;
 
     @Mock
     private Path<String> stringPath;
@@ -256,6 +259,7 @@ public class RefundServiceImplTest {
         return RefundSearchCriteria.searchCriteriaWith()
             .startDate(Timestamp.valueOf("2021-10-10 10:10:10"))
             .endDate(Timestamp.valueOf("2021-10-15 10:10:10"))
+            .refundReference("RF-1111-2234-1077-1123")
             .build();
     }
 
@@ -1125,7 +1129,6 @@ public class RefundServiceImplTest {
         when(mockSpecification.toPredicate(root, query, builder)).thenReturn(predicate);
 
         when(root.<String>get("dateUpdated")).thenReturn(stringPath);
-        when(builder.in(stringPath)).thenReturn(inCriteriaForStatus);
         Specification<Refund> refunds = refundsService.searchByCriteria(getRefundSearchCriteria());
         assertNotNull(refunds);
     }
@@ -1197,4 +1200,17 @@ public class RefundServiceImplTest {
                                            .build()))
         .build();
 
+    @Test
+    void testgetPredicateWhenValidInputProvided() {
+        when(root.<String>get("dateUpdated")).thenReturn(stringPath);
+        Specification<Refund> actual = refundsService.searchByCriteria(getRefundSearchCriteria());
+        Predicate actualPredicate = actual.toPredicate(root, query, builder);
+        when(builder.function("date_trunc",
+                              Date.class,
+                              builder.literal("seconds"),
+                              root.get("dateUpdated"))).thenReturn(expression);
+        Predicate predicate = refundsService.getPredicate(root,builder,getRefundSearchCriteria(),query);
+
+        assertEquals(predicate, actualPredicate);
+    }
 }
