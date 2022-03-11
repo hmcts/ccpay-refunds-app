@@ -43,7 +43,6 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
@@ -73,7 +72,7 @@ import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
-import uk.gov.hmcts.reform.refunds.services.RefundNotificationServiceImpl;
+import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 
@@ -254,9 +253,8 @@ class RefundControllerTest {
     @MockBean
     private ContextStartListener contextStartListener;
 
-    @MockBean
+    @Mock
     private IdamServiceImpl idamService;
-
     @InjectMocks
     private RefundsController refundsController;
     @Mock
@@ -295,8 +293,8 @@ class RefundControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Mock
-    private RefundNotificationServiceImpl refundNotificationService;
+    @MockBean
+    private RefundNotificationService refundNotificationService;
 
     @MockBean
     @Qualifier("restTemplateNotify")
@@ -2148,53 +2146,6 @@ class RefundControllerTest {
             .andReturn();
 
         //assertEquals("Refund approved", result.getResponse().getContentAsString());
-    }
-
-    @Test
-    void processFailedLiberataRefundsApproveJourneyTest() throws Exception {
-
-        IdamTokenResponse tokenres =  IdamTokenResponse
-            .idamFullNameRetrivalResponseWith()
-            .accessToken("test token")
-            .refreshToken("mock token")
-            .scope("mock-scope")
-            .idToken("mock-token")
-            .tokenType("mock-type")
-            .expiresIn("2021-07-20T11:03:08.067Z")
-            .build();
-
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
-
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-
-        when(idamService.getSecurityTokens()).thenReturn(tokenres);
-
-        when(refundsRepository.findByRefundStatusAndRefundApproveFlag(anyString(),anyString())).thenReturn(Optional.ofNullable(List.of(
-            RefundServiceImplTest.refundListLiberataRefundsTest.get())));
-
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
-
-        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
-            "refund reason").build()));
-
-        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
-                                                   .amount(BigDecimal.valueOf(100))
-                                                   .refundReference("RF-1628-5241-9956-2215")
-                                                   .build()
-        ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
-
-        MvcResult result = mockMvc.perform(patch("/jobs/refund-approved-update").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().is2xxSuccessful())
-            .andReturn();
     }
 
 

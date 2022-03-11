@@ -18,7 +18,13 @@ import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -33,8 +39,10 @@ import uk.gov.hmcts.reform.refunds.services.RefundsService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,6 +89,10 @@ class RefundNotificationServiceImplTest {
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @MockBean
+    @Qualifier("restTemplatePayment")
+    private RestTemplate restTemplatePayment;
 
 
     @Test
@@ -263,6 +275,69 @@ class RefundNotificationServiceImplTest {
 
         refundNotificationService.processFailedNotificationsLetter();
 
+    }
+
+    private PaymentGroupResponse getPaymentGroupDto() {
+        return PaymentGroupResponse.paymentGroupDtoWith()
+            .paymentGroupReference("payment-group-reference")
+            .dateCreated(Date.from(Instant.now()))
+            .dateUpdated(Date.from(Instant.now()))
+            .payments(Arrays.asList(
+                PaymentResponse.paymentResponseWith()
+                    .amount(BigDecimal.valueOf(100))
+                    .description("description")
+                    .reference("RC-1628-5241-9956-2315")
+                    .dateCreated(Date.from(Instant.now()))
+                    .dateUpdated(Date.from(Instant.now()))
+                    .currency(CurrencyCode.GBP)
+                    .caseReference("case-reference")
+                    .ccdCaseNumber("ccd-case-number")
+                    .channel("solicitors portal")
+                    .method("payment by account")
+                    .externalProvider("provider")
+                    .accountNumber("PBAFUNC1234")
+                    .paymentAllocation(Arrays.asList(
+                        PaymentAllocationResponse.paymentAllocationDtoWith()
+                            .allocationStatus("allocationStatus")
+                            .build()
+                    ))
+                    .build()
+            ))
+            .remissions(Arrays.asList(
+                RemissionResponse.remissionDtoWith()
+                    .remissionReference("remission-reference")
+                    .beneficiaryName("ben-ten")
+                    .ccdCaseNumber("ccd-case-number")
+                    .caseReference("case-reference")
+                    .hwfReference("hwf-reference")
+                    .hwfAmount(BigDecimal.valueOf(100))
+                    .dateCreated(Date.from(Instant.now()))
+                    .feeId(50)
+                    .build()
+            ))
+            .fees(Arrays.asList(
+                PaymentFeeResponse.feeDtoWith()
+                    .id(50)
+                    .code("FEE012")
+                    .feeAmount(BigDecimal.valueOf(100))
+                    .calculatedAmount(BigDecimal.valueOf(100))
+                    .netAmount(BigDecimal.valueOf(100))
+                    .version("1")
+                    .volume(1)
+                    .feeAmount(BigDecimal.valueOf(100))
+                    .ccdCaseNumber("ccd-case-number")
+                    .reference("reference")
+                    .memoLine("memo-line")
+                    .naturalAccountCode("natural-account-code")
+                    .description("description")
+                    .allocatedAmount(BigDecimal.valueOf(100))
+                    .apportionAmount(BigDecimal.valueOf(100))
+                    .dateCreated(Date.from(Instant.now()))
+                    .dateUpdated(Date.from(Instant.now()))
+                    .dateApportioned(Date.from(Instant.now()))
+                    .amountDue(BigDecimal.valueOf(0))
+                    .build()
+            )).build();
     }
 
 
