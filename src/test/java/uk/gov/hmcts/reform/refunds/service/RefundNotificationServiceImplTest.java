@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.refunds.service;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +14,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
@@ -30,9 +29,7 @@ import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
-import uk.gov.hmcts.reform.refunds.services.RefundNotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
-import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -81,6 +78,9 @@ class RefundNotificationServiceImplTest {
 
     @MockBean
     private IdamServiceImpl idamService;
+
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
 
     @Test
@@ -264,5 +264,7 @@ class RefundNotificationServiceImplTest {
         refundNotificationService.processFailedNotificationsLetter();
 
     }
+
+
 
 }
