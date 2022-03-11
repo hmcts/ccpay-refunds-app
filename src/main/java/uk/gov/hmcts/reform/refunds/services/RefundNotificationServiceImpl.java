@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import liquibase.pro.packaged.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -145,9 +147,12 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
     @Override
     public void processFailedNotificationsEmail() throws JsonProcessingException {
         String notificationSentFlag = "EMAIL_NOT_SENT";
-        Optional<List<Refund>> refundList = Optional.empty();
+        Optional<List<Refund>> refundList ;
         refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
-        List<Refund> refundListAll =  refundList.get();
+        List<Refund> refundListAll = new ArrayList<>();
+        if(refundList.isPresent()) {
+            refundListAll = refundList.get();
+        }
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
@@ -156,11 +161,11 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                 try {
                     refundsDto = ow.writeValueAsString(refund);
                 } catch (JsonProcessingException e) {
-                    LOG.error("JsonProcessingException : " +  e);
+                    LOG.error("JsonProcessingException : {}" ,  e);
                 }
-                LOG.info("Refund object : " +  refundsDto);
+                LOG.info("Refund object : {}" ,  refundsDto);
 
-                if (refund.getContactDetails().getNotificationType().toLowerCase().equals("email")) {
+                if (refund.getContactDetails().getNotificationType().equalsIgnoreCase("email")) {
                     refund.setNotificationSentFlag("EMAIL_NOT_SENT");
                     RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                         .getRefundNotificationEmailRequestApproveJourney(refund);
@@ -178,9 +183,12 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
     @Override
     public void processFailedNotificationsLetter() throws JsonProcessingException {
         String notificationSentFlag = "LETTER_NOT_SENT";
-        Optional<List<Refund>> refundList = Optional.empty();
+        Optional<List<Refund>> refundList ;
+        List<Refund> refundListAll = new ArrayList<>();
         refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
-        List<Refund> refundListAll =  refundList.get();
+        if(refundList.isPresent()) {
+            refundListAll = refundList.get();
+        }
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
@@ -188,9 +196,9 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                 try {
                     ow.writeValueAsString(refund);
                 } catch (JsonProcessingException e) {
-                    LOG.error("RJsonProcessingException." + e);
+                    LOG.error("RJsonProcessingException. {}" , e);
                 }
-                if (refund.getContactDetails().getNotificationType().toLowerCase().equals("letter"))  {
+                if (refund.getContactDetails().getNotificationType().equalsIgnoreCase("letter"))  {
                     refund.setNotificationSentFlag("LETTER_NOT_SENT");
                     RefundNotificationLetterRequest refundNotificationLetterRequest = refundNotificationMapper
                         .getRefundNotificationLetterRequestApproveJourney(refund);
@@ -210,10 +218,13 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
     public void reprocessPostFailedRefundsToLiberata() throws JsonProcessingException {
 
         String liberataSentFlag = "NOT_SENT";
-        Optional<List<Refund>> refundList = Optional.empty();
+        Optional<List<Refund>> refundList ;
         String refundStatus = "Approved";
+        List<Refund> refundListAll = new ArrayList<>();
         refundList =  refundsRepository.findByRefundStatusAndRefundApproveFlag(refundStatus, liberataSentFlag);
-        List<Refund> refundListAll =  refundList.get();
+        if(refundList.isPresent()) {
+            refundListAll = refundList.get();
+        }
 
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
