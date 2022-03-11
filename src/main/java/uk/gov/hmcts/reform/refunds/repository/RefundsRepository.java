@@ -30,4 +30,8 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer> {
 
     Optional<List<Refund>> findByCcdCaseNumberAndCreatedBy(String ccdCaseNumber, String createdBy);
 
+    Optional<List<Refund>> findByNotificationSentFlag(String notificationSentFlag);
+
+    Optional<List<Refund>> findByRefundStatusAndRefundApproveFlag(String refundsStatus, String liberataSentFlag);
+
 }
