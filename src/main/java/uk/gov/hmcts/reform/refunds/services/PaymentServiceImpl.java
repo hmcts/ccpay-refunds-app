@@ -123,8 +123,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     private MultiValueMap<String, String> getFormatedHeadersForS2S() {
         List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
+
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("ServiceAuthorization", servauthtoken);
+
+        logger.info("ServiceAuthorization {}", servauthtoken.get(0));
+        logger.info("inputHeaders values {}", inputHeaders.getFirst("ServiceAuthorization"));
         return inputHeaders;
     }
 
@@ -184,7 +188,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         try {
 
-            ResponseEntity<List<PaymentDto>> paymentResponse =
+           // return getPayments();
+           ResponseEntity<List<PaymentDto>> paymentResponse =
                 fetchRefundPaymentFromPayhub(paymentReference);
             return  paymentResponse.getBody();
         } catch (HttpClientErrorException e) {
