@@ -279,7 +279,7 @@ public class RefundServiceImplTest {
             .giroSlipNo("tst")
             .method("cheque")
             .id("1")
-            .reference("RC-1111-2234-1077-1123")
+            .paymentReference("RC-1111-2234-1077-1123")
             .serviceName("Service")
             .fees(Arrays.asList(FeeDto.feeDtoWith()
                                     .code("1")

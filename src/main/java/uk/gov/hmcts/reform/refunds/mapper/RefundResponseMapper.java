@@ -57,7 +57,7 @@ public class RefundResponseMapper {
             .pbaNumber(payment.getAccountNumber())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .bgcNumber(payment.getGiroSlipNo())
-            .reference(payment.getReference())
+            .reference(payment.getPaymentReference())
             .caseReference(payment.getCaseReference())
             .channel(payment.getChannel())
             .customerReference(payment.getCustomerReference())

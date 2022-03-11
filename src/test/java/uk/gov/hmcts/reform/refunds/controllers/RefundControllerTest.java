@@ -290,7 +290,7 @@ class RefundControllerTest {
             .giroSlipNo("tst")
             .method("cheque")
             .id("1")
-            .reference("RC-1111-2234-1077-1123")
+            .paymentReference("RC-1111-2234-1077-1123")
             .serviceName("Service")
             .fees(Arrays.asList(FeeDto.feeDtoWith()
                                     .code("1")
@@ -378,7 +378,7 @@ class RefundControllerTest {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
     private static final DateTimeFormatter INVALID_FORMAT = DateTimeFormat.forPattern("yyyy-MM");
-   
+
     @Mock
     private NotificationServiceImpl notificationService;
 

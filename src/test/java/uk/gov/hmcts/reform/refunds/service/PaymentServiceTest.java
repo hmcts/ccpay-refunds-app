@@ -332,7 +332,7 @@ public class PaymentServiceTest {
             .giroSlipNo("tst")
             .method("cheque")
             .id("1")
-            .reference("RC-1637-5115-4276-8564")
+            .paymentReference("RC-1637-5115-4276-8564")
             .serviceName("Service")
             .fees(Arrays.asList(FeeDto.feeDtoWith()
                                     .code("1")
