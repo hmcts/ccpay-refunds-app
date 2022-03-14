@@ -1,7 +1,7 @@
 module "ccpay-refund-list-product" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
 
-  api_mgmt_name = local.api_mgmt_name_cft
+  api_mgmt_name = local.api_mgmt_name
   api_mgmt_rg   = local.api_mgmt_rg
   name = var.product_name
   product_access_control_groups = ["developers"]
@@ -10,7 +10,7 @@ module "ccpay-refund-list-product" {
 module "ccpay-refund-list-api" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-api?ref=master"
 
-  api_mgmt_name_cft = local.api_mgmt_name_cft
+  api_mgmt_name = local.api_mgmt_name
   api_mgmt_rg   = local.api_mgmt_rg
   revision      = "1"
   service_url   = local.refunds_api_url
@@ -34,7 +34,7 @@ data "template_file" "refund_list_policy_template" {
 
 module "ccpay-refund-list-policy" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-api-policy?ref=master"
-  api_mgmt_name_cft = local.api_mgmt_name_cft
+  api_mgmt_name = local.api_mgmt_name
   api_mgmt_rg   = local.api_mgmt_rg
 
   api_name               = module.ccpay-refund-list-api.name
