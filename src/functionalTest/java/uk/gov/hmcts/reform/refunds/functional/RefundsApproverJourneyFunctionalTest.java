@@ -126,7 +126,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .getRefundReasons(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT);
         assertThat(responseRefundReasons.getStatusCode()).isEqualTo(OK.value());
         List<RefundReason> refundReasons = responseRefundReasons.getBody().jsonPath().get("$");
-        assertThat(refundReasons.size()).isEqualTo(34);
+        assertThat(refundReasons.size()).isEqualTo(35);
     }
 
 
