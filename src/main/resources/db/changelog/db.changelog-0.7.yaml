@@ -9,7 +9,7 @@ databaseChangeLog:
               INSERT INTO refund_reasons (code, name, description, recently_used)
                 VALUES
               ('RR036', 'Retrospective remission', 'Retrospective remission',FALSE),
-              ('RR037', 'Overpayment', 'Refund for Overpayment')
+              ('RR037', 'Overpayment', 'Refund for Overpayment',FALSE)
   - changeSet:
       id: 100007-1
       author: Sayali
