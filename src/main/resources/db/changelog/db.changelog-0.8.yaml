@@ -35,3 +35,15 @@ databaseChangeLog:
               UPDATE refund_status SET name = 'Rejected' where name = 'rejected';
               UPDATE refund_status SET name = 'Accepted' where name = 'accepted';
               UPDATE refund_status SET name = 'Sent for approval' where name = 'sent for approval';
+
+
+  - changeSet:
+      id: 100008-4
+      author: Arbab
+      changes:
+        - addColumn:
+            tableName: refunds
+            columns:
+              - column:
+                  name: service_type
+                  type: varchar(100)
