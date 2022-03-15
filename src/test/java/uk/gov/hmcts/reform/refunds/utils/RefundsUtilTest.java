@@ -20,7 +20,7 @@ import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-public class RefundsUtilTest {
+class RefundsUtilTest {
 
     @Autowired
     RefundsUtil util;

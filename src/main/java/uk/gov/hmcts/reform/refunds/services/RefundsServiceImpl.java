@@ -117,7 +117,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
-        //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
 
         String paymnetMethod = null;
 
@@ -397,33 +396,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             idamService.getUserIdentityData(headers, userId)
         ));
         return userFullNameMap;
-    }
-
-    private void validateRefundRequest(RefundRequest refundRequest) {
-
-        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-
-        if (refundsList.isPresent()) {
-            List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                RefundStatus.REJECTED))
-                .map(Refund::getFeeIds)
-                .collect(Collectors.toList());
-
-            List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",") ? Arrays.stream(refundRequest.getFeeIds().split(
-                ",")).collect(Collectors.toList()) : Arrays.asList(refundRequest.getFeeIds());
-
-            feeIdsofRequestedRefund.forEach(feeId -> {
-                nonRejectedFeeList.forEach(nonRejectFee -> {
-                    if (nonRejectFee.contains(feeId)) {
-                        throw new InvalidRefundRequestException("Refund is already requested for this payment");
-                    }
-                });
-
-            });
-        }
-
-        refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
-
     }
 
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String paymentMethod) throws CheckDigitException {
