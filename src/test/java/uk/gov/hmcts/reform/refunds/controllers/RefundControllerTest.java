@@ -243,7 +243,6 @@ class RefundControllerTest {
         .feeIds("1")
         .serviceType("cmc")
         .paymentMethod("cash")
-        .paymentMethod("card")
         .contactDetails(ContactDetails.contactDetailsWith()
                 .addressLine("ABC Street")
                 .city("London")
