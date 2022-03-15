@@ -24,15 +24,16 @@ public class RefundsUtil {
     public String getTemplate(Refund refund) {
         String templateId = null;
         if (null != refund.getRefundInstructionType()) {
-            if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
-                if ("RefundWhenContacted".equals(refund.getRefundInstructionType())) {
+
+            if ("RefundWhenContacted".equals(refund.getRefundInstructionType())) {
+                if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
                     templateId = chequePoCashEmailTemplateId;
                 } else {
-                    templateId = cardPbaEmailTemplateId;
+                    templateId = chequePoCashLetterTemplateId;
                 }
             } else {
-                if ("SendRefund".equals(refund.getRefundInstructionType())) {
-                    templateId = chequePoCashLetterTemplateId;
+                if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+                    templateId = cardPbaEmailTemplateId;
                 } else {
                     templateId = cardPbaLetterTemplateId;
                 }
