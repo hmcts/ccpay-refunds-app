@@ -71,6 +71,7 @@ import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
+import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
@@ -298,6 +299,9 @@ class RefundControllerTest {
     @MockBean
     @Qualifier("restTemplateNotify")
     private RestTemplate restTemplateNotify;
+
+    @Mock
+    private NotificationServiceImpl notificationService;
 
     private static String asJsonString(final Object obj) {
         try {
@@ -2144,5 +2148,17 @@ class RefundControllerTest {
         //assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
+    @Test
+    void processFailedLiberataRefundsApproveJourneyTest() throws Exception {
+        MvcResult result = mockMvc.perform(patch("/jobs/refund-approved-update").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is2xxSuccessful())
+            .andReturn();
+    }
 
+    @Test
+    void processFailedNotifcationsTest() throws Exception {
+        MvcResult result = mockMvc.perform(patch("/jobs/refund-notification-update").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is2xxSuccessful())
+            .andReturn();
+    }
 }

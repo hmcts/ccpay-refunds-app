@@ -126,7 +126,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .getRefundReasons(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT);
         assertThat(responseRefundReasons.getStatusCode()).isEqualTo(OK.value());
         List<RefundReason> refundReasons = responseRefundReasons.getBody().jsonPath().get("$");
-        assertThat(refundReasons.size()).isEqualTo(34);
+        assertThat(refundReasons.size()).isEqualTo(35);
     }
 
 
@@ -224,7 +224,8 @@ public class RefundsApproverJourneyFunctionalTest {
                         s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         assertThat(optionalRefundDto.get().getContactDetails()).isNotNull();
     }
-
+    
+    @Ignore
     @Test
     public void negative_approver_can_request_refund_but_not_self_approve() {
 
