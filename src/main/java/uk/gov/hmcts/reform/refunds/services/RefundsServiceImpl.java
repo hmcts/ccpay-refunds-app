@@ -72,6 +72,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
+    private static final String CHEQUE = "cheque";
+
+    private static final String CASH = "cash";
+
+    private static final String POSTAL_ORDER = "postal order";
+
+    private static final String BULK_SCAN = "bulk scan";
+
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -118,19 +126,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
 
-        String paymnetMethod = null;
+        String instructionType = null;
 
         if (refundRequest.getPaymentMethod() != null) {
 
-            if (refundRequest.getPaymentMethod().equals("cheque") || refundRequest.getPaymentMethod().equals("cash")
-                || refundRequest.getPaymentMethod().equals("postal order") && (refundRequest.getPaymentChannel().equals("bulk scan"))) {
-                paymnetMethod = "RefundWhenContacted";
+            if (refundRequest.getPaymentMethod().equals(CHEQUE) || refundRequest.getPaymentMethod().equals(CASH)
+                || refundRequest.getPaymentMethod().equals(POSTAL_ORDER) && (refundRequest.getPaymentChannel().equals(BULK_SCAN))) {
+                instructionType = "RefundWhenContacted";
             } else {
-                paymnetMethod = "SendRefund";
+                instructionType = "SendRefund";
             }
         }
         IdamUserIdResponse uid = idamService.getUserId(headers);
-        Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), paymnetMethod);
+        Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), instructionType);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -398,7 +406,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return userFullNameMap;
     }
 
-    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String paymentMethod) throws CheckDigitException {
+    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String instructionType) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .ccdCaseNumber(refundRequest.getCcdCaseNumber())
@@ -411,7 +419,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .createdBy(uid)
             .updatedBy(uid)
             .contactDetails(refundRequest.getContactDetails())
-            .refundInstructionType(paymentMethod)
+            .refundInstructionType(instructionType)
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
