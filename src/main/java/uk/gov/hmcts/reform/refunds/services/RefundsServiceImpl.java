@@ -80,6 +80,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String BULK_SCAN = "bulk scan";
 
+    private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
+
+    private static final String SEND_REFUND = "SendRefund";
+
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -132,9 +136,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             if (refundRequest.getPaymentMethod().equals(CHEQUE) || refundRequest.getPaymentMethod().equals(CASH)
                 || refundRequest.getPaymentMethod().equals(POSTAL_ORDER) && (refundRequest.getPaymentChannel().equals(BULK_SCAN))) {
-                instructionType = "RefundWhenContacted";
+                instructionType = REFUND_WHEN_CONTACTED;
             } else {
-                instructionType = "SendRefund";
+                instructionType = SEND_REFUND;
             }
         }
         IdamUserIdResponse uid = idamService.getUserId(headers);

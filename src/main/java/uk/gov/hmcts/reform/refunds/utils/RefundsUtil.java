@@ -21,11 +21,13 @@ public class RefundsUtil {
     @Value("${notify.template.card-pba.email}")
     private String cardPbaEmailTemplateId;
 
+    private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
+
     public String getTemplate(Refund refund) {
         String templateId = null;
         if (null != refund.getRefundInstructionType()) {
 
-            if ("RefundWhenContacted".equals(refund.getRefundInstructionType())) {
+            if (REFUND_WHEN_CONTACTED.equals(refund.getRefundInstructionType())) {
                 if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
                     templateId = chequePoCashEmailTemplateId;
                 } else {
