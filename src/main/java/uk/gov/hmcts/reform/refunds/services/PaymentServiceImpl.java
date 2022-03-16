@@ -127,8 +127,6 @@ public class PaymentServiceImpl implements PaymentService {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("ServiceAuthorization", servauthtoken);
 
-        logger.info("ServiceAuthorization {}", servauthtoken.get(0));
-        logger.info("inputHeaders values {}", inputHeaders.getFirst("ServiceAuthorization"));
         return inputHeaders;
     }
 

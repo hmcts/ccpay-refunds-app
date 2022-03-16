@@ -10,7 +10,10 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -37,7 +40,7 @@ public class RefundResponseMapper {
 
     }
 
-    public RefundLiberata getRefundLibrata(Refund refund, PaymentDto paymentDto) {
+    public RefundLiberata getRefundLibrata(Refund refund, PaymentDto paymentDto, Map<String, BigDecimal> groupByPaymentReference) {
 
         return RefundLiberata.buildRefundLibarataWith()
                         .dateApproved(refund.getDateUpdated())
@@ -45,13 +48,13 @@ public class RefundResponseMapper {
                         .instructionType(refund.getRefundInstructionType())
                         .reason(refund.getReason())
                         .reference(refund.getReference())
-                        .payment(toPayment(paymentDto, refund))
+                        .payment(toPayment(paymentDto, groupByPaymentReference))
                         .fees(toFeeDtos(paymentDto.getFees(), refund))
                         .build();
 
     }
 
-    private  PaymentRefundDto toPayment(PaymentDto payment, Refund refund) {
+    private  PaymentRefundDto toPayment(PaymentDto payment, Map<String, BigDecimal> groupByPaymentReference) {
 
         return   PaymentRefundDto.paymentRefundDtoWith()
             .pbaNumber(payment.getAccountNumber())
@@ -66,7 +69,7 @@ public class RefundResponseMapper {
             .method(payment.getMethod())
             .serviceName(payment.getServiceName())
             .siteId(payment.getSiteId())
-            .availableFunds(payment.getAmount().subtract(refund.getAmount()))
+            .availableFunds(availableFunds(groupByPaymentReference,payment))
             .build();
 
 
@@ -87,6 +90,24 @@ public class RefundResponseMapper {
             .memoLine(fee.getMemoLine())
             .version(fee.getVersion())
             .build();
+    }
+
+    private BigDecimal availableFunds(Map<String, BigDecimal> groupByPaymentReference, PaymentDto paymentDto) {
+
+        BigDecimal avlAmount = BigDecimal.ZERO;
+        Set<Map.Entry<String, BigDecimal>> entrySet = groupByPaymentReference.entrySet();
+
+        for (Map.Entry<String, BigDecimal> entry : entrySet) {
+
+            if (entry.getKey().equals(paymentDto.getPaymentReference())) {
+
+                avlAmount =  paymentDto.getAmount().subtract(entry.getValue());
+
+            }
+        }
+
+        return avlAmount;
+
     }
 
 }

@@ -302,7 +302,7 @@ public class RefundServiceImplTest {
             .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
             .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
             .reference("RF-1111-2234-1077-1123")
-            .refundStatus(RefundStatus.ACCEPTED)
+            .refundStatus(RefundStatus.APPROVED)
             .reason("RR001")
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))

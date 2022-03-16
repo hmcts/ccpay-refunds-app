@@ -4,6 +4,7 @@ import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.E
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.eclipse.collections.impl.collector.Collectors2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -488,7 +489,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<Refund> refundList = refundsRepository.findAll(searchByCriteria(searchCriteria));
         if (!refundList.isEmpty()) {
             refundListWithAccepted = refundList.stream().filter(refund -> refund.getRefundStatus().equals(
-                    RefundStatus.ACCEPTED))
+                    RefundStatus.APPROVED))
                 .collect(Collectors.toList());
             for (Refund ref : refundListWithAccepted) {
                 reference.add(ref.getPaymentReference());
@@ -499,6 +500,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(reference);
 
+        Map<String, BigDecimal> groupByPaymentReference =
+            refundListWithAccepted.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
+                                                                          Collectors2.summingBigDecimal(Refund::getAmount)));
         refundListWithAccepted.stream()
             .filter(e -> paymentData.stream()
                 .anyMatch(id -> id.getPaymentReference().equals(e.getPaymentReference())))
@@ -509,7 +513,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     refund,
                     paymentData.stream()
                         .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
-                        .findAny().get()
+                        .findAny().get(),
+                    groupByPaymentReference
                 ));
             });
         return refundLiberatas;
