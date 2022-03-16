@@ -2,7 +2,7 @@ module "ccpay-refund-lists-product" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
 
   api_mgmt_name = local.api_mgmt_name_cft
-  api_mgmt_rg   = local.api_mgmt_rg
+  api_mgmt_rg   = local.api_mgmt_rg_cft
   name = var.product_name
   product_access_control_groups = ["developers"]
 }
@@ -11,7 +11,7 @@ module "ccpay-refund-lists-api" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-api?ref=master"
 
   api_mgmt_name = local.api_mgmt_name_cft
-  api_mgmt_rg   = local.api_mgmt_rg
+  api_mgmt_rg   = local.api_mgmt_rg_cft
   revision      = "1"
   service_url   = local.refunds_api_url
   product_id    = module.ccpay-refund-lists-product.product_id
@@ -36,7 +36,7 @@ module "ccpay-refund-lists-policy" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-api-policy?ref=master"
 
   api_mgmt_name = local.api_mgmt_name_cft
-  api_mgmt_rg   = local.api_mgmt_rg
+  api_mgmt_rg   = local.api_mgmt_rg_cft
 
   api_name               = module.ccpay-refund-lists-api.name
   api_policy_xml_content = data.template_file.refund_status_policy_template.rendered
@@ -46,13 +46,13 @@ module "ccpay-refund-lists-policy" {
 
 data "azurerm_api_management_user" "refund_lists" {
   api_management_name = local.api_mgmt_name_cft
-  resource_group_name   = local.api_mgmt_rg
+  resource_group_name   = local.api_mgmt_rg_cft
   user_id             = "5931a75ae4bbd512288c680b"
 }
 
 data "azurerm_api_management" "refund_lists" {
   name                = var.product_name
-  resource_group_name = local.api_mgmt_rg
+  resource_group_name = local.api_mgmt_rg_cft
 }
 
 data "azurerm_api_management_product" "refund_lists" {
@@ -65,7 +65,7 @@ data "azurerm_api_management_product" "refund_lists" {
 
 resource "azurerm_api_management_subscription" "refund_lists_subscription" {
   api_management_name = local.api_mgmt_name_cft
-  resource_group_name   = local.api_mgmt_rg
+  resource_group_name   = local.api_mgmt_rg_cft
   user_id             = data.azurerm_api_management_user.refund_lists.id
   product_id          = data.azurerm_api_management_product.refund_lists.id
   display_name        = "Refund List Subscription"
