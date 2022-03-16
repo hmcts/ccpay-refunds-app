@@ -54,12 +54,12 @@ data "azurerm_api_management_user" "refund_list_user" {
   state               = "active"
 }
 
-data "azurerm_api_management_subscription" "refund_lists_subscription" {
+resource "azurerm_api_management_subscription" "refund_lists_subscription" {
   api_management_name = local.api_mgmt_name_cft
   resource_group_name   = local.api_mgmt_rg
   user_id             = "5931a75ae4bbd512288c680b"
   product_id          = module.ccpay-refund-lists-api.product_id
-  display_name        = "Test Subscription"
+  display_name        = "Refund List Subscription"
   state               = "active"
 }
 
