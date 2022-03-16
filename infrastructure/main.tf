@@ -7,6 +7,7 @@ locals {
   # Api Management config
   api_mgmt_name     = join("-", ["core-api-mgmt", var.env])
   api_mgmt_rg       = join("-", ["core-infra", var.env])
+  api_mgmt_name_cft = join("-", ["cft-api-mgmt", var.env])
 
   vaultName = join("-", [var.core_product, var.env])
   s2sUrl = "http://rpe-service-auth-provider-${var.env}.service.core-compute-${var.env}.internal"
