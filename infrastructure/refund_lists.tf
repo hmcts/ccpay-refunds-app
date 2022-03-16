@@ -52,7 +52,7 @@ data "azurerm_api_management_user" "refund_lists" {
 
 data "azurerm_api_management" "refund_lists" {
   name                = var.product_name
-  resource_group_name = "example-resources"
+  resource_group_name = local.api_mgmt_rg
 }
 
 data "azurerm_api_management_product" "refund_lists" {
