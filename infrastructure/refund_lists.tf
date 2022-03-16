@@ -66,7 +66,7 @@ data "azurerm_api_management_product" "refund_lists" {
 resource "azurerm_api_management_subscription" "refund_lists_subscription" {
   api_management_name = local.api_mgmt_name_cft
   resource_group_name   = local.api_mgmt_rg
-  user_id             = "5931a75ae4bbd512288c680b"
+  user_id             = data.azurerm_api_management_user.refund_lists.id
   product_id          = data.azurerm_api_management_product.refund_lists.id
   display_name        = "Refund List Subscription"
   state               = "active"
