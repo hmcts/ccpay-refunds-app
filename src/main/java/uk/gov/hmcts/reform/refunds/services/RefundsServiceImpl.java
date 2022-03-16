@@ -134,8 +134,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (refundRequest.getPaymentMethod() != null) {
 
-            if (BULK_SCAN.equals(refundRequest.getPaymentChannel()) && (CASH.equals(refundRequest.getPaymentMethod()) ||
-                    POSTAL_ORDER.equals(refundRequest.getPaymentMethod()))) {
+            if (BULK_SCAN.equals(refundRequest.getPaymentChannel()) && (CASH.equals(refundRequest.getPaymentMethod())
+                    || POSTAL_ORDER.equals(refundRequest.getPaymentMethod()))) {
                 instructionType = REFUND_WHEN_CONTACTED;
             } else {
                 instructionType = SEND_REFUND;
