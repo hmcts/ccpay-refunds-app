@@ -44,21 +44,30 @@ module "ccpay-refund-lists-policy" {
 
 
 
-data "azurerm_api_management_user" "refund_list_user" {
+data "azurerm_api_management_user" "refund_lists" {
   api_management_name = local.api_mgmt_name_cft
   resource_group_name   = local.api_mgmt_rg
   user_id             = "5931a75ae4bbd512288c680b"
-  first_name          = "Anshika"
-  last_name           = "Nigam"
-  email               = "anshika.nigam@hmcts.net"
-  state               = "active"
 }
+
+data "azurerm_api_management" "refund_lists" {
+  name                = var.product_name
+  resource_group_name = "example-resources"
+}
+
+data "azurerm_api_management_product" "refund_lists" {
+  product_id          = "00000000-0000-0000-0000-000000000000"
+  api_management_name = data.azurerm_api_management.refund_lists.name
+  resource_group_name = data.azurerm_api_management.refund_lists.resource_group_name
+}
+
+
 
 resource "azurerm_api_management_subscription" "refund_lists_subscription" {
   api_management_name = local.api_mgmt_name_cft
   resource_group_name   = local.api_mgmt_rg
   user_id             = "5931a75ae4bbd512288c680b"
-  product_id          = module.ccpay-refund-lists-api.product_id
+  product_id          = data.azurerm_api_management_product.refund_lists.id
   display_name        = "Refund List Subscription"
   state               = "active"
 }
