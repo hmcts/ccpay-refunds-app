@@ -80,6 +80,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String BULK_SCAN = "bulk scan";
 
+    private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
+
+    private static final String SEND_REFUND = "SendRefund";
+
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -125,17 +129,16 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
-        //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
 
         String instructionType = null;
 
         if (refundRequest.getPaymentMethod() != null) {
 
-            if (refundRequest.getPaymentMethod().equals(CHEQUE) || refundRequest.getPaymentMethod().equals(CASH)
-                || refundRequest.getPaymentMethod().equals(POSTAL_ORDER) && (refundRequest.getPaymentChannel().equals(BULK_SCAN))) {
-                instructionType = "RefundWhenContacted";
+            if (BULK_SCAN.equals(refundRequest.getPaymentChannel()) && (CASH.equals(refundRequest.getPaymentMethod()) ||
+                    POSTAL_ORDER.equals(refundRequest.getPaymentMethod()))) {
+                instructionType = REFUND_WHEN_CONTACTED;
             } else {
-                instructionType = "SendRefund";
+                instructionType = SEND_REFUND;
             }
         }
         IdamUserIdResponse uid = idamService.getUserId(headers);
@@ -405,33 +408,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             idamService.getUserIdentityData(headers, userId)
         ));
         return userFullNameMap;
-    }
-
-    private void validateRefundRequest(RefundRequest refundRequest) {
-
-        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-
-        if (refundsList.isPresent()) {
-            List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                RefundStatus.REJECTED))
-                .map(Refund::getFeeIds)
-                .collect(Collectors.toList());
-
-            List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",") ? Arrays.stream(refundRequest.getFeeIds().split(
-                ",")).collect(Collectors.toList()) : Arrays.asList(refundRequest.getFeeIds());
-
-            feeIdsofRequestedRefund.forEach(feeId -> {
-                nonRejectedFeeList.forEach(nonRejectFee -> {
-                    if (nonRejectFee.contains(feeId)) {
-                        throw new InvalidRefundRequestException("Refund is already requested for this payment");
-                    }
-                });
-
-            });
-        }
-
-        refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
-
     }
 
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String instructionType) throws CheckDigitException {
