@@ -3,7 +3,7 @@ module "ccpay-refund-lists-product" {
 
   api_mgmt_name = local.api_mgmt_name
   api_mgmt_rg   = local.api_mgmt_rg
-  name = var.product_name
+  name = "refundList"
   product_access_control_groups = ["developers"]
 }
 
@@ -15,7 +15,7 @@ module "ccpay-refund-lists-api" {
   revision      = "1"
   service_url   = local.refunds_api_url
   product_id    = module.ccpay-refund-lists-product.product_id
-  name          = join("-", [var.product_name, "api"])
+  name          = join("-", [var.product_name, "apiList"])
   display_name  = "Refund List API"
   path          = "refunds-api"
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-list.json"
