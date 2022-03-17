@@ -50,6 +50,7 @@ import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.L
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.SENT;
 
 @Service
+@SuppressWarnings("PMD.ExcessiveImports")
 public class RefundNotificationServiceImpl extends StateUtil implements RefundNotificationService {
 
 
