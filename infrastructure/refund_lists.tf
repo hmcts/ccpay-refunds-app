@@ -26,7 +26,7 @@ module "api_mgmt_api" {
   revision      = "1"
 }
 
-data "template_file" "refund_status_policy_template" {
+data "template_file" "refund_list_policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
 
   vars = {
@@ -37,13 +37,13 @@ data "template_file" "refund_status_policy_template" {
   }
 }
 
-module "ccpay-refund-status-policy" {
+module "ccpay-refund-list-policy" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-api-policy?ref=master"
 
-  api_mgmt_name = local.api_mgmt_name
-  api_mgmt_rg   = local.api_mgmt_rg
+  api_mgmt_name = local.api_mgmt_name_cft
+  api_mgmt_rg   = local.api_mgmt_rg_cft
 
-  api_name               = module.ccpay-refund-status-api.name
-  api_policy_xml_content = data.template_file.refund_status_policy_template.rendered
+  api_name               = module.api_mgmt_api.name
+  api_policy_xml_content = data.template_file.refund_list_policy_template.rendered
 }
 
