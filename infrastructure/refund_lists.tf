@@ -26,24 +26,23 @@ module "api_mgmt_api" {
   revision      = "1"
 }
 
-data "template_file" "refund_list_policy_template" {
+data "template_file" "policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
 
   vars = {
-    allowed_certificate_thumbprints = local.refund_status_thumbprints_in_quotes_str
     s2s_client_id                   = data.azurerm_key_vault_secret.s2s_client_id.value
     s2s_client_secret               = data.azurerm_key_vault_secret.s2s_client_secret.value
     s2s_base_url                    = local.s2sUrl
   }
 }
 
-module "ccpay-refund-list-policy" {
+module "api_mgmt_policy" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-api-policy?ref=master"
 
   api_mgmt_name = local.api_mgmt_name_cft
   api_mgmt_rg   = local.api_mgmt_rg_cft
 
   api_name               = module.api_mgmt_api.name
-  api_policy_xml_content = data.template_file.refund_list_policy_template.rendered
+  api_policy_xml_content = data.template_file.policy_template.rendered
 }
 
