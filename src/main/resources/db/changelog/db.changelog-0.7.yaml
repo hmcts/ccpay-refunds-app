@@ -9,7 +9,7 @@ databaseChangeLog:
               INSERT INTO refund_reasons (code, name, description, recently_used)
                 VALUES
               ('RR036', 'Retrospective remission', 'Retrospective remission',FALSE);
-              
+
   - changeSet:
       id: 100007-1
       author: Sayali
@@ -59,3 +59,13 @@ databaseChangeLog:
             sql: >
               DELETE FROM refund_reasons WHERE code = 'RR013';
               DELETE FROM refund_reasons WHERE code = 'RR018';
+  - changeSet:
+      id: 100007-3
+      author: Anshika
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_reasons (code, name, description, recently_used)
+                VALUES
+              ('RR037', 'Overpayment', 'Refund for Overpayment',FALSE);
