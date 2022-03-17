@@ -44,22 +44,4 @@ module "ccpay-refund-lists-policy" {
 
 
 
-data "azurerm_api_management_user" "refund_lists" {
-  api_management_name = local.api_mgmt_name_cft
-  resource_group_name   = local.api_mgmt_rg_cft
-  user_id             = "5931a75ae4bbd512288c680b"
-}
-
-data "azurerm_api_management" "refund_lists" {
-  name                = var.product_name
-  resource_group_name = local.api_mgmt_rg_cft
-}
-
-data "azurerm_api_management_product" "refund_lists" {
-  product_id          = "00000000-0000-0000-0000-000000000000"
-  api_management_name = data.azurerm_api_management.refund_lists.name
-  resource_group_name = data.azurerm_api_management.refund_lists.resource_group_name
-}
-
-
 
