@@ -1,33 +1,32 @@
 locals {
-  api_mgmt_name_test     = "cft-api-mgmt-${var.env}"
-  api_mgmt_rg_test      = "cft-${var.env}-network-rg"
+  api_mgmt_name_cft     = "cft-api-mgmt-${var.env}"
+  api_mgmt_rg_cft      = "cft-${var.env}-network-rg"
+  api_base_path_cft    = var.product
+  gateway_client_id = "api_gw"
 }
 
-module "ccpay-refund-lists-product" {
-  source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
 
-  api_mgmt_name = local.api_mgmt_name_test
-  api_mgmt_rg   = local.api_mgmt_rg_test
-  name = var.product_name
-  product_access_control_groups = ["developers"]
+module "api_mgmt_product" {
+  source        = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
+  name          = var.product_name
+  api_mgmt_name = local.api_mgmt_name_cft
+  api_mgmt_rg   = local.api_mgmt_rg_cft
 }
 
-module "ccpay-refund-lists-api" {
-  source = "git@github.com:hmcts/cnp-module-api-mgmt-api?ref=master"
-
-  api_mgmt_name = local.api_mgmt_name_test
-  api_mgmt_rg   = local.api_mgmt_rg_test
-  revision      = "1"
-  service_url   = local.refunds_api_url
-  product_id    = module.ccpay-refund-lists-product.product_id
+module "api_mgmt_api" {
+  source        = "git@github.com:hmcts/cnp-module-api-mgmt-api?ref=master"
   name          = join("-", [var.product_name, "api"])
   display_name  = "Refund List API"
+  api_mgmt_name = local.api_mgmt_name_cft
+  api_mgmt_rg   = local.api_mgmt_rg_cft
+  product_id    = module.api_mgmt_product.product_id
   path          = "refunds-api"
+  service_url   = local.refunds_api_url
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-list.json"
+  revision      = "1"
 }
 
-
-data "template_file" "refund_lists_policy_template" {
+data "template_file" "refund_status_policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
 
   vars = {
@@ -38,16 +37,13 @@ data "template_file" "refund_lists_policy_template" {
   }
 }
 
-module "ccpay-refund-lists-policy" {
+module "ccpay-refund-status-policy" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-api-policy?ref=master"
 
-  api_mgmt_name = local.api_mgmt_name_test
-  api_mgmt_rg   = local.api_mgmt_rg_test
+  api_mgmt_name = local.api_mgmt_name
+  api_mgmt_rg   = local.api_mgmt_rg
 
-  api_name               = module.ccpay-refund-lists-api.name
+  api_name               = module.ccpay-refund-status-api.name
   api_policy_xml_content = data.template_file.refund_status_policy_template.rendered
 }
-
-
-
 
