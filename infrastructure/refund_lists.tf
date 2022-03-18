@@ -52,30 +52,27 @@ data "template_file" "refund_lists_policy_template" {
 
 
 
- data "azurerm_api_management_user" "refund_lists" {
-   api_management_name = local.api_mgmt_name_cft
-   resource_group_name   = local.api_mgmt_rg_cft
-   user_id             = "5931a75ae4bbd512288c680br"
- }
+ resource "azurerm_api_management_user" "refudList_user" {
+  api_mgmt_name = local.api_mgmt_name_cft
+  api_mgmt_rg   = local.api_mgmt_rg_cft
+  user_id             = "5931a75ae4bbd512288c680b"
+  first_name          = "Anshika"
+  last_name           = "Nigam"
+  email               = "anshika.nigam@hmcts.net"
+  state               = "active"
+}
 
- data "azurerm_api_management" "refund_lists" {
-   name                = var.product_name
-   resource_group_name = local.api_mgmt_rg_cft
- }
-
- data "azurerm_api_management_product" "refund_lists" {
-   product_id          = module.ccpay-refund-lists-product.product_id
-   api_management_name = data.azurerm_api_management.refund_lists.name
-   resource_group_name = data.azurerm_api_management.refund_lists.resource_group_name
- }
+resource "azurerm_api_management_subscription" "refudList_subscription" {
+  api_mgmt_name = local.api_mgmt_name_cft
+  api_mgmt_rg   = local.api_mgmt_rg_cft
+  user_id             = azurerm_api_management_user.refudList_user.id
+  product_id          = azurerm_api_management_product.refudList_user.id
+  display_name        = "RefudList Subscription"
+  state               = "active"
+}
 
 
-
- resource "azurerm_api_management_subscription" "refund_lists_subscription" {
-   api_management_name = local.api_mgmt_name_cft
-   resource_group_name   = local.api_mgmt_rg_cft
-   user_id             = data.azurerm_api_management_user.refund_lists.id
-   product_id          = data.azurerm_api_management_product.refund_lists.id
-   display_name        = "Refund List Subscription"
-   state               = "active"
- }
+resource "azurerm_key_vault_secret" "subscription_key" {
+  name         = "refundList-sub-key"
+  value        = azurerm_api_management_subscription.refudList_subscription.primary_key
+}
