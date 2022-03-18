@@ -25,7 +25,7 @@ variable "env" {
 }
 
 variable "subscription" {
-  type    = string
+  type = string
 }
 
 variable "common_tags" {
@@ -47,7 +47,7 @@ variable "database_name" {
   default = "refunds"
 }
 
-variable sku_name {
+variable "sku_name" {
   default = "GP_Gen5_2"
 }
 
