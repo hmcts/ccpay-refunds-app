@@ -20,11 +20,6 @@ module "ccpay-refund-lists-api" {
   path          = "refunds-api"
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-list.json"
 }
- acmedcdcftapps = {
-    demo = {
-      subscription = "d025fece-ce99-4df2-b7a9-b649d3ff2060"
-    }
-  }
   
 provider "azurerm" {
   alias                      = "acmedcdcftapps"
