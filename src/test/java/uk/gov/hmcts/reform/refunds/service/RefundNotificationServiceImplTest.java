@@ -51,7 +51,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Ignore;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -302,56 +301,56 @@ class RefundNotificationServiceImplTest {
         refundNotificationService.processFailedNotificationsLetter();
     }
 
-    @Test @Ignore
-    void processFailedLiberataRefundsApproveJourneyTest() throws Exception {
+//     @Test 
+//     void processFailedLiberataRefundsApproveJourneyTest() throws Exception {
 
-        IdamTokenResponse tokenres =  IdamTokenResponse
-            .idamFullNameRetrivalResponseWith()
-            .accessToken("test token")
-            .refreshToken("mock token")
-            .scope("mock-scope")
-            .idToken("mock-token")
-            .tokenType("mock-type")
-            .expiresIn("2021-07-20T11:03:08.067Z")
-            .build();
+//         IdamTokenResponse tokenres =  IdamTokenResponse
+//             .idamFullNameRetrivalResponseWith()
+//             .accessToken("test token")
+//             .refreshToken("mock token")
+//             .scope("mock-scope")
+//             .idToken("mock-token")
+//             .tokenType("mock-type")
+//             .expiresIn("2021-07-20T11:03:08.067Z")
+//             .build();
 
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
+//         ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
 
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
+//         when(authTokenGenerator.generate()).thenReturn("service auth token");
 
-        when(idamService.getSecurityTokens()).thenReturn(tokenres);
+//         when(idamService.getSecurityTokens()).thenReturn(tokenres);
 
-        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+//         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
 
-        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamUserIdResponse.class)
-        )).thenReturn(responseEntity);
+//         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+//                                        eq(IdamUserIdResponse.class)
+//         )).thenReturn(responseEntity);
 
-        when(refundsRepository.findByRefundStatusAndRefundApproveFlag(anyString(),anyString())).thenReturn(Optional.ofNullable(List.of(
-            RefundServiceImplTest.refundListLiberataRefundsTest.get())));
+//         when(refundsRepository.findByRefundStatusAndRefundApproveFlag(anyString(),anyString())).thenReturn(Optional.ofNullable(List.of(
+//             RefundServiceImplTest.refundListLiberataRefundsTest.get())));
 
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
+//         when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
 
-        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
+//         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+//             PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+//             Optional.of(getPaymentGroupDto())
 
-        ));
+//         ));
 
-        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
-            "refund reason").build()));
+//         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+//             "refund reason").build()));
 
-        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
-                                                   .amount(BigDecimal.valueOf(100))
-                                                   .refundReference("RF-1628-5241-9956-2215")
-                                                   .build()
-        ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class));
+//         doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
+//                                                    .amount(BigDecimal.valueOf(100))
+//                                                    .refundReference("RF-1628-5241-9956-2215")
+//                                                    .build()
+//         ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+//             ReconciliationProviderResponse.class));
 
-        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
-        refundNotificationService.reprocessPostFailedRefundsToLiberata();
+//         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+//         refundNotificationService.reprocessPostFailedRefundsToLiberata();
 
-    }
+//     }
 
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()
