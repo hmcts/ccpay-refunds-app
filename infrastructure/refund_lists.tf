@@ -6,7 +6,7 @@ module "ccpay-refund-lists-product" {
   product_access_control_groups = ["developers"]
 
   providers = {
-    azurerm.cftappsdemo = azurerm.cftappsdemo
+    azurerm = azurerm.cftappsdemo
   }
 }
 
@@ -24,7 +24,7 @@ module "ccpay-refund-lists-api" {
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-list.json"
 
   providers = {
-    azurerm.cftappsdemo = azurerm.cftappsdemo
+    azurerm = azurerm.cftappsdemo
   }
 }
 
@@ -57,7 +57,7 @@ module "ccpay-refund-lists-policy" {
   api_policy_xml_content = data.template_file.refund_status_policy_template.rendered
 
   providers = {
-    azurerm.cftappsdemo = azurerm.cftappsdemo
+    azurerm = azurerm.cftappsdemo
   }
 }
 
