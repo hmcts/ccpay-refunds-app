@@ -53,8 +53,8 @@ data "template_file" "refund_lists_policy_template" {
 
 
  resource "azurerm_api_management_user" "refudList_user" {
-  api_mgmt_name = local.api_mgmt_name_cft
-  api_mgmt_rg   = local.api_mgmt_rg_cft
+  api_management_name = local.api_mgmt_name_cft
+  resource_group_name   = local.api_mgmt_rg_cft
   user_id             = "5931a75ae4bbd512288c680b"
   first_name          = "Anshika"
   last_name           = "Nigam"
@@ -63,8 +63,8 @@ data "template_file" "refund_lists_policy_template" {
 }
 
 resource "azurerm_api_management_subscription" "refudList_subscription" {
-  api_mgmt_name = local.api_mgmt_name_cft
-  api_mgmt_rg   = local.api_mgmt_rg_cft
+  api_management_name = local.api_mgmt_name_cft
+  resource_group_name   = local.api_mgmt_rg_cft
   user_id             = azurerm_api_management_user.refudList_user.id
   product_id          = azurerm_api_management_product.refudList_user.id
   display_name        = "RefudList Subscription"
