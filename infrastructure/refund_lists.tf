@@ -25,9 +25,6 @@ data "template_file" "refund_lists_policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
 
   vars = {
-    allowed_certificate_thumbprints = local.refund_status_thumbprints_in_quotes_str
-    s2s_client_id                   = data.azurerm_key_vault_secret.s2s_client_id.value
-    s2s_client_secret               = data.azurerm_key_vault_secret.s2s_client_secret.value
     s2s_base_url                    = local.s2sUrl
   }
 }
