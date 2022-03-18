@@ -60,9 +60,6 @@ data "template_file" "refund_lists_policy_template" {
   last_name           = "Nigam"
   email               = "anshika.nigam@hmcts.net"
   state               = "active"
-   providers = {
-    azurerm = azurerm.cftappsdemo
-  }
 }
 
 resource "azurerm_api_management_subscription" "refudList_subscription" {
@@ -72,9 +69,6 @@ resource "azurerm_api_management_subscription" "refudList_subscription" {
   product_id          = module.ccpay-refund-lists-product.product_id
   display_name        = "RefudList Subscription"
   state               = "active"
-    providers = {
-    azurerm = azurerm.cftappsdemo
-  }
 }
 
 
