@@ -55,6 +55,10 @@ module "ccpay-refund-lists-policy" {
 
   api_name               = module.ccpay-refund-lists-api.name
   api_policy_xml_content = data.template_file.refund_status_policy_template.rendered
+
+  providers = {
+    azurerm.cftappsdemo = azurerm.cftappsdemo
+  }
 }
 
 resource "azurerm_api_management_user" "refudList_user" {
@@ -65,6 +69,8 @@ resource "azurerm_api_management_user" "refudList_user" {
   last_name           = "Nigam"
   email               = "anshika.nigam@hmcts.net"
   state               = "active"
+
+  provider = azurerm.cftappsdemo
 }
 
 resource "azurerm_api_management_subscription" "refudList_subscription" {
@@ -74,4 +80,6 @@ resource "azurerm_api_management_subscription" "refudList_subscription" {
   product_id          = data.azurerm_api_management_product.refundListApi.id
   display_name        = "RefudList Subscription"
   state               = "active"
+
+  provider = azurerm.cftappsdemo
 }
