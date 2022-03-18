@@ -4,6 +4,7 @@ module "ccpay-refund-lists-product" {
   api_mgmt_rg   = local.api_mgmt_rg_cft
   name = "refundListApi"
   product_access_control_groups = ["developers"]
+  provider = azurerm.cftappsdemo
 }
 
 module "ccpay-refund-lists-api" {
