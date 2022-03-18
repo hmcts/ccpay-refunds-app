@@ -1,6 +1,5 @@
 module "ccpay-refund-lists-product" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
-  provider            = azurerm.acmedcdcftapps
   api_mgmt_name = local.api_mgmt_name_cft
   api_mgmt_rg   = local.api_mgmt_rg_cft
   name = "refundList"
@@ -22,8 +21,11 @@ module "ccpay-refund-lists-api" {
 }
   
 provider "azurerm" {
-  alias                      = "acmedcdcftapps"
-  skip_provider_registration = "true"
+  features {}
+}
+
+provider "azurerm" {
+  alias = "sendgrid"
   features {}
   subscription_id = "d025fece-ce99-4df2-b7a9-b649d3ff2060"
 }
