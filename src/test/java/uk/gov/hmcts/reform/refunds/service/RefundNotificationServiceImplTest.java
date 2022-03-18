@@ -350,7 +350,6 @@ class RefundNotificationServiceImplTest {
 //         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
 //         refundNotificationService.reprocessPostFailedRefundsToLiberata();
 
-//     }
 
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()
