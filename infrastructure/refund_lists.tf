@@ -50,10 +50,7 @@ data "template_file" "refund_lists_policy_template" {
    
  }
 
-data "azurerm_key_vault" "infra_key_vault" {
-  name                = "refundlist-vault"
-  resource_group_name = local.api_mgmt_rg_cft
-}
+
 
  resource "azurerm_api_management_user" "refudList_user" {
   api_management_name = local.api_mgmt_name_cft
@@ -75,9 +72,5 @@ resource "azurerm_api_management_subscription" "refudList_subscription" {
 }
 
 
-resource "azurerm_key_vault_secret" "subscription_key" {
-  name         = "refundList-sub-key"
-  value        = azurerm_api_management_subscription.refudList_subscription.primary_key
-  key_vault_id = data.azurerm_key_vault.infra_key_vault.id
-}
+
   
