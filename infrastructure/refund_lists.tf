@@ -32,10 +32,8 @@ data "azurerm_api_management_product" "refundListApi" {
   product_id          = module.ccpay-refund-lists-product.product_id
   api_management_name = local.api_mgmt_name_cft
   resource_group_name = local.api_mgmt_rg_cft
-  
-  providers = {
-    azurerm = azurerm.cftappsdemo
-  }
+
+  provider = azurerm.cftappsdemo
 }
 
 
