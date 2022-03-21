@@ -24,4 +24,11 @@
     <cve>CVE-2020-36518</cve>
   </suppress>
 
+  <suppress>
+    <notes>
+      Need to resolve Liquibase issue before updating the library
+    </notes>
+    <cve>CVE-2022-0839</cve>
+  </suppress>
+
 </suppressions>
