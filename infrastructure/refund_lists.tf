@@ -28,13 +28,13 @@ module "ccpay-refund-lists-api" {
   }
 }
 
-data "azurerm_api_management_product" "refundListApi" {
-  product_id          = module.ccpay-refund-lists-product.product_id
-  api_management_name = local.api_mgmt_name_cft
-  resource_group_name = local.api_mgmt_rg_cft
+# data "azurerm_api_management_product" "refundListApi" {
+#  product_id          = module.ccpay-refund-lists-product.product_id
+ # api_management_name = local.api_mgmt_name_cft
+#  resource_group_name = local.api_mgmt_rg_cft
 
-  provider = azurerm.cftappsdemo
-}
+ # provider = azurerm.cftappsdemo
+# }
 
 data "template_file" "refund_lists_policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
