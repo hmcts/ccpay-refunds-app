@@ -276,11 +276,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             // Refund Reason Validation
             String refundReason = refund.getReason();
+            refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
+                validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
+
             if (OVERPAYMENT_REASON.equals(refund.getReason())) {
                 refundReason = OVERPAYMENT_REASON;
             }
-            refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
-                validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
 
             BigDecimal refundAmount = request.getAmount() == null ? refund.getAmount() : request.getAmount();
 
