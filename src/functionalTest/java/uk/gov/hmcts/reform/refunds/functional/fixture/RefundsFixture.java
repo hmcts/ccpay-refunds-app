@@ -51,12 +51,15 @@ public final class RefundsFixture {
     }
 
     public static final PaymentRefundRequest refundRequest(final String refundReason,
-                                                           final String paymentReference, final String refundAmount, final String feeAmount) {
+                                                           final String paymentReference, final String refundAmount, final String feeAmount, String cccaseRef) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
             .serviceType("cmc")
             .refundAmount(new BigDecimal(refundAmount))
+            .paymentChannel("bulk scan")
+            .paymentMethod("cash")
+            .ccdCaseNumber(cccaseRef)
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
