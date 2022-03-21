@@ -72,6 +72,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
+    private static final String OVERPAYMENT_REASON = "RR037";
+
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -273,7 +275,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED)) {
 
             // Refund Reason Validation
-            String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
+            String refundReason = refund.getReason();
+            if (OVERPAYMENT_REASON.equals(refund.getReason())) {
+                refundReason = OVERPAYMENT_REASON;
+            }
+            refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
                 validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
 
             BigDecimal refundAmount = request.getAmount() == null ? refund.getAmount() : request.getAmount();
