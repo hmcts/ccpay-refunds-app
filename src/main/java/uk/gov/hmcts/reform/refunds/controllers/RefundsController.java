@@ -10,7 +10,6 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,15 +31,12 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
@@ -51,9 +47,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundsService;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
-import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -82,19 +76,12 @@ public class RefundsController {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
-    private  long daysDifference;
-
-    @Autowired
-    private  RefundValidator refundValidator;
     DateUtil dateUtil = new DateUtil();
 
     private final DateTimeFormatter formatter = dateUtil.getIsoDateTimeFormatter();
 
     @Autowired
     private RefundNotificationService refundNotificationService;
-
-    @Value("${refund.search.days}")
-    private Integer numberOfDays;
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -363,7 +350,7 @@ public class RefundsController {
     public void postFailedRefundsToLiberata() throws JsonProcessingException {
         refundNotificationService.reprocessPostFailedRefundsToLiberata();
     }
-    
+
     @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
         + "You can provide start date and end dates which can include times as well."
         + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
@@ -376,13 +363,13 @@ public class RefundsController {
         @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
     })
 
-      @GetMapping("/refunds/{start_date}/{end_date}")
-    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation1(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
+    @GetMapping("/refunds/{start_date}/{end_date}")
+    public ResponseEntity<String> searchRefundReconciliation1(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
                                                         @PathVariable(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference,
                                                                               @RequestHeader(required = false) MultiValueMap<String, String> headers
     ) {
-        return new ResponseEntity<>("test",HttpStatus.OK);
-    } 
+        return new ResponseEntity<String>("test",HttpStatus.OK);
+    }
 
 }
