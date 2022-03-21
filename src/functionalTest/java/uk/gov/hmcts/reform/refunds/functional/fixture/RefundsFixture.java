@@ -51,7 +51,8 @@ public final class RefundsFixture {
     }
 
     public static final PaymentRefundRequest refundRequest(final String refundReason,
-                                                           final String paymentReference, final String refundAmount, final String feeAmount, String cccaseRef) {
+                                                           final String paymentReference, final String refundAmount,
+                                                           final String feeAmount, String cccaseRef) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
