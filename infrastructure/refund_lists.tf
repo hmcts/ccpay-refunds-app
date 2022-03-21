@@ -65,4 +65,23 @@ resource "azurerm_api_management_user" "refudList_user" {
   provider = azurerm.cftappsdemo
 }
 
+data "azurerm_api_management_product" "refundListApi" {
+  product_id          = module.ccpay-refund-lists-product.product_id
+  api_management_name = local.api_mgmt_name_cft
+  resource_group_name = local.api_mgmt_rg_cft
+
+  provider = azurerm.cftappsdemo
+}
+
+resource "azurerm_api_management_subscription" "refudList_subscription" {
+  api_management_name = local.api_mgmt_name_cft
+  resource_group_name = local.api_mgmt_rg_cft
+  user_id             = azurerm_api_management_user.refudList_user.id
+  product_id          = data.azurerm_api_management_product.refundListApi.id
+  display_name        = "RefudList Subscription"
+  state               = "active"
+
+  provider = azurerm.cftappsdemo
+}
+
 
