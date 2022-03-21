@@ -265,7 +265,7 @@ public class RefundsController {
         @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
     })
 
-    @GetMapping("/reconciliation-refunds/{start_date}/{end_date}")
+    @GetMapping("/refunds/{start_date}/{end_date}")
     public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
                                                         @PathVariable(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference,

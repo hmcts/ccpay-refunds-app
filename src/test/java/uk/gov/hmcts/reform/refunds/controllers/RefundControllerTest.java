@@ -2238,7 +2238,7 @@ class RefundControllerTest {
         String startDate = LocalDate.now().minusDays(10).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isPayloadTooLarge()).andReturn();
@@ -2252,7 +2252,7 @@ class RefundControllerTest {
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
@@ -2266,7 +2266,7 @@ class RefundControllerTest {
         String startDate = LocalDate.now().plusDays(2).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
@@ -2280,7 +2280,7 @@ class RefundControllerTest {
         String startDate = LocalDate.now().minusDays(1).toString(INVALID_FORMAT);
         String endDate = LocalDate.now().toString(INVALID_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
@@ -2309,7 +2309,7 @@ class RefundControllerTest {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/reconciliation-refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
