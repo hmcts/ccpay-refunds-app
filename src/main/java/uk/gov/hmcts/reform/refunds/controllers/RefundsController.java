@@ -376,35 +376,13 @@ public class RefundsController {
         @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
     })
 
-    @GetMapping("/refunds")
-    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliationtest(
-                                                        @RequestParam(name = "start_date") Optional<String> startDateTimeString,
-                                                        @RequestParam(name = "end_date") Optional<String> endDateTimeString,
+      @GetMapping("/refunds/{start_date}/{end_date}")
+    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation1(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
+                                                        @PathVariable(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference,
-                                                        @RequestHeader(required = false) MultiValueMap<String, String> headers
+                                                                              @RequestHeader(required = false) MultiValueMap<String, String> headers
     ) {
-
-        refundValidator.validate(startDateTimeString, endDateTimeString);
-
-        Date fromDateTime = getFromDateTime(startDateTimeString);
-
-        Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
-
-        if (null != fromDateTime && null != toDateTime) {
-            daysDifference = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
-        }
-
-        if (daysDifference > numberOfDays) {
-
-            throw new LargePayloadException("Date range exceeds the maximum supported by the system");
-        }
-
-        List<RefundLiberata> refunds = refundsService
-            .search(
-                getSearchCriteria(fromDateTime, toDateTime, refundReference)
-            );
-
-        return new ResponseEntity<>(new RerfundLiberataResponse(refunds),HttpStatus.OK);
-    }
+        return new ResponseEntity<>("test",HttpStatus.OK);
+    } 
 
 }
