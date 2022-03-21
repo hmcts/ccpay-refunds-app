@@ -377,10 +377,11 @@ public class RefundsController {
     })
 
     @GetMapping("/refunds")
-    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliationtest(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
+    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliationtest(
+                                                        @RequestParam(name = "start_date") Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference,
-                                                                              @RequestHeader(required = false) MultiValueMap<String, String> headers
+                                                        @RequestHeader(required = false) MultiValueMap<String, String> headers
     ) {
 
         refundValidator.validate(startDateTimeString, endDateTimeString);
