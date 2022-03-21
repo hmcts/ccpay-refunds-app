@@ -105,16 +105,6 @@ refunds:
     scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:}
     redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:}
 
-notify:
-  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:dummy}
-  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:dummy}
-
 refund:
   search:
     days: 2
-
-logging:
-  level:
-    org:
-      springframework:
-        web: DEBUG
