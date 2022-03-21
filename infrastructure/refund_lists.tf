@@ -32,8 +32,10 @@ module "ccpay-refund-lists-api" {
  product_id          = module.ccpay-refund-lists-product.product_id
  api_management_name = local.api_mgmt_name_cft
  resource_group_name = local.api_mgmt_rg_cft
- provider = azurerm.cftappsdemo
- }
+providers = {
+    azurerm = azurerm.cftappsdemo
+  }
+   }
 
 data "template_file" "refund_lists_policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
