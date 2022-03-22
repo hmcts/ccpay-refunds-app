@@ -171,3 +171,14 @@ user:
 
 
 
+notification:
+  url: ${NOTIFICATION_API_URL:}
+  letter-path: ${NOTIFICATION_LETTER_PATH:/notifications/letter}
+  email-path: ${NOTIFICATION_EMAIL_PATH:/notifications/email}
+  email-to-reply: ${EMAIL_TO_REPLY:}
+  service-mailbox: ${SERVICE_MAIL_BOX:}
+  service-url: ${SERVICE_URL:http://service}
+
+notify:
+  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
+  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}

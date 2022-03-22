@@ -6,9 +6,9 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
 import java.util.HashMap;
 import java.util.Map;

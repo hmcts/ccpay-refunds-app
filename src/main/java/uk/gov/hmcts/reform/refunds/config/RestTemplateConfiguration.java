@@ -32,4 +32,8 @@ public class RestTemplateConfiguration {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
+    @Bean("restTemplateNotify")
+    public RestTemplate restTemplateNotify() {
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 }
