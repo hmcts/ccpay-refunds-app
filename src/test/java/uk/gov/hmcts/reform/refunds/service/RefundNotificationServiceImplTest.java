@@ -25,13 +25,13 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
+// import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
+// import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
@@ -56,10 +56,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+// import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
+// import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_NUMBER;
@@ -315,56 +315,8 @@ class RefundNotificationServiceImplTest {
         refundNotificationService.processFailedNotificationsLetter();
     }
 
-    @Test
-    void processFailedLiberataRefundsApproveJourneyTest() throws Exception {
 
-        IdamTokenResponse tokenres =  IdamTokenResponse
-            .idamFullNameRetrivalResponseWith()
-            .accessToken("test token")
-            .refreshToken("mock token")
-            .scope("mock-scope")
-            .idToken("mock-token")
-            .tokenType("mock-type")
-            .expiresIn("2021-07-20T11:03:08.067Z")
-            .build();
 
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
-
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-
-        when(idamService.getSecurityTokens()).thenReturn(tokenres);
-
-        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
-
-        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamUserIdResponse.class)
-        )).thenReturn(responseEntity);
-
-        when(refundsRepository.findByRefundStatusAndRefundApproveFlag(anyString(),anyString())).thenReturn(Optional.ofNullable(List.of(
-            RefundServiceImplTest.refundListLiberataRefundsTest.get())));
-
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
-
-        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
-            "refund reason").build()));
-
-        doReturn(ResponseEntity.ok(Optional.of(ReconciliationProviderResponse.buildReconciliationProviderResponseWith()
-                                                   .amount(BigDecimal.valueOf(100))
-                                                   .refundReference("RF-1628-5241-9956-2215")
-                                                   .build()
-        ))).when(restTemplateLiberata).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            ReconciliationProviderResponse.class));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
-        refundNotificationService.reprocessPostFailedRefundsToLiberata();
-
-    }
 
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.dtos.requests;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import lombok.Setter;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
@@ -49,6 +51,10 @@ public class RefundRequest {
     @Digits(integer = 10, fraction = 2, message = "Refund amount cannot have more than 2 decimal places")
     private BigDecimal refundAmount;
 
+    @DecimalMin(value = "0.01", message = "Payment Amount must be greater than or equal to 0.01")
+    @Positive(message = "Payment Amount must be greater than 0")
+    @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
+    private BigDecimal paymentAmount;
 
     @NotNull(message = "fee_ids cannot be null")
     @NotEmpty(message = "fee_ids cannot be blank")
@@ -58,7 +64,11 @@ public class RefundRequest {
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
 
+    @NotNull(message = "Refund Fee  cannot be null")
+    private List<RefundFeeDto> refundFees;
+
     @NotNull(message = "Service type cannot be null")
     @NotEmpty(message = "Service type cannot be blank")
     private String serviceType;
+
 }

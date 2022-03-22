@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -79,9 +81,18 @@ public class RefundControllerLock {
                                                   .content(asJsonString(RefundRequest.refundRequestWith()
                                                                             .paymentReference("RC-1234-1234-1234-1234")
                                                                             .refundAmount(new BigDecimal(100))
+                                                                            .paymentAmount(new BigDecimal(100))
                                                                             .refundReason("RR035-Other-Reason")
                                                                             .ccdCaseNumber("1111222233334444")
                                                                             .feeIds("1")
+                                                                            .refundFees(Arrays.asList(
+                                                                                RefundFeeDto.refundFeeRequestWith()
+                                                                                    .feeId(1)
+                                                                                    .code("RR001")
+                                                                                    .version("1")
+                                                                                    .volume(1)
+                                                                                    .refundAmount(new BigDecimal(100))
+                                                                                    .build()))
                                                                             .serviceType("cmc")
                                                                             .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                             .build()))
@@ -129,6 +140,14 @@ public class RefundControllerLock {
         when(featureToggler.getBooleanValue(eq("refunds-release"),anyBoolean())).thenReturn(true);
         ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(BigDecimal.valueOf(100))
+            .refundFees(Arrays.asList(
+                RefundFeeDto.refundFeeRequestWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1")
+                    .volume(1)
+                    .refundAmount(new BigDecimal(100))
+                    .build()))
             .contactDetails(ContactDetails.contactDetailsWith().build())
             .refundReason("RR003").build();
         MvcResult result = mockMvc.perform(patch(
