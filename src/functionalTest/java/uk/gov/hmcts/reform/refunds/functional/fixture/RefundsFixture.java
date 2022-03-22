@@ -75,7 +75,7 @@ public final class RefundsFixture {
                                                            .county("Londonshire")
                                                            .city("London")
                                                            .postalCode("P1 1PO")
-                                                           .email("person@somemail.com")
+                                                           .email("ranjeet.kumar@HMCTS.NET")
                                                            .notificationType("EMAIL")
                                                            .build())
 

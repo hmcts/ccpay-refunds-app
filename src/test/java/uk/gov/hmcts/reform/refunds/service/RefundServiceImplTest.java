@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
@@ -24,10 +25,12 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundFees;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
@@ -79,6 +82,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber1 = () -> Refund.refundsWith()
         .id(1)
         .amount(BigDecimal.valueOf(100))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
         .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
         .reference("RF-1111-2234-1077-1123")
@@ -99,6 +110,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber2 = () -> Refund.refundsWith()
         .id(1)
         .amount(BigDecimal.valueOf(100))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
         .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
         .reference("RF-1111-2234-1077-1123")
@@ -112,6 +131,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber3 = () -> Refund.refundsWith()
         .id(1)
         .amount(BigDecimal.valueOf(100))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
         .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
         .reference("RF-1111-2234-1077-1123")
@@ -125,6 +152,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierForSubmittedStatus = () -> Refund.refundsWith()
         .id(2)
         .amount(BigDecimal.valueOf(200))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_SUBMITTED_REFUND_STATUS)
         .createdBy(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
         .updatedBy(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
@@ -138,6 +173,14 @@ public class RefundServiceImplTest {
     public static final Supplier<Refund> refundListSupplierForSendBackStatus = () -> Refund.refundsWith()
         .id(3)
         .amount(BigDecimal.valueOf(300))
+        .refundFees(Arrays.asList(
+            RefundFees.refundFeesWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .ccdCaseNumber(GET_REFUND_LIST_SENDBACK_REFUND_STATUS)
         .createdBy(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
         .updatedBy(GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
@@ -202,6 +245,8 @@ public class RefundServiceImplTest {
     private StatusHistoryResponseMapper statusHistoryResponseMapper;
     @Spy
     private RefundResponseMapper refundResponseMapper;
+    @Spy
+    private RefundFeeMapper refundFeeMapper;
 
     @Mock
     private ContextStartListener contextStartListener;
@@ -711,9 +756,32 @@ public class RefundServiceImplTest {
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
 
+    private ResubmitRefundRequest buildResubmitRefundRequest(String refundReason, BigDecimal amount) {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .refundReason(refundReason)
+            .amount(amount)
+            .refundFees(Arrays.asList(
+                RefundFeeDto.refundFeeRequestWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1.0")
+                    .volume(1)
+                    .refundAmount(amount)
+                    .build()))
+            .build();
+    }
+
     private ResubmitRefundRequest buildResubmitRefundRequest(String refundReason, BigDecimal amount, ContactDetails contactDetails) {
         return ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason(refundReason).amount(amount).contactDetails(
-            ContactDetails.contactDetailsWith().build()).build();
+            ContactDetails.contactDetailsWith().build())
+            .refundFees(Arrays.asList(
+                RefundFeeDto.refundFeeRequestWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1.0")
+                    .volume(1)
+                    .refundAmount(amount)
+                    .build())).build();
     }
 
     @Test
@@ -916,6 +984,14 @@ public class RefundServiceImplTest {
     void givenValidAmountInput_whenResubmitRefund_thenRefundStatusUpdated() {
         ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
         resubmitRefundRequest.setAmount(BigDecimal.valueOf(100));
+        resubmitRefundRequest.setRefundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(1))
+                .build()));
         RefundReason refundReason =
             RefundReason.refundReasonWith().code("BBB").description("CCC").name("DDD").build();
         when(refundsRepository.findByReferenceOrThrow(anyString()))
@@ -937,6 +1013,14 @@ public class RefundServiceImplTest {
     @Test
     void givenValidReasonInput_whenResubmitRefund_thenRefundStatusUpdated() {
         ResubmitRefundRequest resubmitRefundRequest = new ResubmitRefundRequest();
+        resubmitRefundRequest.setRefundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(1))
+                .build()));
         resubmitRefundRequest.setRefundReason("RR002");
         RefundReason refundReason =
             RefundReason.refundReasonWith().code("RR001").description("The claim is amended").name("Amended claim").build();
@@ -967,6 +1051,14 @@ public class RefundServiceImplTest {
                                                     .email("person@somemail.com")
                                                     .notificationType("EMAIL")
                                                     .build());
+        resubmitRefundRequest.setRefundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1.0")
+                .volume(1)
+                .refundAmount(new BigDecimal(1))
+                .build()));
         RefundReason refundReason =
             RefundReason.refundReasonWith().code("RR001").description("The claim is amended").name("Amended claim").build();
         when(refundsRepository.findByReferenceOrThrow(anyString()))
@@ -983,4 +1075,71 @@ public class RefundServiceImplTest {
         assertNotNull(response);
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
+
+    public static final Supplier<Refund> refundListContactDetailsEmail = () -> Refund.refundsWith()
+        .id(1)
+        .ccdCaseNumber("1234567890123456")
+        .refundStatus(RefundStatus.APPROVED)
+        .contactDetails(ContactDetails.contactDetailsWith()
+                            .addressLine("ABC Street")
+                            .email("mock@test.com")
+                            .city("London")
+                            .county("Greater London")
+                            .country("UK")
+                            .postalCode("E1 6AN")
+                            .notificationType("EMAIL")
+                            .build())
+        .build();
+
+    public static final Supplier<Refund> refundListContactDetailsLetter = () -> Refund.refundsWith()
+        .id(1)
+        .ccdCaseNumber("1234567890123456")
+        .refundStatus(RefundStatus.APPROVED)
+        .contactDetails(ContactDetails.contactDetailsWith()
+                            .addressLine("ABC Street")
+                            .email("mock@test.com")
+                            .city("London")
+                            .county("Greater London")
+                            .country("UK")
+                            .postalCode("E1 6AN")
+                            .notificationType("Letter")
+                            .build())
+        .build();
+
+    public static final Supplier<Refund> refundListLiberataTest = () -> Refund.refundsWith()
+        .id(1)
+        .ccdCaseNumber("1234567890123456")
+        .refundStatus(RefundStatus.SENTFORAPPROVAL)
+        .paymentReference("RC-1234-1234-1234-1234")
+        .feeIds("1")
+        .contactDetails(ContactDetails.contactDetailsWith()
+                            .addressLine("ABC Street")
+                            .email("mock@test.com")
+                            .city("London")
+                            .county("Greater London")
+                            .country("UK")
+                            .postalCode("E1 6AN")
+                            .notificationType("Letter")
+                            .build())
+        .build();
+    public static final Supplier<Refund> refundListLiberataRefundsTest = () -> Refund.refundsWith()
+        .id(1)
+        .amount(BigDecimal.valueOf(100))
+        .reason("RR0001")
+        .reference("RF-1628-5241-9956-2215")
+        .paymentReference("RC-1628-5241-9956-2315")
+        .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+        .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+        .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
+        .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+        .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+        .feeIds("50")
+        .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                                           .id(1)
+                                           .status(RefundStatus.SENTFORAPPROVAL.getName())
+                                           .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+                                           .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                           .notes("Refund initiated and sent to team leader")
+                                           .build()))
+        .build();
 }

@@ -89,6 +89,7 @@ public class NotificationServiceImpl implements NotificationService {
         inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
         inputHeaders.put("Authorization", authtoken);
         inputHeaders.put("ServiceAuthorization", servauthtoken);
+        log.info("ServiceAuthorization: {}", servauthtoken);
         return inputHeaders;
     }
 

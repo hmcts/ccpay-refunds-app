@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -94,10 +93,15 @@ public class Refund {
     @Column(columnDefinition = "json", name = "contact_details")
     private ContactDetails contactDetails;
 
-    @ToString.Exclude
+    //@ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
+
+    //@ToString.Exclude
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
+    private List<RefundFees> refundFees;
 
     @Column(name = "refund_instruction_type")
     private String refundInstructionType;
