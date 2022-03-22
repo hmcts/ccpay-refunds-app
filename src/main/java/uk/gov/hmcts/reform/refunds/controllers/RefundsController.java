@@ -364,4 +364,25 @@ public class RefundsController {
         refundNotificationService.reprocessPostFailedRefundsToLiberata();
     }
 
+    @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
+        + "You can provide start date and end dates which can include times as well."
+        + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
+        + "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "successful operation"),
+        @ApiResponse(code = 404, message = "No refunds available for the given date range"),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 413, message = "Date range exceeds the maximum supported by the system"),
+        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
+    })
+
+    @GetMapping("/testrefunds/{start_date}/{end_date}")
+    public ResponseEntity<String> searchRefundReconciliation1(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
+                                                        @PathVariable(name = "end_date") Optional<String> endDateTimeString,
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference,
+                                                                              @RequestHeader(required = false) MultiValueMap<String, String> headers
+    ) {
+        return new ResponseEntity<String>("test",HttpStatus.OK);
+    }
+
 }
