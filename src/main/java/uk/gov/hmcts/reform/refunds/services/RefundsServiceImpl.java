@@ -482,7 +482,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundLiberata> search(RefundSearchCriteria searchCriteria) {
 
-        List<String> reference =  new ArrayList<>();
+        List<String> referenceList =  new ArrayList<>();
         List<RefundLiberata> refundLiberatas = new ArrayList<>();
         List<Refund> refundListWithAccepted;
 
@@ -492,13 +492,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     RefundStatus.APPROVED))
                 .collect(Collectors.toList());
             for (Refund ref : refundListWithAccepted) {
-                reference.add(ref.getPaymentReference());
+                referenceList.add(ref.getPaymentReference());
             }
         } else {
             throw new RefundNotFoundException("No refunds available for the given date range");
         }
 
-        List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(reference);
+        List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(referenceList);
 
         Map<String, BigDecimal> groupByPaymentReference =
             refundListWithAccepted.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,

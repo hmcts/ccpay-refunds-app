@@ -16,7 +16,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -37,11 +36,6 @@ public class PaymentRefundRequest {
     @NotEmpty(message = "Refund Reason cannot be blank")
     private String refundReason;
 
-    @NotNull(message = "ccd_case_number cannot be null")
-    @NotEmpty(message = "ccd_case_number cannot be blank")
-    @Pattern(regexp = "^\\d{16}$", message = "ccd_case_number is not in valid format")
-    private String ccdCaseNumber;
-
     @Digits(integer = 10, fraction = 2, message = "Please check the amount you want to refund")
     @NotNull(message = "You need to enter a refund amount")
     private BigDecimal refundAmount;
@@ -56,9 +50,5 @@ public class PaymentRefundRequest {
     @NotNull(message = "Service type cannot be null")
     @NotEmpty(message = "Service type cannot be blank")
     private String serviceType;
-
-    private String paymentMethod;
-    private String paymentChannel;
-
 
 }
