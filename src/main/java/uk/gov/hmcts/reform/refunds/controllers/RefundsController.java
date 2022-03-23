@@ -45,6 +45,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -274,6 +275,15 @@ public class RefundsController {
     @Transactional
     public void postFailedRefundsToLiberata() throws JsonProcessingException {
         refundNotificationService.reprocessPostFailedRefundsToLiberata();
+    }
+    
+    @GetMapping("/testrefunds/{start_date}/{end_date}")
+    public ResponseEntity<String> searchRefundReconciliation1(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
+                                                        @PathVariable(name = "end_date") Optional<String> endDateTimeString,
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference,
+                                                                              @RequestHeader(required = false) MultiValueMap<String, String> headers
+    ) {
+        return new ResponseEntity<String>("test",HttpStatus.OK);
     }
 
 }
