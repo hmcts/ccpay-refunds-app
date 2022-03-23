@@ -21,7 +21,7 @@ module "ccpay-refund-lists-api" {
   name          = join("-", [var.product_name, "apiLists"])
   display_name  = "Refund List API"
   path          = "refundslist-api"
-  swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/test-refunds/docs/specs/ccpay-payment-app.refunds-list.json"
+  swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-list.json"
 
   providers = {
     azurerm = azurerm.cftappsdemo
