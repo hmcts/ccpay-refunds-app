@@ -277,9 +277,9 @@ public class RefundsController {
         refundNotificationService.reprocessPostFailedRefundsToLiberata();
     }
     
-    @GetMapping("/testrefunds/{start_date}/{end_date}")
-    public ResponseEntity<String> searchRefundReconciliation1(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
-                                                        @PathVariable(name = "end_date") Optional<String> endDateTimeString,
+    @GetMapping("/refunds")
+    public ResponseEntity<String> searchRefundReconciliation1(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
+                                                        @RequestParam(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference,
                                                                               @RequestHeader(required = false) MultiValueMap<String, String> headers
     ) {
