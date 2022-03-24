@@ -27,6 +27,30 @@ module "ccpay-refund-lists-api" {
     azurerm = azurerm.cftappsdemo
   }
 }
+
+data "template_file" "refund_lists_policy_template" {
+  template = file(join("", [path.module, "/template/api-policy.xml"]))
+  vars = {
+    allowed_certificate_thumbprints = local.refund_list_thumbprints_in_quotes_str
+    s2s_client_id                   = data.azurerm_key_vault_secret.s2s_client_id.value
+    s2s_client_secret               = data.azurerm_key_vault_secret.s2s_client_secret.value
+    s2s_base_url                    = local.s2sUrl
+  }
+}
+
+module "ccpay-refund-lists-policy" {
+  source = "git@github.com:hmcts/cnp-module-api-mgmt-api-policy?ref=master"
+
+  api_mgmt_name = local.api_mgmt_name_cft
+  api_mgmt_rg   = local.api_mgmt_rg_cft
+
+  api_name               = module.ccpay-refund-lists-api.name
+  api_policy_xml_content = data.template_file.refund_lists_policy_template.rendered
+
+  providers = {
+    azurerm = azurerm.cftappsdemo
+  }
+}
   
 
 resource "azurerm_api_management_user" "refudList_user" {
