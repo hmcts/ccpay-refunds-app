@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
@@ -27,6 +29,7 @@ import javax.persistence.Table;
 @Table(name = "status_history")
 @Builder(builderMethodName = "statusHistoryWith")
 @Inheritance(strategy = InheritanceType.JOINED)
+@ToString
 public class StatusHistory {
 
     @Id

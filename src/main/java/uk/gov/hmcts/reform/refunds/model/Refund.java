@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-//import lombok.ToString;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -39,6 +39,7 @@ import javax.persistence.Table;
 @Data
 @Table(name = "refunds")
 @TypeDef(name = "json", typeClass = JsonType.class)
+@ToString
 public class Refund {
 
     @Id
