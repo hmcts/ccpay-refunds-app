@@ -185,7 +185,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (!roles.isEmpty()) {
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
-//            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
@@ -214,7 +213,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 });
         }
 
-//        LOG.info("refundListDto: {}", refundListDto);
         return refundListDto;
     }
 

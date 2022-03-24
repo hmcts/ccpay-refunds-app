@@ -13,7 +13,6 @@ public class RefundResponseMapper {
     private static final Logger LOG = LoggerFactory.getLogger(RefundResponseMapper.class);
 
     public RefundDto getRefundListDto(Refund refund, UserIdentityDataDto userData,String reason) {
-//        LOG.info("Inside refunddtomapper refund: {}", refund);
         return RefundDto
             .buildRefundListDtoWith()
             .ccdCaseNumber(refund.getCcdCaseNumber())
