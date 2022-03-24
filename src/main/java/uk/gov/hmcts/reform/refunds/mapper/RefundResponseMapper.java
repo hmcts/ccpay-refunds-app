@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.refunds.mapper;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
@@ -10,7 +8,6 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 @Component
 public class RefundResponseMapper {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RefundResponseMapper.class);
 
     public RefundDto getRefundListDto(Refund refund, UserIdentityDataDto userData,String reason) {
         return RefundDto
