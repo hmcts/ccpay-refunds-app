@@ -30,7 +30,7 @@ module "ccpay-refund-lists-api" {
   
 data "template_file" "refund_lists_policy_template" {
   template = file(join("", [path.module, "/template/api-policy.xml"]))
-
+  provider = azurerm.cftappsdemo
   vars = {
     allowed_certificate_thumbprints = local.refund_list_thumbprints_in_quotes_str
     s2s_client_id                   = data.azurerm_key_vault_secret.s2s_client_id.value
@@ -46,7 +46,7 @@ module "ccpay-refund-lists-policy" {
   api_mgmt_rg   = local.api_mgmt_rg_cft
 
   api_name               = module.ccpay-refund-lists-api.name
-  #api_policy_xml_content = data.template_file.refund_lists_policy_template.rendered
+  api_policy_xml_content = data.template_file.refund_lists_policy_template.rendered
 
   providers = {
     azurerm = azurerm.cftappsdemo
