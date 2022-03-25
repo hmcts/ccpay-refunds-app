@@ -102,8 +102,8 @@ public class Refund {
 
 
     //@ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
+    @OneToMany(mappedBy = "refund",cascade = CascadeType.ALL)
+    //@JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<RefundFees> refundFees;
 
 }
