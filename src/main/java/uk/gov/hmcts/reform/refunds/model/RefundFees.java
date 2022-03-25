@@ -6,9 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.sql.Timestamp;
+import java.math.BigDecimal;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,32 +24,34 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table(name = "status_history")
-@Builder(builderMethodName = "statusHistoryWith")
+@Table(name = "refund_fees")
+@Builder(builderMethodName = "refundFeesWith")
 @Inheritance(strategy = InheritanceType.JOINED)
 @ToString
-public class StatusHistory {
+public class RefundFees {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "refunds_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "refunds_id")
     private Refund refund;
 
-    @Column(name = "created_by")
-    private String createdBy;
+    @Column(name = "fee_id")
+    private Integer feeId;
 
-    @CreationTimestamp
-    @Column(name = "date_created")
-    private Timestamp dateCreated;
+    @Column(name = "code")
+    private String code;
 
-    @Column(name = "status")
-    private String status;
+    @Column(name = "version")
+    private String version;
 
-    //rejection reasons from user request
-    @Column(name = "notes")
-    private String notes;
+    @Column(name = "volume")
+    private Integer volume;
+
+    @Column(name = "refund_amount")
+    private BigDecimal refundAmount;
 
 }
+

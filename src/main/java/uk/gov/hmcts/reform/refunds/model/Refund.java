@@ -28,6 +28,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.FetchType;
 import javax.persistence.Table;
 
 @Entity
@@ -39,6 +40,7 @@ import javax.persistence.Table;
 @Data
 @Table(name = "refunds")
 @TypeDef(name = "json", typeClass = JsonType.class)
+@ToString
 public class Refund {
 
     @Id
@@ -94,10 +96,16 @@ public class Refund {
     @Column(columnDefinition = "json", name = "contact_details")
     private ContactDetails contactDetails;
 
-    @ToString.Exclude
+    //@ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
+
+//    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
+
+    //@ToString.Exclude
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "refunds",cascade = CascadeType.ALL)
+    private List<RefundFees> refundFees;
 
     @Column(name = "refund_instruction_type")
     private String refundInstructionType;

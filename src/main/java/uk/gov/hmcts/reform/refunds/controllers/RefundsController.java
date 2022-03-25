@@ -252,7 +252,6 @@ public class RefundsController {
 
     }
 
-
     @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
         + "You can provide start date and end dates which can include times as well."
         + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
@@ -350,8 +349,6 @@ public class RefundsController {
         refundNotificationService.processFailedNotificationsEmail();
         refundNotificationService.processFailedNotificationsLetter();
     }
-
-
 
     @ApiOperation(value = "Re-process failed refunds which are approved and sent it to liberata",
         notes = "Re-process failed refunds which are approved and sent it to liberata")

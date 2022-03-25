@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -84,6 +85,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
+    private static int amountCompareValue = 1;
     private static final Predicate[] REF = new Predicate[0];
     @Autowired
     private RefundsRepository refundsRepository;
@@ -115,6 +117,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private ContextStartListener contextStartListener;
 
+    @Autowired
+    private RefundFeeMapper refundFeeMapper;
+
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
         "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
@@ -131,6 +136,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
+        validateRefundPaymentAmount(refundRequest);
         IdamUserIdResponse uid = idamService.getUserId(headers);
         String paymnetMethod = null;
 
@@ -145,6 +151,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
 
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), paymnetMethod);
+        LOG.info("Saving refund: {}", refund);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -174,7 +181,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        LOG.info("refundList: {}", refundList);
+        LOG.info("refundList: {}", refundList.stream().count());
         // Get Refunds related Roles from logged in user
         List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
             .collect(Collectors.toList());
@@ -194,16 +201,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
-    private void logPaymentsRefund() {
-        if (contextStartListener != null) {
-            LOG.info("contextStartListener is not null");
-            LOG.info("contextStartListener.getUserMap(): {}", contextStartListener.getUserMap());
-            if (contextStartListener.getUserMap() != null) {
-                LOG.info("contextStartListener.getUserMap().get(payments-refund): {}", contextStartListener.getUserMap().get("payments-refund"));
-            }
-        }
-    }
-
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
@@ -211,14 +208,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
 
         if (!roles.isEmpty()) {
-            logPaymentsRefund();
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
-            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
             refundList.forEach(refund -> {
+                LOG.info("Foreach loop 1: {}", refund.getRefundFees().size());
+
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
                     contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
@@ -231,8 +228,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
+                    LOG.info("Foreach loop 2");
+
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
-                    LOG.info("refund: {}", refund);
+                    // LOG.info("Inside refundserviceimpl refund: {}", refund.getRefundFees().get(0));
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
@@ -243,7 +242,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 });
         }
 
-        LOG.info("refundListDto: {}", refundListDto);
         return refundListDto;
     }
 
@@ -331,6 +329,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
+                refund.setRefundFees(request.getRefundFees().stream().map(refundFeeMapper::toRefundFee)
+                    .collect(Collectors.toList()));
                 if (null != request.getContactDetails()) {
                     validateContactDetails(request.getContactDetails());
                     refund.setContactDetails(request.getContactDetails());
@@ -452,6 +452,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .createdBy(uid)
             .updatedBy(uid)
             .contactDetails(refundRequest.getContactDetails())
+            .refundFees(refundRequest.getRefundFees().stream().map(refundFeeMapper::toRefundFee)
+                            .collect(Collectors.toList()))
             .refundInstructionType(paymentMethod)
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
@@ -461,7 +463,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                   .build()
                 )
             )
-
             .build();
     }
 
@@ -476,6 +477,29 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             throw new RefundReasonNotFoundException(rawReason);
         }
         return rawReason;
+    }
+
+    private void validateRefundPaymentAmount(RefundRequest refundRequest) {
+
+        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
+        BigDecimal amount = BigDecimal.ZERO;
+
+        if (refundsList.isPresent()) {
+            List<Refund> refundsListStatus = refundsList.get().stream().filter(refund -> refund.getRefundStatus().equals(
+                    RefundStatus.ACCEPTED) || refund.getRefundStatus().equals(RefundStatus.APPROVED))
+                .collect(Collectors.toList());
+            for (Refund ref : refundsListStatus) {
+                amount = ref.getAmount().add(amount);
+            }
+            amount = refundRequest.getRefundAmount().add(amount);
+            int amountCompare = amount.compareTo(refundRequest.getPaymentAmount());
+
+            if (amountCompare == amountCompareValue) {
+                throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
+
+            }
+        }
+
     }
 
     @Override
@@ -584,6 +608,5 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private  String  validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
 
         return validateRefundReason(reason == null ? refund.getReason() : reason);
-
     }
 }
