@@ -53,7 +53,7 @@
     </send-request>
 
     <set-header name="ServiceAuthorization" exists-action="override">
-      <value>@("Bearer " + ((IResponse)context.Variables["s2sBearerToken"]).Body.As<string>())</value>
+      <value>@("Bearer " + "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjY3BheV9idWJibGUiLCJleHAiOjE2NDgxODU3MzF9.kcYy5VBe6e8nq-uCgcnDtW4IB9E9rIox-aoXYHtjd7InGou-wMPind5Jx-LIn9ygtlN0qcmr6Zq70EvjPfjWEA"</value>
     </set-header>
   </inbound>
   <outbound>
