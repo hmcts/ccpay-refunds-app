@@ -156,7 +156,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        LOG.info("refundList: {}", refundList);
+        LOG.info("refundList: {}", refundList.stream().count());
         // Get Refunds related Roles from logged in user
         List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
             .collect(Collectors.toList());
