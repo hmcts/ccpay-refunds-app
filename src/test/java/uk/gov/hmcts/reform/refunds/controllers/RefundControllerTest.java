@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
@@ -61,6 +62,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundFees;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
@@ -210,10 +212,19 @@ class RefundControllerTest {
     private RefundRequest refundRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundAmount(new BigDecimal(100))
+        .paymentAmount(new BigDecimal(100))
         .refundReason("RR002")
         .serviceType("cmc")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .refundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .contactDetails(ContactDetails.contactDetailsWith()
                 .email("abc@abc.com")
                 .notificationType("EMAIL")
@@ -222,9 +233,18 @@ class RefundControllerTest {
     private RefundRequest refundForRetroRequest = RefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundAmount(new BigDecimal(100))
+        .paymentAmount(new BigDecimal(100))
         .refundReason("RR036")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
+        .refundFees(Arrays.asList(
+            RefundFeeDto.refundFeeRequestWith()
+                .feeId(1)
+                .code("RR001")
+                .version("1")
+                .volume(1)
+                .refundAmount(new BigDecimal(100))
+                .build()))
         .serviceType("cmc")
         .contactDetails(ContactDetails.contactDetailsWith()
                 .addressLine("ABC Street")
@@ -662,9 +682,18 @@ class RefundControllerTest {
                                                .content(asJsonString(RefundRequest.refundRequestWith()
                                                                          .paymentReference("RC-1234-1234-1234-1234")
                                                                          .refundAmount(new BigDecimal(100))
+                                                                         .paymentAmount(new BigDecimal(100))
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .refundFees(Arrays.asList(
+                                                                             RefundFeeDto.refundFeeRequestWith()
+                                                                                 .feeId(1)
+                                                                                 .code("RR001")
+                                                                                 .version("1")
+                                                                                 .volume(1)
+                                                                                 .refundAmount(new BigDecimal(100))
+                                                                                 .build()))
                                                                          .serviceType("cmc")
                                                                          .contactDetails(ContactDetails.contactDetailsWith()
                                                                                  .email("abc@abc.com")
@@ -840,9 +869,18 @@ class RefundControllerTest {
                                                .content(asJsonString(RefundRequest.refundRequestWith()
                                                                          .paymentReference("RC-1234-1234-1234-1234")
                                                                          .refundAmount(new BigDecimal(100))
+                                                                         .paymentAmount(new BigDecimal(100))
                                                                          .refundReason("RR035-Other-Reason")
                                                                          .ccdCaseNumber("1111222233334444")
                                                                          .feeIds("1")
+                                                                         .refundFees(Arrays.asList(
+                                                                             RefundFeeDto.refundFeeRequestWith()
+                                                                                 .feeId(1)
+                                                                                 .code("RR001")
+                                                                                 .version("1")
+                                                                                 .volume(1)
+                                                                                 .refundAmount(new BigDecimal(100))
+                                                                                 .build()))
                                                                          .serviceType("cmc")
                                                                          .contactDetails(ContactDetails.contactDetailsWith().build())
                                                                          .build()))
@@ -2034,6 +2072,14 @@ class RefundControllerTest {
         return Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
+            .refundFees(Arrays.asList(
+                RefundFees.refundFeesWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1")
+                    .volume(1)
+                    .refundAmount(new BigDecimal(100))
+                    .build()))
             .reason("RR0001")
             .reference("RF-1628-5241-9956-2215")
             .paymentReference("RC-1628-5241-9956-2315")
@@ -2078,6 +2124,14 @@ class RefundControllerTest {
                                 .postalCode("E1 6AN")
                                 .notificationType("LETTER")
                                 .build())
+            .refundFees(Arrays.asList(
+                RefundFees.refundFeesWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1")
+                    .volume(1)
+                    .refundAmount(new BigDecimal(100))
+                    .build()))
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
                                                .status(RefundStatus.SENTFORAPPROVAL.getName())

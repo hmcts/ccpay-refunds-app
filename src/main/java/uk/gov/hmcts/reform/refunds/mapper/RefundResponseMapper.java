@@ -25,6 +25,7 @@ public class RefundResponseMapper {
             .contactDetails(refund.getContactDetails())
             .serviceType(refund.getServiceType())
             .feeIds(refund.getFeeIds())
+            .refundFees(refund.getRefundFees())
             .build();
 
     }
