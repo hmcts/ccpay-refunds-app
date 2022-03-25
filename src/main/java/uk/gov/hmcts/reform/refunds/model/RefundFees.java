@@ -34,7 +34,7 @@ public class RefundFees {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "refunds_id", insertable = false, updatable = false)
     private Refund refund;
 
