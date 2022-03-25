@@ -52,9 +52,7 @@
         }</set-body>
     </send-request>
 
-    <set-header name="ServiceAuthorization" exists-action="override">
-      <value>@("Bearer " + "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjY3BheV9idWJibGUiLCJleHAiOjE2NDgxNTUxNDV9.FkwZrMcIA8i3918LsUJSHD2M3Q3RJQjSsyk_jclHzvsChmYJpncVOc01VHpdnMqloJLiutyL_qxXR-ezX3CUDA")</value>
-    </set-header>
+   
   </inbound>
   <outbound>
     <base/>
