@@ -206,7 +206,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     LOG.info("Foreach loop 2");
 
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
-//                    LOG.info("Inside refundserviceimpl refund: {}", refund.getRefundFees().get(0));
+                    // LOG.info("Inside refundserviceimpl refund: {}", refund.getRefundFees().get(0));
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
