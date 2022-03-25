@@ -29,6 +29,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.FetchType;
 
 @Entity
 @Builder(builderMethodName = "refundsWith")
@@ -100,9 +101,10 @@ public class Refund {
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
+//    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
+
     //@ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "refunds",cascade = CascadeType.ALL)
     private List<RefundFees> refundFees;
 
 }
