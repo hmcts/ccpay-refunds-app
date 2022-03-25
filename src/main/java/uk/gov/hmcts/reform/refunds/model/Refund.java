@@ -103,7 +103,7 @@ public class Refund {
 
 
     //@ToString.Exclude
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "refunds",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "refunds",cascade = CascadeType.ALL)
     //@JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<RefundFees> refundFees;
 
