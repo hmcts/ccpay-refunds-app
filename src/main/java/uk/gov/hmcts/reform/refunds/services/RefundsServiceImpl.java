@@ -189,6 +189,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
             refundList.forEach(refund -> {
+                LOG.info("Foreach loop 1");
+
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
                     contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
@@ -201,6 +203,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
+                    LOG.info("Foreach loop 2");
+
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
                     LOG.info("Inside refundserviceimpl refund: {}", refund.getRefundFees().get(0));
                     refundListDto.add(refundResponseMapper.getRefundListDto(
