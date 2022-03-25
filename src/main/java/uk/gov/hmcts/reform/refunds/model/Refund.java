@@ -101,7 +101,7 @@ public class Refund {
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
-//    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
+    //@JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
 
     //@ToString.Exclude
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "refunds",cascade = CascadeType.ALL)
