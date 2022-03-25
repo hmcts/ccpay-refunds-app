@@ -22,7 +22,6 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -103,8 +102,8 @@ public class Refund {
 
 
     //@ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "refund",cascade = CascadeType.ALL)
-    //@JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<RefundFees> refundFees;
 
 }
