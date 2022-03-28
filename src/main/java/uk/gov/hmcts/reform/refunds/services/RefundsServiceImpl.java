@@ -223,6 +223,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
+            LOG.info("Before stream: {}",  refundList.size());
+
             refundList.stream()
                 .filter(e -> userIdsWithGivenRoles.stream()
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
@@ -241,6 +243,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     ));
                 });
         }
+
+        LOG.info("refundListDto size: {}", refundListDto.size());
+        LOG.info("refundListDto size: {}", refundListDto);
+
 
         return refundListDto;
     }
