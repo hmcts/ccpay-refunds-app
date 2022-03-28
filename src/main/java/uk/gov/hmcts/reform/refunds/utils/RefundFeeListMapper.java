@@ -12,7 +12,7 @@ public class RefundFeeListMapper {
 
         List<RefundFees> refundFeesList = new ArrayList<>();
 
-        for (int i = 0; i <= refund.getRefundFees().size(); i++) {
+        for (int i = 0; i < refund.getRefundFees().size(); i++) {
             refundFeesList.add(refund.getRefundFees().get(i));
         }
 
