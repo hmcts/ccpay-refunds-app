@@ -8,11 +8,11 @@ import java.util.List;
 
 public class RefundFeeListMapper {
 
-    public List<RefundFees> toRefundFeesList(Refund refund){
+    public List<RefundFees> toRefundFeesList(Refund refund) {
 
         List<RefundFees> refundFeesList = new ArrayList<RefundFees>();
 
-        for (int i = 0; i <= refund.getRefundFees().size(); i++){
+        for (int i = 0; i <= refund.getRefundFees().size(); i++) {
             refundFeesList.add(refund.getRefundFees().get(i));
         }
 
