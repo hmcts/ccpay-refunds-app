@@ -398,32 +398,32 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 BigDecimal nonRejectedRefundAmount = BigDecimal.ZERO;
             };
 
-            nonRejectedRefundAmountList.forEach(refundAmount ->{
+            nonRejectedRefundAmountList.forEach(refundAmount -> {
                 lambdaContext.nonRejectedRefundAmount = lambdaContext.nonRejectedRefundAmount.add(refundAmount);
             });
 
-            if (refundRequest.getRefundAmount().compareTo(lambdaContext.nonRejectedRefundAmount)<0) {
+            if (refundRequest.getRefundAmount().compareTo(lambdaContext.nonRejectedRefundAmount) < 0) {
                 throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
             }
 
             //disabling the below logic as it is updated based on the available balance above
 
-           /* List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                RefundStatus.REJECTED))
-                .map(Refund::getFeeIds)
-                .collect(Collectors.toList());
-
-            List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",") ? Arrays.stream(refundRequest.getFeeIds().split(
-                ",")).collect(Collectors.toList()) : Arrays.asList(refundRequest.getFeeIds());
-
-           feeIdsofRequestedRefund.forEach(feeId -> {
-                nonRejectedFeeList.forEach(nonRejectFee -> {
-                    if (nonRejectFee.contains(feeId)) {
-                        throw new InvalidRefundRequestException("Refund is already requested for this payment");
-                    }
-                });
-
-            });*/
+            // List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
+            //      RefundStatus.REJECTED))
+            //      .map(Refund::getFeeIds)
+            //      .collect(Collectors.toList());
+            //
+            //  List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",") ? Arrays.stream(refundRequest.getFeeIds().split(
+            //      ",")).collect(Collectors.toList()) : Arrays.asList(refundRequest.getFeeIds());
+            //
+            // feeIdsofRequestedRefund.forEach(feeId -> {
+            //      nonRejectedFeeList.forEach(nonRejectFee -> {
+            //          if (nonRejectFee.contains(feeId)) {
+            //              throw new InvalidRefundRequestException("Refund is already requested for this payment");
+            //          }
+            //      });
+            //
+            //  });
         }
 
         refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
