@@ -122,7 +122,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
-        //validateRefundRequest(refundRequest); //disabled this validation to allow partial refunds
+        validateRefundRequest(refundRequest);
         validateRefundPaymentAmount(refundRequest);
         IdamUserIdResponse uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
@@ -156,7 +156,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        LOG.info("refundList: {}", refundList.stream().count());
+        LOG.info("refundList: {}", refundList);
         // Get Refunds related Roles from logged in user
         List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
             .collect(Collectors.toList());
@@ -189,8 +189,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
             refundList.forEach(refund -> {
-                LOG.info("Foreach loop 1: {}", refund.getRefundFees().size());
-
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
                     contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
@@ -198,17 +196,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
-            LOG.info("Before stream: {}",  refundList.size());
-
             refundList.stream()
                 .filter(e -> userIdsWithGivenRoles.stream()
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
-                    LOG.info("Foreach loop 2");
-
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
-                    // LOG.info("Inside refundserviceimpl refund: {}", refund.getRefundFees().get(0));
+                    LOG.info("Inside refundserviceimpl refund: {}", refund.getRefundFees().get(0));
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
@@ -218,10 +212,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     ));
                 });
         }
-
-        LOG.info("refundListDto size: {}", refundListDto.size());
-        LOG.info("refundListDto size: {}", refundListDto);
-
 
         return refundListDto;
     }
@@ -239,10 +229,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public List<RejectionReasonResponse> getRejectedReasons() {
         // Getting names from Rejection Reasons List object
         return rejectionReasonRepository.findAll().stream().map(reason -> RejectionReasonResponse.rejectionReasonWith()
-            .code(reason.getCode())
-            .name(reason.getName())
-            .build()
-        )
+                .code(reason.getCode())
+                .name(reason.getName())
+                .build()
+            )
             .collect(Collectors.toList());
     }
 
@@ -311,7 +301,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
                 refund.setRefundFees(request.getRefundFees().stream().map(refundFeeMapper::toRefundFee)
-                    .collect(Collectors.toList()));
+                                         .collect(Collectors.toList()));
                 if (null != request.getContactDetails()) {
                     validateContactDetails(request.getContactDetails());
                     refund.setContactDetails(request.getContactDetails());
@@ -398,22 +388,42 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
 
         if (refundsList.isPresent()) {
-            List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                RefundStatus.REJECTED))
-                .map(Refund::getFeeIds)
+
+            List<BigDecimal> nonRejectedRefundAmountList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
+                    RefundStatus.REJECTED))
+                .map(Refund::getAmount)
                 .collect(Collectors.toList());
 
-            List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",") ? Arrays.stream(refundRequest.getFeeIds().split(
-                ",")).collect(Collectors.toList()) : Arrays.asList(refundRequest.getFeeIds());
+            var lambdaContext = new Object() {
+                BigDecimal nonRejectedRefundAmount = BigDecimal.ZERO;
+            };
 
-            feeIdsofRequestedRefund.forEach(feeId -> {
-                nonRejectedFeeList.forEach(nonRejectFee -> {
-                    if (nonRejectFee.contains(feeId)) {
-                        throw new InvalidRefundRequestException("Refund is already requested for this payment");
-                    }
-                });
-
+            nonRejectedRefundAmountList.forEach(refundAmount -> {
+                lambdaContext.nonRejectedRefundAmount = lambdaContext.nonRejectedRefundAmount.add(refundAmount);
             });
+
+            if (refundRequest.getRefundAmount().compareTo(lambdaContext.nonRejectedRefundAmount) < 0) {
+                throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
+            }
+
+            //disabling the below logic as it is updated based on the available balance above
+
+            // List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
+            //      RefundStatus.REJECTED))
+            //      .map(Refund::getFeeIds)
+            //      .collect(Collectors.toList());
+            //
+            //  List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",") ? Arrays.stream(refundRequest.getFeeIds().split(
+            //      ",")).collect(Collectors.toList()) : Arrays.asList(refundRequest.getFeeIds());
+            //
+            // feeIdsofRequestedRefund.forEach(feeId -> {
+            //      nonRejectedFeeList.forEach(nonRejectFee -> {
+            //          if (nonRejectFee.contains(feeId)) {
+            //              throw new InvalidRefundRequestException("Refund is already requested for this payment");
+            //          }
+            //      });
+            //
+            //  });
         }
 
         refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
