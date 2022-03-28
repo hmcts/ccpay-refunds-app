@@ -28,7 +28,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.FetchType;
 import javax.persistence.Table;
 
 @Entity
@@ -101,10 +100,10 @@ public class Refund {
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
-//    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
 
     //@ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "refunds",cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<RefundFees> refundFees;
 
 }
