@@ -396,7 +396,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             var lambdaContext = new Object() {
                 BigDecimal nonRejectedRefundAmount = BigDecimal.ZERO;
-                BigDecimal availableBalance = BigDecimal.ZERO;
             };
 
             nonRejectedRefundAmountList.forEach(refundAmount -> {
