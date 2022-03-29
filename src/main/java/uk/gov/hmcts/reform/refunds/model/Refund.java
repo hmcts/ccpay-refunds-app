@@ -85,9 +85,6 @@ public class Refund {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @Column(name = "refund_approve_flag")
-    private String refundApproveFlag;
-
     @Column(name = "notification_sent_flag")
     private String notificationSentFlag;
 

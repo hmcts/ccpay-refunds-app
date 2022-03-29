@@ -264,19 +264,6 @@ public class RefundsController {
         refundNotificationService.processFailedNotificationsLetter();
     }
 
-
-
-    @ApiOperation(value = "Re-process failed refunds which are approved and sent it to liberata",
-        notes = "Re-process failed refunds which are approved and sent it to liberata")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "The approved refunds are sent to liberata")
-    })
-    @PatchMapping("/jobs/refund-approved-update")
-    @Transactional
-    public void postFailedRefundsToLiberata() throws JsonProcessingException {
-        refundNotificationService.reprocessPostFailedRefundsToLiberata();
-    }
-    
     @GetMapping("/refunds")
     public ResponseEntity<String> searchRefundReconciliation1(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,

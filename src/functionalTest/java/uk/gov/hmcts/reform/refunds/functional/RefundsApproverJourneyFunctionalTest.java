@@ -461,7 +461,6 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         //Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-        //assertThat(refund.get().getRefundApproveFlag()).isEqualTo("SENT");
 
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -557,7 +556,6 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(updateReviewRefund.getStatusCode()).isEqualTo(NO_CONTENT.value());
         //Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-        //assertThat(refund.get().getRefundApproveFlag()).isEqualTo("NOT SENT");
 
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
