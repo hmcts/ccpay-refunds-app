@@ -8,13 +8,13 @@ import uk.gov.hmcts.reform.refunds.model.RefundFees;
 @Component
 public class RefundFeeMapper {
 
-    public RefundFees toRefundFee(RefundFeeDto refundFeeDtoo) {
+    public RefundFees toRefundFee(RefundFeeDto refundFeeDto) {
         return RefundFees.refundFeesWith()
-            .code(refundFeeDtoo.getCode())
-            .feeId(refundFeeDtoo.getFeeId())
-            .refundAmount(refundFeeDtoo.getRefundAmount())
-            .volume(refundFeeDtoo.getVolume())
-            .version(refundFeeDtoo.getVersion())
+            .code(refundFeeDto.getCode())
+            .feeId(refundFeeDto.getFeeId())
+            .refundAmount(refundFeeDto.getRefundAmount())
+            .volume(refundFeeDto.getVolume())
+            .version(refundFeeDto.getVersion())
             .build();
     }
 
@@ -24,6 +24,16 @@ public class RefundFeeMapper {
             .code(refundFees.getCode())
             .version(Integer.parseInt(refundFees.getVersion()))
             .refundAmount(refundFees.getRefundAmount().toString())
+            .build();
+    }
+
+    public RefundFeeDto toRefundFeeDto(RefundFees refundFees) {
+        return RefundFeeDto.refundFeeRequestWith()
+            .code(refundFees.getCode())
+            .feeId(refundFees.getFeeId())
+            .refundAmount(refundFees.getRefundAmount())
+            .volume(refundFees.getVolume())
+            .version(refundFees.getVersion())
             .build();
     }
 }
