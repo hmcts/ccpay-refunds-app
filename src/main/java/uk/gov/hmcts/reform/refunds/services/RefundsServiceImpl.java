@@ -123,7 +123,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundRequest(refundRequest);
-        validateRefundPaymentAmount(refundRequest);
+//        validateRefundPaymentAmount(refundRequest);
         IdamUserIdResponse uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
         LOG.info("Saving refund: {}", refund);
