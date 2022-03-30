@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +42,8 @@ import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
 
 @Service
 public class RefundReviewServiceImpl extends StateUtil implements RefundReviewService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundReviewServiceImpl.class);
 
     @Autowired
     private IdamService idamService;
@@ -101,6 +105,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                     paymentData,
                     refundForGivenReference
                 );
+
+                LOG.info("reconciliationProviderRequest: {}", reconciliationProviderRequest);
                 ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService
                     .updateReconciliationProviderWithApprovedRefund(
                     reconciliationProviderRequest
