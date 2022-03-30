@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 
@@ -26,12 +27,14 @@ import javax.persistence.Table;
 @Table(name = "refund_fees")
 @Builder(builderMethodName = "refundFeesWith")
 @Inheritance(strategy = InheritanceType.JOINED)
+@ToString
 public class RefundFees {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "refunds_id", insertable = false, updatable = false)
     private Refund refund;

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -38,6 +39,7 @@ import javax.persistence.Table;
 @Data
 @Table(name = "refunds")
 @TypeDef(name = "json", typeClass = JsonType.class)
+@ToString
 public class Refund {
 
     @Id
@@ -93,12 +95,12 @@ public class Refund {
     @Column(columnDefinition = "json", name = "contact_details")
     private ContactDetails contactDetails;
 
-    //@ToString.Exclude
+    @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
-    //@ToString.Exclude
+    @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<RefundFees> refundFees;
