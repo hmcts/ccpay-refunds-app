@@ -164,7 +164,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         //Get the userId
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
-        LOG.info("idamUserIdResponse: {}", idamUserIdResponse);
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
@@ -224,7 +223,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .collect(Collectors.toList())
                 .forEach(refund -> {
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
-                    LOG.info("Inside refundserviceimpl refund: {}", refund.getRefundFees().get(0));
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
