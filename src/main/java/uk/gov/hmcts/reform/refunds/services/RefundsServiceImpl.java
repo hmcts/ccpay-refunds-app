@@ -402,7 +402,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 lambdaContext.nonRejectedRefundAmount = lambdaContext.nonRejectedRefundAmount.add(refundAmount);
             });
 
-            if (refundRequest.getPaymentAmount().subtract(lambdaContext.nonRejectedRefundAmount).compareTo(refundRequest.getRefundAmount()) >= 0) {
+            if (!(refundRequest.getPaymentAmount().subtract(lambdaContext.nonRejectedRefundAmount).compareTo(refundRequest.getRefundAmount()) >= 0)) {
                 throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
             }
 
