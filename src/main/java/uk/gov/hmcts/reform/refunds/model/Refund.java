@@ -100,10 +100,12 @@ public class Refund {
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
-
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "refunds_id", referencedColumnName = "id", nullable = false)
     private List<RefundFees> refundFees;
+
+    @Column(name = "refund_instruction_type")
+    private String refundInstructionType;
 
 }

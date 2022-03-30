@@ -74,6 +74,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
     private static int amountCompareValue = 1;
+
+    private static final String CASH = "cash";
+
+    private static final String POSTAL_ORDER = "postal order";
+
+    private static final String BULK_SCAN = "bulk scan";
+
+    private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
+
+    private static final String SEND_REFUND = "SendRefund";
+
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -124,8 +135,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundRequest(refundRequest);
         //validateRefundPaymentAmount(refundRequest);
+        String instructionType = null;
+
+        if (refundRequest.getPaymentMethod() != null) {
+
+            if (BULK_SCAN.equals(refundRequest.getPaymentChannel()) && (CASH.equals(refundRequest.getPaymentMethod())
+                    || POSTAL_ORDER.equals(refundRequest.getPaymentMethod()))) {
+                instructionType = REFUND_WHEN_CONTACTED;
+            } else {
+                instructionType = SEND_REFUND;
+            }
+        }
         IdamUserIdResponse uid = idamService.getUserId(headers);
-        Refund refund = initiateRefundEntity(refundRequest, uid.getUid());
+        Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), instructionType);
         LOG.info("Saving refund: {}", refund);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
@@ -229,10 +251,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public List<RejectionReasonResponse> getRejectedReasons() {
         // Getting names from Rejection Reasons List object
         return rejectionReasonRepository.findAll().stream().map(reason -> RejectionReasonResponse.rejectionReasonWith()
-                .code(reason.getCode())
-                .name(reason.getName())
-                .build()
-            )
+            .code(reason.getCode())
+            .name(reason.getName())
+            .build()
+        )
             .collect(Collectors.toList());
     }
 
@@ -301,7 +323,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
                 refund.setRefundFees(request.getRefundFees().stream().map(refundFeeMapper::toRefundFee)
-                                         .collect(Collectors.toList()));
+                    .collect(Collectors.toList()));
                 if (null != request.getContactDetails()) {
                     validateContactDetails(request.getContactDetails());
                     refund.setContactDetails(request.getContactDetails());
@@ -431,7 +453,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     }
 
-    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
+    private Refund initiateRefundEntity(RefundRequest refundRequest, String uid, String instructionType) throws CheckDigitException {
         return Refund.refundsWith()
             .amount(refundRequest.getRefundAmount())
             .ccdCaseNumber(refundRequest.getCcdCaseNumber())
@@ -446,6 +468,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .contactDetails(refundRequest.getContactDetails())
             .refundFees(refundRequest.getRefundFees().stream().map(refundFeeMapper::toRefundFee)
                             .collect(Collectors.toList()))
+            .refundInstructionType(instructionType)
             .statusHistories(
                 Arrays.asList(StatusHistory.statusHistoryWith()
                                   .createdBy(uid)
