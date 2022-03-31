@@ -14,25 +14,17 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
-import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundIdamNotificationException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
-import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.state.RefundEvent;
-import uk.gov.hmcts.reform.refunds.state.RefundState;
-import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.ArrayList;
@@ -70,18 +62,6 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
-
-    @Autowired
-    private PaymentService paymentService;
-
-    @Autowired
-    private ReconciliationProviderService reconciliationProviderService;
-
-    @Autowired
-    private ReconciliationProviderMapper reconciliationProviderMapper;
-
-    @Autowired
-    private LaunchDarklyFeatureToggler featureToggler;
 
     @Override
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
@@ -212,56 +192,6 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
             });
     }
-
-    @Override
-    public void reprocessPostFailedRefundsToLiberata() throws JsonProcessingException {
-
-        String liberataSentFlag = "NOT_SENT";
-        Optional<List<Refund>> refundList;
-        String refundStatus = "Approved";
-        List<Refund> refundListAll = new ArrayList<>();
-        refundList =  refundsRepository.findByRefundStatusAndRefundApproveFlag(refundStatus, liberataSentFlag);
-        if (refundList.isPresent()) {
-            refundListAll = refundList.get();
-        }
-
-        refundListAll.stream().collect(Collectors.toList())
-            .forEach(refund -> {
-
-                boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
-                if (isRefundLiberata) {
-
-                    PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
-                        getHttpHeaders(),
-                        refund.getPaymentReference()
-                    );
-                    ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(
-                        paymentData,
-                        refund
-                    );
-                    ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService
-                        .updateReconciliationProviderWithApprovedRefund(
-                            reconciliationProviderRequest
-                        );
-                    if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
-                        ReviewerAction reviewerAction = ReviewerAction.APPROVE;
-                        RefundEvent refundEvent = reviewerAction.getEvent();
-                        RefundState updateStatusAfterAction = getRefundState(refund.getRefundStatus().getName());
-                        // State transition logic
-                        RefundState newState = updateStatusAfterAction.nextState(refundEvent);
-                        refund.setRefundStatus(newState.getRefundStatus());
-                        refund.setRefundApproveFlag("SENT");
-                        refundsRepository.save(refund);
-                    } else {
-
-                        LOG.info("Reconciliation provider unavailable. Please try again later.");
-                    }
-
-                }
-            });
-
-    }
-
 
 
     private MultiValueMap<String,String> getHttpHeaders() {
