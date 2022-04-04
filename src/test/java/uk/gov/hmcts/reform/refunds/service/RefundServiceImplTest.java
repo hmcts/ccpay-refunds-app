@@ -271,7 +271,7 @@ public class RefundServiceImplTest {
 
     @Test
     void testRefundListForGivenCcdCaseNumber() {
-
+        refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
             refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
@@ -304,6 +304,7 @@ public class RefundServiceImplTest {
 
     @Test
     void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() {
+        refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(refundsRepository.findByRefundStatusAndUpdatedByIsNot(
             any(),
@@ -337,6 +338,7 @@ public class RefundServiceImplTest {
 
     @Test
     void testRefundListForRefundSubmittedStatusExcludeCurrentUserFalse() {
+        refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
         when(refundsRepository.findByRefundStatus(
             RefundStatus.SENTFORAPPROVAL
         ))
@@ -786,7 +788,7 @@ public class RefundServiceImplTest {
 
     @Test
     void givenValidRole_whenGetRefundList_thenFilteredRefundsListIsReceived() {
-
+        refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
             refundListSupplierBasedOnCCDCaseNumber1.get(), refundListSupplierBasedOnCCDCaseNumber2.get())));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
