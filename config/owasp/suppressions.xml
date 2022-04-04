@@ -20,4 +20,8 @@
     <notes>Temp Suppression</notes>
     <cve>CVE-2020-36518</cve>
   </suppress>
+   <suppress>
+    <notes>Temp Suppression</notes>
+    <cve>CVE-2022-21724</cve>
+  </suppress>
 </suppressions>
