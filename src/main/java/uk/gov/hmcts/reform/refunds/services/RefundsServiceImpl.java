@@ -133,7 +133,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
-        validateRefundPaymentAmount(refundRequest);
+        validateRefundAmount(refundRequest);
         refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
         String instructionType = null;
 
@@ -291,17 +291,21 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
 
             BigDecimal refundAmount = request.getAmount() == null ? refund.getAmount() : request.getAmount();
+            refund.setAmount(refundAmount);
 
             if (!(refund.getReason().equals(RETROSPECTIVE_REMISSION_REASON)) && !(RETROSPECTIVE_REMISSION_REASON.equals(refundReason))) {
                 refund.setReason(refundReason);
             }
-            refund.setAmount(refundAmount);
+
+            BigDecimal totalRefundedAmount = getTotalRefundedAmount(refund.getPaymentReference(), refundAmount);
+
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
                 .refundResubmitRequestPayhubWith()
                 .refundReason(refundReason)
                 .amount(refundAmount)
                 .feeId(refund.getFeeIds())
+                .totalRefundedAmount(totalRefundedAmount)
                 .build();
 
             boolean payhubRemissionUpdateResponse = paymentService
@@ -443,31 +447,36 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return rawReason;
     }
 
-    private void validateRefundPaymentAmount(RefundRequest refundRequest) {
+    private void validateRefundAmount(RefundRequest refundRequest) {
 
         if (refundRequest.getRefundAmount().compareTo(refundRequest.getPaymentAmount()) > 0) {
             throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
         }
 
-        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-        BigDecimal amount = BigDecimal.ZERO;
+        BigDecimal refundAmount = getTotalRefundedAmount(refundRequest.getPaymentReference(), refundRequest.getRefundAmount());
+
+        int amountCompare = refundAmount.compareTo(refundRequest.getPaymentAmount());
+
+        if (amountCompare == amountCompareValue) {
+            throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
+        }
+    }
+
+    private BigDecimal getTotalRefundedAmount(String paymentReference, BigDecimal refundAmount) {
+        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(paymentReference);
+        BigDecimal totalRefundedAmount = BigDecimal.ZERO;
 
         if (refundsList.isPresent()) {
-            List<Refund> refundsListStatus = refundsList.get().stream().filter(refund -> refund.getRefundStatus().equals(
-                    RefundStatus.ACCEPTED) || refund.getRefundStatus().equals(RefundStatus.APPROVED))
-                .collect(Collectors.toList());
+            List<Refund> refundsListStatus =
+                    refundsList.get().stream().filter(refund -> refund.getRefundStatus().equals(
+                            RefundStatus.ACCEPTED) || refund.getRefundStatus().equals(RefundStatus.APPROVED))
+                            .collect(Collectors.toList());
             for (Refund ref : refundsListStatus) {
-                amount = ref.getAmount().add(amount);
+                totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
             }
-            amount = refundRequest.getRefundAmount().add(amount);
-            int amountCompare = amount.compareTo(refundRequest.getPaymentAmount());
-
-            if (amountCompare == amountCompareValue) {
-                throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
-
-            }
+            totalRefundedAmount = refundAmount.add(totalRefundedAmount);
         }
-
+        return totalRefundedAmount;
     }
 
     @SuppressWarnings({"PMD"})
