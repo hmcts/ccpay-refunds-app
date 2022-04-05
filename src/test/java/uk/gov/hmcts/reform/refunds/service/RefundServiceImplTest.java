@@ -1172,6 +1172,7 @@ public class RefundServiceImplTest {
             .thenReturn(Optional.of(Arrays.asList(refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name("RR007").build());
 
         RefundResponse refundResponse = refundsService.initiateRefund(refundRequest, map);
         assertNotNull(refundResponse);
@@ -1213,6 +1214,7 @@ public class RefundServiceImplTest {
                 .thenReturn(Optional.of(Arrays.asList(refundListSupplierForApprovedStatus.get())));
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
         when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name("RR007").build());
 
         RefundResponse refundResponse = refundsService.initiateRefund(refundRequest, map);
         assertNotNull(refundResponse);
