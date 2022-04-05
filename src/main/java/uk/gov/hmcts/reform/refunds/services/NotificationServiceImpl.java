@@ -52,6 +52,8 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public ResponseEntity<String> postEmailNotificationData(MultiValueMap<String, String> headers,
                                                             RefundNotificationEmailRequest refundNotificationEmailRequest) {
+        log.info("RefundNotificationEmailRequest object: {}", refundNotificationEmailRequest);
+
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(emailUrlPath).toString());
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
@@ -96,6 +98,9 @@ public class NotificationServiceImpl implements NotificationService {
     private void handleHttpClientErrorException(HttpClientErrorException exception) {
         String exceptionMessage = "Invalid Refund notification request.";
         HttpStatus status = exception.getStatusCode();
+        log.info("Notifications Response code {}", status);
+        log.info("Notifications Response message {}", exception.getMessage());
+
         if (status.equals(HttpStatus.BAD_REQUEST) || status.equals(HttpStatus.FORBIDDEN)
                 || status.equals(HttpStatus.TOO_MANY_REQUESTS) || status.equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
             Matcher matcher = EXCEPTIONPATTERN.matcher(exception.getMessage());
