@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -14,6 +15,7 @@ import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 @Builder(builderMethodName = "refundNotificationEmailRequestWith")
 public class RefundNotificationEmailRequest {
 

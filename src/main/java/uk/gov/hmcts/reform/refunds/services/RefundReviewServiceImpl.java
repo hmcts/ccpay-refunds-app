@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jmx.export.notification.UnableToSendNotificationException;
@@ -59,13 +58,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
     @Autowired
     private RefundsUtil refundsUtil;
-
-    @Value("${notify.letter.template}")
-    private String letterTemplateId;
-
-    @Value("${notify.email.template}")
-    private String emailTemplateId;
-
 
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
@@ -165,7 +157,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .email(refund.getContactDetails().getEmail())
-                .templateId(emailTemplateId)
+                .templateId(refundsUtil.getTemplate(refund))
                 .notificationType(EMAIL.name())
                 .build();
             refund.setContactDetails(newContact);
@@ -175,7 +167,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(letterTemplateId)
+                .templateId(refundsUtil.getTemplate(refund))
                 .addressLine(refund.getContactDetails().getAddressLine())
                 .county(refund.getContactDetails().getCounty())
                 .postalCode(refund.getContactDetails().getPostalCode())

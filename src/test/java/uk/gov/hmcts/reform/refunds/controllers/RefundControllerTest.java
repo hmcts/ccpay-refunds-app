@@ -217,6 +217,8 @@ class RefundControllerTest {
         .paymentAmount(new BigDecimal(100))
         .refundReason("RR002")
         .serviceType("cmc")
+        .paymentMethod("postal order")
+        .paymentChannel("bulk scan")
         .ccdCaseNumber("1111222233334444")
         .feeIds("1")
         .refundFees(Arrays.asList(
@@ -248,6 +250,8 @@ class RefundControllerTest {
                 .refundAmount(new BigDecimal(100))
                 .build()))
         .serviceType("cmc")
+        .paymentChannel("bulk scan")
+        .paymentMethod("cheque")
         .contactDetails(ContactDetails.contactDetailsWith()
                 .addressLine("ABC Street")
                 .city("London")
@@ -700,6 +704,8 @@ class RefundControllerTest {
                                                                                  .refundAmount(new BigDecimal(100))
                                                                                  .build()))
                                                                          .serviceType("cmc")
+                                                                         .paymentMethod("cash")
+                                                                         .paymentChannel("bulk scan")
                                                                          .contactDetails(ContactDetails.contactDetailsWith()
                                                                                  .email("abc@abc.com")
                                                                                  .notificationType("EMAIL")
@@ -780,6 +786,7 @@ class RefundControllerTest {
             .refundAmount(new BigDecimal(100))
             .refundReason("RR031")
             .ccdCaseNumber("1111222233334444")
+            .paymentMethod("card")
             .feeIds("1")
             .build();
 
@@ -797,6 +804,7 @@ class RefundControllerTest {
     void createRefundWithOtherReason() throws Exception {
 
         refundRequest.setRefundReason("RR031-Other");
+        refundRequest.setPaymentMethod("card");
 
         List<Refund> refunds = Collections.emptyList();
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));

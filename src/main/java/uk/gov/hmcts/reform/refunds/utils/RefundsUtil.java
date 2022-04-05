@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
+
+import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
+
 @Component
 public class RefundsUtil {
 
@@ -28,6 +32,41 @@ public class RefundsUtil {
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
+
+    @Value("${notify.template.cheque-po-cash.letter}")
+    private String chequePoCashLetterTemplateId;
+
+    @Value("${notify.template.cheque-po-cash.email}")
+    private String chequePoCashEmailTemplateId;
+
+    @Value("${notify.template.card-pba.letter}")
+    private String cardPbaLetterTemplateId;
+
+    @Value("${notify.template.card-pba.email}")
+    private String cardPbaEmailTemplateId;
+
+    private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
+
+    public String getTemplate(Refund refund) {
+        String templateId = null;
+        if (null != refund.getRefundInstructionType()) {
+
+            if (REFUND_WHEN_CONTACTED.equals(refund.getRefundInstructionType())) {
+                if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+                    templateId = chequePoCashEmailTemplateId;
+                } else {
+                    templateId = chequePoCashLetterTemplateId;
+                }
+            } else {
+                if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+                    templateId = cardPbaEmailTemplateId;
+                } else {
+                    templateId = cardPbaLetterTemplateId;
+                }
+            }
+        }
+        return templateId;
+    }
 
     public void logPaymentDto(PaymentGroupResponse paymentDto) {
         if (paymentDto != null) {
