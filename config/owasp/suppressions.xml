@@ -24,4 +24,9 @@
     <notes>Temp Suppression</notes>
     <cve>CVE-2022-21724</cve>
   </suppress>
+   <suppress>
+    <notes>Temp Suppression</notes>
+    <cve>CVE-2022-22965</cve>
+  </suppress>
+  
 </suppressions>
