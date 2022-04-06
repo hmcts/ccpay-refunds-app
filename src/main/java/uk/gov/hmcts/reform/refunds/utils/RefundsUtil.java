@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
@@ -16,12 +17,11 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Value;
 
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 
@@ -90,8 +90,9 @@ public class RefundsUtil {
                 validateRetrospectiveRemissions(remissionsAppliedForRefund,refund);
                 getRetrospectiveRemissionAppliedFee(paymentGroupResponse, refundFeeIds);
             }
+
         }
-        throw new FeesNotFoundForRefundException("Fee not found in Refund");
+//        throw new FeesNotFoundForRefundException("Fee not found in Refund");
     }
 
     private List<Integer> getRefundFeeIds(String refundIds) {

@@ -50,11 +50,10 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
-@ActiveProfiles({"functional", "liberataMock"})
+@ActiveProfiles("functional")
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
 //@Ignore("Ignoring the test cases for the purpose of Pre-implementation plan")
-
 public class RefundsApproverJourneyFunctionalTest {
 
     @Autowired
