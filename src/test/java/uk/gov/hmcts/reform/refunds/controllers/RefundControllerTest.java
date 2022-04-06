@@ -59,7 +59,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundFees;
