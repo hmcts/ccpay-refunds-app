@@ -41,7 +41,28 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 
 withNightlyPipeline(type, product, component) {
+
   env.TEST_URL = params.URL_TO_TEST
   loadVaultSecrets(secrets)
+  enableSecurityScan()
   enableMutationTest()
+  //enableFortifyScan()
+  enableFullFunctionalTest()
+
+  //after('fortify-scan') {
+  //  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
+  //}
+
+  after('fullFunctionalTest') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    publishHTML target: [
+      reportDir            : "target/site/serenity/",
+      reportFiles          : "index.html",
+      reportName           : "AAT Functional Tests",
+      alwaysLinkToLastBuild: true
+    ]
+
+  }
+
+  enableSlackNotifications('#cc-payments-tech')
 }
