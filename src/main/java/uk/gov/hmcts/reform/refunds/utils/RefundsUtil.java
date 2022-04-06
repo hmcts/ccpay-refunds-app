@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
-import uk.gov.hmcts.reform.refunds.exceptions.FeesNotFoundForRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
@@ -17,7 +16,6 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -92,7 +90,6 @@ public class RefundsUtil {
             }
 
         }
-//        throw new FeesNotFoundForRefundException("Fee not found in Refund");
     }
 
     private List<Integer> getRefundFeeIds(String refundIds) {
