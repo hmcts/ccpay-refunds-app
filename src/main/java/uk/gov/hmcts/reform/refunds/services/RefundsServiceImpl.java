@@ -290,20 +290,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
                 validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
 
-            BigDecimal refundAmount = request.getAmount() == null ? refund.getAmount() : request.getAmount();
-            refund.setAmount(refundAmount);
+            refund.setAmount(request.getAmount());
 
             if (!(refund.getReason().equals(RETROSPECTIVE_REMISSION_REASON)) && !(RETROSPECTIVE_REMISSION_REASON.equals(refundReason))) {
                 refund.setReason(refundReason);
             }
 
-            BigDecimal totalRefundedAmount = getTotalRefundedAmount(refund.getPaymentReference(), refundAmount);
+            BigDecimal totalRefundedAmount = getTotalRefundedAmount(refund.getPaymentReference(), request.getAmount());
 
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
                 .refundResubmitRequestPayhubWith()
                 .refundReason(refundReason)
-                .amount(refundAmount)
+                .amount(request.getAmount())
                 .feeId(refund.getFeeIds())
                 .totalRefundedAmount(totalRefundedAmount)
                 .build();
