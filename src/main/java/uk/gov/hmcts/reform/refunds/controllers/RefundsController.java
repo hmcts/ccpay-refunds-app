@@ -264,11 +264,11 @@ public class RefundsController {
         @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
     })
 
-    @GetMapping("/refunds/{start_date}/{end_date}")
-    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
-                                                        @PathVariable(name = "end_date") Optional<String> endDateTimeString,
-                                                        @RequestParam(name = "refund_reference", required = false) String refundReference,
-                                                                              @RequestHeader(required = false) MultiValueMap<String, String> headers
+    @GetMapping("/refunds")
+    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
+                                                        @RequestParam(name = "end_date") Optional<String> endDateTimeString,
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference
+                                                                             
     ) {
 
         refundValidator.validate(startDateTimeString, endDateTimeString);
@@ -373,11 +373,10 @@ public class RefundsController {
         @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
     })
 
-    @GetMapping("/testrefunds/{start_date}/{end_date}")
-    public ResponseEntity<String> searchRefundReconciliation1(@PathVariable(name = "start_date") Optional<String> startDateTimeString,
-                                                        @PathVariable(name = "end_date") Optional<String> endDateTimeString,
-                                                        @RequestParam(name = "refund_reference", required = false) String refundReference,
-                                                                              @RequestHeader(required = false) MultiValueMap<String, String> headers
+    @GetMapping("/testrefunds")
+    public ResponseEntity<String> searchRefundReconciliation1(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
+                                                        @RequestParam(name = "end_date") Optional<String> endDateTimeString,
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference
     ) {
         return new ResponseEntity<String>("test",HttpStatus.OK);
     }
