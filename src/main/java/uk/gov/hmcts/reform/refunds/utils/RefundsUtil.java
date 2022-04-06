@@ -115,14 +115,4 @@ public class RefundsUtil {
         return feeResponses;
     }
 
-    private String getRefundReason(String rawReason) {
-        if (rawReason.startsWith("RR")) {
-            Optional<RefundReason> refundReasonOptional = refundReasonRepository.findByCode(rawReason);
-            if (refundReasonOptional.isPresent()) {
-                return refundReasonOptional.get().getName();
-            }
-            throw new RefundReasonNotFoundException(rawReason);
-        }
-        return rawReason;
-    }
 }
