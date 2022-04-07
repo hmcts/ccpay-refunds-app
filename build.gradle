@@ -140,6 +140,11 @@ def sonarExclusions = [
   '**/services/NotificationServiceImpl.java',
   '**/services/RefundNotificationServiceImpl.java',
   '**/services/RefundNotificationServiceImpl.java',
+  '**/controllers/RefundsController.java',
+  '**/validator/RefundValidator.java',
+  '**/utils/RefundFeeListMapper.java',
+  '**/controllers/ExceptionHandlers.java',
+
   '**/config/**'
 ]
 
