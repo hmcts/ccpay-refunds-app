@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles({"local", "test"})
-public class ContextStartListenerTest {
+class ContextStartListenerTest {
 
     @MockBean
     private IdamService idamService;
@@ -45,7 +45,7 @@ public class ContextStartListenerTest {
     }
 
     @Test
-    public void shouldCallIdamServiceGetUsersForRolesWhenApplicationContextStarts() {
+    void shouldCallIdamServiceGetUsersForRolesWhenApplicationContextStarts() {
         configurableApplicationContext.start();
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.add("Authorization", "access token");

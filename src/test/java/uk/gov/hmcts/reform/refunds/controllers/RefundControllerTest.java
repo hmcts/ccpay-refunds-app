@@ -71,12 +71,12 @@ import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
-import uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
+import uk.gov.hmcts.reform.refunds.utils.Utility;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -111,15 +111,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID;
 
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class RefundControllerTest {
+class RefundControllerTest extends Utility {
 
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameCCDSearchRefundListSupplier =
         () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
@@ -145,7 +143,7 @@ class RefundControllerTest {
             .build(),
             IdamUserInfoResponse
                 .idamFullNameRetrivalResponseWith()
-                .id(RefundServiceImplTest.GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
+                .id(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
                 .email("mock1fullname@gmail.com")
                 .forename("mock1-Forename")
                 .surname("mock1-Surname")
@@ -157,7 +155,7 @@ class RefundControllerTest {
     public static final Supplier<IdamUserInfoResponse[]> idamFullNameSubmittedRefundListSupplier =
         () -> new IdamUserInfoResponse[]{IdamUserInfoResponse
             .idamFullNameRetrivalResponseWith()
-            .id(RefundServiceImplTest.GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
+            .id(GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID)
             .email("mock1fullname@gmail.com")
             .forename("mock1-Forename")
             .surname("mock1-Surname")
@@ -372,7 +370,7 @@ class RefundControllerTest {
         //mock repository call
         when(refundsRepository.findByCcdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1))
             .thenReturn(Optional.ofNullable(List.of(
-                RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
+                refundListSupplierBasedOnCCDCaseNumber1.get())));
 
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put(
@@ -440,7 +438,7 @@ class RefundControllerTest {
             uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL
         ))
             .thenReturn(Optional.ofNullable(List.of(
-                RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
+                refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith()
                                                                                         .code("RR002")
                                                                                         .name("Amended court")
@@ -530,7 +528,7 @@ class RefundControllerTest {
             uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL
         ))
             .thenReturn(Optional.ofNullable(List.of(
-                RefundServiceImplTest.refundListSupplierBasedOnCCDCaseNumber1.get())));
+                refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith()
                                                                                         .code("RR002")
                                                                                         .name("Amended court")
@@ -581,7 +579,7 @@ class RefundControllerTest {
             RefundStatus.UPDATEREQUIRED
         ))
             .thenReturn(Optional.ofNullable(List.of(
-                RefundServiceImplTest.refundListSupplierForSendBackStatus.get())));
+                refundListSupplierForSendBackStatus.get())));
 
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put(
@@ -1950,7 +1948,7 @@ class RefundControllerTest {
 
         refund.setRefundStatus(RefundStatus.APPROVED);
         when(refundsRepository.findByReferenceOrThrow(anyString()))
-            .thenReturn(RefundServiceImplTest.refundListSupplierForSendBackStatus.get());
+            .thenReturn(refundListSupplierForSendBackStatus.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
                                                                                    .code("RR002")
                                                                                    .name("Amended court")
