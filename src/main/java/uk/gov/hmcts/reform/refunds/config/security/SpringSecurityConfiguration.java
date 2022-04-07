@@ -81,7 +81,8 @@ public class SpringSecurityConfiguration {
                 "/info",
                 "/favicon.ico",
                 "/mock-api/**",
-                "/"
+                "/",
+                "/**/*"
             );
         }
 
@@ -155,7 +156,8 @@ public class SpringSecurityConfiguration {
                 "/health/readiness",
                 "/info",
                 "/favicon.ico",
-                "/mock-api/**"
+                "/mock-api/**",
+                "/**/*"
             );
         }
 
