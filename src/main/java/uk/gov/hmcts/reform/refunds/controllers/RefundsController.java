@@ -268,7 +268,7 @@ public class RefundsController {
     public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference
-                                                                             
+
     ) {
 
         refundValidator.validate(startDateTimeString, endDateTimeString);
