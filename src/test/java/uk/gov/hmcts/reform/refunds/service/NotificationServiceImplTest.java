@@ -25,7 +25,6 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.services.NotificationService;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.anyString;

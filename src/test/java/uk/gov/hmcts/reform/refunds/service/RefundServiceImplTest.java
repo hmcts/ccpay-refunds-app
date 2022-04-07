@@ -43,7 +43,12 @@ import uk.gov.hmcts.reform.refunds.utils.Utility;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -657,7 +662,7 @@ class RefundServiceImplTest {
     }
 
     @Test
-    public void givenEmptyNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+    void givenEmptyNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
         ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
             "RR035-ABCDEG",
             BigDecimal.valueOf(100));
@@ -684,7 +689,7 @@ class RefundServiceImplTest {
     }
 
     @Test
-    public void givenInvalidNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+    void givenInvalidNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
         ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
             "RR035-ABCDEG",
             BigDecimal.valueOf(100));
@@ -711,7 +716,7 @@ class RefundServiceImplTest {
     }
 
     @Test
-    public void givenNullEmailForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+    void givenNullEmailForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
         ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
             "RR035-ABCDEG",
             BigDecimal.valueOf(100));
@@ -739,7 +744,7 @@ class RefundServiceImplTest {
     }
 
     @Test
-    public void givenNullPostalCodeForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+    void givenNullPostalCodeForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
         ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
             "RR035-ABCDEG",
             BigDecimal.valueOf(100));
@@ -767,7 +772,7 @@ class RefundServiceImplTest {
     }
 
     @Test
-    public void givenInvalidEmailForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
+    void givenInvalidEmailForNotificationType_whenResubmitRefund_thenInvalidRefundRequestExceptionIsReceived() {
         ResubmitRefundRequest resubmitRefundRequest = buildResubmitRefundRequest(
             "RR035-ABCDEG",
             BigDecimal.valueOf(100));
