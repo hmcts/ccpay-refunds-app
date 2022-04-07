@@ -31,7 +31,6 @@ import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Optional;
@@ -60,7 +59,7 @@ class PaymentServiceTest {
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
-    private SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
+    private final SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
 
     @Test
     void fetchPaymentDetailsReturnsValidResponse() throws ParseException {
@@ -80,26 +79,19 @@ class PaymentServiceTest {
     }
 
     @Test
-    void fetchPaymentDetailsReturnsNotFoundException() throws Exception {
+    void fetchPaymentDetailsReturnsNotFoundException() {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
         when(authTokenGenerator.generate()).thenReturn("service auth token");
-        PaymentGroupResponse paymentGroupResponse = PaymentGroupResponse.paymentGroupDtoWith()
-            .paymentGroupReference("payment-group-reference")
-            .dateCreated(formatter.parse("7-Jun-2013"))
-            .dateUpdated(formatter.parse("7-Jun-2013"))
-            .payments(Collections.emptyList()).build();
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             PaymentGroupResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-        assertThrows(PaymentReferenceNotFoundException.class, () -> {
-            paymentService.fetchPaymentGroupResponse(headers, "RC-1628-5241-9956-2315");
-        });
+        assertThrows(PaymentReferenceNotFoundException.class, () -> paymentService.fetchPaymentGroupResponse(headers, "RC-1628-5241-9956-2315"));
     }
 
     @Test
-    void testUpdateRemissionAmountInPayhub() {
+    void testUpdateRemissionAmountInPayHub() {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -110,14 +102,14 @@ class PaymentServiceTest {
             .build();
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             String.class))).thenReturn(ResponseEntity.ok(null));
-        Boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,
+        boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,
                                                                             "RC-1234-1234-1234-1234",
                                                                             refundResubmitPayhubRequest);
         assertTrue(updateResult);
     }
 
     @Test
-    void testUpdateRemissionAmountInPayhub_ServerThrowsBadrequestException() {
+    void testUpdateRemissionAmountInPayHub_ServerThrowsBadRequestException() {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -128,15 +120,13 @@ class PaymentServiceTest {
             .build();
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             String.class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-        assertThrows(InvalidRefundRequestException.class, () -> {
-            paymentService.updateRemissionAmountInPayhub(headers,
-                                                         "RC-1234-1234-1234-1234",
-                                                         refundResubmitPayhubRequest);
-        });
+        assertThrows(InvalidRefundRequestException.class, () -> paymentService.updateRemissionAmountInPayhub(headers,
+                                                     "RC-1234-1234-1234-1234",
+                                                     refundResubmitPayhubRequest));
     }
 
     @Test
-    void testUpdateRemissionAmountInPayhub_ServerThrowsServerUnavailableException() {
+    void testUpdateRemissionAmountInPayHub_ServerThrowsServerUnavailableException() {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -147,15 +137,13 @@ class PaymentServiceTest {
             .build();
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             String.class))).thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
-        assertThrows(PaymentServerException.class, () -> {
-            paymentService.updateRemissionAmountInPayhub(headers,
-                                                         "RC-1234-1234-1234-1234",
-                                                         refundResubmitPayhubRequest);
-        });
+        assertThrows(PaymentServerException.class, () -> paymentService.updateRemissionAmountInPayhub(headers,
+                                                     "RC-1234-1234-1234-1234",
+                                                     refundResubmitPayhubRequest));
     }
 
     @Test
-    void givenPaymentApiFailed_whenUpdateRemissionAmountInPayhub_thenFalseIsReceived() {
+    void givenPaymentApiFailed_whenUpdateRemissionAmountInPayHub_thenFalseIsReceived() {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -166,14 +154,14 @@ class PaymentServiceTest {
             .build();
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             String.class))).thenReturn(ResponseEntity.notFound().build());
-        Boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,
+        boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,
                                                                             "RC-1234-1234-1234-1234",
                                                                             refundResubmitPayhubRequest);
         assertFalse(updateResult);
     }
 
     @Test
-    void givenNullRefundReason_whenUpdateRemissionAmountInPayhub_thenFalseIsReceived() {
+    void givenNullRefundReason_whenUpdateRemissionAmountInPayHub_thenFalseIsReceived() {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", "auth");
         headers.add("ServiceAuthorization", "service-auth");
@@ -182,7 +170,7 @@ class PaymentServiceTest {
             .amount(BigDecimal.valueOf(10))
             .refundReason(null)
             .build();
-        Boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,
+        boolean updateResult = paymentService.updateRemissionAmountInPayhub(headers,
                                                                             "RC-1234-1234-1234-1234",
                                                                             refundResubmitPayhubRequest);
         assertFalse(updateResult);
@@ -193,65 +181,65 @@ class PaymentServiceTest {
             .paymentGroupReference("payment-group-reference")
             .dateCreated(formatter.parse("7-Jun-2013"))
             .dateUpdated(formatter.parse("7-Jun-2013"))
-            .payments(Arrays.asList(
-                PaymentResponse.paymentResponseWith()
-                    .amount(BigDecimal.valueOf(100))
-                    .description("description")
-                    .reference("RC-1628-5241-9956-2315")
-                    .dateCreated(formatter.parse("7-Jun-2013"))
-                    .dateUpdated(formatter.parse("7-Jun-2013"))
-                    .currency(CurrencyCode.GBP)
-                    .caseReference("case-reference")
-                    .ccdCaseNumber("ccd-case-number")
-                    .channel("solicitors portal")
-                    .method("payment by account")
-                    .externalProvider("provider")
-                    .accountNumber("PBAFUNC1234")
-                    .organisationName("org-name")
-                    .customerReference("customer-reference")
-                    .status("success")
-                    .serviceName("divorce")
-                    .siteId("site-id")
-                    .paymentAllocation(Arrays.asList(
-                        PaymentAllocationResponse.paymentAllocationDtoWith()
-                            .allocationStatus("allocationStatus")
+            .payments(Collections.singletonList(
+                    PaymentResponse.paymentResponseWith()
+                            .amount(BigDecimal.valueOf(100))
+                            .description("description")
+                            .reference("RC-1628-5241-9956-2315")
+                            .dateCreated(formatter.parse("7-Jun-2013"))
+                            .dateUpdated(formatter.parse("7-Jun-2013"))
+                            .currency(CurrencyCode.GBP)
+                            .caseReference("case-reference")
+                            .ccdCaseNumber("ccd-case-number")
+                            .channel("solicitors portal")
+                            .method("payment by account")
+                            .externalProvider("provider")
+                            .accountNumber("PBAFUNC1234")
+                            .organisationName("org-name")
+                            .customerReference("customer-reference")
+                            .status("success")
+                            .serviceName("divorce")
+                            .siteId("site-id")
+                            .paymentAllocation(Collections.singletonList(
+                                    PaymentAllocationResponse.paymentAllocationDtoWith()
+                                            .allocationStatus("allocationStatus")
+                                            .build()
+                            ))
                             .build()
-                    ))
-                    .build()
             ))
-            .remissions(Arrays.asList(
-                RemissionResponse.remissionDtoWith()
-                    .remissionReference("remission-reference")
-                    .beneficiaryName("ben-ten")
-                    .ccdCaseNumber("ccd-case-number")
-                    .caseReference("case-reference")
-                    .hwfReference("hwf-reference")
-                    .hwfAmount(BigDecimal.valueOf(100))
-                    .dateCreated(formatter.parse("7-Jun-2013"))
-                    .feeCode("FEE012")
-                    .build()
+            .remissions(Collections.singletonList(
+                    RemissionResponse.remissionDtoWith()
+                            .remissionReference("remission-reference")
+                            .beneficiaryName("ben-ten")
+                            .ccdCaseNumber("ccd-case-number")
+                            .caseReference("case-reference")
+                            .hwfReference("hwf-reference")
+                            .hwfAmount(BigDecimal.valueOf(100))
+                            .dateCreated(formatter.parse("7-Jun-2013"))
+                            .feeCode("FEE012")
+                            .build()
             ))
-            .fees(Arrays.asList(
-                PaymentFeeResponse.feeDtoWith()
-                    .code("FEE012")
-                    .feeAmount(BigDecimal.valueOf(100))
-                    .calculatedAmount(BigDecimal.valueOf(100))
-                    .netAmount(BigDecimal.valueOf(100))
-                    .version("1")
-                    .volume(1)
-                    .ccdCaseNumber("ccd-case-number")
-                    .reference("reference")
-                    .memoLine("memo-line")
-                    .id(1)
-                    .naturalAccountCode("natural-account-code")
-                    .description("description")
-                    .allocatedAmount(BigDecimal.valueOf(100))
-                    .apportionAmount(BigDecimal.valueOf(100))
-                    .dateCreated(formatter.parse("7-Jun-2013"))
-                    .dateUpdated(formatter.parse("7-Jun-2013"))
-                    .dateApportioned(formatter.parse("7-Jun-2013"))
-                    .amountDue(BigDecimal.valueOf(0))
-                    .build()
+            .fees(Collections.singletonList(
+                    PaymentFeeResponse.feeDtoWith()
+                            .code("FEE012")
+                            .feeAmount(BigDecimal.valueOf(100))
+                            .calculatedAmount(BigDecimal.valueOf(100))
+                            .netAmount(BigDecimal.valueOf(100))
+                            .version("1")
+                            .volume(1)
+                            .ccdCaseNumber("ccd-case-number")
+                            .reference("reference")
+                            .memoLine("memo-line")
+                            .id(1)
+                            .naturalAccountCode("natural-account-code")
+                            .description("description")
+                            .allocatedAmount(BigDecimal.valueOf(100))
+                            .apportionAmount(BigDecimal.valueOf(100))
+                            .dateCreated(formatter.parse("7-Jun-2013"))
+                            .dateUpdated(formatter.parse("7-Jun-2013"))
+                            .dateApportioned(formatter.parse("7-Jun-2013"))
+                            .amountDue(BigDecimal.valueOf(0))
+                            .build()
             )).build();
     }
 

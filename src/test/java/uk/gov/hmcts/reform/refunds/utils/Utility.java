@@ -3,15 +3,23 @@ package uk.gov.hmcts.reform.refunds.utils;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
-import uk.gov.hmcts.reform.refunds.model.*;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
+import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundFees;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
+import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.function.Supplier;
 
 public class Utility {
+
+    private Utility() {
+    }
 
     public static final String GET_REFUND_LIST_CCD_CASE_NUMBER = "1111-2222-3333-4444";
     public static final String GET_REFUND_LIST_CCD_CASE_USER_ID1 = "1f2b7025-0f91-4737-92c6-b7a9baef14c6";
@@ -29,7 +37,7 @@ public class Utility {
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber1 = () -> Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
-            .refundFees(Arrays.asList(
+            .refundFees(Collections.singletonList(
                     RefundFees.refundFeesWith()
                             .feeId(1)
                             .code("RR001")
@@ -57,7 +65,7 @@ public class Utility {
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber2 = () -> Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
-            .refundFees(Arrays.asList(
+            .refundFees(Collections.singletonList(
                     RefundFees.refundFeesWith()
                             .feeId(1)
                             .code("RR001")
@@ -78,7 +86,7 @@ public class Utility {
     public static final Supplier<Refund> refundListSupplierForApprovedStatus = () -> Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
-            .refundFees(Arrays.asList(
+            .refundFees(Collections.singletonList(
                     RefundFees.refundFeesWith()
                             .feeId(1)
                             .code("RR001")
@@ -99,7 +107,7 @@ public class Utility {
     public static final Supplier<Refund> refundListSupplierForAcceptedStatus = () -> Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(900))
-            .refundFees(Arrays.asList(
+            .refundFees(Collections.singletonList(
                     RefundFees.refundFeesWith()
                             .feeId(1)
                             .code("RR001")
@@ -120,7 +128,7 @@ public class Utility {
     public static final Supplier<Refund> refundListSupplierForSubmittedStatus = () -> Refund.refundsWith()
             .id(2)
             .amount(BigDecimal.valueOf(200))
-            .refundFees(Arrays.asList(
+            .refundFees(Collections.singletonList(
                     RefundFees.refundFeesWith()
                             .feeId(1)
                             .code("RR001")
@@ -141,7 +149,7 @@ public class Utility {
     public static final Supplier<Refund> refundListSupplierForSendBackStatus = () -> Refund.refundsWith()
             .id(3)
             .amount(BigDecimal.valueOf(300))
-            .refundFees(Arrays.asList(
+            .refundFees(Collections.singletonList(
                     RefundFees.refundFeesWith()
                             .feeId(1)
                             .code("RR001")
@@ -158,14 +166,14 @@ public class Utility {
             .paymentReference("RC-3333-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .statusHistories(Arrays.asList(STATUS_HISTORY_SUPPLIER.get()))
+            .statusHistories(Collections.singletonList(STATUS_HISTORY_SUPPLIER.get()))
             .contactDetails(ContactDetails.contactDetailsWith()
                     .email("bb@bb.com")
                     .notificationType("EMAIL")
                     .build())
             .build();
 
-    public static final Supplier<Refund> refundListSupplierForSendBackStatusforNullReason = () -> Refund.refundsWith()
+    public static final Supplier<Refund> refundListSupplierForSendBackStatusForNullReason = () -> Refund.refundsWith()
             .id(3)
             .amount(BigDecimal.valueOf(300))
             .ccdCaseNumber(GET_REFUND_LIST_SENDBACK_REFUND_STATUS)
@@ -177,7 +185,7 @@ public class Utility {
             .paymentReference("RC-3333-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .statusHistories(Arrays.asList(STATUS_HISTORY_SUPPLIER.get()))
+            .statusHistories(Collections.singletonList(STATUS_HISTORY_SUPPLIER.get()))
             .contactDetails(ContactDetails.contactDetailsWith()
                     .email("bb@bb.com")
                     .notificationType("EMAIL")
@@ -189,7 +197,7 @@ public class Utility {
     public static final Supplier<PaymentGroupResponse> PAYMENT_GROUP_RESPONSE = () -> PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("RF-3333-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-            .payments(Arrays.asList(PAYMENT_RESPONSE_SUPPLIER.get()))
+            .payments(Collections.singletonList(PAYMENT_RESPONSE_SUPPLIER.get()))
             .build();
     public static final IdamUserIdResponse IDAM_USER_ID_RESPONSE =
             IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
