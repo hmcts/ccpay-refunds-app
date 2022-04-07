@@ -54,6 +54,7 @@ import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -286,10 +287,7 @@ public class RefundsController {
             throw new LargePayloadException("Date range exceeds the maximum supported by the system");
         }
 
-        List<RefundLiberata> refunds = refundsService
-            .search(
-                getSearchCriteria(fromDateTime, toDateTime, refundReference)
-            );
+        List<RefundLiberata> refunds = new ArrayList<>();
 
         return new ResponseEntity<>(new RerfundLiberataResponse(refunds),HttpStatus.OK);
     }
