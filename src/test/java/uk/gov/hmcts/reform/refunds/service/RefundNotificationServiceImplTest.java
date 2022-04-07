@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
@@ -38,13 +37,13 @@ import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.utils.Utility;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -57,8 +56,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_NUMBER;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID2;
 
 @SpringBootTest(webEnvironment = MOCK)
 @ActiveProfiles({"local", "test"})
@@ -104,21 +101,12 @@ class RefundNotificationServiceImplTest {
     @Qualifier("restTemplatePayment")
     private RestTemplate restTemplatePayment;
 
-    private IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-        .familyName("VP")
-        .givenName("VP")
-        .name("VP")
-        .sub("V_P@gmail.com")
-        .roles(Collections.singletonList("vp"))
-        .uid("986-erfg-kjhg-123")
-        .build();
-
     @Test
     void resendEmailRefundNotificationShouldReturnSuccessResponse_AfterSuccessfulRestcallWithNotificationService() {
         ResendNotificationRequest mockRequest = getMockEmailRequest();
         when(refundsService.getRefundForReference(anyString())).thenReturn(getMockRefund());
         when(restTemplateNotify.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class),eq(String.class))).thenReturn(
-            new ResponseEntity<String>("Success", HttpStatus.OK)
+            new ResponseEntity<>("Success", HttpStatus.OK)
         );
         when(authTokenGenerator.generate()).thenReturn("Service.Auth.Token");
         when(refundsRepository.save(any(Refund.class))).thenReturn(getMockRefund());
@@ -133,7 +121,7 @@ class RefundNotificationServiceImplTest {
         ResendNotificationRequest mockRequest = getMockLetterRequest();
         when(refundsService.getRefundForReference(anyString())).thenReturn(getMockRefund());
         when(restTemplateNotify.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class),eq(String.class))).thenReturn(
-            new ResponseEntity<String>("Success", HttpStatus.OK)
+            new ResponseEntity<>("Success", HttpStatus.OK)
         );
         when(authTokenGenerator.generate()).thenReturn("Service.Auth.Token");
         when(refundsRepository.save(any(Refund.class))).thenReturn(getMockRefund());
@@ -191,15 +179,15 @@ class RefundNotificationServiceImplTest {
         return Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
-            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
-            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .ccdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_NUMBER)
+            .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
             .reference("RF-1111-2234-1077-1123")
             .refundStatus(RefundStatus.SENTFORAPPROVAL)
             .reason("RR001")
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
             .build();
     }
 
@@ -223,8 +211,6 @@ class RefundNotificationServiceImplTest {
             .tokenType("mock-type")
             .expiresIn("2021-07-20T11:03:08.067Z")
             .build();
-
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
 
         when(refundsRepository.findByNotificationSentFlag(anyString())).thenReturn(Optional.ofNullable(List.of(
             RefundServiceImplTest.refundListContactDetailsEmail.get())));
@@ -279,8 +265,6 @@ class RefundNotificationServiceImplTest {
             .tokenType("mock-type")
             .expiresIn("2021-07-20T11:03:08.067Z")
             .build();
-
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = null;
 
         when(refundsRepository.findByNotificationSentFlag(anyString())).thenReturn(Optional.ofNullable(List.of(
             RefundServiceImplTest.refundListContactDetailsLetter.get())));
