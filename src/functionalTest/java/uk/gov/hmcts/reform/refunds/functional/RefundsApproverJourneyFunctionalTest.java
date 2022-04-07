@@ -14,8 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
@@ -28,7 +26,6 @@ import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
 import uk.gov.hmcts.reform.refunds.functional.response.PaymentsResponse;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
-//import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
@@ -44,10 +41,8 @@ import javax.inject.Inject;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 @ActiveProfiles("functional")
@@ -70,11 +65,8 @@ public class RefundsApproverJourneyFunctionalTest {
     @Autowired
     private RefundsRepository refundsRepository;
 
-    private static String USER_TOKEN;
-    private static String SERVICE_TOKEN;
     private static String USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE;
     private static String SERVICE_TOKEN_PAY_BUBBLE_PAYMENT;
-    private static String USER_TOKEN_CITIZEN_WITH_PAYMENTS_ROLE;
     private static String USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE;
@@ -428,153 +420,6 @@ public class RefundsApproverJourneyFunctionalTest {
         final String paymentReference = paymentDtoOptional.get().getPaymentReference();
         System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
 
-    }
-
-    @Test
-    public void positive_approval_from_liberata() {
-
-        final String refundReference = performRefund();
-        Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundEvent.APPROVE.name(),
-            RefundReviewRequest
-                .buildRefundReviewRequest()
-                .code("RE004")
-                .reason("More evidence is required")
-                .build()
-        );
-        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-
-        Response updateReviewRefund = paymentTestService.updateRefundStatus(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundStatusUpdateRequest
-                .RefundRequestWith()
-                .reason("Accepted")
-                .status(RefundStatus.ACCEPTED).build()
-        );
-        assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
-
-        //Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-
-        Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-            );
-        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryList =
-            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("Accepted")
-                    || entry.get("status").trim().equals("Approved")
-                    || entry.get("status").trim().equals("Sent for approval"))
-                .isTrue();
-            assertThat(
-                entry.get("notes").trim().equals("Approved by middle office")
-                    || entry.get("notes").trim().equals("Sent to middle office")
-                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
-                .isTrue();
-        });
-    }
-
-    @Test
-    public void negative_double_approval_from_liberata() {
-
-        final String refundReference = performRefund();
-        Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundEvent.APPROVE.name(),
-            RefundReviewRequest
-                .buildRefundReviewRequest()
-                .code("RE004")
-                .reason("More evidence is required")
-                .build()
-        );
-        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-
-
-        Response updateReviewRefund = paymentTestService.updateRefundStatus(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundStatusUpdateRequest
-                .RefundRequestWith()
-                .reason("Accepted")
-                .status(RefundStatus.ACCEPTED).build()
-        );
-
-        assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
-
-        Response updateReviewRefundAgain =
-            paymentTestService.updateRefundStatus(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-                                                  SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference,
-                                                  RefundStatusUpdateRequest.RefundRequestWith()
-                                                      .reason("Accepted")
-                                                      .status(RefundStatus.ACCEPTED).build()
-            );
-        assertThat(updateReviewRefundAgain.getStatusCode()).isEqualTo(CONFLICT.value());
-        assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("Action not allowed to proceed");
-    }
-
-    @Test
-    public void positive_rejected_from_liberata() {
-
-        final String refundReference = performRefund();
-        Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundEvent.APPROVE.name(),
-            RefundReviewRequest
-                .buildRefundReviewRequest()
-                .code("RE004")
-                .reason("More evidence is required")
-                .build()
-        );
-        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
-
-        Response updateReviewRefund = paymentTestService.updateRefundStatus(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundStatusUpdateRequest
-                .RefundRequestWith()
-                .reason("Rejected From Liberata - User Input")
-                .status(RefundStatus.REJECTED).build()
-        );
-        assertThat(updateReviewRefund.getStatusCode()).isEqualTo(NO_CONTENT.value());
-        //Optional<Refund> refund = refundsRepository.findByReference(refundReference);
-
-        Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-            );
-        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryList =
-            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("Rejected")
-                    || entry.get("status").trim().equals("Approved")
-                    || entry.get("status").trim().equals("Sent for approval"))
-                .isTrue();
-            assertThat(
-                    entry.get("notes").trim().equals("Sent to middle office")
-                        || entry.get("notes").trim().equals("Refund initiated and sent to team leader")
-                        || entry.get("notes").trim().equals("Rejected From Liberata - User Input"))
-                .isTrue();
-        });
     }
 
     @Test

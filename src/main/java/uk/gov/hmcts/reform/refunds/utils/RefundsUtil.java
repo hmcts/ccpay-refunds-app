@@ -85,7 +85,7 @@ public class RefundsUtil {
     }
 
     private List<Integer> getRefundFeeIds(String refundIds) {
-        return  Arrays.stream(refundIds.split(",")).map(feeId -> Integer.parseInt(feeId)).collect(Collectors.toList());
+        return  Arrays.stream(refundIds.split(",")).map(Integer::parseInt).collect(Collectors.toList());
     }
 
     private void validateRetrospectiveRemissions(List<RemissionResponse> remissionsAppliedForRefund, Refund refund) {
