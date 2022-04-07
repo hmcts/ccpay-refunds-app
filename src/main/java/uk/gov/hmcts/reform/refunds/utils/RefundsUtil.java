@@ -2,23 +2,18 @@ package uk.gov.hmcts.reform.refunds.utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
@@ -27,9 +22,6 @@ import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 public class RefundsUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsUtil.class);
-
-    @Autowired
-    private RefundReasonRepository refundReasonRepository;
 
     @Value("${notify.template.cheque-po-cash.letter}")
     private String chequePoCashLetterTemplateId;
