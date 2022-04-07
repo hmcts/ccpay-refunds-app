@@ -96,7 +96,7 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .requestMatchers()
-                    .antMatchers(HttpMethod.GET, "/refundstest")
+                    .antMatchers(HttpMethod.GET, "/refunds/*")
                     .antMatchers(HttpMethod.PATCH, "/refund/*")
                     .and()
                     .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
