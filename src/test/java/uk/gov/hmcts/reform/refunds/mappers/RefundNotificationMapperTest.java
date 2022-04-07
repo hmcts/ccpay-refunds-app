@@ -100,7 +100,7 @@ class RefundNotificationMapperTest {
     }
 
     @Test
-    void givenResendNotificationEmailRequest_whenGetRefundNotificationEmailRequest_thenRefundNotificationEmailRequestIsReceived_approvaljourney() {
+    void givenResendNotificationEmailRequest_whenGetRefundNotificationEmailRequest_thenRefundNotificationEmailRequestIsReceived_approvalJourney() {
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
             refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email);
@@ -113,7 +113,7 @@ class RefundNotificationMapperTest {
     }
 
     @Test
-    void givenResendNotificationLetterRequest_whenGetRefundNotificationLetterRequest_thenRefundNotificationLetterRequestIsReceived_approvaljourney() {
+    void givenResendNotificationLetterRequest_whenGetRefundNotificationLetterRequest_thenRefundNotificationLetterRequestIsReceived_approvalJourney() {
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
             refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter);
