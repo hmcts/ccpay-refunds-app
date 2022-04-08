@@ -133,7 +133,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
-        validateRefundRequest(refundRequest);
+        // validateRefundRequest(refundRequest);
         //validateRefundPaymentAmount(refundRequest);
         String instructionType = null;
 
