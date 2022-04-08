@@ -467,8 +467,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (refundsList.isPresent()) {
             List<Refund> refundsListStatus =
-                    refundsList.get().stream().filter(refund -> refund.getRefundStatus().equals(
-                            RefundStatus.ACCEPTED) || refund.getRefundStatus().equals(RefundStatus.APPROVED))
+                    refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
+                        RefundStatus.REJECTED))
                             .collect(Collectors.toList());
             for (Refund ref : refundsListStatus) {
                 totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
