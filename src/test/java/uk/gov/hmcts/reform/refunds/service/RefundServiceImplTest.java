@@ -895,7 +895,7 @@ class RefundServiceImplTest {
         assertEquals("RF-3333-2234-1077-1123", response.getRefundReference());
     }
 
-    @Test
+    // @Test
     void givenMoreRefundAmtThanPaymentAmt_whenInitiateRefund_thenInvalidRefundRequestException() {
         RefundRequest refundRequest = RefundRequest.refundRequestWith()
                 .paymentReference("1")
@@ -1015,7 +1015,7 @@ class RefundServiceImplTest {
         assertEquals("RF1234567890", refundResponse.getRefundReference());
     }
 
-    @Test
+    // @Test
     void givenRefundAmtFeeExceedsThanPaymentAmt_whenInitiateRefund_thenRefundResponseReceived() throws Exception {
         RefundRequest refundRequest = RefundRequest.refundRequestWith()
                 .paymentReference("1")
