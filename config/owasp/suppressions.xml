@@ -43,10 +43,11 @@
     </notes>
     <cve>CVE-2022-22965</cve>
   </suppress>
-   <suppress>
-    <notes>
-      jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth
-      of nested objects.
+  <suppress>
+    <notes>A Spring MVC or Spring WebFlux application running on JDK 9+ may be vulnerable to remote code execution (RCE)
+      via data binding. The specific exploit requires the application to run on Tomcat as a WAR deployment. If the
+      application is deployed as a Spring Boot executable jar, i.e. the default, it is not vulnerable to the exploit.
+      However, the nature of the vulnerability is more general, and there may be other ways to exploit it.
     </notes>
     <cve>CVE-2022-22950</cve>
   </suppress>
