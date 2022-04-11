@@ -65,6 +65,18 @@ resource "azurerm_api_management_user" "refudList_user" {
   provider = azurerm.cftappsdemo
 }
 
+resource "azurerm_api_management_user" "refudList_tester" {
+  api_management_name = local.api_mgmt_name_cft
+  resource_group_name = local.api_mgmt_rg_cft
+  user_id             = "5931a75ae4bbd512288c680c"
+  first_name          = "Vamshi"
+  last_name           = "Rudrabhatla"
+  email               = "vamshi.rudrabhatla@hmcts.net"
+  state               = "active"
+
+  provider = azurerm.cftappsdemo
+}
+
 data "azurerm_api_management_product" "refundListApi" {
   product_id          = module.ccpay-refund-lists-product.product_id
   api_management_name = local.api_mgmt_name_cft
@@ -79,6 +91,16 @@ resource "azurerm_api_management_subscription" "refudList_subscription" {
   user_id             = azurerm_api_management_user.refudList_user.id
   product_id          = data.azurerm_api_management_product.refundListApi.id
   display_name        = "RefudList Subscription"
+  state               = "active"
+
+  provider = azurerm.cftappsdemo
+}
+resource "azurerm_api_management_subscription" "refudList_subscription_vamshi" {
+  api_management_name = local.api_mgmt_name_cft
+  resource_group_name = local.api_mgmt_rg_cft
+  user_id             = azurerm_api_management_user.refudList_tester.id
+  product_id          = data.azurerm_api_management_product.refundListApi.id
+  display_name        = "RefudList Subscription Vamshi"
   state               = "active"
 
   provider = azurerm.cftappsdemo
