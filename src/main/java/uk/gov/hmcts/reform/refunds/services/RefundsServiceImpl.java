@@ -204,27 +204,37 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
-
+        LOG.info("Foreach loop 1: {}", refundReasonList.size());
         if (!roles.isEmpty()) {
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
+            LOG.info("Foreach loop 2: {}", userIdentityDataDtoSet.size());
+
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
             refundList.forEach(refund -> {
+                LOG.info("Foreach loop 1: {}", refund.getRefundFees().size());
+
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
+                    LOG.info("Foreach loop 3: {}", refundReasonList.size());
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
                     contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
                     userIdentityDataDtoSet.add(userIdentityDataDto);
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
+            LOG.info("Before stream: {}",  refundList.size());
+
             refundList.stream()
                 .filter(e -> userIdsWithGivenRoles.stream()
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
+                    LOG.info("Foreach loop 4: {}", refundReasonList.size());
+
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
+                    // LOG.info("Inside refundserviceimpl refund: {}", refund.getRefundFees().get(0));
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
@@ -234,6 +244,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     ));
                 });
         }
+
+        LOG.info("refundListDto size: {}", refundListDto.size());
+        LOG.info("refundListDto size: {}", refundListDto);
+
 
         return refundListDto;
     }
