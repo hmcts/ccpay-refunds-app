@@ -56,7 +56,7 @@ public final class RefundsFixture {
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
             .serviceType("cmc")
-            .refundAmount(new BigDecimal(refundAmount))
+            .totalRefundAmount(new BigDecimal(refundAmount))
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
