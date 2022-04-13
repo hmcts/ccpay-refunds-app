@@ -204,6 +204,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
 
         if (!roles.isEmpty()) {
+            LOG.info("Fetching cached refunds user list from IDAM...");
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
