@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.functional.fixture;
 
 import com.google.common.collect.Lists;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.functional.request.ContactDetails;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
@@ -9,6 +10,7 @@ import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
 
@@ -87,6 +89,14 @@ public final class RefundsFixture {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(new BigDecimal("80.00"))
             .refundReason("RR002")
+            .refundFees(Arrays.asList(
+                RefundFeeDto.refundFeeRequestWith()
+                    .feeId(1)
+                    .code("FEE0001")
+                    .version("1")
+                    .volume(1)
+                    .refundAmount(new BigDecimal("80.00"))
+                    .build()))
             .contactDetails(ContactDetails.contactDetailsWith()
                                 .addressLine("High Street 112")
                                 .country("UK")
