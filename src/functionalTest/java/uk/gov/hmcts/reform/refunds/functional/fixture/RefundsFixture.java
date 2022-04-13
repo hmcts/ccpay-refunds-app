@@ -64,6 +64,8 @@ public final class RefundsFixture {
                     .apportionAmount(BigDecimal.valueOf(0))
                     .apportionedPayment(BigDecimal.valueOf(0))
                     .calculatedAmount(new BigDecimal(feeAmount))
+                    .feeAmount(new BigDecimal(feeAmount))
+                    .refundAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
                     .id(0)
                     .version("1")
