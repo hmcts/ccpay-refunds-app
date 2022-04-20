@@ -206,6 +206,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
         LOG.info("Foreach loop 1: {}", refundReasonList.size());
         if (!roles.isEmpty()) {
+            LOG.info("Fetching cached refunds user list from IDAM...");
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
             LOG.info("Foreach loop 2: {}", userIdentityDataDtoSet.size());
