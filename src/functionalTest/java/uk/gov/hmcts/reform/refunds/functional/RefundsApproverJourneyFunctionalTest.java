@@ -241,6 +241,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(FORBIDDEN.value());
     }
 
+    @Ignore
     @Test
     public void positive_approve_a_refund_request() {
 
@@ -431,6 +432,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     }
 
+    @Ignore
     @Test
     public void positive_approval_from_liberata() {
 
@@ -484,6 +486,7 @@ public class RefundsApproverJourneyFunctionalTest {
         });
     }
 
+    @Ignore
     @Test
     public void negative_double_approval_from_liberata() {
 
@@ -526,6 +529,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("Action not allowed to proceed");
     }
 
+    @Ignore
     @Test
     public void positive_rejected_from_liberata() {
 
