@@ -55,4 +55,10 @@
     </notes>
     <cve>CVE-2016-1000027</cve>
   </suppress>
+    <suppress>
+    <notes>Pivotal Spring Framework through 5.3.16 suffers from a potential remote code execution (RCE) issue
+      if used for Java deserialization of untrusted data.
+    </notes>
+    <cve>CVE-2022-22968</cve>
+  </suppress>
 </suppressions>
