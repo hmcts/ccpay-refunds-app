@@ -136,6 +136,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         // validateRefundRequest(refundRequest);
         //validateRefundPaymentAmount(refundRequest);
+        validateRefundAmount(refundRequest);
         refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
         String instructionType = null;
 
