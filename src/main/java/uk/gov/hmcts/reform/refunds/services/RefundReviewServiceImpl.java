@@ -111,11 +111,13 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                     .updateReconciliationProviderWithApprovedRefund(
                     reconciliationProviderRequest
                 );
+                updateRefundStatus(refundForGivenReference, refundEvent);
+                updateNotification(headers, refundForGivenReference);
                 if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
-                    updateRefundStatus(refundForGivenReference, refundEvent);
+                    //updateRefundStatus(refundForGivenReference, refundEvent);
                     refundForGivenReference.setRefundApproveFlag("SENT");
                     refundsRepository.save(refundForGivenReference);
-                    updateNotification(headers, refundForGivenReference);
+                    //updateNotification(headers, refundForGivenReference);
                 } else {
                     refundForGivenReference.setRefundApproveFlag("NOT SENT");
                     refundsRepository.save(refundForGivenReference);
