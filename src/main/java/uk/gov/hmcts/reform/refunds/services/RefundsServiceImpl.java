@@ -208,6 +208,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         LOG.info("Foreach loop 1: {}", refundReasonList.size());
         if (!roles.isEmpty()) {
             LOG.info("Fetching cached refunds user list from IDAM...");
+            LOG.info("sommin 1 : {}", contextStartListener.getUserMap());
+            LOG.info("sommin 2 : {}", contextStartListener.getUserMap().get("payments-refund-approver"));
+            LOG.info("sommin 2 : {}", contextStartListener.getUserMap().get("payments-refund"));
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
             LOG.info("Foreach loop 2: {}", userIdentityDataDtoSet.size());
