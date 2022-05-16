@@ -886,7 +886,7 @@ public class RefundsApproverJourneyFunctionalTest {
         Response resubmitRefundResponse = paymentTestService.resubmitRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            RefundsFixture.resubmitRefundWithAmount(),
+            RefundsFixture.resubmitRefundAllInput(),
             refundReferenceFromRefundList
         );
         assertThat(resubmitRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
@@ -901,7 +901,7 @@ public class RefundsApproverJourneyFunctionalTest {
             return s2.getDateUpdated().compareTo(s1.getDateUpdated());
         }).findFirst();
 
-        assertThat(optionalRefundDtoAfterUpdate.get().getAmount()).isEqualTo(new BigDecimal("85.00"));
+        assertThat(optionalRefundDtoAfterUpdate.get().getAmount()).isEqualTo(new BigDecimal("80.00"));
 
     }
 
@@ -954,7 +954,7 @@ public class RefundsApproverJourneyFunctionalTest {
         Response resubmitRefundResponse = paymentTestService.resubmitRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            RefundsFixture.resubmitRefundWithReason(),
+            RefundsFixture.resubmitRefundAllInput(),
             refundReferenceFromRefundList
         );
 
@@ -971,7 +971,7 @@ public class RefundsApproverJourneyFunctionalTest {
             return s2.getDateUpdated().compareTo(s1.getDateUpdated());
         }).findFirst();
 
-        assertThat(optionalRefundDtoAfterUpdate.get().getReason()).isEqualTo("Excess fee paid");
+        assertThat(optionalRefundDtoAfterUpdate.get().getReason()).isEqualTo("Amended court");
 
     }
 
@@ -1024,7 +1024,7 @@ public class RefundsApproverJourneyFunctionalTest {
         Response resubmitRefundResponse = paymentTestService.resubmitRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            RefundsFixture.resubmitRefundWithContact(),
+            RefundsFixture.resubmitRefundAllInput(),
             refundReferenceFromRefundList
         );
 
@@ -1094,7 +1094,7 @@ public class RefundsApproverJourneyFunctionalTest {
         Response resubmitRefundResponse = paymentTestService.resubmitRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            RefundsFixture.resubmitRefundWithRetroRemissionReason(),
+            RefundsFixture.resubmitRefundAllInput(),
             refundReferenceFromRefundList
         );
 
@@ -1111,7 +1111,7 @@ public class RefundsApproverJourneyFunctionalTest {
             return s2.getDateUpdated().compareTo(s1.getDateUpdated());
         }).findFirst();
 
-        assertThat(optionalRefundDtoAfterUpdate.get().getReason()).isEqualTo("Amended claim");
+        assertThat(optionalRefundDtoAfterUpdate.get().getReason()).isEqualTo("Amended court");
 
     }
 

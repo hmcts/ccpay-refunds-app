@@ -42,6 +42,8 @@ public class FeeDto {
 
     private BigDecimal feeAmount;
 
+    private BigDecimal refundAmount;
+
     private String memoLine;
 
     private String naturalAccountCode;

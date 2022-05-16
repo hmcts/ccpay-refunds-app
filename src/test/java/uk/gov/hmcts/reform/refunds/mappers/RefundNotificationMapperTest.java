@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.refunds.mappers;
 
-import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,7 +20,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-@Ignore
 class RefundNotificationMapperTest {
 
     private static final Refund REFUND = Refund.refundsWith()
@@ -74,7 +73,7 @@ class RefundNotificationMapperTest {
     @Autowired
     private RefundNotificationMapper refundNotificationMapper;
 
-    // @Test
+    @Test
     void givenResendNotificationEmailRequest_whenGetRefundNotificationEmailRequest_thenRefundNotificationEmailRequestIsReceived() {
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
@@ -87,7 +86,7 @@ class RefundNotificationMapperTest {
         assertEquals("RF-1642-6117-6119-7355", refundNotificationEmailRequest.getPersonalisation().getRefundReference());
     }
 
-    // @Test
+    @Test
     void givenResendNotificationLetterRequest_whenGetRefundNotificationLetterRequest_thenRefundNotificationLetterRequestIsReceived() {
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
@@ -100,8 +99,8 @@ class RefundNotificationMapperTest {
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
     }
 
-    //  @Test
-    void givenResendNotificationEmailRequest_whenGetRefundNotificationEmailRequest_thenRefundNotificationEmailRequestIsReceived_approvaljourney() {
+    @Test
+    void givenResendNotificationEmailRequest_whenGetRefundNotificationEmailRequest_thenRefundNotificationEmailRequestIsReceived_approvalJourney() {
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
             refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email);
@@ -113,8 +112,8 @@ class RefundNotificationMapperTest {
         assertEquals("RF-1642-6117-6119-7355", refundNotificationEmailRequest.getPersonalisation().getRefundReference());
     }
 
-    // @Test
-    void givenResendNotificationLetterRequest_whenGetRefundNotificationLetterRequest_thenRefundNotificationLetterRequestIsReceived_approvaljourney() {
+    @Test
+    void givenResendNotificationLetterRequest_whenGetRefundNotificationLetterRequest_thenRefundNotificationLetterRequestIsReceived_approvalJourney() {
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
             refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter);

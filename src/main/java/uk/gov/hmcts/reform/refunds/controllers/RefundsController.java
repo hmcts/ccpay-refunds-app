@@ -376,7 +376,7 @@ public class RefundsController {
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference
     ) {
-        return new ResponseEntity<String>("test",HttpStatus.OK);
+        return new ResponseEntity<>("test",HttpStatus.OK);
     }
 
 }

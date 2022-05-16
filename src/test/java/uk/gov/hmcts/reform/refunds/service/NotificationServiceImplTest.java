@@ -25,7 +25,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.services.NotificationService;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,7 +52,7 @@ class NotificationServiceImplTest {
     void postEmailNotificationDataShouldReturnSuccessfulStatus_WhenNotificationServiceIsAvailable() {
         when(restTemplateNotify.exchange(anyString(),
                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
-            new ResponseEntity<String>("Success", HttpStatus.OK)
+            new ResponseEntity<>("Success", HttpStatus.OK)
         );
         ResponseEntity<String> responseEntity = notificationService.postEmailNotificationData(getHeaders(),getRefundNotificationEmailRequest());
         assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
@@ -63,7 +63,7 @@ class NotificationServiceImplTest {
     void postLetterNotificationDataShouldReturnSuccessfulStatus_WhenNotificationServiceIsAvailable() {
         when(restTemplateNotify.exchange(anyString(),
                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
-            new ResponseEntity<String>("Success", HttpStatus.OK)
+            new ResponseEntity<>("Success", HttpStatus.OK)
         );
         ResponseEntity<String> responseEntity = notificationService.postLetterNotificationData(getHeaders(),getRefundNotificationLetterRequest());
         assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
@@ -115,9 +115,9 @@ class NotificationServiceImplTest {
 
     private MultiValueMap<String,String> getHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
-        inputHeaders.put("Authorization", Arrays.asList("authtoken"));
-        inputHeaders.put("content-type", Arrays.asList("application/json"));
-        inputHeaders.put("ServiceAuthorization", Arrays.asList("servauthtoken"));
+        inputHeaders.put("Authorization", Collections.singletonList("authToken"));
+        inputHeaders.put("content-type", Collections.singletonList("application/json"));
+        inputHeaders.put("ServiceAuthorization", Collections.singletonList("servAuthToken"));
         return inputHeaders;
     }
 
