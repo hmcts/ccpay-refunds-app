@@ -53,7 +53,8 @@ public final class RefundsFixture {
     }
 
     public static final PaymentRefundRequest refundRequest(final String refundReason,
-                                                           final String paymentReference, final String refundAmount, final String feeAmount) {
+                                                           final String paymentReference, final String refundAmount,
+                                                           final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
@@ -70,7 +71,6 @@ public final class RefundsFixture {
                     .id(0)
                     .version("1")
                     .volume(1)
-
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()

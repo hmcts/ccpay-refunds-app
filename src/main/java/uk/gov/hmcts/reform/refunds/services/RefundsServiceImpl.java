@@ -4,18 +4,23 @@ import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.E
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.eclipse.collections.impl.collector.Collectors2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.Notification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -48,6 +53,7 @@ import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,11 +63,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
 
 @Service
-@SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports"})
+@SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports","PMD.TooManyMethods"})
 public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
@@ -84,6 +96,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
 
     private static final String SEND_REFUND = "SendRefund";
+    private static final Predicate[] REF = new Predicate[0];
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -204,7 +217,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
 
         if (!roles.isEmpty()) {
-            LOG.info("Fetching cached refunds user list from IDAM...");
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
@@ -528,5 +540,79 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private  String  validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
 
         return validateRefundReason(reason == null ? refund.getReason() : reason);
+    }
+
+    @Override
+    @SuppressWarnings({"PMD.ConfusingTernary"})
+    public List<RefundLiberata> search(RefundSearchCriteria searchCriteria) {
+
+        List<String> referenceList =  new ArrayList<>();
+        List<RefundLiberata> refundLiberatas = new ArrayList<>();
+        List<Refund> refundListWithAccepted;
+
+        List<Refund> refundList = refundsRepository.findAll(searchByCriteria(searchCriteria));
+        if (!refundList.isEmpty()) {
+            refundListWithAccepted = refundList.stream().filter(refund -> refund.getRefundStatus().equals(
+                    RefundStatus.APPROVED))
+                .collect(Collectors.toList());
+            for (Refund ref : refundListWithAccepted) {
+                referenceList.add(ref.getPaymentReference());
+            }
+        } else {
+            throw new RefundNotFoundException("No refunds available for the given date range");
+        }
+
+        List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(referenceList);
+
+        Map<String, BigDecimal> groupByPaymentReference =
+            refundListWithAccepted.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
+                                                                          Collectors2.summingBigDecimal(Refund::getAmount)));
+        refundListWithAccepted.stream()
+            .filter(e -> paymentData.stream()
+                .anyMatch(id -> id.getPaymentReference().equals(e.getPaymentReference())))
+            .collect(Collectors.toList())
+            .forEach(refund -> {
+                LOG.info("refund: {}", refund);
+                refundLiberatas.add(refundResponseMapper.getRefundLibrata(
+                    refund,
+                    paymentData.stream()
+                        .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
+                        .findAny().get(),
+                    groupByPaymentReference
+                ));
+            });
+        return refundLiberatas;
+    }
+
+    @SuppressWarnings({"PMD.UselessParentheses"})
+    public  Specification<Refund> searchByCriteria(RefundSearchCriteria searchCriteria) {
+        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
+    }
+
+    public Predicate getPredicate(
+        Root<Refund> root,
+        CriteriaBuilder cb,
+        RefundSearchCriteria searchCriteria, CriteriaQuery<?> query) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        final Expression<Date> dateUpdatedExpr = cb.function(
+            "date_trunc",
+            Date.class,
+            cb.literal("seconds"),
+            root.get("dateUpdated")
+        );
+
+        if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+            predicates.add(cb.between(
+                dateUpdatedExpr,
+                searchCriteria.getStartDate(),
+                searchCriteria.getEndDate()
+            ));
+        }
+        if (null != searchCriteria.getRefundReference()) {
+            predicates.add(cb.equal(root.get("reference"), searchCriteria.getRefundReference()));
+        }
+        query.groupBy(root.get("id"));
+        return cb.or(predicates.toArray(REF));
     }
 }

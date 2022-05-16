@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jmx.export.notification.UnableToSendNotificationException;
@@ -28,7 +29,6 @@ import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
-import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.ArrayList;
@@ -75,8 +75,12 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     @Autowired
     private RefundNotificationMapper refundNotificationMapper;
 
-    @Autowired
-    RefundsUtil refundsUtil;
+    @Value("${notify.letter.template}")
+    private String letterTemplateId;
+
+    @Value("${notify.email.template}")
+    private String emailTemplateId;
+
 
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
@@ -199,7 +203,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .email(refund.getContactDetails().getEmail())
-                .templateId(refundsUtil.getTemplate(refund))
+                .templateId(emailTemplateId)
                 .notificationType(EMAIL.name())
                 .build();
             refund.setContactDetails(newContact);
@@ -209,7 +213,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(refundsUtil.getTemplate(refund))
+                .templateId(letterTemplateId)
                 .addressLine(refund.getContactDetails().getAddressLine())
                 .county(refund.getContactDetails().getCounty())
                 .postalCode(refund.getContactDetails().getPostalCode())

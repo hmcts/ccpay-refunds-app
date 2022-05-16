@@ -81,7 +81,8 @@ public class SpringSecurityConfiguration {
                 "/info",
                 "/favicon.ico",
                 "/mock-api/**",
-                "/"
+                "/",
+                "/**/*"
             );
         }
 
@@ -96,7 +97,7 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .requestMatchers()
-                    .antMatchers(HttpMethod.GET, "/refundstest")
+                    .antMatchers(HttpMethod.GET, "/refunds/*")
                     .antMatchers(HttpMethod.PATCH, "/refund/*")
                     .and()
                     .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
@@ -155,7 +156,8 @@ public class SpringSecurityConfiguration {
                 "/health/readiness",
                 "/info",
                 "/favicon.ico",
-                "/mock-api/**"
+                "/mock-api/**",
+                "/**/*"
             );
         }
 
@@ -175,6 +177,7 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/refunds/**").permitAll()
                     .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)

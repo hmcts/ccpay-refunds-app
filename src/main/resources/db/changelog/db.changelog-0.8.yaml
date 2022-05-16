@@ -48,7 +48,6 @@ databaseChangeLog:
               - column:
                   name: service_type
                   type: varchar(100)
-
   - changeSet:
       id: 100008-5
       author: Ranjeet

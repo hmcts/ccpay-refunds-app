@@ -8,12 +8,17 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
@@ -43,14 +48,24 @@ import uk.gov.hmcts.reform.refunds.utils.Utility;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -91,6 +106,97 @@ class RefundServiceImplTest {
 
     @Mock
     private ContextStartListener contextStartListener;
+
+    @MockBean
+    private Specification<Refund> mockSpecification;
+
+    @MockBean
+    private List<Refund> refund;
+
+    @MockBean
+    private RefundSearchCriteria refundSearchCriteria;
+
+    @Mock
+    private Predicate predicate;
+
+    @Mock
+    private CriteriaBuilder builder;
+
+    @Mock
+    private Root<Refund> root;
+
+    @Mock
+    private CriteriaQuery<?> query;
+    @Mock
+   private  Expression<Date> expression;
+
+
+    @Mock
+    private CriteriaBuilder.In<Date> inCriteriaForStatus;
+
+    @Mock
+    private Path<String> stringPath;
+
+
+    private  RefundSearchCriteria getRefundSearchCriteria() {
+
+        return RefundSearchCriteria.searchCriteriaWith()
+            .startDate(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .endDate(Timestamp.valueOf("2021-10-15 10:10:10"))
+            .refundReference("RF-1111-2234-1077-1123")
+            .build();
+    }
+
+    private List<PaymentDto> getPayments() {
+
+        List<PaymentDto> payments = new ArrayList<>();
+
+        PaymentDto payments1 = PaymentDto.payment2DtoWith()
+            .accountNumber("123")
+            .amount(BigDecimal.valueOf(100.00))
+            .caseReference("test")
+            .ccdCaseNumber("1111221383640739")
+            .channel("bulk scan")
+            .customerReference("123")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .externalReference("test123")
+            .giroSlipNo("tst")
+            .method("cheque")
+            .id("1")
+            .paymentReference("RC-1111-2234-1077-1123")
+            .serviceName("Service")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                                    .code("1")
+                                    .jurisdiction1("test1")
+                                    .jurisdiction2("test2")
+                                    .version("1")
+                                    .build()
+                  )
+            ).build();
+
+        payments.add(payments1);
+        return payments;
+    }
+
+    private List<Refund> getRefundList() {
+        List<Refund> refunds = new ArrayList<>();
+        Refund ref =  Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .ccdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_NUMBER)
+            .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .reference("RF-1111-2234-1077-1123")
+            .refundStatus(RefundStatus.APPROVED)
+            .reason("RR001")
+            .paymentReference("RC-1111-2234-1077-1123")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .build();
+
+        refunds.add(ref);
+        return refunds;
+    }
 
     @BeforeEach
     public void init() {
@@ -608,6 +714,19 @@ class RefundServiceImplTest {
             .build();
     }
 
+    private ResubmitRefundRequest buildResubmitRefundRequest(String refundReason, BigDecimal amount, ContactDetails contactDetails) {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith().refundReason(refundReason).amount(amount).contactDetails(
+            ContactDetails.contactDetailsWith().build())
+            .refundFees(Arrays.asList(
+                RefundFeeDto.refundFeeRequestWith()
+                    .feeId(1)
+                    .code("RR001")
+                    .version("1.0")
+                    .volume(1)
+                    .refundAmount(amount)
+                    .build())).build();
+    }
+
     @Test
     void givenValidRole_whenGetRefundList_thenFilteredRefundsListIsReceived() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
@@ -1086,4 +1205,58 @@ class RefundServiceImplTest {
                             .build())
         .build();
 
+    @Test
+    void testRefundListEmptyForSearchCritieria() {
+        when(refundsRepository.findAll()).thenReturn(null);
+
+        Exception exception = assertThrows(RefundNotFoundException.class, () -> refundsService.search(getRefundSearchCriteria()
+        ));
+
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("No refunds available for the given date range"));
+    }
+
+    @Test
+    void testRefundResponseWhenRefundListForSearchCriteraReturnsuccess() {
+        RefundsServiceImpl mock = org.mockito.Mockito.mock(RefundsServiceImpl.class);
+        when(mock.searchByCriteria(getRefundSearchCriteria())).thenReturn(mockSpecification);
+
+        when(refundsRepository.findAll(any()))
+            .thenReturn(getRefundList());
+        List<String> referenceList = new ArrayList<>();
+        referenceList.add("RC-1111-2234-1077-1123");
+        when(paymentService.fetchPaymentResponse(referenceList)).thenReturn(getPayments());
+
+        List<RefundLiberata>
+            refundListDtoResponse = refundsService.search(
+            getRefundSearchCriteria()
+        );
+
+        assertEquals("RF-1111-2234-1077-1123",refundListDtoResponse.get(0).getReference());
+
+    }
+
+    @Test
+    void testsearchByCriteriaWhenValidInputProvided() {
+
+        when(mockSpecification.toPredicate(root, query, builder)).thenReturn(predicate);
+
+        when(root.<String>get("dateUpdated")).thenReturn(stringPath);
+        Specification<Refund> refunds = refundsService.searchByCriteria(getRefundSearchCriteria());
+        assertNotNull(refunds);
+    }
+
+    @Test
+    void testgetPredicateWhenValidInputProvided() {
+        when(root.<String>get("dateUpdated")).thenReturn(stringPath);
+        Specification<Refund> actual = refundsService.searchByCriteria(getRefundSearchCriteria());
+        Predicate actualPredicate = actual.toPredicate(root, query, builder);
+        when(builder.function("date_trunc",
+                              Date.class,
+                              builder.literal("seconds"),
+                              root.get("dateUpdated"))).thenReturn(expression);
+        Predicate predicate = refundsService.getPredicate(root,builder,getRefundSearchCriteria(),query);
+
+        assertEquals(predicate, actualPredicate);
+    }
 }

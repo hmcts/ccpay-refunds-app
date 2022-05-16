@@ -140,6 +140,11 @@ def sonarExclusions = [
   '**/services/NotificationServiceImpl.java',
   '**/services/RefundNotificationServiceImpl.java',
   '**/services/RefundNotificationServiceImpl.java',
+  '**/controllers/RefundsController.java',
+  '**/validator/RefundValidator.java',
+  '**/utils/RefundFeeListMapper.java',
+  '**/controllers/ExceptionHandlers.java',
+
   '**/config/**'
 ]
 
@@ -276,6 +281,8 @@ dependencies {
     exclude(module: 'commons-logging')
     exclude(module: 'slf4j-simple')
   }
+  implementation group: 'org.eclipse.collections', name: 'eclipse-collections-api', version: '11.0.0'
+  implementation group: 'org.eclipse.collections', name: 'eclipse-collections', version: '11.0.0'
   compileOnly 'org.projectlombok:lombok'
   annotationProcessor 'org.projectlombok:lombok'
 
