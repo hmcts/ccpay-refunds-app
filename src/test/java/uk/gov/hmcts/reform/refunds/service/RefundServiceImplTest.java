@@ -13,15 +13,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
@@ -49,10 +48,12 @@ import uk.gov.hmcts.reform.refunds.utils.Utility;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Collections;
+import java.util.Date;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -182,15 +183,15 @@ class RefundServiceImplTest {
         Refund ref =  Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
-            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
-            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .ccdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_NUMBER)
+            .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
             .reference("RF-1111-2234-1077-1123")
             .refundStatus(RefundStatus.APPROVED)
             .reason("RR001")
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
             .build();
 
         refunds.add(ref);
@@ -726,7 +727,7 @@ class RefundServiceImplTest {
                     .build())).build();
     }
 
-    // @Test
+    @Test
     void givenValidRole_whenGetRefundList_thenFilteredRefundsListIsReceived() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
@@ -1231,7 +1232,7 @@ class RefundServiceImplTest {
             getRefundSearchCriteria()
         );
 
-        Assert.assertEquals("RF-1111-2234-1077-1123",refundListDtoResponse.get(0).getReference());
+        assertEquals("RF-1111-2234-1077-1123",refundListDtoResponse.get(0).getReference());
 
     }
 
@@ -1244,43 +1245,6 @@ class RefundServiceImplTest {
         Specification<Refund> refunds = refundsService.searchByCriteria(getRefundSearchCriteria());
         assertNotNull(refunds);
     }
-
-    public static final Supplier<Refund> refundListLiberataTest = () -> Refund.refundsWith()
-        .id(1)
-        .ccdCaseNumber("1234567890123456")
-        .refundStatus(RefundStatus.SENTFORAPPROVAL)
-        .paymentReference("RC-1234-1234-1234-1234")
-        .feeIds("1")
-        .contactDetails(ContactDetails.contactDetailsWith()
-                            .addressLine("ABC Street")
-                            .email("mock@test.com")
-                            .city("London")
-                            .county("Greater London")
-                            .country("UK")
-                            .postalCode("E1 6AN")
-                            .notificationType("Letter")
-                            .build())
-        .build();
-    public static final Supplier<Refund> refundListLiberataRefundsTest = () -> Refund.refundsWith()
-        .id(1)
-        .amount(BigDecimal.valueOf(100))
-        .reason("RR0001")
-        .reference("RF-1628-5241-9956-2215")
-        .paymentReference("RC-1628-5241-9956-2315")
-        .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-        .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-        .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
-        .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
-        .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
-        .feeIds("50")
-        .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                                           .id(1)
-                                           .status(RefundStatus.SENTFORAPPROVAL.getName())
-                                           .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
-                                           .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-                                           .notes("Refund initiated and sent to team leader")
-                                           .build()))
-        .build();
 
     @Test
     void testgetPredicateWhenValidInputProvided() {

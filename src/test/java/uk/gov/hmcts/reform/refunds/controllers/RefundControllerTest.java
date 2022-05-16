@@ -265,15 +265,15 @@ class RefundControllerTest {
         Refund ref =  Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
-            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_USER_ID1)
-            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+            .ccdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+            .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
             .reference("RF-1111-2234-1077-1123")
             .refundStatus(RefundStatus.APPROVED)
             .reason("RR001")
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
+            .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
             .build();
 
         refunds.add(ref);
