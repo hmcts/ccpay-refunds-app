@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -17,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @NoArgsConstructor
+@ToString
 public class PaymentResponse {
 
     private String reference;

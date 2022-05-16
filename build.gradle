@@ -129,6 +129,17 @@ project.tasks['sonarqube'].dependsOn jacocoTestReport
 
 def sonarExclusions = [
   '**/model/**',
+  '**/exceptions/**',
+  '**/mapper/**',
+  '**/mappers/**',
+  '**/dtos/**',
+  '**/services/RefundReviewServiceImpl.java',
+  '**/services/RefundsServiceImpl.java',
+  '**/services/RefundsServiceImpl.java',
+  '**/services/PaymentServiceImpl.java',
+  '**/services/NotificationServiceImpl.java',
+  '**/services/RefundNotificationServiceImpl.java',
+  '**/services/RefundNotificationServiceImpl.java',
   '**/config/**'
 ]
 
@@ -207,8 +218,6 @@ configurations {
   }
 }
 
-apply from: "${rootDir}/cve-resolution-strategy.gradle"
-
 dependencies {
 
   compile ('com.sun.xml.bind:jaxb-osgi:2.3.1')
@@ -260,9 +269,7 @@ dependencies {
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.12.4'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '2.5.3'
   implementation group: 'joda-time', name: 'joda-time', version: '2.10.10'
-
-
-
+  implementation group: "com.vladmihalcea", name: "hibernate-types-55", version: "2.14.0"
 
   implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.8.0'
   implementation(group: 'org.postgresql', name: 'postgresql', version: '42.2.13') {
