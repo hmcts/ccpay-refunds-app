@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100009
+      author: ranjeet
+      changes:
+        - createTable:
+            tableName: refund_fees
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: refunds_id
+                  type: int
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_refunds_id
+                    references: refunds(id)
+              - column:
+                  name: fee_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(255)
+              - column:
+                  name: version
+                  type: varchar(255)
+              - column:
+                  name: volume
+                  type: int
+              - column:
+                  name: refund_amount
+                  type: numeric(19, 2)

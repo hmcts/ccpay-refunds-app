@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles({"local", "test"})
-public class ContextStartListenerTest {
+class ContextStartListenerTest {
 
     @MockBean
     private IdamService idamService;
@@ -37,15 +38,16 @@ public class ContextStartListenerTest {
     @BeforeEach
     public void setUp() {
         when(idamService.getUsersForRoles(any(),eq(Arrays.asList("payments-refund","payments-refund-approver"))))
-            .thenReturn(Arrays.asList(UserIdentityDataDto.userIdentityDataWith().id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
-                                          .fullName("mock-Forename mock-Surname")
-                                          .emailId("mockfullname@gmail.com").build()));
+            .thenReturn(Collections
+                    .singletonList(UserIdentityDataDto.userIdentityDataWith().id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                            .fullName("mock-Forename mock-Surname")
+                            .emailId("mockfullname@gmail.com").build()));
 
         when(idamService.getSecurityTokens()).thenReturn(IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("access token").build());
     }
 
     @Test
-    public void shouldCallIdamServiceGetUsersForRolesWhenApplicationContextStarts() {
+    void shouldCallIdamServiceGetUsersForRolesWhenApplicationContextStarts() {
         configurableApplicationContext.start();
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.add("Authorization", "access token");
