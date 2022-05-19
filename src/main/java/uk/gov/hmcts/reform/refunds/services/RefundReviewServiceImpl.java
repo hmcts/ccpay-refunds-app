@@ -95,7 +95,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         refundForGivenReference.setStatusHistories(statusHistories);
         String statusMessage = "";
         if (refundEvent.equals(RefundEvent.APPROVE)) {
-            
+
             boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
             HttpStatus liberataStatusCode = HttpStatus.I_AM_A_TEAPOT;
 
@@ -105,7 +105,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                     refundForGivenReference.getPaymentReference()
                 );
 
-                if(paymentData.getPayments().get(0).getMethod().equalsIgnoreCase("payment by account")) {
+                if (paymentData.getPayments().get(0).getMethod().equalsIgnoreCase("payment by account")) {
                     LOG.info("Payment method is PBA");
                     ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(
                         paymentData,
