@@ -66,4 +66,8 @@
     </notes>
     <cve>CVE-2022-22968</cve>
   </suppress>
+  <suppress until="2022-06-30">
+    <notes>temp suppression</notes>
+    <cve>CVE-2022-29885</cve>
+  </suppress>
 </suppressions>
