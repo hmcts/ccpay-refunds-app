@@ -129,4 +129,22 @@ public class PaymentTestService {
         return RestAssured.given()
             .header("ServiceAuthorization", serviceToken);
     }
+
+    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .when()
+                .get("/credit-account-payments/{reference}", paymentReference);
+    }
+
+    public Response deletePayment(String userToken, String serviceToken, String paymentReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .when()
+                .delete("/credit-account-payments/{paymentReference}", paymentReference);
+    }
+
+    public Response deleteRefund(final String userToken, final String serviceToken,
+                                 final String refundReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .delete("/refund/{reference}", refundReference);
+    }
 }

@@ -122,8 +122,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_reject_a_refund_request() {
-
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -163,12 +163,19 @@ public class RefundsApproverJourneyFunctionalTest {
                     || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
                 .isTrue();
         });
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
     public void positive_sendback_a_refund_request() {
 
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -192,6 +199,12 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund returned to caseworker");
 
         //Further verify that there is no invocation ofx Liberata
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
@@ -207,6 +220,9 @@ public class RefundsApproverJourneyFunctionalTest {
         refundListDtoResponse.getRefundList().stream().forEach(refundDto -> {
             assertThat(refundDto.getRefundReference()).isNotEqualTo(refundReference);
         });
+
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
@@ -222,12 +238,16 @@ public class RefundsApproverJourneyFunctionalTest {
                 .reason("More evidence is required").build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(FORBIDDEN.value());
+
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
     public void positive_approve_a_refund_request() {
 
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -267,12 +287,19 @@ public class RefundsApproverJourneyFunctionalTest {
                 .isTrue();
         });//The Lifecylcle of Statuses against a Refund will be maintained for all the statuses should be checked
         //Should be verified as a call out to Liberata....
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
     public void negative_unknown_action_refund_request() {
 
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -295,12 +322,19 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
     public void negative_unauthorized_user_refund_request() {
 
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -323,12 +357,19 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(FORBIDDEN.value());
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
     public void positive_resubmit_refund_journey() {
 
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
         final Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -404,15 +445,22 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
         //assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        final String paymentReference = paymentDtoOptional.get().getPaymentReference();
+        final String paymentReference1 = paymentDtoOptional.get().getPaymentReference();
         System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
 
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference1).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
     public void positive_approval_from_liberata() {
 
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -456,12 +504,19 @@ public class RefundsApproverJourneyFunctionalTest {
                     || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
                 .isTrue();
         });
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
     public void negative_double_approval_from_liberata() {
 
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -498,12 +553,19 @@ public class RefundsApproverJourneyFunctionalTest {
             );
         assertThat(updateReviewRefundAgain.getStatusCode()).isEqualTo(CONFLICT.value());
         assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("Action not allowed to proceed");
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
     public void positive_rejected_from_liberata() {
 
-        final String refundReference = performRefund();
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -549,6 +611,12 @@ public class RefundsApproverJourneyFunctionalTest {
                         || entry.get("notes").trim().equals("Rejected From Liberata - User Input"))
                 .isTrue();
         });
+
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
     @Test
@@ -562,35 +630,24 @@ public class RefundsApproverJourneyFunctionalTest {
                 accountNumber
             );
         accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
             SERVICE_TOKEN_CMC,
             testConfigProperties.basePaymentsUrl,
             accountPaymentRequest
         ).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payments by accountNumber
-        final PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(
-                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-                SERVICE_TOKEN_CMC,
-                accountNumber,
-                testConfigProperties.basePaymentsUrl
-            )
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        final Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-                return s2.getDateCreated().compareTo(s1.getDateCreated());
-            }).findFirst();
-
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        final String paymentReference = paymentDtoOptional.get().getPaymentReference();
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+        System.out.println("The value of the CCD Case Number " + paymentsResponse.getCcdCaseNumber());
+        final String paymentReference = paymentsResponse.getPaymentReference();
         System.out.println("The value of the Payment Reference : " + paymentReference);
 
         final PaymentRefundRequest paymentRefundRequest
@@ -620,51 +677,46 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundListDtoResponse.getRefundList().get(0).getRefundStatus().getDescription())
             .isEqualTo("Refund request submitted");
 
+        // delete payment record
+        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        //delete refunds record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
     }
 
-
-    @NotNull
-    private String performRefund() {
-
+    private String createPayment() {
         final String accountNumber = testConfigProperties.existingAccountNumber;
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
-            .pbaPaymentRequestForProbate(
-                "90.00",
-                "PROBATE",
-                accountNumber
-            );
+                .pbaPaymentRequestForProbate(
+                        "90.00",
+                        "PROBATE",
+                        accountNumber
+                );
         accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(
-            USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-            SERVICE_TOKEN_CMC,
-            testConfigProperties.basePaymentsUrl,
-            accountPaymentRequest
-        ).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success"));
-
-        // Get pba payments by accountNumber
-        final PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(
                 USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
                 SERVICE_TOKEN_CMC,
-                accountNumber,
-                testConfigProperties.basePaymentsUrl
-            )
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+                testConfigProperties.basePaymentsUrl,
+                accountPaymentRequest
+        ).then()
+                .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        final Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-                return s2.getDateCreated().compareTo(s1.getDateCreated());
-            }).findFirst();
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        final String paymentReference = paymentDtoOptional.get().getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+        System.out.println("The value of the CCD Case Number " + paymentsResponse.getCcdCaseNumber());
+        final String paymentReference = paymentsResponse.getPaymentReference();
+        System.out.println("The value of the Payment Reference : " + paymentsResponse.getCcdCaseNumber());
+        return paymentReference;
+    }
 
+    @NotNull
+    private String performRefund(String paymentReference) {
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference);
         Response refundResponse = paymentTestService.postInitiateRefund(
@@ -693,36 +745,25 @@ public class RefundsApproverJourneyFunctionalTest {
                 accountNumber
             );
         accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
             SERVICE_TOKEN_CMC,
             testConfigProperties.basePaymentsUrl,
             accountPaymentRequest
         ).then()
-            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payments by accountNumber
-        final PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(
-                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-                SERVICE_TOKEN_CMC,
-                accountNumber,
-                testConfigProperties.basePaymentsUrl
-            )
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                        .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        final Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-                return s2.getDateCreated().compareTo(s1.getDateCreated());
-            }).findFirst();
-
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        final String paymentReference = paymentDtoOptional.get().getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+        System.out.println("The value of the CCD Case Number " + paymentsResponse.getCcdCaseNumber());
+        final String paymentReference = paymentsResponse.getPaymentReference();
+        System.out.println("The value of the Payment Reference : " + paymentsResponse.getCcdCaseNumber());
 
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference);

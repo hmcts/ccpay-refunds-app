@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -295,6 +296,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             }
         }
         throw new ActionNotFoundException("Action not allowed to proceed");
+    }
+
+    @Override
+    @Transactional
+    public void deleteRefund(String reference) {
+        long records = refundsRepository.deleteByReference(reference);
+        if (records < 1)
+            throw new RefundNotFoundException("No records found for given refund reference");
     }
 
     private String validateRefundReason(String reason) {
