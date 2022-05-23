@@ -302,8 +302,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Transactional
     public void deleteRefund(String reference) {
         long records = refundsRepository.deleteByReference(reference);
-        if (records < 1)
+        if (records == 0) {
             throw new RefundNotFoundException("No records found for given refund reference");
+        }
     }
 
     private String validateRefundReason(String reason) {
