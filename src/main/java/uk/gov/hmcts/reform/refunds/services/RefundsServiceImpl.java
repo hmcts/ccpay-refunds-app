@@ -61,7 +61,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
-    private static final Pattern REASONPATTERN = Pattern.compile("(^RR0\\d\\d-[a-zA-Z]+)");
+    private static final Pattern REASONPATTERN = Pattern.compile("(^RR0[0-9][0-9]-[a-zA-Z]+)");
 
     private static final String OTHERREASONPATTERN = "Other - ";
 
