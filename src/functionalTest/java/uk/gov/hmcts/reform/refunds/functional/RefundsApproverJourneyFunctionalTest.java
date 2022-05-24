@@ -386,7 +386,8 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
-        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
+            .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         final String refundReferenceFromRefundList = optionalRefundDto.orElseThrow().getRefundReference();
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
