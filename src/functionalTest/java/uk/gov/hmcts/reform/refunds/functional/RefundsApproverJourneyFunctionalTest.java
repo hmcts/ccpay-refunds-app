@@ -70,7 +70,6 @@ public class RefundsApproverJourneyFunctionalTest {
     private static String SERVICE_TOKEN;
     private static String USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE;
     private static String SERVICE_TOKEN_PAY_BUBBLE_PAYMENT;
-    private static String USER_TOKEN_CITIZEN_WITH_PAYMENTS_ROLE;
     private static String USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
@@ -80,7 +79,7 @@ public class RefundsApproverJourneyFunctionalTest {
         REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
 
         RestAssured.baseURI = testConfigProperties.baseTestUrl;
         if (!TOKENS_INITIALIZED) {
@@ -153,7 +152,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> statusHistoryList =
             refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
+        statusHistoryList.forEach(entry -> {
             assertThat(
                 entry.get("status").trim().equals("Rejected")
                     || entry.get("status").trim().equals("Sent for approval"))
@@ -217,9 +216,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
-        refundListDtoResponse.getRefundList().stream().forEach(refundDto -> {
-            assertThat(refundDto.getRefundReference()).isNotEqualTo(refundReference);
-        });
+        refundListDtoResponse.getRefundList().forEach(refundDto -> assertThat(refundDto.getRefundReference()).isNotEqualTo(refundReference));
 
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -276,7 +273,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> statusHistoryList =
             refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
+        statusHistoryList.forEach(entry -> {
             assertThat(
                 entry.get("status").trim().equals("Approved")
                     || entry.get("status").trim().equals("Sent for approval"))
@@ -285,7 +282,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 entry.get("notes").trim().equals("Sent to middle office")
                     || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
                 .isTrue();
-        });//The Lifecylcle of Statuses against a Refund will be maintained for all the statuses should be checked
+        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
         //Should be verified as a call out to Liberata....
 
         // delete payment record
@@ -382,8 +379,6 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -391,9 +386,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
-        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
+        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         final String refundReferenceFromRefundList = optionalRefundDto.orElseThrow().getRefundReference();
         Response refundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -402,7 +395,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> statusHistoryList =
             refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
+        statusHistoryList.forEach(entry -> {
             assertThat(
                 entry.get("status").trim().equals("Sent for approval")
                     || entry.get("status").trim().equals("Update required"))
@@ -411,7 +404,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 entry.get("notes").trim().equals("Refund initiated and sent to team leader")
                     || entry.get("notes").trim().equals("More evidence is required"))
                 .isTrue();
-        });//The Lifecylcle of Statuses against a Refund will be maintained for all the statuses should be checked
+        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
         Response resubmitRefundResponse = paymentTestService.resubmitRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -437,16 +430,12 @@ public class RefundsApproverJourneyFunctionalTest {
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         final Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-                return s2.getDateCreated().compareTo(s1.getDateCreated());
-            }).findFirst();
+            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
         //assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
         final String paymentReference1 = paymentDtoOptional.get().getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentDtoOptional.get().getCcdCaseNumber());
 
         // delete payment record
         paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
@@ -492,7 +481,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> statusHistoryList =
             refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
+        statusHistoryList.forEach(entry -> {
             assertThat(
                 entry.get("status").trim().equals("Accepted")
                     || entry.get("status").trim().equals("Approved")
@@ -579,8 +568,6 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
         Response updateReviewRefund = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -599,7 +586,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> statusHistoryList =
             refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.stream().forEach(entry -> {
+        statusHistoryList.forEach(entry -> {
             assertThat(
                 entry.get("status").trim().equals("Rejected")
                     || entry.get("status").trim().equals("Approved")
@@ -646,9 +633,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentsResponse.getCcdCaseNumber());
         final String paymentReference = paymentsResponse.getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentReference);
 
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference);
@@ -658,8 +643,6 @@ public class RefundsApproverJourneyFunctionalTest {
             paymentRefundRequest,
             testConfigProperties.basePaymentsUrl
         );
-        System.out.println(refundResponse.getStatusLine());
-        System.out.println(refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         final RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         final String refundReference = refundResponseFromPost.getRefundReference();
@@ -709,10 +692,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentsResponse.getCcdCaseNumber());
-        final String paymentReference = paymentsResponse.getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentsResponse.getCcdCaseNumber());
-        return paymentReference;
+        return paymentsResponse.getPaymentReference();
     }
 
     @NotNull
@@ -725,8 +705,6 @@ public class RefundsApproverJourneyFunctionalTest {
             paymentRefundRequest,
             testConfigProperties.basePaymentsUrl
         );
-        System.out.println(refundResponse.getStatusLine());
-        System.out.println(refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         final RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         final String refundReference = refundResponseFromPost.getRefundReference();
@@ -761,9 +739,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        System.out.println("The value of the CCD Case Number " + paymentsResponse.getCcdCaseNumber());
         final String paymentReference = paymentsResponse.getPaymentReference();
-        System.out.println("The value of the Payment Reference : " + paymentsResponse.getCcdCaseNumber());
 
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference);
@@ -773,8 +749,6 @@ public class RefundsApproverJourneyFunctionalTest {
             paymentRefundRequest,
             testConfigProperties.basePaymentsUrl
         );
-        System.out.println(refundResponse.getStatusLine());
-        System.out.println(refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         final RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         final String refundReference = refundResponseFromPost.getRefundReference();

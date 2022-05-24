@@ -10,16 +10,12 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.inject.Named;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Named
 public class PaymentTestService {
-
-    private final Map<String, String> authHeaders = new HashMap<>();
 
     public Response postPbaPayment(final String userToken,
                                    final String serviceToken,
@@ -122,11 +118,6 @@ public class PaymentTestService {
     public RequestSpecification givenWithAuthHeaders(final String userToken, final String serviceToken) {
         return RestAssured.given()
             .header(AUTHORIZATION, userToken)
-            .header("ServiceAuthorization", serviceToken);
-    }
-
-    public RequestSpecification givenWithServiceHeaders(final String serviceToken) {
-        return RestAssured.given()
             .header("ServiceAuthorization", serviceToken);
     }
 
