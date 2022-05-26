@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -218,6 +220,17 @@ public class RefundsController {
         }
         return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
 
+    }
+
+    @ApiOperation(value = "Delete Refund details by refund reference", notes = "Delete refund details for supplied refund reference")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Refund deleted successfully"),
+            @ApiResponse(code = 404, message = "Refund not found for the given reference")
+    })
+    @DeleteMapping("/refund/{reference}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteRefund(@RequestHeader("Authorization") String authorization, @PathVariable String reference) {
+        refundsService.deleteRefund(reference);
     }
 
 }

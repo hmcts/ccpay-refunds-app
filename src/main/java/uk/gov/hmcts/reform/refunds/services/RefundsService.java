@@ -30,4 +30,6 @@ public interface RefundsService {
     StatusHistoryResponseDto getStatusHistory(MultiValueMap<String, String> headers, String reference);
 
     ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request, MultiValueMap<String, String> headers);
+
+    void deleteRefund(String reference);
 }
