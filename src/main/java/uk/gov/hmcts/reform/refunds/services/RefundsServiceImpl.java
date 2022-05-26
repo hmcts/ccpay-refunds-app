@@ -65,7 +65,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String OTHERREASONPATTERN = "Other - ";
 
-    private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*+$");
+    private static final String ROLEPATTERN = "^.*refund.*$";
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
     @Autowired
@@ -143,7 +143,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         LOG.info("refundList: {}", refundList);
         // Get Refunds related Roles from logged in user
-        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
+        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
             .collect(Collectors.toList());
         LOG.info("roles: {}", roles);
         return getRefundListDto(headers, refundList, roles);
