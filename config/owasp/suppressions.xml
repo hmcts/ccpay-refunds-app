@@ -2,7 +2,9 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
   <suppress until="2030-01-01">
     <notes><![CDATA[
+
      Suppressing as it's a false positive (see: https://pivotal.io/security/cve-2018-1258)
+
    ]]></notes>
     <gav regex="true">^org\.springframework\.security:spring-security-crypto:5.4.[0-5]</gav>
     <cpe>cpe:/a:pivotal_software:spring_security</cpe>
@@ -67,6 +69,13 @@
     <cve>CVE-2022-22968</cve>
   </suppress>
   <suppress until="2022-06-30">
+    <notes>temp suppression
+    </notes>
+    <cve>CVE-2022-22971</cve>
+    <cve>CVE-2022-22970</cve>
+    <cve>CVE-2022-29885</cve>
+  </suppress>
+  <suppress>  
     <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, applications that
       handle file uploads are vulnerable to DoS attack if they rely on data binding to set a MultipartFile or
       javax.servlet.Part to a field in a model object.
@@ -79,5 +88,4 @@
     </notes>
     <cve>CVE-2022-22971</cve>
   </suppress>
-
 </suppressions>
