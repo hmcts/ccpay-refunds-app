@@ -30,4 +30,5 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer> {
 
     Optional<List<Refund>> findByCcdCaseNumberAndCreatedBy(String ccdCaseNumber, String createdBy);
 
+    long deleteByReference(String reference);
 }

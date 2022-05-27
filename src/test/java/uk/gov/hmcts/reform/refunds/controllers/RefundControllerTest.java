@@ -96,6 +96,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -1820,6 +1821,29 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest())
             .andReturn();
+    }
+
+    @Test
+    void givenDummyReference_whenDeleteRefund_thenRefundNotFoundException() throws Exception {
+        mockMvc.perform(delete("/refund/dummy")
+                .header("Authorization", "user")
+                .header("ServiceAuthorization", "Services"))
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
+
+    @Test
+    void givenValidReference_whenDeleteRefund_thenRefundNotFoundException() throws Exception {
+
+        long records = 1;
+        when(refundsRepository.deleteByReference(anyString())).thenReturn(records);
+
+        mockMvc.perform(delete("/refund/RF-1234-1234-1234-1234")
+                .header("Authorization", "user")
+                .header("ServiceAuthorization", "Services"))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
     }
 
     private PaymentGroupResponse getPaymentGroupDto() {
