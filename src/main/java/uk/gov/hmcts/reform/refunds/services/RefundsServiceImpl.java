@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.Notification;
@@ -70,7 +71,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String OTHERREASONPATTERN = "Other - ";
 
-    private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
+    private static final String ROLEPATTERN = "^.*refund.*$";
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
     private static int amountCompareValue = 1;
@@ -179,7 +180,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         LOG.info("refundList: {}", refundList);
         // Get Refunds related Roles from logged in user
-        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
+        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
             .collect(Collectors.toList());
         LOG.info("roles: {}", roles);
         return getRefundListDto(headers, refundList, roles);
@@ -341,6 +342,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             }
         }
         throw new ActionNotFoundException("Action not allowed to proceed");
+    }
+
+    @Override
+    @Transactional
+    public void deleteRefund(String reference) {
+        long records = refundsRepository.deleteByReference(reference);
+        if (records == 0) {
+            throw new RefundNotFoundException("No records found for given refund reference");
+        }
     }
 
     private String validateRefundReason(String reason) {

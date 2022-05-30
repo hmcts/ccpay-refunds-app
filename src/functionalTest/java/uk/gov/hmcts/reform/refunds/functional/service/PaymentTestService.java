@@ -10,16 +10,12 @@ import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentReques
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.inject.Named;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Named
 public class PaymentTestService {
-
-    private final Map<String, String> authHeaders = new HashMap<>();
 
     public Response postPbaPayment(final String userToken,
                                    final String serviceToken,
@@ -137,8 +133,21 @@ public class PaymentTestService {
             .header("ServiceAuthorization", serviceToken);
     }
 
-    public RequestSpecification givenWithServiceHeaders(final String serviceToken) {
-        return RestAssured.given()
-            .header("ServiceAuthorization", serviceToken);
+    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .when()
+                .get("/credit-account-payments/{reference}", paymentReference);
+    }
+
+    public Response deletePayment(String userToken, String serviceToken, String paymentReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .when()
+                .delete("/credit-account-payments/{paymentReference}", paymentReference);
+    }
+
+    public Response deleteRefund(final String userToken, final String serviceToken,
+                                 final String refundReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .delete("/refund/{reference}", refundReference);
     }
 }

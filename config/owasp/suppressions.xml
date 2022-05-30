@@ -67,7 +67,31 @@
     <cve>CVE-2022-22968</cve>
   </suppress>
   <suppress until="2022-06-30">
-    <notes>temp suppression</notes>
-    <cve>CVE-2022-29885</cve>
+    <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, applications that
+      handle file uploads are vulnerable to DoS attack if they rely on data binding to set a MultipartFile or
+      javax.servlet.Part to a field in a model object.
+    </notes>
+    <cve>CVE-2022-22970</cve>
+  </suppress>
+  <suppress until="2022-06-30">
+    <notes>In spring framework versions prior to 5.3.20+, 5.2.22+ and old unsupported versions, application with a
+      STOMP over WebSocket endpoint is vulnerable to a denial of service attack by an authenticated user.
+    </notes>
+    <cve>CVE-2022-22971</cve>
+  </suppress>
+  <suppress until="2022-06-30">
+    <notes>In Spring Cloud OpenFeign 3.0.0 to 3.0.4, 2.2.0.RELEASE to 2.2.9.RELEASE, and older unsupported versions,
+      applications using type-level `@RequestMapping`annotations over Feign client interfaces, can be involuntarily
+      exposing endpoints corresponding to `@RequestMapping`-annotated interface methods.
+    </notes>
+    <cve>CVE-2021-22044</cve>
+    <cve>CVE-2020-5408</cve>
+    <cve>CVE-2022-22976</cve>
+    <cve>CVE-2022-22969</cve>
+    <cve>CVE-2021-22119</cve>
+    <cve>CVE-2022-22978</cve>
+    <cve>CVE-2021-22096</cve>
+    <cve>CVE-2021-22118</cve>
+    <cve>CVE-2021-22060</cve>
   </suppress>
 </suppressions>
