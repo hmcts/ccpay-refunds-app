@@ -24,9 +24,6 @@ public class IdamService {
     public static final String CMC_CASE_WORKER_GROUP = "caseworker";
 
     public static final String BEARER = "Bearer ";
-    public static final String AUTHORIZATION_CODE = "authorization_code";
-    public static final String CODE = "code";
-    public static final String BASIC = "Basic ";
     public static final String GRANT_TYPE = "password";
     public static final String SCOPES = "openid profile roles";
     public static final String SCOPES_SEARCH_USER = "openid profile roles search-user";
@@ -140,6 +137,6 @@ public class IdamService {
     }
 
     private String nextUserEmail() {
-        return String.format(testConfig.getGeneratedUserEmailPattern(), UUID.randomUUID().toString());
+        return String.format(testConfig.getGeneratedUserEmailPattern(), UUID.randomUUID());
     }
 }

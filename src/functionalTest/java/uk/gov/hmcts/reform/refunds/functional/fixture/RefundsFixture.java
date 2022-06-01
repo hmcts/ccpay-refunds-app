@@ -16,21 +16,17 @@ import java.util.Random;
 
 public final class RefundsFixture {
 
-    private RefundsFixture() {
-    }
+    private RefundsFixture() {}
 
-    public static final CreditAccountPaymentRequest pbaPaymentRequestForProbate(final String amountString,
-                                                                                final String service, final String pbaAccountNumber) {
+    public static CreditAccountPaymentRequest pbaPaymentRequestForProbate(final String amountString,
+                                                                          final String service, final String pbaAccountNumber) {
         Random rand = new Random();
-        String ccdCaseNumber = String.format(
-            (Locale) null, //don't want any thousand separators
-            "%04d22%04d%04d%02d",
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(99)
-        );
-        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+                                             "%04d22%04d%04d%02d",
+                                             rand.nextInt(10000),
+                                             rand.nextInt(10000),
+                                             rand.nextInt(10000),
+                                             rand.nextInt(99));
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
