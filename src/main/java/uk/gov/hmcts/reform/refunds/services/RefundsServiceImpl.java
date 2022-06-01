@@ -281,24 +281,40 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request,
                                                     MultiValueMap<String, String> headers) {
 
+        LOG.info("INSIDE resubmitRefund");
+
+        LOG.info("INSIDE resubmitRefund request: {}", request);
+
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
+
+        LOG.info("REFUND OBJECT: {}", refund);
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
 
+        LOG.info("REFUNDSTATE OBJECT: {}", currentRefundState);
+
 
         if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED)) {
+
+            LOG.info("INSIDE REFUND STATUS IF");
 
             // Refund Reason Validation
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
                 validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
 
+            LOG.info("REFUND REASON: {}", refundReason);
+
+
             refund.setAmount(request.getAmount());
 
             if (!(refund.getReason().equals(RETROSPECTIVE_REMISSION_REASON)) && !(RETROSPECTIVE_REMISSION_REASON.equals(refundReason))) {
+                LOG.info("INSIDE REFUND REASON IF");
                 refund.setReason(refundReason);
             }
 
             BigDecimal totalRefundedAmount = getTotalRefundedAmountResubmitRefund(refund.getPaymentReference(), request.getAmount());
+
+            LOG.info("TOTAL REFUNDED AMOUNT: {}", totalRefundedAmount);
 
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
@@ -309,10 +325,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .totalRefundedAmount(totalRefundedAmount)
                 .build();
 
+            LOG.info("TOTAL REFUNDED AMOUNT: {}", totalRefundedAmount);
+
+
             boolean payhubRemissionUpdateResponse = paymentService
                 .updateRemissionAmountInPayhub(headers, refund.getPaymentReference(), refundResubmitPayhubRequest);
 
+            LOG.info("PAYHUB REMISSION RESPONSE: {}", payhubRemissionUpdateResponse);
+
+
             if (payhubRemissionUpdateResponse) {
+                LOG.info("INSIDE PAYHUB_REMISSION_UPDATE_REPONSE IF");
+
                 // Update Status History table
                 IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
                 refund.setUpdatedBy(idamUserIdResponse.getUid());
