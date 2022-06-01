@@ -80,6 +80,7 @@ public class RefundNotificationMapper {
         recipientPostalAddress.setPostalCode(refund.getContactDetails().getPostalCode());
         recipientPostalAddress.setCity(refund.getContactDetails().getCity());
         recipientPostalAddress.setCountry(refund.getContactDetails().getCountry());
+        recipientPostalAddress.setCounty(refund.getContactDetails().getCounty());
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
             .templateId(refundsUtil.getTemplate(refund))
             .recipientPostalAddress(recipientPostalAddress)
