@@ -286,7 +286,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
 
 
-        if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED) || currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED) ) {
+        if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED) || currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
 
             // Refund Reason Validation
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
