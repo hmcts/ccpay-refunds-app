@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerExcept
 import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
 import uk.gov.hmcts.reform.refunds.mappers.RefundReviewMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
@@ -103,6 +104,26 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             statusMessage = refundEvent.equals(RefundEvent.REJECT) ? "Refund rejected" : "Refund returned to caseworker";
         }
         return new ResponseEntity<>(statusMessage, HttpStatus.CREATED);
+    }
+
+    @Override
+    public ResponseEntity<String> cancelRefunds(MultiValueMap<String, String> headers, String reference, String failureType) {
+        List<RefundStatus> forbiddenStatus = List.of(RefundStatus.ACCEPTED, RefundStatus.REJECTED, RefundStatus.CANCELLED);
+        List<Refund> refundList = refundsService.getRefundsForPaymentReference(reference);
+        for (Refund refund : refundList) {
+            if (!forbiddenStatus.contains(refund.getRefundStatus())) {
+                List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
+                refund.setUpdatedBy("dummy");
+                statusHistories.add(StatusHistory.statusHistoryWith()
+                        .createdBy("dummy")
+                        .status(RefundStatus.CANCELLED.getName())
+                        .notes("Payment failed due to " + failureType)
+                        .build());
+                refund.setStatusHistories(statusHistories);
+                updateRefundStatus(refund, RefundEvent.CANCEL);
+            }
+        }
+        return new ResponseEntity<>("Refund cancelled", HttpStatus.OK);
     }
 
     private Refund validatedAndGetRefundForGivenReference(String reference, String userId) {

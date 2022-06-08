@@ -9,4 +9,5 @@ public interface RefundReviewService {
     ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
                                         RefundEvent refundEvent, RefundReviewRequest refundReviewRequest);
 
+    ResponseEntity<String> cancelRefunds(MultiValueMap<String, String> headers, String reference, String failureType);
 }

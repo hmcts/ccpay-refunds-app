@@ -8,7 +8,7 @@ public enum RefundState {
     SENTFORAPPROVAL {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{RefundEvent.APPROVE, RefundEvent.REJECT, RefundEvent.UPDATEREQUIRED};
+            return new RefundEvent[]{RefundEvent.APPROVE, RefundEvent.REJECT, RefundEvent.UPDATEREQUIRED, RefundEvent.CANCEL};
         }
 
         @Override
@@ -20,6 +20,8 @@ public enum RefundState {
                     return REJECTED;
                 case UPDATEREQUIRED:
                     return NEEDMOREINFO;
+                case CANCEL:
+                    return CANCELLED;
                 default:
                     return this;
             }
@@ -43,7 +45,7 @@ public enum RefundState {
                 case SUBMIT:
                     return SENTFORAPPROVAL;
                 case CANCEL:
-                    return REJECTED;
+                    return CANCELLED;
                 default:
                     return this;
             }
@@ -68,6 +70,8 @@ public enum RefundState {
                     return ACCEPTED;
                 case REJECT:
                     return REJECTED;
+                case CANCEL:
+                    return CANCELLED;
                 default:
                     return this;
 
@@ -109,6 +113,22 @@ public enum RefundState {
         @Override
         public RefundStatus getRefundStatus() {
             return RefundStatus.REJECTED;
+        }
+    },
+    CANCELLED {
+        @Override
+        public RefundEvent[] nextValidEvents() {
+            return RefundEvent.values();
+        }
+
+        @Override
+        public RefundState nextState(RefundEvent refundEvent) {
+            return this;
+        }
+
+        @Override
+        public RefundStatus getRefundStatus() {
+            return RefundStatus.CANCELLED;
         }
     };
 
