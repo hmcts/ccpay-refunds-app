@@ -310,7 +310,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public List<Refund> getRefundsForPaymentReference(String paymentReference) {
         Optional<List<Refund>> refundList = refundsRepository.findByPaymentReference(paymentReference);
-        if (refundList.isPresent()) {
+        if (null != refundList && !refundList.isEmpty()) {
             return refundList.get();
         }
         throw new RefundNotFoundException("Refunds not found for payment reference " + paymentReference);
