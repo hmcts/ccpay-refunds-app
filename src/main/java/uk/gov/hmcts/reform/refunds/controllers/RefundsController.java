@@ -22,10 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.*;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -233,7 +230,7 @@ public class RefundsController {
         refundsService.deleteRefund(reference);
     }
 
-    @ApiOperation(value = "PATCH refund/{reference}/cancel ", notes = "Cancel Refund Request")
+    @ApiOperation(value = "PATCH payment/{reference}/action/cancel ", notes = "Cancel Refund Request")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 400, message = "Bad Request"),
@@ -245,7 +242,7 @@ public class RefundsController {
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> cancelRefunds(
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable(value = "reference") String reference,
+            @PathVariable String reference,
             @RequestBody String failureType) {
         return refundReviewService.cancelRefunds(headers, reference, failureType);
     }

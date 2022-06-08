@@ -1833,7 +1833,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void givenValidReference_whenDeleteRefund_thenRefundNotFoundException() throws Exception {
+    void givenValidReference_whenDeleteRefund_thenRefundIsDeleted() throws Exception {
 
         long records = 1;
         when(refundsRepository.deleteByReference(anyString())).thenReturn(records);
@@ -1844,6 +1844,23 @@ class RefundControllerTest {
                 .andExpect(status().isNoContent())
                 .andReturn();
 
+    }
+
+    @Test
+    void givenPaymentReference_whenCancelRefunds_thenRefundsAreCancelled() throws Exception {
+
+        List<Refund> refunds = Collections.singletonList(getRefund());
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+
+        MvcResult result = mockMvc.perform(patch(
+                "/payment/{paymentReference}/action/cancel",
+                "RC-1111-2222-3333-4444"
+        )
+                .content("cancelRefundsRequest")
+                .contentType(MediaType.TEXT_PLAIN)
+                .accept(MediaType.TEXT_PLAIN))
+                .andExpect(status().isOk())
+                .andReturn();
     }
 
     private PaymentGroupResponse getPaymentGroupDto() {

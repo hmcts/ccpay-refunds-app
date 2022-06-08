@@ -25,8 +25,10 @@ import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
+import static uk.gov.hmcts.reform.refunds.state.RefundState.CANCELLED;
 import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
 
 @Service
@@ -110,13 +112,14 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     public ResponseEntity<String> cancelRefunds(MultiValueMap<String, String> headers, String reference, String failureType) {
         List<RefundStatus> forbiddenStatus = List.of(RefundStatus.ACCEPTED, RefundStatus.REJECTED, RefundStatus.CANCELLED);
         List<Refund> refundList = refundsService.getRefundsForPaymentReference(reference);
+        List<StatusHistory> statusHistories = new LinkedList<>();
         for (Refund refund : refundList) {
             if (!forbiddenStatus.contains(refund.getRefundStatus())) {
-                List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
+                statusHistories.addAll(refund.getStatusHistories());
                 refund.setUpdatedBy("dummy");
                 statusHistories.add(StatusHistory.statusHistoryWith()
                         .createdBy("dummy")
-                        .status(RefundStatus.CANCELLED.getName())
+                        .status(CANCELLED.name())
                         .notes("Payment failed due to " + failureType)
                         .build());
                 refund.setStatusHistories(statusHistories);
