@@ -233,7 +233,7 @@ public class RefundsController {
         refundsService.deleteRefund(reference);
     }
 
-    @ApiOperation(value = "PATCH payment/{reference}/action/cancel ", notes = "Cancel Refund Request")
+    @ApiOperation(value = "PATCH payment/{paymentReference}/action/cancel ", notes = "Cancel Refund Request")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 400, message = "Bad Request"),
@@ -241,13 +241,12 @@ public class RefundsController {
             @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
 
     })
-    @PatchMapping("/payment/{reference}/action/cancel")
+    @PatchMapping("/payment/{paymentReference}/action/cancel")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> cancelRefunds(
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable String reference,
-            @RequestBody String failureType) {
-        return refundReviewService.cancelRefunds(headers, reference, failureType);
+            @PathVariable String paymentReference) {
+        return refundReviewService.cancelRefunds(headers, paymentReference);
     }
 
 }

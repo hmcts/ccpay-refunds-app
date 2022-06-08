@@ -1838,15 +1838,14 @@ class RefundControllerTest {
         List<Refund> refunds = Collections.singletonList(getRefund());
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
 
-        mockMvc.perform(patch(
+        MvcResult mvcResult = mockMvc.perform(patch(
                 "/payment/{paymentReference}/action/cancel",
-                "RC-1111-2222-3333-4444"
-        )
-                .content("cancelRefundsRequest")
-                .contentType(MediaType.TEXT_PLAIN)
-                .accept(MediaType.TEXT_PLAIN))
+                "RC-1111-2222-3333-4444"))
                 .andExpect(status().isOk())
                 .andReturn();
+
+        String message = mvcResult.getResponse().getContentAsString();
+        assertEquals("Refund cancelled", message);
     }
 
     @Test
@@ -1856,11 +1855,7 @@ class RefundControllerTest {
 
         MvcResult mvcResult = mockMvc.perform(patch(
                 "/payment/{paymentReference}/action/cancel",
-                "RC-1111-2222-3333-4444"
-        )
-                .content("cancelRefundsRequest")
-                .contentType(MediaType.TEXT_PLAIN)
-                .accept(MediaType.TEXT_PLAIN))
+                "RC-1111-2222-3333-4444"))
                 .andExpect(status().isNotFound())
                 .andReturn();
 

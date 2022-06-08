@@ -58,6 +58,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
+    private static final String NOTES = "Refund cancelled due to payment failure";
+    private static final String REFUND_CANCELLED = "Refund cancelled";
 
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
@@ -109,9 +111,9 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     }
 
     @Override
-    public ResponseEntity<String> cancelRefunds(MultiValueMap<String, String> headers, String reference, String failureType) {
+    public ResponseEntity<String> cancelRefunds(MultiValueMap<String, String> headers, String paymentReference) {
         List<RefundStatus> forbiddenStatus = List.of(RefundStatus.ACCEPTED, RefundStatus.REJECTED, RefundStatus.CANCELLED);
-        List<Refund> refundList = refundsService.getRefundsForPaymentReference(reference);
+        List<Refund> refundList = refundsService.getRefundsForPaymentReference(paymentReference);
         List<StatusHistory> statusHistories = new LinkedList<>();
         for (Refund refund : refundList) {
             if (!forbiddenStatus.contains(refund.getRefundStatus())) {
@@ -120,13 +122,13 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 statusHistories.add(StatusHistory.statusHistoryWith()
                         .createdBy("dummy")
                         .status(CANCELLED.name())
-                        .notes("Payment failed due to " + failureType)
+                        .notes(NOTES)
                         .build());
                 refund.setStatusHistories(statusHistories);
                 updateRefundStatus(refund, RefundEvent.CANCEL);
             }
         }
-        return new ResponseEntity<>("Refund cancelled", HttpStatus.OK);
+        return new ResponseEntity<>(REFUND_CANCELLED, HttpStatus.OK);
     }
 
     private Refund validatedAndGetRefundForGivenReference(String reference, String userId) {
