@@ -1852,7 +1852,7 @@ class RefundControllerTest {
     @Test
     void givenPaymentReference_whenCancelRefunds_thenRefundNotFoundException() throws Exception {
 
-        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(null);
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
         MvcResult mvcResult = mockMvc.perform(patch(
                 "/payment/{paymentReference}/action/cancel",
