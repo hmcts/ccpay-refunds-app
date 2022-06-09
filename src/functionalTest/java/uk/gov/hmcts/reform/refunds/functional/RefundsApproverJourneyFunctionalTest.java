@@ -90,8 +90,9 @@ public class RefundsApproverJourneyFunctionalTest {
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE =
-                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver")
-                    .getAuthorisationToken();
+                    idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver",
+                            "payments")
+                            .getAuthorisationToken();
 
             SERVICE_TOKEN_CMC =
                 s2sTokenService.getS2sToken(testConfigProperties.cmcS2SName, testConfigProperties.cmcS2SSecret);
@@ -130,7 +131,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund
             = paymentTestService.patchReviewRefund(
@@ -182,7 +183,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -252,7 +253,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -304,7 +305,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -339,7 +340,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
@@ -626,8 +627,10 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Get pba payment by reference
         PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference(),
-                        testConfigProperties.basePaymentsUrl).then()
+                paymentTestService
+                        .getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                paymentDto.getReference(),
+                                testConfigProperties.basePaymentsUrl).then()
                         .statusCode(OK.value()).extract().as(PaymentDto.class);
 
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
@@ -686,14 +689,16 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Get pba payment by reference
         PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference(),
-                        testConfigProperties.basePaymentsUrl).then()
+                paymentTestService
+                        .getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                paymentDto.getReference(),
+                                testConfigProperties.basePaymentsUrl).then()
                         .statusCode(OK.value()).extract().as(PaymentDto.class);
 
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        return paymentsResponse.getPaymentReference();
+        return paymentsResponse.getReference();
     }
 
     @NotNull
