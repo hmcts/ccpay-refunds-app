@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static uk.gov.hmcts.reform.refunds.state.RefundState.CANCELLED;
 import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
 
 @Service
