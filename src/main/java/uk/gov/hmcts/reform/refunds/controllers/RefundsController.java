@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,10 +36,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
-import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
-import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
-import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.*;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -65,6 +64,8 @@ public class RefundsController {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsController.class);
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -246,6 +247,7 @@ public class RefundsController {
     public ResponseEntity<String> cancelRefunds(
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable String paymentReference) {
+        LOG.info("Cancelling refunds with payment reference {}", paymentReference);
         return refundReviewService.cancelRefunds(headers, paymentReference);
     }
 
