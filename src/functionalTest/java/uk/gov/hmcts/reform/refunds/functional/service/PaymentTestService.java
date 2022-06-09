@@ -121,8 +121,10 @@ public class PaymentTestService {
             .header("ServiceAuthorization", serviceToken);
     }
 
-    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference) {
+    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference,
+                                  final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
                 .when()
                 .get("/credit-account-payments/{reference}", paymentReference);
     }
