@@ -60,6 +60,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
     private static final String NOTES = "Refund cancelled due to payment failure";
     private static final String REFUND_CANCELLED = "Refund cancelled";
+    private static final String CANCELLED = "Cancelled";
 
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
@@ -121,7 +122,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                 refund.setUpdatedBy("dummy");
                 statusHistories.add(StatusHistory.statusHistoryWith()
                         .createdBy("dummy")
-                        .status(CANCELLED.name())
+                        .status(CANCELLED)
                         .notes(NOTES)
                         .build());
                 refund.setStatusHistories(statusHistories);

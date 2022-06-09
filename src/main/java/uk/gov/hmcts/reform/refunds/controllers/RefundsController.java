@@ -6,8 +6,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,8 +65,6 @@ public class RefundsController {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
-
-    private static final Logger LOG = LoggerFactory.getLogger(RefundsController.class);
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -237,21 +233,5 @@ public class RefundsController {
         refundsService.deleteRefund(reference);
     }
 
-    @ApiOperation(value = "PATCH payment/{paymentReference}/action/cancel ", notes = "Cancel Refund Request")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 400, message = "Bad Request"),
-            @ApiResponse(code = 404, message = "Refund Not found"),
-            @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
-
-    })
-    @PatchMapping("/payment/{paymentReference}/action/cancel")
-    @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<String> cancelRefunds(
-            @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable String paymentReference) {
-        LOG.info("Cancelling refunds with payment reference {}", paymentReference);
-        return refundReviewService.cancelRefunds(headers, paymentReference);
-    }
 
 }
