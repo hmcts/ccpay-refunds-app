@@ -223,14 +223,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
-            LOG.info("Before Fetching reason");
             refundList.stream()
                 .filter(e -> userIdsWithGivenRoles.stream()
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
-                    LOG.info("Refund reason returned {}", reason);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
@@ -475,16 +473,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
-        LOG.info("rawReason in getRefundReason {}", rawReason);
         if (null != rawReason && rawReason.startsWith("RR")) {
             List<RefundReason> refundReasonOptional =  refundReasonList.stream()
                 .filter(refundReason -> refundReason.getCode().equalsIgnoreCase(rawReason))
                 .collect(Collectors.toList());
             if (!refundReasonOptional.isEmpty()) {
-                LOG.info("refundReasonOptional is Empty ");
                 return refundReasonOptional.get(0).getName();
             }
-            LOG.info("Before Throwing Exception for Incorrect Reason");
             throw new RefundReasonNotFoundException(rawReason);
         }
         return rawReason;
