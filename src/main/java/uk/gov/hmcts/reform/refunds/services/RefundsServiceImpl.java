@@ -208,23 +208,29 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             LOG.info("Fetching cached refunds user list from IDAM...");
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
+            LOG.info("userIdentityDataDtoSet retrieved from Context Listener {} ",userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
+            LOG.info("userIdsWithGivenRoles {}",userIdsWithGivenRoles);
+            LOG.info("refundList {}",refundList);
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
+                    LOG.info("refund created By {}",refund.getCreatedBy());
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
                     contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
                     userIdentityDataDtoSet.add(userIdentityDataDto);
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
+            LOG.info("Before Fetching reason");
             refundList.stream()
                 .filter(e -> userIdsWithGivenRoles.stream()
                     .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())
                 .forEach(refund -> {
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
+                    LOG.info("Refund reason returned {}", reason);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
@@ -469,13 +475,16 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
+        LOG.info("rawReason in getRefundReason {}", rawReason);
         if (null != rawReason && rawReason.startsWith("RR")) {
             List<RefundReason> refundReasonOptional =  refundReasonList.stream()
                 .filter(refundReason -> refundReason.getCode().equalsIgnoreCase(rawReason))
                 .collect(Collectors.toList());
             if (!refundReasonOptional.isEmpty()) {
+                LOG.info("refundReasonOptional is Empty ");
                 return refundReasonOptional.get(0).getName();
             }
+            LOG.info("Before Throwing Exception for Incorrect Reason");
             throw new RefundReasonNotFoundException(rawReason);
         }
         return rawReason;
