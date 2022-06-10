@@ -106,7 +106,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1;
 import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID;
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
@@ -1830,37 +1829,6 @@ class RefundControllerTest {
                 .andExpect(status().isNoContent())
                 .andReturn();
 
-    }
-
-    @Test
-    void givenPaymentReference_whenCancelRefunds_thenRefundsAreCancelled() throws Exception {
-
-        List<Refund> refunds = Collections.singletonList(getRefund());
-        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
-
-        MvcResult mvcResult = mockMvc.perform(patch(
-                "/payment/{paymentReference}/action/cancel",
-                "RC-1111-2222-3333-4444"))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String message = mvcResult.getResponse().getContentAsString();
-        assertEquals("Refund cancelled", message);
-    }
-
-    @Test
-    void givenPaymentReference_whenCancelRefunds_thenRefundNotFoundException() throws Exception {
-
-        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
-
-        MvcResult mvcResult = mockMvc.perform(patch(
-                "/payment/{paymentReference}/action/cancel",
-                "RC-1111-2222-3333-4444"))
-                .andExpect(status().isNotFound())
-                .andReturn();
-
-        String errorMessage = mvcResult.getResponse().getContentAsString();
-        assertEquals("Refunds not found for payment reference RC-1111-2222-3333-4444", errorMessage);
     }
 
     private PaymentGroupResponse getPaymentGroupDto() {

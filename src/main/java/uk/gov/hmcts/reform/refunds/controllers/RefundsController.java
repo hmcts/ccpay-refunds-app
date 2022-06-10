@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -34,8 +35,11 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
+import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.util.List;
 import javax.validation.Valid;
@@ -57,6 +61,9 @@ public class RefundsController {
     private RefundStatusService refundStatusService;
 
     @Autowired
+    private RefundReviewService refundReviewService;
+
+    @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
     @GetMapping("/refund/reasons")
@@ -69,11 +76,11 @@ public class RefundsController {
 
     @ApiOperation(value = "POST /refund ", notes = "Submit Refund Request")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "retrieved"),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 404, message = "Not found"),
-        @ApiResponse(code = 500, message = "Internal Server Error")
+            @ApiResponse(code = 200, message = "retrieved"),
+            @ApiResponse(code = 400, message = "Bad Request"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 404, message = "Not found"),
+            @ApiResponse(code = 500, message = "Internal Server Error")
 
     })
     @PostMapping("/refund")
@@ -81,7 +88,7 @@ public class RefundsController {
     public ResponseEntity<RefundResponse> createRefund(@RequestHeader("Authorization") String authorization,
                                                        @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                        @Valid @RequestBody RefundRequest refundRequest) throws CheckDigitException,
-                                                        InvalidRefundRequestException {
+            InvalidRefundRequestException {
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
@@ -90,20 +97,20 @@ public class RefundsController {
 
     @ApiOperation(value = "GET /refund ", notes = "Get refund list based on status")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Success"),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 401, message = "UnAuthorised"),
-        @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 504, message = "Unable to retrieve service information")
+            @ApiResponse(code = 200, message = "Success"),
+            @ApiResponse(code = 400, message = "Bad Request"),
+            @ApiResponse(code = 401, message = "UnAuthorised"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 504, message = "Unable to retrieve service information")
 
     })
     @GetMapping("/refund")
     public ResponseEntity<RefundListDtoResponse> getRefundList(
-        @RequestHeader("Authorization") String authorization,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @RequestParam(required = false) String status,
-        @RequestParam(required = false) String ccdCaseNumber,
-        @RequestParam(required = false) String excludeCurrentUser) {
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String ccdCaseNumber,
+            @RequestParam(required = false) String excludeCurrentUser) {
 
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
@@ -111,24 +118,24 @@ public class RefundsController {
 
         if (StringUtils.isBlank(status) && StringUtils.isBlank(ccdCaseNumber)) {
             throw new RefundListEmptyException(
-                "Please provide criteria to fetch refunds i.e. Refund status or ccd case number");
+                    "Please provide criteria to fetch refunds i.e. Refund status or ccd case number");
         }
 
         return new ResponseEntity<>(
-            refundsService.getRefundList(
-                status,
-                headers,
-                ccdCaseNumber,
-                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser
-            ),
-            HttpStatus.OK
+                refundsService.getRefundList(
+                        status,
+                        headers,
+                        ccdCaseNumber,
+                        excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser
+                ),
+                HttpStatus.OK
         );
     }
 
     @ApiOperation(value = "Update refund status by refund reference", notes = "Update refund status by refund reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 204, message = "No content"),
-        @ApiResponse(code = 404, message = "Refund details not found")
+            @ApiResponse(code = 204, message = "No content"),
+            @ApiResponse(code = 404, message = "Refund details not found")
     })
     @PatchMapping("/refund/{reference}")
     @Transactional(rollbackFor = Exception.class)
@@ -176,6 +183,43 @@ public class RefundsController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "PATCH refund/{reference}/action/{reviewer-action} ", notes = "Review Refund Request")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Ok"),
+            @ApiResponse(code = 201, message = "Refund request reviewed successfully"),
+            @ApiResponse(code = 400, message = "Bad Request"),
+            @ApiResponse(code = 401, message = "IDAM User Authorization Failed"),
+            @ApiResponse(code = 403, message = "RPE Service Authentication Failed"),
+            @ApiResponse(code = 404, message = "Refund Not found"),
+            @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
+
+    })
+    @PatchMapping("/refund/{reference}/action/{reviewer-action}")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity<String> reviewRefund(
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader(required = false) MultiValueMap<String, String> headers,
+            @PathVariable(value = "reference", required = true) String reference,
+            @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+            @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
+    }
+
+
+    @GetMapping("/refund/{reference}/actions")
+    public ResponseEntity<RefundEvent[]> retrieveActions(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable String reference) {
+        if (featureToggler.getBooleanValue("refunds-release",false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        return new ResponseEntity<>(refundsService.retrieveActions(reference), HttpStatus.OK);
+
     }
 
     @ApiOperation(value = "Delete Refund details by refund reference", notes = "Delete refund details for supplied refund reference")
