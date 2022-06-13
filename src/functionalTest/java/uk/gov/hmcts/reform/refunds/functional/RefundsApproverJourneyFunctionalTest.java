@@ -421,7 +421,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 .isTrue();
         });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
         Response resubmitRefundResponse = paymentTestService.resubmitRefund(
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             ResubmitRefundRequest.ResubmitRefundRequestWith()
                 .amount(new BigDecimal("80.00"))
