@@ -344,16 +344,6 @@ public class RefundsApproverJourneyFunctionalTest {
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
 
-        //This API Request tests the Retrieve Actions endpoint as well.
-        Response response = paymentTestService.getRetrieveActions(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference
-        );
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(4);
-
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
