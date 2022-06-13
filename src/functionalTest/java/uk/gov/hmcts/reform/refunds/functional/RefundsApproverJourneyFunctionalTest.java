@@ -346,7 +346,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference
         );
