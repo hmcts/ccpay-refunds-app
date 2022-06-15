@@ -69,3 +69,6 @@ variable "product_name" {
   default = "refunds"
 
 }
+
+variable "environmentName" {}
+variable "builtFrom" {}

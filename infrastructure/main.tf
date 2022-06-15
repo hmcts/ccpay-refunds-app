@@ -37,7 +37,7 @@ module "ccpay-refunds-database-v11" {
   sku_name = var.sku_name
   sku_capacity = var.sku_capacity
   sku_tier = "GeneralPurpose"
-  common_tags = var.common_tags
+  common_tags = module.ctags.common_tags
   subscription = var.subscription
   postgresql_version = var.postgresql_version
 }
@@ -103,4 +103,11 @@ data "azurerm_key_vault_secret" "s2s_client_secret" {
 data "azurerm_key_vault_secret" "s2s_client_id" {
   name         = "gateway-s2s-client-id"
   key_vault_id = data.azurerm_key_vault.refund_key_vault.id
+}
+
+module "ctags" {
+  source      = "git::https://github.com/hmcts/terraform-module-common-tags.git?ref=master"
+  environment = lower(var.environment)
+  product     = var.product
+  builtFrom   = var.builtFrom
 }
