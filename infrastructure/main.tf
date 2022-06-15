@@ -106,7 +106,7 @@ data "azurerm_key_vault_secret" "s2s_client_id" {
 }
 
 module "ctags" {
-  source      = "https://github.com/hmcts/terraform-module-common-tags.git?ref=master"
+  source      = "git@github.com:https://github.com/hmcts/terraform-module-common-tags.git?ref=master"
   environment = lower(var.environment)
   product     = var.product
   builtFrom   = var.builtFrom
