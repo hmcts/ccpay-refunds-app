@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -246,6 +247,7 @@ public class RefundsApproverJourneyFunctionalTest {
             refundReference);
     }
 
+    @Ignore
     @Test
     public void positive_approve_a_refund_request() {
 
@@ -377,6 +379,7 @@ public class RefundsApproverJourneyFunctionalTest {
             refundReference);
     }
 
+    @Ignore
     @Test
     public void positive_resubmit_refund_journey() {
 
@@ -467,6 +470,7 @@ public class RefundsApproverJourneyFunctionalTest {
             refundReference);
     }
 
+    @Ignore
     @Test
     public void positive_approval_from_liberata() {
 
@@ -526,6 +530,7 @@ public class RefundsApproverJourneyFunctionalTest {
             refundReference);
     }
 
+    @Ignore
     @Test
     public void negative_double_approval_from_liberata() {
 
@@ -578,6 +583,7 @@ public class RefundsApproverJourneyFunctionalTest {
             refundReference);
     }
 
+    @Ignore
     @Test
     public void positive_rejected_from_liberata() {
 
