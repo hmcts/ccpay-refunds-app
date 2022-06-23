@@ -133,7 +133,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund
             = paymentTestService.patchReviewRefund(
@@ -188,7 +188,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -262,7 +262,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -317,7 +317,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -355,7 +355,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(3);
+        assertThat(refundEvents.size()).isEqualTo(4);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE,
@@ -688,7 +688,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
 
         final Response refundListResponse =
-            paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, accountPaymentRequest.getCcdCaseNumber()
             );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
