@@ -46,12 +46,12 @@ withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSecurityScan()
   enableMutationTest()
-  //enableFortifyScan()
+  enableFortifyScan()
   enableFullFunctionalTest()
 
-  //after('fortify-scan') {
-  //  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
-  //}
+  after('fortify-scan') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
+  }
 
   after('fullFunctionalTest') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
