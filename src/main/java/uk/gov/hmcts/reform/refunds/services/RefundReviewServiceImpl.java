@@ -60,7 +60,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private static final String NOTES = "Refund cancelled due to payment failure";
     private static final String REFUND_CANCELLED = "Refund cancelled";
     private static final String CANCELLED = "Cancelled";
-    private static final String LIBERATA_NAME = "Middle office provider";
+    private static final String FEE_AND_PAY = "Fee and Pay";
 
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
@@ -119,9 +119,9 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         for (Refund refund : refundList) {
             if (!forbiddenStatus.contains(refund.getRefundStatus())) {
                 statusHistories.addAll(refund.getStatusHistories());
-                refund.setUpdatedBy(LIBERATA_NAME);
+                refund.setUpdatedBy(FEE_AND_PAY);
                 statusHistories.add(StatusHistory.statusHistoryWith()
-                        .createdBy(LIBERATA_NAME)
+                        .createdBy(FEE_AND_PAY)
                         .status(CANCELLED)
                         .notes(NOTES)
                         .build());
