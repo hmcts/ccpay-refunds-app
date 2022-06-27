@@ -67,8 +67,6 @@ public class RefundsApproverJourneyFunctionalTest {
     @Autowired
     private RefundsRepository refundsRepository;
 
-    private static String USER_TOKEN;
-    private static String SERVICE_TOKEN;
     private static String USER_TOKEN_CMC_CITIZEN_WITH_PAYMENT_ROLE;
     private static String SERVICE_TOKEN_PAY_BUBBLE_PAYMENT;
     private static String USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE;
@@ -170,7 +168,9 @@ public class RefundsApproverJourneyFunctionalTest {
         });
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -206,7 +206,9 @@ public class RefundsApproverJourneyFunctionalTest {
         //Further verify that there is no invocation ofx Liberata
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -300,7 +302,9 @@ public class RefundsApproverJourneyFunctionalTest {
         //Should be verified as a call out to Liberata....
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -335,7 +339,9 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(BAD_REQUEST.value());
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -370,7 +376,9 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(FORBIDDEN.value());
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -451,8 +459,12 @@ public class RefundsApproverJourneyFunctionalTest {
         final String paymentReference1 = paymentDtoOptional.get().getPaymentReference();
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference1).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference1).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -508,7 +520,9 @@ public class RefundsApproverJourneyFunctionalTest {
         });
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -557,7 +571,9 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateReviewRefundAgain.getBody().asString()).isEqualTo("Action not allowed to proceed");
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -613,7 +629,9 @@ public class RefundsApproverJourneyFunctionalTest {
         });
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentReference).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentReference).then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -645,7 +663,8 @@ public class RefundsApproverJourneyFunctionalTest {
         // Get pba payments by accountNumber
         // Get pba payment by reference
         PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                paymentTestService.getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference()).then()
                         .statusCode(OK.value()).extract().as(PaymentDto.class);
 
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
@@ -679,7 +698,9 @@ public class RefundsApproverJourneyFunctionalTest {
             .isEqualTo("Refund request submitted");
 
         // delete payment record
-        paymentTestService.deletePayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
+        paymentTestService
+                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                        paymentDto.getReference()).then().statusCode(NO_CONTENT.value());
         //delete refunds record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -753,7 +774,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Get pba payment by reference
         PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                paymentTestService.getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference()).then()
                         .statusCode(OK.value()).extract().as(PaymentDto.class);
 
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
@@ -800,7 +822,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Get pba payment by reference
         PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
+                paymentTestService.getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference()).then()
                         .statusCode(OK.value()).extract().as(PaymentDto.class);
 
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
