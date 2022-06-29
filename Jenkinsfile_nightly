@@ -15,8 +15,8 @@ properties([
 @Library("Infrastructure")
 
 def type = "java"
-def product = "rpe"
-def component = "spring-boot-template"
+def product = "payment"
+def component = "api"
 
 def secrets = [
   'ccpay-${env}': [
@@ -47,7 +47,7 @@ withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSecurityScan()
   enableMutationTest()
-  enableFortifyScan()
+  enableFortifyScan('ccpay-aat')
   enableFullFunctionalTest()
 
   after('fortify-scan') {
