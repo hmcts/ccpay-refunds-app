@@ -201,10 +201,6 @@ def versions = [
   sonarPitest    : '0.5'
 ]
 
-dependencies{
-  testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
-}
-
 task fortifyScan(type: JavaExec)  {
   main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
   classpath += sourceSets.test.runtimeClasspath
