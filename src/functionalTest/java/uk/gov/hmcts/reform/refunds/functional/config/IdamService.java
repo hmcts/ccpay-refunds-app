@@ -77,7 +77,6 @@ public class IdamService {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
 
-        LOG.info("username : " + username);
         LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
         LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
 
@@ -101,7 +100,6 @@ public class IdamService {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
 
-        LOG.info("username : " + username);
         LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
         LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
 
