@@ -3,6 +3,7 @@
 properties([
   // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
   pipelineTriggers([cron('H 22 * * *')]),
+
   parameters([
     string(name: 'URL_TO_TEST', defaultValue: 'http://refund-api-aat.service.core-compute-aat.internal', description: 'The URL you want to run these tests against'),
     string(name: 'SecurityRules',
@@ -14,8 +15,8 @@ properties([
 @Library("Infrastructure")
 
 def type = "java"
-def product = "rpe"
-def component = "spring-boot-template"
+def product = "payment"
+def component = "api"
 
 def secrets = [
   'ccpay-${env}': [
@@ -46,7 +47,7 @@ withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSecurityScan()
   enableMutationTest()
-  enableFortifyScan()
+  enableFortifyScan('ccpay-aat')
   enableFullFunctionalTest()
 
   after('fortify-scan') {
