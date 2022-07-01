@@ -65,8 +65,8 @@ public final class RefundsFixture {
                                 .refundAmount(new BigDecimal(refundAmount))
                                 .build())
                 )
-                .contactDetails(ContactDetails.contactDetailsWith().
-                        addressLine("High Street 112")
+                .contactDetails(ContactDetails.contactDetailsWith()
+                        .addressLine("High Street 112")
                         .country("UK")
                         .county("Londonshire")
                         .city("London")
