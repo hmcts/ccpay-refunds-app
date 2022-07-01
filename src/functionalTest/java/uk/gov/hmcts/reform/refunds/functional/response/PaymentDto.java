@@ -143,15 +143,10 @@ public class PaymentDto {
                 .add(getAmount() != null ? getAmount().toString() : "0.00")
                 .add(getSiteId());
 
-            String memoLineWithQuotes
-                = fee.getMemoLine() != null ? new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString() : "";
-            String naturalAccountCode = fee.getNaturalAccountCode() != null ? fee.getNaturalAccountCode() : "";
             sb.add(fee.getCode())
                 .add(fee.getVersion())
                 .add(fee.getCalculatedAmount() != null ? fee.getCalculatedAmount().toString() : "0.00")
-                .add(memoLineWithQuotes)
-                .add(naturalAccountCode)
-                .add(fee.getVolume() != null ? fee.getVolume().toString() : "1");
+                .add(fee.getUpdatedVolume() != null ? fee.getUpdatedVolume().toString() : "1");
 
             result.add(sb.toString());
         }
@@ -182,16 +177,11 @@ public class PaymentDto {
                 .add(getAmount().toString())
                 .add(getSiteId());
 
-            String memolineWithQuotes
-                = fee.getMemoLine() != null ? new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString() : "";
-            String naturalAccountCode = fee.getNaturalAccountCode() != null ? fee.getNaturalAccountCode() : "";
 
             sb.add(fee.getCode())
                 .add(fee.getVersion())
                 .add(fee.getCalculatedAmount().toString())
-                .add(memolineWithQuotes)
-                .add(naturalAccountCode)
-                .add(fee.getVolume().toString());
+                .add(fee.getUpdatedVolume().toString());
             result.add(sb.toString());
         }
 

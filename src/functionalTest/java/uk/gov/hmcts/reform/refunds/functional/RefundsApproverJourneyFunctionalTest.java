@@ -783,13 +783,18 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                paymentsResponse.getCcdCaseNumber(), "4",
+                testConfigProperties.basePaymentsUrl);
+
         return paymentsResponse.getReference();
     }
 
     @NotNull
     private String performRefund(String paymentReference) {
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
+            = RefundsFixture.refundRequest("RR001", paymentReference, "9", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -824,7 +829,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Get pba payment by reference
         PaymentDto paymentsResponse =
-                paymentTestService.getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                paymentTestService.getPbaPayment(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
                         SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference(),
                         testConfigProperties.basePaymentsUrl).then()
                         .statusCode(OK.value()).extract().as(PaymentDto.class);
@@ -834,10 +839,14 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         final String paymentReference = paymentsResponse.getReference();
 
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                paymentsResponse.getCcdCaseNumber(), "5",
+                testConfigProperties.basePaymentsUrl);
+
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
+            = RefundsFixture.refundRequest("RR001", paymentReference, "9", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             paymentRefundRequest,
             testConfigProperties.basePaymentsUrl

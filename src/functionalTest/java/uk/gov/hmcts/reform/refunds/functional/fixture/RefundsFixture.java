@@ -51,35 +51,30 @@ public final class RefundsFixture {
     public static final PaymentRefundRequest refundRequest(final String refundReason,
                                                            final String paymentReference, final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest
-            .refundRequestWith().paymentReference(paymentReference)
-            .refundReason(refundReason)
-            .serviceType("cmc")
-            .totalRefundAmount(new BigDecimal(refundAmount))
-            .fees(Lists.newArrayList(
-                FeeDto.feeDtoWith()
-                    .apportionAmount(BigDecimal.valueOf(0))
-                    .apportionedPayment(BigDecimal.valueOf(0))
-                    .calculatedAmount(new BigDecimal(feeAmount))
-                    .feeAmount(new BigDecimal(feeAmount))
-                    .refundAmount(new BigDecimal(feeAmount))
-                    .code("FEE0001")
-                    .id(0)
-                    .version("1")
-                    .volume(1)
-
-                    .build())
-            )
-            .contactDetails(ContactDetails.contactDetailsWith()
-                                                           .addressLine("High Street 112")
-                                                           .country("UK")
-                                                           .county("Londonshire")
-                                                           .city("London")
-                                                           .postalCode("P1 1PO")
-                                                           .email("ranjeet.kumar@HMCTS.NET")
-                                                           .notificationType("EMAIL")
-                                                           .build())
-
-            .build();
+                .refundRequestWith().paymentReference(paymentReference)
+                .refundReason(refundReason)
+                .totalRefundAmount(new BigDecimal(refundAmount))
+                .fees(Lists.newArrayList(
+                        FeeDto.feeDtoWith()
+                                .apportionAmount(BigDecimal.valueOf(0))
+                                .calculatedAmount(new BigDecimal(feeAmount))
+                                .code("FEE0001")
+                                .id(0)
+                                .version("1")
+                                .updatedVolume(1)
+                                .refundAmount(new BigDecimal(refundAmount))
+                                .build())
+                )
+                .contactDetails(ContactDetails.contactDetailsWith().
+                        addressLine("High Street 112")
+                        .country("UK")
+                        .county("Londonshire")
+                        .city("London")
+                        .postalCode("P1 1PO")
+                        .email("person@gmail.com")
+                        .notificationType("EMAIL")
+                        .build())
+                .build();
 
     }
 
