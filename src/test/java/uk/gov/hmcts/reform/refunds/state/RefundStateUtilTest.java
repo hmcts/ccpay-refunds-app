@@ -63,7 +63,8 @@ class RefundStateUtilTest extends StateUtil {
 
     @Test
     void returnNullOnInvalidState() throws Exception {
+        RefundState expectededValue = null;
         RefundState refundState = getRefundState("invalid state");
-        assertEquals(null,refundState);
+        assertEquals(expectededValue,refundState);
     }
 }
