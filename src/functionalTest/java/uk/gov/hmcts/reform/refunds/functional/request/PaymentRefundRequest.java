@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.functional.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -47,7 +48,6 @@ public class PaymentRefundRequest {
     @NotNull(message = "Contact Details cannot be null")
     private ContactDetails contactDetails;
 
-    @NotNull(message = "Service type cannot be null")
-    @NotEmpty(message = "Service type cannot be blank")
-    private String serviceType;
+    @JsonProperty("is_over_payment")
+    private boolean isOverPayment;
 }
