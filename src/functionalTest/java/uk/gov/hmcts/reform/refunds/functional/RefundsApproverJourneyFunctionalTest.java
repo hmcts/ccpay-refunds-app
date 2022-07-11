@@ -803,7 +803,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void Negative_when_refund_canceled_then_not_allow_sentBack() {
+    public void negative_when_refund_canceled_then_not_allow_sent_back() {
 
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
@@ -843,7 +843,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void Negative_when_refund_canceled_then_not_allow_refundApprove() {
+    public void negative_when_refund_canceled_then_not_allow_refund_approve() {
 
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
@@ -883,7 +883,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void Negative_when_refund_canceled_then_not_allow_refundReject() {
+    public void negative_when_refund_canceled_then_not_allow_refund_reject() {
 
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
