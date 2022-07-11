@@ -140,4 +140,15 @@ public class PaymentTestService {
         return givenWithAuthHeaders(userToken, serviceToken)
                 .delete("/refund/{reference}", refundReference);
     }
+
+    public Response patchCancelRefunds(final String serviceToken, final String paymentReference) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON).when()
+            .patch("/payment/{paymentReference}/action/cancel", paymentReference);
+    }
+
+    public RequestSpecification givenWithServiceHeaders(String serviceToken) {
+        return RestAssured.given()
+            .header("ServiceAuthorization", serviceToken);
+    }
 }
