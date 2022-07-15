@@ -62,3 +62,15 @@ databaseChangeLog:
               UPDATE refund_status SET name = 'Rejected' where name = 'rejected';
               UPDATE refund_status SET name = 'Accepted' where name = 'accepted';
               UPDATE refund_status SET name = 'Sent for approval' where name = 'sent for approval';
+
+  - changeSet:
+      id: 100008-6
+      author: Sayali
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_status (name, description)
+                VALUES
+                  ('Cancelled', 'Refund request cancelled');
