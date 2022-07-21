@@ -47,8 +47,6 @@ public class SpringSecurityConfiguration {
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
 
-    private static final String PAYMENTS_ROLE = "payments";
-
     @Configuration
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
@@ -180,8 +178,7 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
-                    .antMatchers(HttpMethod.GET,"/refund/payment-failure-report")
-                    .hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
+                    .antMatchers(HttpMethod.GET,"/refund/payment-failure-report").permitAll()
                     .antMatchers(HttpMethod.PATCH,"/payment/**").permitAll()
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()

@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +41,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -52,6 +55,8 @@ import static org.springframework.http.ResponseEntity.ok;
 @Api(tags = {"Refund Journey group"})
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals","PMD.ExcessiveImports"})
 public class RefundsController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     @Autowired
     private RefundReasonsService refundReasonsService;
@@ -151,6 +156,7 @@ public class RefundsController {
         if (paymentReferenceList == null || paymentReferenceList.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        LOG.info("Fetching the payment failure report based on given payment reference list");
 
         Optional<List<Refund>> paymentFailureList = refundsService.getPaymentFailureReport(paymentReferenceList);
 
@@ -158,6 +164,7 @@ public class RefundsController {
             throw new RefundListEmptyException(
                 "Payment failure details for the given payment reference list is not found. Please provide valid Payment Reference");
         }
+        LOG.info("Sending the payment failure report response");
 
         return new ResponseEntity<>(refundsService.getPaymentFailureDtoResponse(paymentFailureList), HttpStatus.OK);
     }

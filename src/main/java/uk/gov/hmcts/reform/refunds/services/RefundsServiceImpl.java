@@ -492,12 +492,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Optional<List<Refund>> refundList = Optional.empty();
 
         List<RefundStatus> refundStatusFilterNotIn = Arrays.asList(RefundStatus.ACCEPTED, RefundStatus.REJECTED);
-
+        LOG.info("Payment failure report requested for: {}", paymentReferenceList.size());
         refundList = refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(
             paymentReferenceList,
             refundStatusFilterNotIn
         );
-
+        LOG.info("Payment failure report retrieved");
         return refundList;
     }
 
@@ -514,6 +514,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         refundList.forEach(refund -> {
             paymentFailureDtoList.add(paymentFailureResponseMapper.getPaymentFailureDto(refund));
         });
+        LOG.info("Converted payment failure report to response");
 
         return paymentFailureDtoList;
     }
