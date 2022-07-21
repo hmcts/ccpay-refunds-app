@@ -645,4 +645,11 @@ public class RefundServiceImplTest {
         assertTrue(actualMessage.contains("Refund list is empty for given criteria"));
     }
 
+    @Test
+    void testPaymentFailureEmptyForCriteria() {
+        assertEquals(Optional.empty(), refundsService.getPaymentFailureReport(new ArrayList<String>()));
+    }
+
+
+
 }

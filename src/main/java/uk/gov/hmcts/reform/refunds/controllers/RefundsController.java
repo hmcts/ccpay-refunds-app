@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
@@ -42,13 +43,14 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @Api(tags = {"Refund Journey group"})
-@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals","PMD.ExcessiveImports"})
 public class RefundsController {
 
     @Autowired
@@ -112,6 +114,7 @@ public class RefundsController {
         @RequestParam(required = false) String ccdCaseNumber,
         @RequestParam(required = false) String excludeCurrentUser) {
 
+
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
@@ -132,6 +135,37 @@ public class RefundsController {
         );
     }
 
+    @ApiOperation(value = "GET /refund/payment-failure-report", notes = "Get payment failure report based on list of payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Success"),
+        @ApiResponse(code = 400, message = "Payment Reference is not provided. Bad Request"),
+        @ApiResponse(code = 401, message = "UnAuthorised"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 503, message = "Unable to retrieve payment failure report"),
+    })
+    @GetMapping("/refund/payment-failure-report")
+    public ResponseEntity getPaymentFailureReport(
+        @RequestHeader("Authorization") String authorization,
+        @RequestParam(required = false) List<String> paymentReferenceList) {
+
+        if (featureToggler.getBooleanValue("refunds-release", false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        if (paymentReferenceList == null || paymentReferenceList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<List<Refund>> paymentFailureList = refundsService.getPaymentFailureReport(paymentReferenceList);
+
+        if (paymentFailureList.get().isEmpty()) {
+            throw new RefundListEmptyException(
+                "Payment failure details for the given payment reference list is not found. Please provide valid Payment Reference");
+        }
+
+        return new ResponseEntity<>(refundsService.getPaymentFailureDtoResponse(paymentFailureList), HttpStatus.OK);
+    }
+
     @ApiOperation(value = "Update refund status by refund reference", notes = "Update refund status by refund reference")
     @ApiResponses(value = {
         @ApiResponse(code = 204, message = "No content"),
@@ -142,7 +176,7 @@ public class RefundsController {
     public ResponseEntity updateRefundStatus(@RequestHeader(required = false) MultiValueMap<String, String> headers,
                                              @PathVariable("reference") String reference,
                                              @RequestBody @Valid RefundStatusUpdateRequest request) {
-        if (featureToggler.getBooleanValue("refunds-release",false)) {
+        if (featureToggler.getBooleanValue("refunds-release", false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
         return refundStatusService.updateRefundStatus(reference, request, headers);
@@ -150,8 +184,8 @@ public class RefundsController {
 
     @ApiOperation(value = "Update refund reason and amount by refund reference", notes = "Update refund reason and amount by refund reference")
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "No content"),
-            @ApiResponse(code = 404, message = "Refund details not found")
+        @ApiResponse(code = 204, message = "No content"),
+        @ApiResponse(code = 404, message = "Refund details not found")
     })
     @PatchMapping("/refund/resubmit/{reference}")
     @Transactional(rollbackFor = Exception.class)

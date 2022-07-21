@@ -1846,6 +1846,20 @@ class RefundControllerTest {
 
     }
 
+    @Test
+    void testBlankInputExceptionForPaymentFailure() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/refund/payment-failure-report/")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .queryParam("paymentReferenceList", "")
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest()).andReturn();
+
+        assertEquals(400,mvcResult.getResponse().getStatus());
+
+    }
+
     private PaymentGroupResponse getPaymentGroupDto() {
         return PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")

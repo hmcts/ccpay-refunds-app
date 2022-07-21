@@ -4,6 +4,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -13,6 +14,7 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RefundsService {
 
@@ -24,6 +26,10 @@ public interface RefundsService {
 
     RefundListDtoResponse getRefundList(String status, MultiValueMap<String, String> headers, String ccdCaseNumber,
                                         String excludeCurrentUser);
+
+    Optional<List<Refund>> getPaymentFailureReport(List<String> paymentReference);
+
+    PaymentFailureReportDtoResponse getPaymentFailureDtoResponse(Optional<List<Refund>> refundList);
 
     List<RejectionReasonResponse> getRejectedReasons();
 
