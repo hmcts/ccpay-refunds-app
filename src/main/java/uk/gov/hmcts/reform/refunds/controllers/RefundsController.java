@@ -148,10 +148,6 @@ public class RefundsController {
         @RequestHeader("Authorization") String authorization,
         @RequestParam(required = false) List<String> paymentReferenceList) {
 
-        if (featureToggler.getBooleanValue("refunds-release", false)) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }
-
         if (paymentReferenceList == null || paymentReferenceList.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
