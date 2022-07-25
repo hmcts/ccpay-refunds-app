@@ -62,7 +62,7 @@ You should get a response similar to this:
 To skip all the setting up and building, just execute the following command:
 
 ```bash
-./bin/run-in-docker.sh
+  ./bin/run-in-docker.sh
 ```
 
 For more information:
