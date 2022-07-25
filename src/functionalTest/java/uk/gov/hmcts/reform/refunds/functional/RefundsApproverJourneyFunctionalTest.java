@@ -626,7 +626,7 @@ public class RefundsApproverJourneyFunctionalTest {
         ).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
-        // Get pba payment by reference
+        // Get pba payment by reference function
         PaymentDto paymentsResponse =
                 paymentTestService.getPbaPayment(USER_TOKEN, SERVICE_TOKEN, paymentDto.getReference()).then()
                         .statusCode(OK.value()).extract().as(PaymentDto.class);
