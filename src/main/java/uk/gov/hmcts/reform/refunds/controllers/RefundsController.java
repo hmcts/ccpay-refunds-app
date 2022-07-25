@@ -151,7 +151,6 @@ public class RefundsController {
     })
     @GetMapping("/refund/payment-failure-report")
     public ResponseEntity getPaymentFailureReport(
-        @RequestHeader("Authorization") String authorization,
         @RequestParam(required = false) List<String> paymentReferenceList) {
 
         if (paymentReferenceList == null || paymentReferenceList.isEmpty()) {

@@ -58,7 +58,7 @@ public class AuthCheckerConfiguration {
 
     @Bean
     public Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor() {
-        return (any) -> Stream.of("payments-refund", "payments-refund-approver","payments")
+        return (any) -> Stream.of("payments-refund", "payments-refund-approver")
             .collect(Collectors.toList());
     }
 }
