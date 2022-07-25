@@ -29,7 +29,7 @@ public interface RefundsService {
 
     Optional<List<Refund>> getPaymentFailureReport(List<String> paymentReference);
 
-    PaymentFailureReportDtoResponse getPaymentFailureDtoResponse(Optional<List<Refund>> refundList);
+    PaymentFailureReportDtoResponse getPaymentFailureDtoResponse(List<Refund> refundList);
 
     List<RejectionReasonResponse> getRejectedReasons();
 

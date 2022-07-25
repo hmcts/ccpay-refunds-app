@@ -143,10 +143,11 @@ public class RefundsController {
     @ApiOperation(value = "GET /refund/payment-failure-report", notes = "Get payment failure report based on list of payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Success"),
-        @ApiResponse(code = 400, message = "Payment Reference is not provided. Bad Request"),
+        @ApiResponse(code = 400, message = "Bad Request"),
         @ApiResponse(code = 401, message = "UnAuthorised"),
         @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 503, message = "Unable to retrieve payment failure report"),
+        @ApiResponse(code = 404, message = "Not found"),
+        @ApiResponse(code = 503, message = "Service Unavailable"),
     })
     @GetMapping("/refund/payment-failure-report")
     public ResponseEntity getPaymentFailureReport(
@@ -154,19 +155,24 @@ public class RefundsController {
         @RequestParam(required = false) List<String> paymentReferenceList) {
 
         if (paymentReferenceList == null || paymentReferenceList.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Please provide payment reference to retrieve payment failure report",HttpStatus.BAD_REQUEST);
         }
         LOG.info("Fetching the payment failure report based on given payment reference list");
 
         Optional<List<Refund>> paymentFailureList = refundsService.getPaymentFailureReport(paymentReferenceList);
 
-        if (paymentFailureList.get().isEmpty()) {
-            throw new RefundListEmptyException(
-                "Payment failure details for the given payment reference list is not found. Please provide valid Payment Reference");
-        }
-        LOG.info("Sending the payment failure report response");
+        if (paymentFailureList.isPresent() && !paymentFailureList.get().isEmpty()) {
+            LOG.info("Sending the payment failure report response");
 
-        return new ResponseEntity<>(refundsService.getPaymentFailureDtoResponse(paymentFailureList), HttpStatus.OK);
+            return new ResponseEntity<>(refundsService.getPaymentFailureDtoResponse(paymentFailureList.get()), HttpStatus.OK);
+        } else {
+            return new
+                ResponseEntity<>(
+                "Payment failure details for the given payment reference list is not found. Please provide valid Payment Reference",
+                HttpStatus.NOT_FOUND
+            );
+        }
+
     }
 
     @ApiOperation(value = "Update refund status by refund reference", notes = "Update refund status by refund reference")

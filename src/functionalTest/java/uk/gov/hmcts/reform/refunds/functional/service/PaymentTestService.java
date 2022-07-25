@@ -151,4 +151,13 @@ public class PaymentTestService {
         return RestAssured.given()
             .header("ServiceAuthorization", serviceToken);
     }
+
+    public Response getPaymentFailureReport(final String userToken,
+                                  final String serviceToken,
+                                  final String paymentReferenceList) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON).when()
+            .queryParams("paymentReferenceList", paymentReferenceList)
+            .get("/refund/payment-failure-report");
+    }
 }

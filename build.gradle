@@ -132,13 +132,7 @@ project.tasks['sonarqube'].dependsOn jacocoTestReport
 
 def sonarExclusions = [
   '**/model/**',
-  '**/config/**',
-  '**/services/RefundsService.java',
-  '**/services/RefundsServiceImpl.java',
-  '**/controllers/RefundsController.java',
-  '**/dtos/responses/PaymentFailureDto.java',
-  '**/dtos/responses/PaymentFailureReportDtoResponse.java',
-  '**/mapper/PaymentFailureResponseMapper.java'
+  '**/config/**'
 ]
 
 sonarqube {

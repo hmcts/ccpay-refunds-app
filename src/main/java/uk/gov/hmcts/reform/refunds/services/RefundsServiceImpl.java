@@ -212,11 +212,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                         break;
                     }
                 }
-                refundListDto.add(refundResponseMapper.getRefundListDto(
-                    refund,
-                    found.get(),
-                    reason
-                ));
+                if (found.isPresent()) {
+                    refundListDto.add(refundResponseMapper.getRefundListDto(
+                        refund,
+                        found.get(),
+                        reason
+                    ));
+                }
             }
         }
 
@@ -502,9 +504,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public PaymentFailureReportDtoResponse getPaymentFailureDtoResponse(Optional<List<Refund>> refundList) {
+    public PaymentFailureReportDtoResponse getPaymentFailureDtoResponse(List<Refund> refundList) {
         return PaymentFailureReportDtoResponse.buildPaymentFailureListWith().paymentFailureDto(
-            getPaymentFailureDtoList(refundList.get())).build();
+            getPaymentFailureDtoList(refundList)).build();
     }
 
     public List<PaymentFailureDto> getPaymentFailureDtoList(List<Refund> refundList) {

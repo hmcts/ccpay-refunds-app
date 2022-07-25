@@ -13,6 +13,7 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -24,6 +25,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -160,6 +162,8 @@ public class RefundServiceImplTest {
     @Mock
     private MultiValueMap<String, String> map;
     @Mock
+    private List<String> paymentReferenceList;
+    @Mock
     private RefundsRepository refundsRepository;
     @Mock
     private StatusHistoryRepository statusHistoryRepository;
@@ -171,6 +175,8 @@ public class RefundServiceImplTest {
     private StatusHistoryResponseMapper statusHistoryResponseMapper;
     @Spy
     private RefundResponseMapper refundResponseMapper;
+    @Spy
+    private PaymentFailureResponseMapper paymentFailureResponseMapper;
 
     @Mock
     private ContextStartListener contextStartListener;
@@ -646,8 +652,39 @@ public class RefundServiceImplTest {
     }
 
     @Test
-    void testPaymentFailureEmptyForCriteria() {
-        assertEquals(Optional.empty(), refundsService.getPaymentFailureReport(new ArrayList<String>()));
+    void testPaymentFailureForEmptyCriteria() {
+        when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(),any()))
+            .thenReturn(Optional.empty());
+        assertEquals(Optional.empty(), refundsService.getPaymentFailureReport(paymentReferenceList));
+    }
+
+    @Test
+    void testPaymentFailureReportForGivenPaymentReferenceList() {
+
+        when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(), any()))
+            .thenReturn(Optional.ofNullable(List.of(refundListSupplierForSendBackStatus.get())));
+
+        Optional<List<Refund>> refundList = refundsService.getPaymentFailureReport(paymentReferenceList);
+
+        assertThat(refundList).isPresent();
+
+        if (refundList.isPresent() && !refundList.get().isEmpty()) {
+            PaymentFailureReportDtoResponse paymentFailureReportDtoResponse =
+                refundsService.getPaymentFailureDtoResponse(refundList.get());
+            assertNotNull(paymentFailureReportDtoResponse);
+            assertEquals(1, paymentFailureReportDtoResponse.getPaymentFailureDto().size());
+            assertEquals(
+                "RC-3333-2234-1077-1123",
+                paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getPaymentReference()
+            );
+            assertEquals(
+                "RF-3333-2234-1077-1123",
+                paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getRefundReference()
+            );
+        }
+
+
+
     }
 
 
