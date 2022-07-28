@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.validation.Valid;
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 public class PaymentGroupResponse {
 
     private String paymentGroupReference;

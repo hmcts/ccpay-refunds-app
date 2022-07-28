@@ -1,11 +1,14 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +19,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
@@ -34,21 +40,24 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @Api(tags = {"Refund Journey group"})
-@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
 
     @Autowired
@@ -65,6 +74,11 @@ public class RefundsController {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @Autowired
+    private RefundNotificationService refundNotificationService;
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -160,9 +174,13 @@ public class RefundsController {
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable("reference") String reference,
             @RequestBody @Valid ResubmitRefundRequest request) {
+        LOG.info("ENTERED THE RESUBMIT ENDPOINT");
+
         if (featureToggler.getBooleanValue("refunds-release",false)) {
+            LOG.info("ENTERED FEATURE TOGGLER");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
+        LOG.info("BEFORE RETURN");
         return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 
@@ -231,6 +249,62 @@ public class RefundsController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRefund(@RequestHeader("Authorization") String authorization, @PathVariable String reference) {
         refundsService.deleteRefund(reference);
+    }
+
+    @ApiOperation(value = "PUT resend/notification/{reference} ", notes = "Resend Refund Notification")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Ok"),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "IDAM User Authorization Failed"),
+        @ApiResponse(code = 403, message = "RPE Service Authentication Failed"),
+        @ApiResponse(code = 404, message = "Refund Not found"),
+        @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
+
+    })
+    @PutMapping("resend/notification/{reference}")
+    public ResponseEntity<String> resendNotification(
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @RequestBody ResendNotificationRequest resendNotificationRequest,
+        @PathVariable String reference,
+        @RequestParam NotificationType notificationType
+    ) {
+        resendNotificationRequest.setReference(reference);
+        resendNotificationRequest.setNotificationType(notificationType);
+        return refundNotificationService.resendRefundNotification(resendNotificationRequest,headers);
+    }
+
+    @ApiOperation(value = "Re-process failed notifications of type email and letter",
+        notes = "Re-process failed notifications of type email and letter")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Re-processed the failed email and letter notifications")
+    })
+    @PatchMapping("/jobs/refund-notification-update")
+    @Transactional
+    public void processFailedNotifcations() throws JsonProcessingException {
+        refundNotificationService.processFailedNotificationsEmail();
+        refundNotificationService.processFailedNotificationsLetter();
+    }
+
+
+
+    @ApiOperation(value = "Re-process failed refunds which are approved and sent it to liberata",
+        notes = "Re-process failed refunds which are approved and sent it to liberata")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "The approved refunds are sent to liberata")
+    })
+    @PatchMapping("/jobs/refund-approved-update")
+    @Transactional
+    public void postFailedRefundsToLiberata() throws JsonProcessingException {
+        refundNotificationService.reprocessPostFailedRefundsToLiberata();
+    }
+
+    @GetMapping("/refundstest")
+    public ResponseEntity<String> searchRefundReconciliation1(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
+                                                        @RequestParam(name = "end_date") Optional<String> endDateTimeString,
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference
+    ) {
+        return new ResponseEntity<>("test",HttpStatus.OK);
     }
 
 }

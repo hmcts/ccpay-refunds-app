@@ -1,12 +1,16 @@
 package uk.gov.hmcts.reform.refunds.functional.fixture;
 
 import com.google.common.collect.Lists;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
+import uk.gov.hmcts.reform.refunds.functional.request.ContactDetails;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.FeeDto;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
 
@@ -44,11 +48,90 @@ public final class RefundsFixture {
             .build();
     }
 
-    public static PaymentRefundRequest refundRequest(final String refundReason,
-                                                     final String paymentReference) {
+    public static final PaymentRefundRequest refundRequest(final String refundReason,
+                                                           final String paymentReference, final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest
-            .refundRequestWith().paymentReference(paymentReference)
-            .refundReason(refundReason).build();
+                .refundRequestWith().paymentReference(paymentReference)
+                .refundReason(refundReason)
+                .totalRefundAmount(new BigDecimal(refundAmount))
+                .fees(Lists.newArrayList(
+                        FeeDto.feeDtoWith()
+                                .apportionAmount(BigDecimal.valueOf(0))
+                                .calculatedAmount(new BigDecimal(feeAmount))
+                                .code("FEE0001")
+                                .id(0)
+                                .version("1")
+                                .updatedVolume(1)
+                                .refundAmount(new BigDecimal(refundAmount))
+                                .build())
+                )
+                .contactDetails(ContactDetails.contactDetailsWith()
+                        .addressLine("High Street 112")
+                        .country("UK")
+                        .county("Londonshire")
+                        .city("London")
+                        .postalCode("P1 1PO")
+                        .email("person@gmail.com")
+                        .notificationType("EMAIL")
+                        .build())
+                .build();
 
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundAllInput() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .amount(new BigDecimal("80.00"))
+            .refundReason("RR002")
+            .refundFees(Arrays.asList(
+                RefundFeeDto.refundFeeRequestWith()
+                    .feeId(1)
+                    .code("FEE0001")
+                    .version("1")
+                    .volume(1)
+                    .refundAmount(new BigDecimal("80.00"))
+                    .build()))
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 112")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("P1 1PO")
+                                .email("testperson@somemail.com")
+                                .notificationType("EMAIL")
+                                .build())
+
+            .build();
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundWithAmount() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .amount(new BigDecimal("85.00"))
+            .build();
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundWithReason() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .refundReason("RR011")
+            .build();
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundWithContact() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 115")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("P1 1PO")
+                                .email("testperson@somemail.com")
+                                .notificationType("EMAIL")
+                                .build())
+            .build();
+    }
+
+    public static final ResubmitRefundRequest resubmitRefundWithRetroRemissionReason() {
+        return ResubmitRefundRequest.ResubmitRefundRequestWith()
+            .refundReason("RR036")
+            .build();
     }
 }

@@ -6,9 +6,9 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
 import javax.inject.Named;
 
@@ -48,6 +48,18 @@ public class PaymentTestService {
             .body(paymentRefundRequest)
             .when()
             .post("/refund-for-payment");
+    }
+
+    public Response updateThePaymentDateByCcdCaseNumberForCertainHours(final String userToken,
+                                                                       final String serviceToken,
+                                                                       final String ccdCaseNumber,
+                                                                       final String lagTime,
+                                                                       final String baseUri) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .when()
+            .patch("/payments/ccd_case_reference/{ccd_case_number}/lag_time/{lag_time}", ccdCaseNumber, lagTime);
     }
 
     public Response getRetrieveActions(final String userToken, final String serviceToken, final String reference) {
@@ -121,14 +133,16 @@ public class PaymentTestService {
             .header("ServiceAuthorization", serviceToken);
     }
 
-    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference) {
+    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
                 .when()
                 .get("/credit-account-payments/{reference}", paymentReference);
     }
 
-    public Response deletePayment(String userToken, String serviceToken, String paymentReference) {
+    public Response deletePayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
                 .when()
                 .delete("/credit-account-payments/{paymentReference}", paymentReference);
     }
