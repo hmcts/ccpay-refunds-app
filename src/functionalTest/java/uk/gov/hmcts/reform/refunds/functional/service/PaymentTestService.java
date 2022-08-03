@@ -121,14 +121,16 @@ public class PaymentTestService {
             .header("ServiceAuthorization", serviceToken);
     }
 
-    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference) {
+    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
                 .when()
                 .get("/credit-account-payments/{reference}", paymentReference);
     }
 
-    public Response deletePayment(String userToken, String serviceToken, String paymentReference) {
+    public Response deletePayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
                 .when()
                 .delete("/credit-account-payments/{paymentReference}", paymentReference);
     }
@@ -137,5 +139,16 @@ public class PaymentTestService {
                                  final String refundReference) {
         return givenWithAuthHeaders(userToken, serviceToken)
                 .delete("/refund/{reference}", refundReference);
+    }
+
+    public Response patchCancelRefunds(final String serviceToken, final String paymentReference) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON).when()
+            .patch("/payment/{paymentReference}/action/cancel", paymentReference);
+    }
+
+    public RequestSpecification givenWithServiceHeaders(String serviceToken) {
+        return RestAssured.given()
+            .header("ServiceAuthorization", serviceToken);
     }
 }

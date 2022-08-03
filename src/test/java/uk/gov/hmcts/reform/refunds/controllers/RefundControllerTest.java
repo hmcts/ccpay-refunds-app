@@ -1543,7 +1543,7 @@ class RefundControllerTest {
                             .header("Authorization", "user")
                             .header("ServiceAuthorization", "service")
                             .accept(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$", hasSize(3)))
+            .andExpect(jsonPath("$", hasSize(4)))
             .andExpect(jsonPath("$.[0].code").value("Approve"))
             .andExpect(jsonPath("$.[0].label").value("Send to middle office"))
             .andExpect(jsonPath("$.[1].code").value("Reject"))
