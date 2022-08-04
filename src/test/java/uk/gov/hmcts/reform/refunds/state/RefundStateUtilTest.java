@@ -9,6 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @ActiveProfiles({"local", "test"})
@@ -22,7 +23,7 @@ class RefundStateUtilTest extends StateUtil {
     private JwtDecoder jwtDecoder;
 
     @Test
-    void nextStateForSubmitOrSentForApproval() throws Exception {
+    void nextStateForSubmitOrSentForApproval() {
 
         RefundState refundState = RefundState.SENTFORAPPROVAL;
         assertEquals(RefundState.APPROVED, refundState.nextState(RefundEvent.APPROVE));
@@ -31,7 +32,7 @@ class RefundStateUtilTest extends StateUtil {
     }
 
     @Test
-    void nextStateForApprove() throws Exception {
+    void nextStateForApprove() {
 
         RefundState refundState = RefundState.APPROVED;
         assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.REJECT));
@@ -39,22 +40,22 @@ class RefundStateUtilTest extends StateUtil {
     }
 
     @Test
-    void nextStateForNeedMoreInfo() throws Exception {
+    void nextStateForNeedMoreInfo() {
 
         RefundState refundState = RefundState.NEEDMOREINFO;
         assertEquals(RefundState.SENTFORAPPROVAL, refundState.nextState(RefundEvent.SUBMIT));
-        assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.CANCEL));
+        assertEquals(RefundState.CANCELLED, refundState.nextState(RefundEvent.CANCEL));
     }
 
     @Test
-    void nextStateForAccept() throws Exception {
+    void nextStateForAccept() {
 
         RefundState refundState = RefundState.ACCEPTED;
         assertEquals(RefundState.ACCEPTED, refundState.nextState(RefundEvent.SUBMIT));
     }
 
     @Test
-    void nextStateForReject() throws Exception {
+    void nextStateForReject() {
 
         RefundState refundState = RefundState.REJECTED;
         assertEquals(RefundState.REJECTED, refundState.nextState(RefundEvent.SUBMIT));
@@ -62,9 +63,8 @@ class RefundStateUtilTest extends StateUtil {
 
 
     @Test
-    void returnNullOnInvalidState() throws Exception {
-        RefundState expectededValue = null;
+    void returnNullOnInvalidState() {
         RefundState refundState = getRefundState("invalid state");
-        assertEquals(expectededValue,refundState);
+        assertNull(refundState);
     }
 }
