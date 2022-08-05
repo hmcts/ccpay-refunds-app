@@ -61,6 +61,14 @@ sourceSets {
   }
 }
 
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  jcenter()
+  maven { url 'https://jitpack.io' }
+}
+
 tasks.withType(JavaCompile) {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
 }
@@ -212,11 +220,19 @@ def versions = [
   sonarPitest    : '0.5'
 ]
 
+task fortifyScan(type: JavaExec)  {
+  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+  classpath += sourceSets.test.runtimeClasspath
+  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
+}
+
 configurations {
   compileOnly {
     extendsFrom annotationProcessor
   }
 }
+
+apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
 dependencies {
 
@@ -245,7 +261,7 @@ dependencies {
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.17.1'
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.0.3'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.0.5'
   implementation group: 'io.github.openfeign', name: 'feign-jackson', version: '10.1.0'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.security.oauth', name: 'spring-security-oauth2', version: '2.5.0.RELEASE'
@@ -279,6 +295,7 @@ dependencies {
   compileOnly 'org.projectlombok:lombok'
   annotationProcessor 'org.projectlombok:lombok'
 
+  testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
   testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.3.0'
   testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.15.1'
   testCompile group: 'org.springframework.security', name: 'spring-security-test', version: '5.2.1.RELEASE'
