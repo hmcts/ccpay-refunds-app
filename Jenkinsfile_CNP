@@ -122,6 +122,12 @@ withPipeline(type, product, app) {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
 
+  before('functionalTest:aat') {
+    env.TEST_URL_PAYMENT = 'http://payment-api-aat.service.core-compute-aat.internal'
+    println """\
+                Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
+  }
+
   after('functionalTest:aat') {
     publishHTML target: [
       reportDir            : "target/site/serenity/",
