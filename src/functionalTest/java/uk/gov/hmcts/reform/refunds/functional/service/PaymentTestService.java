@@ -4,6 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
@@ -128,7 +129,7 @@ public class PaymentTestService {
     }
 
     public RequestSpecification givenWithAuthHeaders(final String userToken, final String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }

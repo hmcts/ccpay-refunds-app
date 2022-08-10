@@ -8,7 +8,7 @@ public enum RefundState {
     SENTFORAPPROVAL {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{RefundEvent.APPROVE, RefundEvent.REJECT, RefundEvent.UPDATEREQUIRED, RefundEvent.CANCEL};
+            return new RefundEvent[]{RefundEvent.APPROVE, RefundEvent.REJECT, RefundEvent.UPDATEREQUIRED};
         }
 
         @Override
