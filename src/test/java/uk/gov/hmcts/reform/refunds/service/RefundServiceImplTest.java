@@ -48,7 +48,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -307,7 +308,7 @@ public class RefundServiceImplTest {
     @Test
     void givenReferenceIsNull_whenGetStatusHistory_thenNullIsReceived() {
         StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(null, null);
-        assertThat(StatusHistoryResponseDto.statusHistoryResponseDtoWith().build().equals(statusHistoryResponseDto));
+        assertThat(StatusHistoryResponseDto.statusHistoryResponseDtoWith().build(), equalTo(statusHistoryResponseDto));
     }
 
     @Test
