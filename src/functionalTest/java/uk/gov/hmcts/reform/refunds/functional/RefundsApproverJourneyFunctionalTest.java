@@ -1172,8 +1172,8 @@ public class RefundsApproverJourneyFunctionalTest {
                                                                        "Sent for approval", "false");
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
-        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream().
-            sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
+        Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
+                .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         Assert.assertNotNull(optionalRefundDto.get().getContactDetails());
 
         // Reject the refund
