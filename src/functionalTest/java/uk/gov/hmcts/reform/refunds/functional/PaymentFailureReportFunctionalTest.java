@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +99,7 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
+    @Ignore
     public void paymentFailureReportRequestForRejectedRefundStatus() {
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
@@ -132,6 +134,7 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
+    @Ignore
     public void paymentFailureReportRequestForEmptyPaymentReference() {
 
         paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
