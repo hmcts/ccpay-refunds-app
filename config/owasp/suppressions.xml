@@ -135,4 +135,13 @@
     </notes>
     <cve>CVE-2022-31548</cve>
   </suppress>
+  <suppress until="2022-09-30">
+    <notes>
+      Using PostgreSQL JDBC Driver, it may be possible for the malicious user to craft a schema
+      that causes the application to execute commands as the privileged user.
+      Patched versions will be released as `42.2.26` and `42.4.1`. It is advised to upgrade.
+      There are no known workarounds for this issue
+    </notes>
+    <cve>CVE-2022-31197</cve>
+  </suppress>
 </suppressions>

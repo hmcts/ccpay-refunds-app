@@ -11,8 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
 import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
@@ -22,6 +21,7 @@ import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
+import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.math.BigDecimal;
 import java.util.regex.Pattern;
@@ -98,55 +98,21 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
-    public void paymentFailureReportRequestForAcceptedRefundStatus() {
-        final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
-
-        Response updateReviewRefund = paymentTestService.updateRefundStatus(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundStatusUpdateRequest
-                .RefundRequestWith()
-                .reason("Accepted")
-                .status(RefundStatus.ACCEPTED).build()
-        );
-
-        assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
-
-        paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
-                                                   SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference
-            ).then()
-            .statusCode(NOT_FOUND.value());
-
-        // delete payment record
-        paymentTestService
-            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                           paymentReference, testConfigProperties.basePaymentsUrl
-            ).then()
-            .statusCode(NO_CONTENT.value());
-        // delete refund record
-        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                        refundReference
-        );
-    }
-
-    @Test
     public void paymentFailureReportRequestForRejectedRefundStatus() {
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
 
-        Response updateReviewRefund = paymentTestService.updateRefundStatus(
+        Response responseReviewRefund
+            = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
-            RefundStatusUpdateRequest
-                .RefundRequestWith()
-                .reason("Rejected")
-                .status(RefundStatus.REJECTED).build()
+            ReviewerAction.REJECT.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE003")
+                .reason("The case details don’t match the help with fees details").build()
         );
-
-        assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund rejected");
 
         paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
                                                    SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference
