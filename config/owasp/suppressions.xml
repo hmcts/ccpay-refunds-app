@@ -134,5 +134,12 @@
       Flask send_file function is used unsafely.
     </notes>
     <cve>CVE-2022-31548</cve>
+
+  <suppress until="2022-09-30">
+    <notes>
+      The nrlakin/homepage repository through 2017-03-06 on GitHub allows absolute path traversal because the
+      Flask send_file function is used unsafely.
+    </notes>
+    <cve>CVE-2022-31197</cve>
   </suppress>
 </suppressions>
