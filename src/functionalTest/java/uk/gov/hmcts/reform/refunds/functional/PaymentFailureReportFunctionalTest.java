@@ -5,14 +5,14 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
 import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
@@ -29,8 +29,9 @@ import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -56,6 +57,7 @@ public class PaymentFailureReportFunctionalTest {
     private static String USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE;
+    private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
     private static String SERVICE_TOKEN_CMC;
     private static boolean TOKENS_INITIALIZED;
     private static final Pattern
@@ -72,6 +74,10 @@ public class PaymentFailureReportFunctionalTest {
 
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
                 idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund")
+                    .getAuthorisationToken();
+
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE =
+                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver")
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE =
@@ -92,24 +98,26 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
-    @Ignore
-    public void payment_failure_report_request() {
+    public void paymentFailureReportRequestForAcceptedRefundStatus() {
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
 
-        PaymentFailureReportDtoResponse paymentFailureReportDtoResponse =
-            paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
-                                                       SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference
-                ).then()
-                .statusCode(OK.value()).extract().as(PaymentFailureReportDtoResponse.class);
-
-        assertEquals(1, paymentFailureReportDtoResponse.getPaymentFailureDto().size());
-        assertEquals(paymentReference,
-                     paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getPaymentReference());
-        assertEquals(
+        Response updateReviewRefund = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
-            paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getRefundReference()
+            RefundStatusUpdateRequest
+                .RefundRequestWith()
+                .reason("Accepted")
+                .status(RefundStatus.ACCEPTED).build()
         );
+
+        assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                                   SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference
+            ).then()
+            .statusCode(NOT_FOUND.value());
 
         // delete payment record
         paymentTestService
@@ -121,6 +129,49 @@ public class PaymentFailureReportFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                         refundReference
         );
+    }
+
+    @Test
+    public void paymentFailureReportRequestForRejectedRefundStatus() {
+        final String paymentReference = createPayment();
+        final String refundReference = performRefund(paymentReference);
+
+        Response updateReviewRefund = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest
+                .RefundRequestWith()
+                .reason("Rejected")
+                .status(RefundStatus.REJECTED).build()
+        );
+
+        assertThat(updateReviewRefund.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                                   SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference
+            ).then()
+            .statusCode(NOT_FOUND.value());
+
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl
+            ).then()
+            .statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference
+        );
+    }
+
+    @Test
+    public void paymentFailureReportRequestForEmptyPaymentReference() {
+
+        paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                                   SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ""
+            ).then()
+            .statusCode(BAD_REQUEST.value());
     }
 
     private String createPayment() {
