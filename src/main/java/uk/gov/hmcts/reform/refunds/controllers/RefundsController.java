@@ -153,10 +153,6 @@ public class RefundsController {
     public ResponseEntity getPaymentFailureReport(
         @RequestParam(required = false) List<String> paymentReferenceList) {
 
-        if (featureToggler.getBooleanValue("payment-status-update-flag", false)) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }
-
         if (paymentReferenceList == null || paymentReferenceList.isEmpty()) {
             return new ResponseEntity<>("Please provide payment reference to retrieve payment failure report",HttpStatus.BAD_REQUEST);
         }

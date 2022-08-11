@@ -92,7 +92,6 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void payment_failure_report_request() {
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
