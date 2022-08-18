@@ -60,7 +60,7 @@ idam:
     services:  ccpay_bubble,internal,payment_app,refunds_api
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
-    totp_secret: dummy
+    totp_secret: ${OIDC_S2S_SECRET:}
     microservice: payment_app
 
 oauth2:
@@ -74,5 +74,5 @@ s2s:
   url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
 azure:
   application-insights:
-    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
 

@@ -15,7 +15,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
@@ -26,13 +30,12 @@ import uk.gov.hmcts.reform.refunds.config.security.filiters.ServiceAndUserAuthFi
 import uk.gov.hmcts.reform.refunds.config.security.utils.SecurityUtils;
 import uk.gov.hmcts.reform.refunds.config.security.validator.AudienceValidator;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
 import javax.inject.Inject;
-
+import javax.servlet.http.HttpServletRequest;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -41,7 +44,8 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SpringSecurityConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
-    private static final String AUTHORISED_ROLE_REFUNDS = "payments";
+    private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
+    private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
 
     @Configuration
     @Order(1)
@@ -52,7 +56,8 @@ public class SpringSecurityConfiguration {
         private final RefundsAccessDeniedHandler refundsAccessDeniedHandler;
 
         @Autowired
-        public ExternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter, final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint,
+        public ExternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter,
+                                                       final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint,
                                                        final RefundsAccessDeniedHandler refundsAccessDeniedHandler) {
             super();
             this.serviceAuthFilter = serviceAuthFilter;
@@ -124,7 +129,8 @@ public class SpringSecurityConfiguration {
                                                        final ServiceAuthFilter serviceAuthFilter,
                                                        final Function<HttpServletRequest, Optional<String>> userIdExtractor,
                                                        final Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
-                                                       final SecurityUtils securityUtils, final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint,
+                                                       final SecurityUtils securityUtils,
+                                                       final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint,
                                                        final RefundsAccessDeniedHandler refundsAccessDeniedHandler) {
             super();
             this.serviceAndUserAuthFilter = new ServiceAndUserAuthFilter(
@@ -154,7 +160,8 @@ public class SpringSecurityConfiguration {
         }
 
         @Override
-        @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED", justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
+        @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED",
+            justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         protected void configure(HttpSecurity http) {
             try {
                 http
@@ -165,10 +172,13 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
+                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/refund/reasons").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
-                    .antMatchers(HttpMethod.PATCH, "/refund/*/action/*").hasAnyAuthority(AUTHORISED_ROLE_REFUNDS)
+                    .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
+                    .antMatchers(HttpMethod.PATCH,"/payment/**").permitAll()
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()
                     .and()

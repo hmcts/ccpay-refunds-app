@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.refunds.service;
 
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
@@ -32,13 +32,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static uk.gov.hmcts.reform.refunds.service.RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1;
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
@@ -174,12 +177,12 @@ class IdamServiceTest {
         )).thenThrow(new UserNotFoundException("User Not Found"));
 
         assertThrows(UserNotFoundException.class, () -> {
-            idamService.getUserIdentityData(header, GET_REFUND_LIST_CCD_CASE_USER_ID1);
+            idamService.getUserIdentityData(header, RefundServiceImplTest.GET_REFUND_LIST_CCD_CASE_USER_ID1);
         });
     }
 
     @Test
-    void givenLibrataNameUID_whenGetUserIdentityData_thenLibrataNameIsReceived() {
+    void givenLibrataNameUid_whenGetUserIdentityData_thenLibrataNameIsReceived() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
@@ -197,7 +200,7 @@ class IdamServiceTest {
     }
 
     @Test
-    void givenIDAMResponse_whenGetUserIdentityData_thenDistinctUserIdSetIsReceived() {
+    void givenIdamResponse_whenGetUserIdentityData_thenDistinctUserIdSetIsReceived() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
@@ -229,7 +232,7 @@ class IdamServiceTest {
     }
 
     @Test
-    void givenNoIDAMResponse_whenGetUserIdentityData_thenUserNotFoundExceptionIsReceived() {
+    void givenNoIdamResponse_whenGetUserIdentityData_thenUserNotFoundExceptionIsReceived() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
@@ -240,8 +243,7 @@ class IdamServiceTest {
                 eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
-        Exception exception = Assertions.assertThrows(UserNotFoundException.class,
-                () -> idamService.getUserIdentityData(header, "AA"));
+        Exception exception = Assertions.assertThrows(UserNotFoundException.class, () -> idamService.getUserIdentityData(header, "AA"));
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("User details not found for these roles in IDAM"));
     }
@@ -266,7 +268,7 @@ class IdamServiceTest {
     }
 
     @Test
-    void givenNoIDAMResponse_whenGetUsersForRoles_thenUserNotFoundException() {
+    void givenNoIdamResponse_whenGetUsersForRoles_thenUserNotFoundException() {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
         List<String> roles = new ArrayList<>();
@@ -276,8 +278,7 @@ class IdamServiceTest {
                 eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
-        Exception exception = Assertions.assertThrows(UserNotFoundException.class,
-                () -> idamService.getUsersForRoles(header, roles));
+        Exception exception = Assertions.assertThrows(UserNotFoundException.class, () -> idamService.getUsersForRoles(header, roles));
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("User details not found for these roles in IDAM"));
     }
@@ -317,7 +318,7 @@ class IdamServiceTest {
                 eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
-        List <UserIdentityDataDto> users = idamService.getUsersForRoles(header, roles);
+        List<UserIdentityDataDto> users = idamService.getUsersForRoles(header, roles);
 
         assertEquals(3, users.size());
         assertEquals("AAA BBB", users.get(0).getFullName());
@@ -338,11 +339,32 @@ class IdamServiceTest {
                 eq(IdamUserInfoResponse[].class)
         )).thenReturn(responseEntity);
 
-        List <UserIdentityDataDto> users = idamService.getUsersForRoles(header, Arrays.asList());
+        List<UserIdentityDataDto> users = idamService.getUsersForRoles(header, Arrays.asList());
 
         assertEquals(3, users.size());
         assertEquals("AAA BBB", users.get(0).getFullName());
 
+    }
+
+    @Test
+    void whenGetSecurityTokenCalled_thenReturnsIdamTokenResponse() {
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith()
+                                                .accessToken("access-token")
+                                                .expiresIn("1000")
+                                                .idToken("id-token")
+                                                .refreshToken("refresh-token")
+                                                .scope("openid profile roles")
+                                                .tokenType("type")
+                                                .build();
+        when(restTemplateIdam
+                  .exchange(
+                      anyString(),
+                      eq(HttpMethod.POST),
+                      any(HttpEntity.class),
+                      eq(IdamTokenResponse.class)
+                  )).thenReturn(ResponseEntity.ok(idamTokenResponse));
+        IdamTokenResponse actualResponse = idamService.getSecurityTokens();
+        assertThat(actualResponse).usingRecursiveComparison().isEqualTo(idamTokenResponse);
     }
 
 }

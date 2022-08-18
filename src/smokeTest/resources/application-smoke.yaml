@@ -59,7 +59,7 @@ idam:
     services: ccpay_bubble,internal,payment_app
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
-    totp_secret: dummy
+    totp_secret: ${OIDC_S2S_SECRET:}
     microservice: ccpay_bubble
 oauth2:
   redirect:
@@ -71,14 +71,14 @@ s2s:
   url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
   service :
     name : ${S2S_SERVICE_NAME:payment_app}
-    secret: ${S2S_SERVICE_SECRET}
+    secret: ${S2S_SERVICE_SECRET_PAYMENT_APP}
 azure:
   application-insights:
-    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
 generated:
   user:
     email:
-      pattern:${GENERATED_USER_EMAIL_PATTERN}
+      pattern:${GENERATED_USER_EMAIL_PATTERN:freg-test-functional-aldie-junk-user-%s@feemail.com}
 payments:
   account:
     existing:
@@ -92,3 +92,13 @@ mock:
   callback:
     url:
       endpoint : ${TEST_URL:http://payment-api-aat-staging.service.core-compute-aat.internal}/mock-api/serviceCallback
+
+refunds:
+  serviceAccount:
+    clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:refunds_api}
+    clientSecret: ${REFUND_SERVICE_ACCOUNT_CLIENT_SECRET}
+    grantType:  ${REFUND_SERVICE_ACCOUNT_GRANT_TYPE:password}
+    username: ${REFUND_SERVICE_ACCOUNT_USERNAME:idam.user.ccpayrefundsapi@hmcts.net}
+    password: ${REFUND_SERVICE_ACCOUNT_PASSWORD}
+    scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:openid profile roles search-user}
+    redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:http://ccpay-refunds-api-aat.service.core-compute-aat.internal/oauth2/callback}

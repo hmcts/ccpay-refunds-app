@@ -16,52 +16,57 @@ public class RefundReviewMapper {
     @Autowired
     private RejectionReasonRepository rejectionReasonRepository;
 
-    public String getStatus(RefundEvent refundEvent){
-        return  refundEvent.equals(RefundEvent.APPROVE)?"sent to middle office":refundEvent.equals(RefundEvent.REJECT)?"rejected":"sentback";
+    private static final String APPROVED = "Approved";
+    private static final String REJECTED = "Rejected";
+    private static final String UPDATEREQUIRED = "Update required";
+    private static final String SENTTOMIDDLEOFFICE = "Sent to middle office";
+
+    public String getStatus(RefundEvent refundEvent) {
+        return  refundEvent.equals(RefundEvent.APPROVE) ? APPROVED : refundEvent.equals(RefundEvent.REJECT)
+            ? REJECTED : UPDATEREQUIRED;
     }
 
-    public String getStatusNotes(RefundEvent refundEvent, RefundReviewRequest refundReviewRequest){
+    public String getStatusNotes(RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         String notes;
-        if(refundEvent.equals(RefundEvent.APPROVE)){
-            notes =  "Refund Approved";
-        }
-        else if(refundEvent.equals(RefundEvent.REJECT)||refundEvent.equals(RefundEvent.SENDBACK)){
+        if (refundEvent.equals(RefundEvent.APPROVE)) {
+            notes =  SENTTOMIDDLEOFFICE;
+        } else if (refundEvent.equals(RefundEvent.REJECT) || refundEvent.equals(RefundEvent.UPDATEREQUIRED)) {
 
-            if(refundEvent.equals(refundEvent.REJECT)) {
+            if (refundEvent.equals(refundEvent.REJECT)) {
                 notes = getRejectStatusNotes(refundReviewRequest);
             } else {
-                if(refundReviewRequest.getReason()==null || refundReviewRequest.getReason().isEmpty()){
+                if (refundReviewRequest.getReason() == null || refundReviewRequest.getReason().isEmpty()) {
                     throw new InvalidRefundReviewRequestException("Enter reason for sendback");
-                }else{
-                    notes= refundReviewRequest.getReason();
+                } else {
+                    notes = refundReviewRequest.getReason();
                 }
             }
         } else {
-            notes="";
+            notes = "";
         }
         return notes;
     }
 
 
-    private String getRejectStatusNotes(RefundReviewRequest refundReviewRequest){
-        if(refundReviewRequest.getCode()==null || refundReviewRequest.getCode().isEmpty()){
+    private String getRejectStatusNotes(RefundReviewRequest refundReviewRequest) {
+        if (refundReviewRequest.getCode() == null || refundReviewRequest.getCode().isEmpty()) {
             throw new InvalidRefundReviewRequestException("Refund reject reason is required");
         }
-        if(refundReviewRequest.getCode().equals("RE005")){
-            if(refundReviewRequest!=null && ( refundReviewRequest.getReason()==null || refundReviewRequest.getReason().isEmpty())){
+        if (refundReviewRequest.getCode().equals("RE005")) {
+            if (refundReviewRequest != null && (refundReviewRequest.getReason() == null || refundReviewRequest.getReason().isEmpty())) {
                 throw new InvalidRefundReviewRequestException("Refund reject reason is required for others");
-            }else{
+            } else {
                 return refundReviewRequest.getReason();
             }
-        }else{
+        } else {
             return validateRefundRejectionReason(refundReviewRequest.getCode()).getName();
         }
     }
 
 
-    private RejectionReason validateRefundRejectionReason(String reasonCode){
+    private RejectionReason validateRefundRejectionReason(String reasonCode) {
         Optional<RejectionReason> rejectionReasonObject = rejectionReasonRepository.findByCode(reasonCode);
-        if(!rejectionReasonObject.isPresent()){
+        if (!rejectionReasonObject.isPresent()) {
             throw new InvalidRefundReviewRequestException("Reject reason is invalid");
         }
         return rejectionReasonObject.get();

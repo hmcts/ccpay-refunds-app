@@ -1,9 +1,15 @@
 package uk.gov.hmcts.reform.refunds.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @AllArgsConstructor
@@ -13,18 +19,18 @@ import javax.persistence.*;
 @Table(name = "refund_status")
 public class RefundStatus {
 
-
-    public final static RefundStatus SENTFORAPPROVAL = new RefundStatus(
-        "sent for approval",
+    public static final RefundStatus ACCEPTED = new RefundStatus("Accepted", "Refund request accepted");
+    public static final RefundStatus UPDATEREQUIRED = new RefundStatus("Update required", "Refund request update required");
+    public static final RefundStatus REJECTED = new RefundStatus("Rejected", "Refund request rejected");
+    public static final RefundStatus SENTFORAPPROVAL = new RefundStatus(
+        "Sent for approval",
         "Refund request submitted"
     );
-    public final static RefundStatus SENTTOMIDDLEOFFICE = new RefundStatus(
-        "sent to middle office",
+    public static final RefundStatus APPROVED = new RefundStatus(
+        "Approved",
         "Refund request sent to liberata"
     );
-    public final static RefundStatus SENTBACK = new RefundStatus("sent back", "Refund request sent back");
-    public final static RefundStatus ACCEPTED = new RefundStatus("accepted", "Refund request accepted");
-    public final static RefundStatus REJECTED = new RefundStatus("rejected", "Refund request rejected");
+    public static final RefundStatus CANCELLED = new RefundStatus("Cancelled", "Refund request cancelled");
 
     @Id
     @Column(name = "name")
@@ -35,16 +41,18 @@ public class RefundStatus {
 
     public static RefundStatus getRefundStatus(String name) {
         switch (name) {
-            case "sent for approval":
+            case "Sent for approval":
                 return SENTFORAPPROVAL;
-            case "sent to middle office":
-                return SENTTOMIDDLEOFFICE;
-            case "sent back":
-                return SENTBACK;
-            case "accepted":
+            case "Approved":
+                return APPROVED;
+            case "Update required":
+                return UPDATEREQUIRED;
+            case "Accepted":
                 return ACCEPTED;
-            case "rejected":
+            case "Rejected":
                 return REJECTED;
+            case "Cancelled":
+                return CANCELLED;
             default:
                 throw new InvalidRefundRequestException("Invalid Refund status");
         }

@@ -50,11 +50,13 @@ public class PaymentServiceImpl implements PaymentService {
                     fetchPaymentGroupDataFromPayhub(headers, paymentReference);
             return paymentGroupResponse.getBody();
         } catch (HttpClientErrorException e) {
+            logger.error(e.getMessage());
             if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
             }
             throw new PaymentInvalidRequestException("Invalid Request: Payhub", e);
         } catch (Exception e) {
+            logger.error(e.getMessage());
             throw new PaymentServerException("Payment Server Exception", e);
         }
     }
@@ -86,15 +88,6 @@ public class PaymentServiceImpl implements PaymentService {
                         getHeadersEntity(headers), PaymentGroupResponse.class);
     }
 
-//    private void checkPaymentReference(PaymentGroupResponse paymentGroupResponse, String paymentReference){
-//        List<PaymentResponse> paymentResponseList = paymentGroupResponse.getPayments()
-//            .stream().filter(paymentResponse1 -> paymentResponse1.getReference().equals(paymentReference))
-//            .collect(Collectors.toList());
-//        if(paymentResponseList.isEmpty()){
-//            throw new PaymentReferenceNotFoundException("Payment Reference  not found");
-//        }
-//    }
-
     @Override
     public boolean updateRemissionAmountInPayhub(MultiValueMap<String, String> headers, String paymentReference,
                                                  RefundResubmitPayhubRequest refundResubmitPayhubRequest) {
@@ -110,9 +103,17 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
         } catch (HttpClientErrorException exception) {
-            throw new InvalidRefundRequestException(exception.getResponseBodyAsString(), exception);
+            logger.error("Update Remission Client Exception",exception);
+            if (exception.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                throw new PaymentReferenceNotFoundException("Payment reference not found", exception);
+            }
+            if (exception.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+                throw new InvalidRefundRequestException(exception.getResponseBodyAsString(), exception);
+            }
+            throw new InvalidRefundRequestException("Invalid request. Please try again.", exception);
         } catch (Exception exception) {
-            throw new PaymentServerException("Exception occurred while calling payment api ", exception);
+            logger.error("Update Remission Server Exception",exception);
+            throw new PaymentServerException("Payment server unavailable. Please try again.", exception);
         }
         return false;
     }
@@ -128,12 +129,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .exchange(
                         builder.toUriString(),
                         HttpMethod.PATCH,
-                        getHTTPEntityForResubmitRefundsPatch(headers, refundResubmitPayhubRequest),
+                        getHttpEntityForResubmitRefundsPatch(headers, refundResubmitPayhubRequest),
                         String.class
                 );
     }
 
-    private HttpEntity<RefundResubmitPayhubRequest> getHTTPEntityForResubmitRefundsPatch(
+    private HttpEntity<RefundResubmitPayhubRequest> getHttpEntityForResubmitRefundsPatch(
             MultiValueMap<String, String> headers, RefundResubmitPayhubRequest request) {
         return new HttpEntity<>(request, getFormatedHeaders(headers));
     }

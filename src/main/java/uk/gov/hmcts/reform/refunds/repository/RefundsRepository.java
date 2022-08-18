@@ -22,10 +22,13 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer> {
 
     Optional<List<Refund>> findByRefundStatusAndCreatedByIsNot(RefundStatus refundStatus, String createdBy);
 
+    Optional<List<Refund>> findByRefundStatusAndUpdatedByIsNot(RefundStatus refundStatus, String updatedBy);
+
     Optional<List<Refund>> findByRefundStatus(RefundStatus refundStatus);
 
     Optional<List<Refund>> findByCcdCaseNumber(String ccdCaseNumber);
 
     Optional<List<Refund>> findByCcdCaseNumberAndCreatedBy(String ccdCaseNumber, String createdBy);
 
+    long deleteByReference(String reference);
 }

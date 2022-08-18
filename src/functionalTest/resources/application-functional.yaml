@@ -1,0 +1,106 @@
+management:
+  endpoints:
+    web:
+      base-path: /
+
+#If you use a database then uncomment below lines and update db properties accordingly
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: refunds-api
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:11.0://localhost/features
+  liquibase:
+    enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+  jackson.date-format: yyyy-MM-dd
+  flyway.enabled: true
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+    deserialization:
+      fail-on-unknown-properties: true
+  security:
+    oauth2:
+      client:
+        provider:
+          oidc:
+            issuer-uri: https://idam-web-public.aat.platform.hmcts.net/o
+        # Dummy OIDC client required even we are not going to use
+        registration:
+          oidc:
+            client-id: paybubble
+            client-secret: ${OIDC_CLIENT_SECRET}
+      resource:
+        filter-order: 3
+oidc:
+  audience-list: paybubble
+  issuer: ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat.internal:8443/openam/oauth2/hmcts}
+
+auth:
+  provider:
+    service:
+      client:
+        baseUrl: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+  idam:
+    client:
+      baseUrl: https://idam-api.aat.platform.hmcts.net
+test:
+  url :
+    refunds : ${TEST_URL:http://localhost:8080}
+    payments : ${TEST_URL_PAYMENT:https://payment-api-pr-1251.service.core-compute-preview.internal}
+  user:
+    password: ${TEST_USER_PASSWORD}
+
+idam:
+  api:
+    url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
+  s2s-authorised:
+    services: ccpay_bubble,internal,payment_app
+  s2s-auth:
+    url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+    totp_secret: ${OIDC_S2S_SECRET:}
+    microservice: ccpay_bubble
+  paybubble:
+    client:
+      id: ${IDAM_PAYBUBBLE_CLIENT_ID:paybubble}
+      secret: ${IDAM_PAYBUBBLE_CLIENT_SECRET:}
+oauth2:
+  redirect:
+    uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
+  client:
+    id: ${OAUTH2_CLIENT_ID:cmc_citizen}
+    secret: ${OAUTH2_CLIENT_SECRET}
+s2s:
+  url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
+  service :
+    paymentapp :
+      name : ${S2S_SERVICE_NAME_PAYMENT_APP:payment_app}
+      secret: ${S2S_SERVICE_SECRET_PAYMENT_APP}
+    cmc :
+      name : ${S2S_SERVICE_NAME_CMC:cmc}
+      secret : ${S2S_SERVICE_SECRET_CMC}
+    paybubble :
+      name : ${S2S_SERVICE_NAME_PAYBUBBLE:ccpay_bubble}
+      secret : ${S2S_SERVICE_SECRET_PAYBUBBLE}
+azure:
+  application-insights:
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
+generated:
+  user:
+    email:
+      pattern:${GENERATED_USER_EMAIL_PATTERN:freg-test-functional-aldie-junk-user-%s@feemail.com}
+payments:
+  account:
+    existing:
+      account:
+        number : PBAFUNC12345
+    fake:
+      account:
+        number : QWERTYUIOP
+mock:
+  callback:
+    url:
+      endpoint : ${TEST_URL:http://payment-api-aat-staging.service.core-compute-aat.internal}/mock-api/serviceCallback

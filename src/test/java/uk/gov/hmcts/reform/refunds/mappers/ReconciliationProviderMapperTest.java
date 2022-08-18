@@ -28,7 +28,6 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 
 
 @RunWith(SpringRunner.class)
@@ -40,37 +39,37 @@ public class ReconciliationProviderMapperTest {
     private ReconciliationProviderMapper reconciliationProviderMapper;
 
     @Test
-    public void testGetReconciliationProviderRequest(){
+    public void testGetReconciliationProviderRequest() {
         ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper
             .getReconciliationProviderRequest(getPaymentGroupDto(),getRefund());
 
         assertThat(reconciliationProviderRequest).usingRecursiveComparison().isEqualTo(getExpectedReconciliationProviderRequest());
     }
 
-    private ReconciliationProviderRequest getExpectedReconciliationProviderRequest(){
+    private ReconciliationProviderRequest getExpectedReconciliationProviderRequest() {
         return  ReconciliationProviderRequest.refundReconciliationProviderRequestWith()
                     .accountNumber("PBAFUNC1234")
                     .refundReference("RF-1628-5241-9956-2215")
                     .paymentReference("RC-1628-5241-9956-2315")
-                    .dateCreated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
-                    .dateUpdated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
+                    .dateCreated("2021-09-17T13:00:00")
+                    .dateUpdated("2021-09-17T13:00:00")
                     .caseReference("case-reference")
                     .ccdCaseNumber("ccd-case-number")
                     .currency("GBP")
                     .refundReason("RR0001")
-                    .totalRefundAmount(BigDecimal.valueOf(100))
+                    .totalRefundAmount("100.00")
                     .fees(Arrays.asList(
-                            ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
+                        ReconcilitationProviderFeeRequest.refundReconcilitationProviderFeeRequest()
                                 .code("FEE012")
-                                .refundAmount(BigDecimal.valueOf(100))
-                                .version("1")
+                                .refundAmount("100.00")
+                                .version(1)
                                 .build()
                           )
                     )
                     .build();
     }
 
-    private PaymentGroupResponse getPaymentGroupDto(){
+    private PaymentGroupResponse getPaymentGroupDto() {
         return  PaymentGroupResponse.paymentGroupDtoWith()
             .paymentGroupReference("payment-group-reference")
             .dateCreated(Date.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
@@ -138,7 +137,7 @@ public class ReconciliationProviderMapperTest {
             )).build();
     }
 
-    private Refund getRefund(){
+    private Refund getRefund() {
         return  Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(100))
@@ -147,15 +146,16 @@ public class ReconciliationProviderMapperTest {
             .paymentReference("RC-1628-5241-9956-2315")
             .dateCreated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
             .dateUpdated(Timestamp.from(LocalDateTime.of(2021,10,10,10, 10).toInstant(ZoneOffset.UTC)))
-            .refundStatus(SENTFORAPPROVAL)
+            .refundStatus(RefundStatus.SENTFORAPPROVAL)
             .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
             .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .feeIds("10")
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                                                .id(1)
                                                .status("submitted")
                                                .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
                                                .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-                                               .notes("Refund Initiated")
+                                               .notes("Refund initiated and sent to team leader")
                                                .build()))
             .build();
     }

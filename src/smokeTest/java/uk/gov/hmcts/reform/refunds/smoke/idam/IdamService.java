@@ -13,11 +13,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.AuthenticateUserResponse;
-import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.CreateUserRequest;
-import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.Role;
-import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.TokenExchangeResponse;
-import static uk.gov.hmcts.reform.refunds.smoke.idam.IdamApi.UserGroup;
 
 
 @Service
@@ -47,7 +42,7 @@ public class IdamService {
 
     public User createUserWith(String userGroup, String... roles) {
         String email = nextUserEmail();
-        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        IdamApi.CreateUserRequest userRequest = userRequest(email, userGroup, roles);
         idamApi.createUser(userRequest);
 
         String accessToken = authenticateUser(email, testConfig.getTestUserPassword());
@@ -62,14 +57,14 @@ public class IdamService {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
 
-        AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
+        IdamApi.AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
             BASIC + base64Authorisation,
             CODE,
             testConfig.getOauth2().getClientId(),
             testConfig.getOauth2().getRedirectUrl()
         );
 
-        TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
+        IdamApi.TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
             authenticateUserResponse.getCode(),
             AUTHORIZATION_CODE,
             testConfig.getOauth2().getClientId(),
@@ -81,14 +76,14 @@ public class IdamService {
     }
 
 
-    private CreateUserRequest userRequest(String email, String userGroup, String[] roles) {
-        return CreateUserRequest.userRequestWith()
+    private IdamApi.CreateUserRequest userRequest(String email, String userGroup, String[] roles) {
+        return IdamApi.CreateUserRequest.userRequestWith()
             .email(email)
             .password(testConfig.getTestUserPassword())
             .roles(Stream.of(roles)
-                       .map(Role::new)
+                       .map(IdamApi.Role::new)
                        .collect(toList()))
-            .userGroup(new UserGroup(userGroup))
+            .userGroup(new IdamApi.UserGroup(userGroup))
             .build();
     }
 

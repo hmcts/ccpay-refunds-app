@@ -2,46 +2,40 @@ package uk.gov.hmcts.reform.refunds.state;
 
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
-
-import static uk.gov.hmcts.reform.refunds.state.RefundEvent.ACCEPT;
-import static uk.gov.hmcts.reform.refunds.state.RefundEvent.APPROVE;
-import static uk.gov.hmcts.reform.refunds.state.RefundEvent.CANCEL;
-import static uk.gov.hmcts.reform.refunds.state.RefundEvent.REJECT;
-import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SENDBACK;
-import static uk.gov.hmcts.reform.refunds.state.RefundEvent.SUBMIT;
-
 @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
 public enum RefundState {
 
     SENTFORAPPROVAL {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{APPROVE, REJECT, SENDBACK};
+            return new RefundEvent[]{RefundEvent.APPROVE, RefundEvent.REJECT, RefundEvent.UPDATEREQUIRED};
         }
 
         @Override
         public RefundState nextState(RefundEvent event) {
             switch (event) {
                 case APPROVE:
-                    return SENTTOMIDDLEOFFICE;
+                    return APPROVED;
                 case REJECT:
                     return REJECTED;
-                case SENDBACK:
+                case UPDATEREQUIRED:
                     return NEEDMOREINFO;
+                case CANCEL:
+                    return CANCELLED;
                 default:
                     return this;
             }
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
+        public RefundStatus getRefundStatus() {
             return RefundStatus.SENTFORAPPROVAL;
         }
     },
     NEEDMOREINFO {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{SUBMIT, CANCEL};
+            return new RefundEvent[]{RefundEvent.SUBMIT, RefundEvent.CANCEL};
         }
 
         @Override
@@ -51,21 +45,21 @@ public enum RefundState {
                 case SUBMIT:
                     return SENTFORAPPROVAL;
                 case CANCEL:
-                    return REJECTED;
+                    return CANCELLED;
                 default:
                     return this;
             }
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
-            return RefundStatus.SENTBACK;
+        public RefundStatus getRefundStatus() {
+            return RefundStatus.UPDATEREQUIRED;
         }
     },
-    SENTTOMIDDLEOFFICE{
+    APPROVED {
         @Override
         public RefundEvent[] nextValidEvents() {
-            return new RefundEvent[]{ACCEPT, REJECT};
+            return new RefundEvent[]{RefundEvent.ACCEPT, RefundEvent.REJECT};
         }
 
         @Override
@@ -76,6 +70,8 @@ public enum RefundState {
                     return ACCEPTED;
                 case REJECT:
                     return REJECTED;
+                case CANCEL:
+                    return CANCELLED;
                 default:
                     return this;
 
@@ -83,8 +79,8 @@ public enum RefundState {
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
-            return RefundStatus.SENTTOMIDDLEOFFICE;
+        public RefundStatus getRefundStatus() {
+            return RefundStatus.APPROVED;
         }
     },
     ACCEPTED {
@@ -99,7 +95,7 @@ public enum RefundState {
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
+        public RefundStatus getRefundStatus() {
             return RefundStatus.ACCEPTED;
         }
     },
@@ -115,8 +111,24 @@ public enum RefundState {
         }
 
         @Override
-        public RefundStatus getRefundStatus(){
+        public RefundStatus getRefundStatus() {
             return RefundStatus.REJECTED;
+        }
+    },
+    CANCELLED {
+        @Override
+        public RefundEvent[] nextValidEvents() {
+            return RefundEvent.values();
+        }
+
+        @Override
+        public RefundState nextState(RefundEvent refundEvent) {
+            return this;
+        }
+
+        @Override
+        public RefundStatus getRefundStatus() {
+            return RefundStatus.CANCELLED;
         }
     };
 

@@ -8,11 +8,16 @@ def app = "refunds-api"
 
 def secrets = [
   'ccpay-${env}': [
-    secret('payment-s2s-secret', 'S2S_SERVICE_SECRET'),
+    secret('payment-s2s-secret', 'S2S_SERVICE_SECRET_PAYMENT_APP'),
+    secret('cmc-service-secret', 'S2S_SERVICE_SECRET_CMC'),
+    secret('paybubble-s2s-secret', 'S2S_SERVICE_SECRET_PAYBUBBLE'),
     secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET'),
     secret('freg-idam-generated-user-email-pattern', 'GENERATED_USER_EMAIL_PATTERN'),
     secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
-    secret('paybubble-idam-client-secret', 'OIDC_CLIENT_SECRET')
+    secret('paybubble-idam-client-secret', 'OIDC_CLIENT_SECRET'),
+    secret('refunds-api-client-secret', 'REFUND_SERVICE_ACCOUNT_CLIENT_SECRET'),
+    secret('refunds-api-user-password', 'REFUND_SERVICE_ACCOUNT_PASSWORD'),
+    secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET')
   ]
 ]
 
@@ -30,27 +35,105 @@ withPipeline(type, product, app) {
   enableDbMigration('ccpay')
   enableAksStagingDeployment()
 
-  after('functionalTest:aat') {
+  after('test') {
     publishHTML target: [
-      reportDir            : "target/site/serenity/",
-      reportFiles          : "index.html",
-      reportName           : "AAT Functional Tests",
-      alwaysLinkToLastBuild: true
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/checkstyle",
+      reportFiles          : "main.html",
+      reportName           : "CCPAY Refunds PREVIEW Application Checkstyle Main Report"
     ]
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/checkstyle",
+      reportFiles          : "test.html",
+      reportName           : "CCPAY Refunds PREVIEW Test Checkstyle Test Report"
+    ]
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/checkstyle",
+      reportFiles          : "aat.html",
+      reportName           : "CCPAY Refunds AAT Application Checkstyle AAT Report"
+    ]
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/tests/test",
+      reportFiles          : "index.html",
+      reportName           : "CCPAY Refunds PREVIEW Unit Tests Report"
+    ]
+
+  }
+
+  after('smoketest:preview') {
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/tests/smoke",
+      reportFiles          : "index.html",
+      reportName           : "CCPAY Refunds PREVIEW Smoke Test Report"
+    ]
+  }
+
+  after('smoketest:aat') {
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "build/reports/tests/smoke",
+      reportFiles          : "index.html",
+      reportName           : "CCPAY Refunds PREVIEW Smoke Test Report"
+    ]
   }
 
   after('functionalTest:preview') {
+
+    publishHTML target: [
+      reportDir            : "build/reports/tests/functional",
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportFiles          : "index.html",
+      reportName           : "Preview Functional Tests",
+      alwaysLinkToLastBuild: true,
+      reportName           : "CCPAY Refunds PREVIEW API Functional Test Report"
+    ]
+
     publishHTML target: [
       reportDir            : "target/site/serenity/",
       allowMissing         : true,
       alwaysLinkToLastBuild: true,
       keepAll              : true,
-      reportDir            : "build/reports/tests/functional",
       reportFiles          : "index.html",
       reportName           : "Preview Functional Tests",
       alwaysLinkToLastBuild: true,
-      reportName           : "CCPAY Refunds API Functional Test Report"
+      reportName           : "CCPAY Refunds PREVIEW API Functional Test Sereneity Report"
+    ]
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+  }
+
+  before('functionalTest:aat') {
+    env.TEST_URL_PAYMENT = 'http://payment-api-aat.service.core-compute-aat.internal'
+    println """\
+                Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
+  }
+
+  after('functionalTest:aat') {
+    publishHTML target: [
+      reportDir            : "target/site/serenity/",
+      reportFiles          : "index.html",
+      reportName           : "CCPAY Refunds AAT Functional Tests",
+      alwaysLinkToLastBuild: true
     ]
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
