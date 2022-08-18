@@ -30,6 +30,7 @@ public class RefundStatus {
         "Approved",
         "Refund request sent to liberata"
     );
+    public static final RefundStatus CANCELLED = new RefundStatus("Cancelled", "Refund request cancelled");
 
     @Id
     @Column(name = "name")
@@ -50,6 +51,8 @@ public class RefundStatus {
                 return ACCEPTED;
             case "Rejected":
                 return REJECTED;
+            case "Cancelled":
+                return CANCELLED;
             default:
                 throw new InvalidRefundRequestException("Invalid Refund status");
         }

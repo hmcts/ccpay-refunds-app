@@ -180,8 +180,13 @@ notification:
   service-url: ${SERVICE_URL:http://service}
 
 notify:
-  letter.template: ${NOTIFICATION_LETTER_TEMPLATE_ID:}
-  email.template: ${NOTIFICATION_EMAIL_TEMPLATE_ID:}
+  template:
+    cheque-po-cash:
+      letter: ${NOTIFICATIONS_LETTER_CHEQUE_PO_CASH_TEMPLATE_ID:}
+      email: ${NOTIFICATIONS_EMAIL_CHEQUE_PO_CASH_TEMPLATE_ID:}
+    card-pba:
+      letter: ${NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID:}
+      email: ${NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID:}
 
 refund:
   search:

@@ -9,12 +9,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
@@ -48,6 +52,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
@@ -63,8 +68,7 @@ import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @Api(tags = {"Refund Journey group"})
-
-@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals","PMD.ExcessiveImports","PMD.LawOfDemeter"})
+@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
 
     @Autowired
@@ -95,6 +99,8 @@ public class RefundsController {
 
     @Value("${refund.search.days}")
     private Integer numberOfDays;
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -190,9 +196,13 @@ public class RefundsController {
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable("reference") String reference,
             @RequestBody @Valid ResubmitRefundRequest request) {
+        LOG.info("ENTERED THE RESUBMIT ENDPOINT");
+
         if (featureToggler.getBooleanValue("refunds-release",false)) {
+            LOG.info("ENTERED FEATURE TOGGLER");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
+        LOG.info("BEFORE RETURN");
         return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 
@@ -252,6 +262,17 @@ public class RefundsController {
 
     }
 
+    @ApiOperation(value = "Delete Refund details by refund reference", notes = "Delete refund details for supplied refund reference")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Refund deleted successfully"),
+            @ApiResponse(code = 404, message = "Refund not found for the given reference")
+    })
+    @DeleteMapping("/refund/{reference}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteRefund(@RequestHeader("Authorization") String authorization, @PathVariable String reference) {
+        refundsService.deleteRefund(reference);
+    }
+
     @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
         + "You can provide start date and end dates which can include times as well."
         + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
@@ -268,7 +289,7 @@ public class RefundsController {
     public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference
-                                                                             
+
     ) {
 
         refundValidator.validate(startDateTimeString, endDateTimeString);
@@ -361,22 +382,11 @@ public class RefundsController {
         refundNotificationService.reprocessPostFailedRefundsToLiberata();
     }
 
-    @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
-        + "You can provide start date and end dates which can include times as well."
-        + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
-        + "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "successful operation"),
-        @ApiResponse(code = 404, message = "No refunds available for the given date range"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 413, message = "Date range exceeds the maximum supported by the system"),
-        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
-    })
-
-    @GetMapping("/testrefunds")
+    @GetMapping("/refunds")
     public ResponseEntity<String> searchRefundReconciliation1(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,
-                                                        @RequestParam(name = "refund_reference", required = false) String refundReference
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference,
+                                                                              @RequestHeader(required = false) MultiValueMap<String, String> headers
     ) {
         return new ResponseEntity<String>("test",HttpStatus.OK);
     }

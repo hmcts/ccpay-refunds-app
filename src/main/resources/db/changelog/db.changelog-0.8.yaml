@@ -48,6 +48,7 @@ databaseChangeLog:
               - column:
                   name: service_type
                   type: varchar(100)
+
   - changeSet:
       id: 100008-5
       author: Ranjeet
@@ -58,3 +59,15 @@ databaseChangeLog:
               - column:
                   name: refund_instruction_type
                   type: varchar(255)
+
+  - changeSet:
+      id: 100008-6
+      author: Sayali
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_status (name, description)
+                VALUES
+                  ('Cancelled', 'Refund request cancelled');

@@ -8,8 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
-import uk.gov.hmcts.reform.refunds.model.RefundFees;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
 import java.math.BigDecimal;
@@ -52,7 +52,7 @@ public class RefundDto {
 
     private String feeIds;
 
-    private List<RefundFees> refundFees;
+    private List<RefundFeeDto> refundFees;
 
 
 }

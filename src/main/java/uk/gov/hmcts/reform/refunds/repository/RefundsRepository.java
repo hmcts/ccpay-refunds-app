@@ -21,15 +21,13 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaS
             "Refund not found for given reference"));
     }
 
-    Optional<List<Refund>> findByRefundStatusAndCreatedByIsNot(RefundStatus refundStatus, String createdBy);
-
     Optional<List<Refund>> findByRefundStatusAndUpdatedByIsNot(RefundStatus refundStatus, String updatedBy);
 
     Optional<List<Refund>> findByRefundStatus(RefundStatus refundStatus);
 
     Optional<List<Refund>> findByCcdCaseNumber(String ccdCaseNumber);
 
-    Optional<List<Refund>> findByCcdCaseNumberAndCreatedBy(String ccdCaseNumber, String createdBy);
+    long deleteByReference(String reference);
 
     Optional<List<Refund>> findByNotificationSentFlag(String notificationSentFlag);
 

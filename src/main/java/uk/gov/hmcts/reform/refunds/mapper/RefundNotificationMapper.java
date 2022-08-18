@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.mapper;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
@@ -9,6 +10,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 @Component
 public class RefundNotificationMapper {
@@ -22,17 +24,12 @@ public class RefundNotificationMapper {
     @Value("${notification.service-url}")
     private String serviceUrl;
 
-    @Value("${notify.letter.template}")
-    private String letterTemplateId;
-
-    @Value("${notify.email.template}")
-    private String emailTemplateId;
-
-
+    @Autowired
+    RefundsUtil refundsUtil;
 
     public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
-                .templateId(emailTemplateId)
+                .templateId(refundsUtil.getTemplate(refund))
                 .recipientEmailAddress(resendNotificationRequest.getRecipientEmailAddress())
                 .reference(resendNotificationRequest.getReference())
                 .emailReplyToId(emailReplyToId)
@@ -48,7 +45,7 @@ public class RefundNotificationMapper {
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
-            .templateId(letterTemplateId)
+            .templateId(refundsUtil.getTemplate(refund))
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())
             .reference(resendNotificationRequest.getReference())
             .notificationType(NotificationType.LETTER)
@@ -63,7 +60,7 @@ public class RefundNotificationMapper {
 
     public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(Refund refund) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
-            .templateId(emailTemplateId)
+            .templateId(refundsUtil.getTemplate(refund))
             .recipientEmailAddress(refund.getContactDetails().getEmail())
             .reference(refund.getReference())
             .emailReplyToId(emailReplyToId)
@@ -83,8 +80,9 @@ public class RefundNotificationMapper {
         recipientPostalAddress.setPostalCode(refund.getContactDetails().getPostalCode());
         recipientPostalAddress.setCity(refund.getContactDetails().getCity());
         recipientPostalAddress.setCountry(refund.getContactDetails().getCountry());
+        recipientPostalAddress.setCounty(refund.getContactDetails().getCounty());
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
-            .templateId(letterTemplateId)
+            .templateId(refundsUtil.getTemplate(refund))
             .recipientPostalAddress(recipientPostalAddress)
             .reference(refund.getReference())
             .notificationType(NotificationType.LETTER)

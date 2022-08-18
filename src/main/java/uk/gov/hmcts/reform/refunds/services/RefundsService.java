@@ -34,4 +34,8 @@ public interface RefundsService {
     ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request, MultiValueMap<String, String> headers);
 
     List<RefundLiberata> search(RefundSearchCriteria searchCriteria);
+
+    void deleteRefund(String reference);
+
+    List<Refund> getRefundsForPaymentReference(String paymentReference);
 }
