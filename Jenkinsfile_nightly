@@ -3,8 +3,13 @@
 properties([
   // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
   pipelineTriggers([cron('H 22 * * *')]),
+
   parameters([
-    string(name: 'URL_TO_TEST', defaultValue: 'http://refund-api-aat.service.core-compute-aat.internal', description: 'The URL you want to run these tests against'),
+    string(name: 'URL_TO_TEST', defaultValue: 'http://ccpay-refunds-api-aat.service.core-compute-aat.internal', description: 'The URL you want to run these tests against'),
+    string(name: 'TEST_URL_PAYMENT', defaultValue: 'http://payment-api-aat.service.core-compute-aat.internal', description: 'The payment app url you want to run these tests against'),
+    string(name: 'IDAM_API_URL', defaultValue: 'https://idam-api.aat.platform.hmcts.net', description: 'The Idam url you want to run these tests against'),
+    string(name: 'S2S_URL', defaultValue: 'http://rpe-service-auth-provider-aat.service.core-compute-aat.internal', description: 'The s2s url you want to run these tests against'),
+    string(name: 'OAUTH2_REDIRECT_URI', defaultValue: 'https://moneyclaims.aat.platform.hmcts.net', description: 'The redirect url you want to authenticate users and get idam token'),
     string(name: 'SecurityRules',
       defaultValue: 'http://raw.githubusercontent.com/hmcts/security-test-rules/master/conf/security-rules.conf',
       description: 'SecurityUrl against which rules will be executed'),
@@ -14,8 +19,8 @@ properties([
 @Library("Infrastructure")
 
 def type = "java"
-def product = "rpe"
-def component = "spring-boot-template"
+def product = "payment"
+def component = "api"
 
 def secrets = [
   'ccpay-${env}': [
@@ -27,7 +32,8 @@ def secrets = [
     secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
     secret('paybubble-idam-client-secret', 'OIDC_CLIENT_SECRET'),
     secret('refunds-api-client-secret', 'REFUND_SERVICE_ACCOUNT_CLIENT_SECRET'),
-    secret('refunds-api-user-password', 'REFUND_SERVICE_ACCOUNT_PASSWORD')
+    secret('refunds-api-user-password', 'REFUND_SERVICE_ACCOUNT_PASSWORD'),
+    secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET')
   ]
 ]
 
@@ -43,15 +49,19 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withNightlyPipeline(type, product, component) {
 
   env.TEST_URL = params.URL_TO_TEST
+  env.TEST_URL_PAYMENT = params.TEST_URL_PAYMENT
+  env.IDAM_API_URL = params.IDAM_API_URL
+  env.S2S_URL = params.S2S_URL
+  env.OAUTH2_REDIRECT_URI = params.OAUTH2_REDIRECT_URI
   loadVaultSecrets(secrets)
   enableSecurityScan()
   enableMutationTest()
-  //enableFortifyScan()
+  enableFortifyScan('ccpay-aat')
   enableFullFunctionalTest()
 
-  //after('fortify-scan') {
-  //  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
-  //}
+  after('fortify-scan') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
+  }
 
   after('fullFunctionalTest') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'

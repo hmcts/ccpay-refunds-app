@@ -7,11 +7,14 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
@@ -41,6 +45,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -72,6 +77,8 @@ public class RefundsController {
 
     @Autowired
     private RefundNotificationService refundNotificationService;
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -167,9 +174,13 @@ public class RefundsController {
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable("reference") String reference,
             @RequestBody @Valid ResubmitRefundRequest request) {
+        LOG.info("ENTERED THE RESUBMIT ENDPOINT");
+
         if (featureToggler.getBooleanValue("refunds-release",false)) {
+            LOG.info("ENTERED FEATURE TOGGLER");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
+        LOG.info("BEFORE RETURN");
         return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 
@@ -229,6 +240,17 @@ public class RefundsController {
 
     }
 
+    @ApiOperation(value = "Delete Refund details by refund reference", notes = "Delete refund details for supplied refund reference")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Refund deleted successfully"),
+            @ApiResponse(code = 404, message = "Refund not found for the given reference")
+    })
+    @DeleteMapping("/refund/{reference}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteRefund(@RequestHeader("Authorization") String authorization, @PathVariable String reference) {
+        refundsService.deleteRefund(reference);
+    }
+
     @ApiOperation(value = "PUT resend/notification/{reference} ", notes = "Resend Refund Notification")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Ok"),
@@ -276,7 +298,7 @@ public class RefundsController {
     public void postFailedRefundsToLiberata() throws JsonProcessingException {
         refundNotificationService.reprocessPostFailedRefundsToLiberata();
     }
-    
+
     @GetMapping("/refundstest")
     public ResponseEntity<String> searchRefundReconciliation1(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,

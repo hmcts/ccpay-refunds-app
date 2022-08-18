@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
 import uk.gov.hmcts.reform.refunds.mappers.RefundReviewMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
@@ -77,6 +79,10 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
     @Autowired
     RefundsUtil refundsUtil;
+    private static final String NOTES = "Refund cancelled due to payment failure";
+    private static final String REFUND_CANCELLED = "Refund cancelled";
+    private static final String CANCELLED = "Cancelled";
+    private static final String FEE_AND_PAY = "Fee and Pay";
 
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
@@ -96,22 +102,29 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         String statusMessage = "";
         if (refundEvent.equals(RefundEvent.APPROVE)) {
             boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
+            HttpStatus liberataStatusCode = HttpStatus.I_AM_A_TEAPOT;
+
             if (isRefundLiberata) {
                 PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
                     headers,
                     refundForGivenReference.getPaymentReference()
                 );
-                ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(
-                    paymentData,
-                    refundForGivenReference
-                );
 
-                LOG.info("reconciliationProviderRequest: {}", reconciliationProviderRequest);
-                ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService
-                    .updateReconciliationProviderWithApprovedRefund(
-                    reconciliationProviderRequest
-                );
-                if (reconciliationProviderResponseResponse.getStatusCode().is2xxSuccessful()) {
+                if (paymentData.getPayments().get(0).getMethod().equalsIgnoreCase("payment by account")) {
+                    LOG.info("Payment method is PBA");
+                    ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(
+                        paymentData,
+                        refundForGivenReference
+                    );
+
+                    LOG.info("reconciliationProviderRequest: {}", reconciliationProviderRequest);
+                    ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService
+                        .updateReconciliationProviderWithApprovedRefund(
+                            reconciliationProviderRequest
+                        );
+                    liberataStatusCode = reconciliationProviderResponseResponse.getStatusCode();
+                }
+                if (liberataStatusCode.is2xxSuccessful() || liberataStatusCode == HttpStatus.I_AM_A_TEAPOT) {
                     updateRefundStatus(refundForGivenReference, refundEvent);
                     refundForGivenReference.setRefundApproveFlag("SENT");
                     refundsRepository.save(refundForGivenReference);
@@ -171,6 +184,27 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
         }
 
+    }
+
+    @Override
+    public ResponseEntity<String> cancelRefunds(MultiValueMap<String, String> headers, String paymentReference) {
+        List<RefundStatus> forbiddenStatus = List.of(RefundStatus.ACCEPTED, RefundStatus.REJECTED, RefundStatus.CANCELLED);
+        List<Refund> refundList = refundsService.getRefundsForPaymentReference(paymentReference);
+        List<StatusHistory> statusHistories = new LinkedList<>();
+        for (Refund refund : refundList) {
+            if (!forbiddenStatus.contains(refund.getRefundStatus())) {
+                statusHistories.addAll(refund.getStatusHistories());
+                refund.setUpdatedBy(FEE_AND_PAY);
+                statusHistories.add(StatusHistory.statusHistoryWith()
+                        .createdBy(FEE_AND_PAY)
+                        .status(CANCELLED)
+                        .notes(NOTES)
+                        .build());
+                refund.setStatusHistories(statusHistories);
+                updateRefundStatus(refund, RefundEvent.CANCEL);
+            }
+        }
+        return new ResponseEntity<>(REFUND_CANCELLED, HttpStatus.OK);
     }
 
     private Refund validatedAndGetRefundForGivenReference(String reference, String userId) {
