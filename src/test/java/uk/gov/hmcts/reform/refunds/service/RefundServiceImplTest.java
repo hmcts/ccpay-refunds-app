@@ -14,8 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
@@ -52,8 +52,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Collections;
+import java.util.Date;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -1068,6 +1069,7 @@ class RefundServiceImplTest {
             .paymentMethod("CCC")
             .build();
     }
+
     @Test
     void testRefundListEmptyForSearchCritieria() {
         when(refundsRepository.findAll()).thenReturn(null);
