@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -2303,8 +2302,7 @@ class RefundControllerTest {
 
         String startDate = LocalDate.now().minusDays(10).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds?end_date=" + endDate + "&start_date=" + startDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isPayloadTooLarge()).andReturn();
@@ -2312,14 +2310,13 @@ class RefundControllerTest {
 
     }
 
-    @Ignore
     @Test
      void returnException400_withInvaliddBetweenDates_WhenStartDateIsBigger() throws Exception {
 
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds?end_date=" + endDate + "&start_date=" + startDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
@@ -2327,14 +2324,13 @@ class RefundControllerTest {
 
     }
 
-    @Ignore
     @Test
      void returnException400_withInvaliddBetweenDates_WhenStartDateIsInFuture() throws Exception {
 
         String startDate = LocalDate.now().plusDays(2).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds?end_date=" + endDate + "&start_date=" + startDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
@@ -2342,14 +2338,13 @@ class RefundControllerTest {
 
     }
 
-    @Ignore
     @Test
       void returnException400_withInvaliddBetweenDates_WhenInvalidFormat() throws Exception {
 
         String startDate = LocalDate.now().minusDays(1).toString(INVALID_FORMAT);
         String endDate = LocalDate.now().toString(INVALID_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds?end_date=" + endDate + "&start_date=" + startDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
@@ -2357,7 +2352,7 @@ class RefundControllerTest {
 
     }
 
-    @Ignore
+
     @Test
      void validateSuccessResponseWhenValidSearchDateProvided() throws Exception {
 
@@ -2379,7 +2374,7 @@ class RefundControllerTest {
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        MvcResult mvcResult = mockMvc.perform(get("/refunds/" + startDate + "/" + endDate)
+        MvcResult mvcResult = mockMvc.perform(get("/refunds?end_date=" + endDate + "&start_date=" + startDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
