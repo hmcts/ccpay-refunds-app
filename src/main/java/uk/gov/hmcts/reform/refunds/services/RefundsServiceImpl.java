@@ -752,7 +752,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .startDate(fromDateTime)
             .endDate(toDateTime)
             .refundReference(refundReference)
-            .refundStatus(RefundStatus.APPROVED)
             .build();
 
     }
