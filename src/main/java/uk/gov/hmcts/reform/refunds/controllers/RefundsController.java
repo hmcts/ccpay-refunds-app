@@ -7,12 +7,9 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +29,6 @@ import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -44,7 +40,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
@@ -54,12 +49,8 @@ import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
-import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
-import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -68,7 +59,7 @@ import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @Api(tags = {"Refund Journey group"})
-@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports", "PMD.LawOfDemeter",
+@SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports",
     "PMD.TooManyMethods"})
 public class RefundsController {
 
@@ -87,19 +78,8 @@ public class RefundsController {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
-    private  long daysDifference;
-
-    @Autowired
-    private  RefundValidator refundValidator;
-    DateUtil dateUtil = new DateUtil();
-
-    private final DateTimeFormatter formatter = dateUtil.getIsoDateTimeFormatter();
-
     @Autowired
     private RefundNotificationService refundNotificationService;
-
-    @Value("${refund.search.days}")
-    private Integer numberOfDays;
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
@@ -289,53 +269,14 @@ public class RefundsController {
     @GetMapping("/refunds")
     public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,
-                                                        @RequestParam(name = "refund_reference", required = false) String refundReference
-
-    ) {
-
-        refundValidator.validate(startDateTimeString, endDateTimeString);
-
-        Date fromDateTime = getFromDateTime(startDateTimeString);
-
-        Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
-
-        if (null != fromDateTime && null != toDateTime) {
-            daysDifference = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
-        }
-
-        if (daysDifference > numberOfDays) {
-
-            throw new LargePayloadException("Date range exceeds the maximum supported by the system");
-        }
+                                                        @RequestParam(name = "refund_reference", required = false) String refundReference) {
 
         List<RefundLiberata> refunds = refundsService
-            .search(
-                getSearchCriteria(fromDateTime, toDateTime, refundReference)
-            );
+            .search(startDateTimeString, endDateTimeString,refundReference);
 
         return new ResponseEntity<>(new RerfundLiberataResponse(refunds),HttpStatus.OK);
     }
 
-    private Date getFromDateTime(@PathVariable(name = "start_date") Optional<String> startDateTimeString) {
-        return Optional.ofNullable(startDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
-            .map(LocalDateTime::toDate)
-            .orElse(null);
-    }
-
-    private Date getToDateTime(@PathVariable(name = "end_date") Optional<String> endDateTimeString, Date fromDateTime) {
-        return Optional.ofNullable(endDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
-            .map(s -> fromDateTime != null && s.getHourOfDay() == 0 ? s.plusDays(1).minusSeconds(1).toDate() : s.toDate())
-            .orElse(null);
-    }
-
-    private RefundSearchCriteria getSearchCriteria(Date fromDateTime, Date toDateTime, String refundReference) {
-        return RefundSearchCriteria
-            .searchCriteriaWith()
-            .startDate(fromDateTime)
-            .endDate(toDateTime)
-            .refundReference(refundReference)
-            .build();
-    }
 
     @ApiOperation(value = "PUT resend/notification/{reference} ", notes = "Resend Refund Notification")
     @ApiResponses(value = {

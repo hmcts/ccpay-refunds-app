@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.refunds.services;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -15,6 +14,7 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RefundsService {
 
@@ -33,7 +33,7 @@ public interface RefundsService {
 
     ResubmitRefundResponseDto resubmitRefund(String reference, ResubmitRefundRequest request, MultiValueMap<String, String> headers);
 
-    List<RefundLiberata> search(RefundSearchCriteria searchCriteria);
+    List<RefundLiberata> search(Optional<String> startDateTimeString, Optional<String>  endDateTimeString, String refundReference);
 
     void deleteRefund(String reference);
 

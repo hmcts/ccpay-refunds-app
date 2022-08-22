@@ -63,7 +63,8 @@ public class RefundResponseMapper {
 
     }
 
-    public RefundLiberata getRefundLibrata(Refund refund, PaymentDto paymentDto, Map<String, BigDecimal> groupByPaymentReference) {
+    public RefundLiberata getRefundLibrata(Refund refund, PaymentDto paymentDto, Map<String, BigDecimal> groupByPaymentReference,
+                                           Map<String, BigDecimal> groupByPaymentReferenceNotInDateRange) {
 
         return RefundLiberata.buildRefundLibarataWith()
                         .dateApproved(refund.getDateUpdated())
@@ -71,13 +72,14 @@ public class RefundResponseMapper {
                         .instructionType(refund.getRefundInstructionType())
                         .reason(refund.getReason())
                         .reference(refund.getReference())
-                        .payment(toPayment(paymentDto, groupByPaymentReference))
+                        .payment(toPayment(paymentDto, groupByPaymentReference, groupByPaymentReferenceNotInDateRange))
                         .fees(toFeeDtos(paymentDto.getFees(), refund))
                         .build();
 
     }
 
-    private  PaymentRefundDto toPayment(PaymentDto payment, Map<String, BigDecimal> groupByPaymentReference) {
+    private  PaymentRefundDto toPayment(PaymentDto payment, Map<String, BigDecimal> groupByPaymentReference,
+                                        Map<String, BigDecimal> groupByPaymentReferenceNotInDateRange) {
 
         return   PaymentRefundDto.paymentRefundDtoWith()
             .pbaNumber(payment.getAccountNumber())
@@ -92,7 +94,7 @@ public class RefundResponseMapper {
             .method(payment.getMethod())
             .serviceName(payment.getServiceName())
             .siteId(payment.getSiteId())
-            .availableFunds(availableFunds(groupByPaymentReference,payment))
+            .availableFunds(availableFunds(groupByPaymentReference,payment,groupByPaymentReferenceNotInDateRange))
             .build();
 
 
@@ -115,16 +117,30 @@ public class RefundResponseMapper {
             .build();
     }
 
-    private BigDecimal availableFunds(Map<String, BigDecimal> groupByPaymentReference, PaymentDto paymentDto) {
+    private BigDecimal availableFunds(Map<String, BigDecimal> groupByPaymentReference, PaymentDto paymentDto,
+                                      Map<String, BigDecimal> groupByPaymentReferenceNotInDateRange) {
 
         BigDecimal avlAmount = BigDecimal.ZERO;
+        BigDecimal totalRefAmount;
+        BigDecimal dateRangeReferenceAmount = BigDecimal.ZERO;
         Set<Map.Entry<String, BigDecimal>> entrySet = groupByPaymentReference.entrySet();
+        Set<Map.Entry<String, BigDecimal>> entrySetNotInDateRange = groupByPaymentReferenceNotInDateRange.entrySet();
 
         for (Map.Entry<String, BigDecimal> entry : entrySet) {
 
             if (entry.getKey().equals(paymentDto.getPaymentReference())) {
 
-                avlAmount =  paymentDto.getAmount().subtract(entry.getValue());
+                dateRangeReferenceAmount = entry.getValue();
+
+            }
+        }
+
+        for (Map.Entry<String, BigDecimal> entry : entrySetNotInDateRange) {
+
+            if (entry.getKey().equals(paymentDto.getPaymentReference())) {
+                totalRefAmount = dateRangeReferenceAmount.add(entry.getValue());
+
+                avlAmount =  paymentDto.getAmount().subtract(totalRefAmount);
 
             }
         }

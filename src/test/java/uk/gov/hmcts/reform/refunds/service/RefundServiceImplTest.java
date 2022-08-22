@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.refunds.service;
 
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,10 +10,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
@@ -46,6 +51,7 @@ import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.Utility;
+import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -137,6 +143,14 @@ class RefundServiceImplTest {
 
     @Mock
     private Path<String> stringPath;
+
+    @Mock
+    private RefundValidator refundValidator;
+
+    @Value("${refund.search.days}")
+    private Integer numberOfDays;
+
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
 
     private  RefundSearchCriteria getRefundSearchCriteria() {
@@ -1072,9 +1086,12 @@ class RefundServiceImplTest {
 
     @Test
     void testRefundListEmptyForSearchCritieria() {
+        ReflectionTestUtils.setField(refundsService, "numberOfDays", numberOfDays);
         when(refundsRepository.findAll()).thenReturn(null);
+        Optional<String> startDate = Optional.ofNullable(LocalDate.now().minusDays(1).toString(DATE_FORMAT));
+        Optional<String> endDate = Optional.ofNullable(LocalDate.now().toString(DATE_FORMAT));
 
-        Exception exception = assertThrows(RefundNotFoundException.class, () -> refundsService.search(getRefundSearchCriteria()
+        Exception exception = assertThrows(RefundNotFoundException.class, () -> refundsService.search(startDate,endDate,"RF12345"
         ));
 
         String actualMessage = exception.getMessage();
@@ -1085,17 +1102,16 @@ class RefundServiceImplTest {
     void testRefundResponseWhenRefundListForSearchCriteraReturnsuccess() {
         RefundsServiceImpl mock = org.mockito.Mockito.mock(RefundsServiceImpl.class);
         when(mock.searchByCriteria(getRefundSearchCriteria())).thenReturn(mockSpecification);
-
+        ReflectionTestUtils.setField(refundsService, "numberOfDays", numberOfDays);
         when(refundsRepository.findAll(any()))
             .thenReturn(getRefundList());
         List<String> referenceList = new ArrayList<>();
         referenceList.add("RC-1111-2234-1077-1123");
         when(paymentService.fetchPaymentResponse(referenceList)).thenReturn(getPayments());
-
+        Optional<String> startDate = Optional.ofNullable(LocalDate.now().minusDays(1).toString(DATE_FORMAT));
+        Optional<String> endDate = Optional.ofNullable(LocalDate.now().toString(DATE_FORMAT));
         List<RefundLiberata>
-                      refundListDtoResponse = refundsService.search(
-            getRefundSearchCriteria()
-        );
+                      refundListDtoResponse = refundsService.search(startDate,endDate,"RF12345");
 
         Assert.assertEquals("RF-1111-2234-1077-1123",refundListDtoResponse.get(0).getReference());
 
