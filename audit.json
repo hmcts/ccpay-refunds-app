@@ -13,5 +13,9 @@
   "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference/action/APPROVE_PATCH":"ignore",
   "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/resubmit/reference_PATCH":"ignore",
   "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund_POST":"ignore",
-  "10024_Information Disclosure - Sensitive Information in URL_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund?ccdCaseNumber=ccdCaseNumber&excludeCurrentUser=excludeCurrentUser&status=status_GET":"ignore"
+  "10024_Information Disclosure - Sensitive Information in URL_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund?ccdCaseNumber=ccdCaseNumber&excludeCurrentUser=excludeCurrentUser&status=status_GET":"ignore",
+  "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference_DELETE":"ignore",
+  "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference_DELETE":"ignore",
+  "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference_DELETE":"ignore",
+  "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference_DELETE":"ignore"
 }
