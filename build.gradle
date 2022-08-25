@@ -141,13 +141,6 @@ def sonarExclusions = [
   '**/mapper/**',
   '**/mappers/**',
   '**/dtos/**',
-  '**/services/RefundReviewServiceImpl.java',
-  '**/services/RefundsServiceImpl.java',
-  '**/services/RefundsServiceImpl.java',
-  '**/services/PaymentServiceImpl.java',
-  '**/services/NotificationServiceImpl.java',
-  '**/services/RefundNotificationServiceImpl.java',
-  '**/services/RefundNotificationServiceImpl.java',
   '**/config/**'
 ]
 
