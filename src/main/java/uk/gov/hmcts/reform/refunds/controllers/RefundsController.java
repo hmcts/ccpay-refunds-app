@@ -7,8 +7,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +43,6 @@ import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
-import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -77,8 +74,6 @@ public class RefundsController {
 
     @Autowired
     private RefundNotificationService refundNotificationService;
-
-    private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -215,8 +210,8 @@ public class RefundsController {
     public ResponseEntity<String> reviewRefund(
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable(value = "reference") String reference,
-            @PathVariable(value = "reviewer-action") ReviewerAction reviewerAction,
+            @PathVariable String reference,
+            @PathVariable ReviewerAction reviewerAction,
             @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
