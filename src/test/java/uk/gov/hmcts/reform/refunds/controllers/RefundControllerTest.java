@@ -278,6 +278,7 @@ class RefundControllerTest {
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
             .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+            .refundFees(Arrays.asList(RefundFees.refundFeesWith().refundAmount(BigDecimal.valueOf(100)).build()))
             .build();
 
         refunds.add(ref);
@@ -385,6 +386,8 @@ class RefundControllerTest {
     @Qualifier("restTemplateNotify")
     private RestTemplate restTemplateNotify;
 
+    @Mock
+    private RefundFees refundFees;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
     private static final DateTimeFormatter INVALID_FORMAT = DateTimeFormat.forPattern("yyyy-MM");

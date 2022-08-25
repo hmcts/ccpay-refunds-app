@@ -105,7 +105,6 @@ public class PaymentServiceImpl implements PaymentService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(paymentApiUrl + "/refunds/payments")
             .queryParam("paymentReferenceList", referenceId);
 
-        logger.info("refunds payments URI {}", builder.toUriString());
         return restTemplatePayment
             .exchange(
                 builder.toUriString(),
@@ -185,22 +184,11 @@ public class PaymentServiceImpl implements PaymentService {
     public List<PaymentDto> fetchPaymentResponse(List<String> paymentReference) {
 
         try {
-
             ResponseEntity<List<PaymentDto>> paymentResponse =
                 fetchRefundPaymentFromPayhub(paymentReference);
             logger.info("payment Response status code {}", paymentResponse.getStatusCode());
-            if (paymentResponse != null) {
-                logger.info("payment Response --> {}", paymentResponse.getBody());
-            }
             return  paymentResponse.getBody();
-        } catch (HttpClientErrorException e) {
-            logger.error(e.getMessage());
-            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                throw new PaymentReferenceNotFoundException("Payment Reference not found", e);
-            }
-            throw new PaymentInvalidRequestException("Invalid Request: Payhub", e);
         } catch (Exception e) {
-            logger.error(e.getMessage());
             throw new PaymentServerException("Payment Server Exception", e);
         }
     }

@@ -614,6 +614,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         List<Refund> refundListNotInDateRange = refundsRepository.findByDatesBetween(fromDateTime,toDateTime);
         List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(referenceList);
+
         Map<String, BigDecimal> groupByPaymentReference =
             refundListWithAccepted.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
                                                                           Collectors2.summingBigDecimal(Refund::getAmount)));
@@ -622,7 +623,21 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundListNotInDateRange.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
                                                                           Collectors2.summingBigDecimal(Refund::getAmount)));
 
+        Map<String, BigDecimal> avlBalance = new ConcurrentHashMap<>();
 
+        BigDecimal amountSecond;
+        BigDecimal sumAmount;
+        for (Map.Entry<String, BigDecimal> entry : groupByPaymentReference.entrySet()) {
+            String key = entry.getKey();
+            BigDecimal amountFirst = entry.getValue();
+            amountSecond = groupByPaymentReferenceForNotInDateRange.get(key);
+            if (null != amountSecond) {
+                sumAmount = amountFirst.add(amountSecond);
+            } else {
+                sumAmount = amountFirst;
+            }
+            avlBalance.put(key,sumAmount);
+        }
 
         refundListWithAccepted.stream()
             .filter(e -> paymentData.stream()
@@ -635,7 +650,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     paymentData.stream()
                         .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
                         .findAny().get(),
-                    groupByPaymentReference,groupByPaymentReferenceForNotInDateRange
+                    avlBalance
                 ));
             });
         return refundLiberatas;
@@ -707,33 +722,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return validateRefundReason(reason == null ? refund.getReason() : reason);
     }
 
-    private void validateRefundRequest(RefundRequest refundRequest) {
-
-        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
-
-        if (refundsList.isPresent()) {
-            List<String> nonRejectedFeeList = refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                    RefundStatus.REJECTED))
-                .map(Refund::getFeeIds)
-                .collect(Collectors.toList());
-
-            List<String> feeIdsofRequestedRefund = refundRequest.getFeeIds().contains(",") ? Arrays.stream(refundRequest.getFeeIds().split(
-                ",")).collect(Collectors.toList()) : Arrays.asList(refundRequest.getFeeIds());
-
-            feeIdsofRequestedRefund.forEach(feeId -> {
-                nonRejectedFeeList.forEach(nonRejectFee -> {
-                    if (nonRejectFee.contains(feeId)) {
-                        throw new InvalidRefundRequestException("Refund is already requested for this payment");
-                    }
-                });
-
-            });
-        }
-
-        refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
-
-    }
-
     private Date getFromDateTime(@PathVariable(name = "start_date") Optional<String> startDateTimeString) {
         return Optional.ofNullable(startDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
             .map(org.joda.time.LocalDateTime::toDate)
@@ -755,5 +743,4 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
 
     }
-
 }

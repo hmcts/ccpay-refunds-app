@@ -205,23 +205,6 @@ class PaymentServiceTest {
         assertThat(paymentDto).usingRecursiveComparison().isEqualTo(paymentDtos);
     }
 
-    @Test
-    void  fetchPaymentDetailsForRefundReconciliationReturnsNotFoundException() throws Exception {
-
-        List<String> referenceList = new ArrayList<>();
-        referenceList.add("RC-1628-5241-9956-2315");
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("ServiceAuthorization", "service-auth");
-        when(authTokenGenerator.generate()).thenReturn("service auth token");
-
-        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                          eq(new ParameterizedTypeReference<List<PaymentDto>>() {
-                                          }))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-
-        assertThrows(PaymentReferenceNotFoundException.class, () -> {
-            paymentService.fetchPaymentResponse(referenceList);
-        });
-    }
 
     @Test
     void  fetchPaymentDetailsForRefundReconciliationReturnsPaymentServerException() throws Exception {

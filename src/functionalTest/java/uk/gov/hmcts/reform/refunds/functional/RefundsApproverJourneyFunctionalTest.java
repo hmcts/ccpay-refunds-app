@@ -735,10 +735,15 @@ public class RefundsApproverJourneyFunctionalTest {
                                              testConfigProperties.basePaymentsUrl).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
 
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
+
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        return paymentsResponse.getPaymentReference();
+        return paymentsResponse.getReference();
     }
 
     @NotNull

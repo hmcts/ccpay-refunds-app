@@ -38,11 +38,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
-import uk.gov.hmcts.reform.refunds.model.ContactDetails;
-import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.model.*;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
@@ -207,6 +203,7 @@ class RefundServiceImplTest {
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
             .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
+            .refundFees(Arrays.asList(RefundFees.refundFeesWith().refundAmount(BigDecimal.valueOf(100)).build()))
             .build();
 
         refunds.add(ref);
