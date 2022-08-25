@@ -4,22 +4,19 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.inject.Named;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Named
 public class PaymentTestService {
-
-    private final Map<String, String> authHeaders = new HashMap<>();
 
     public Response postPbaPayment(final String userToken,
                                    final String serviceToken,
@@ -132,12 +129,38 @@ public class PaymentTestService {
     }
 
     public RequestSpecification givenWithAuthHeaders(final String userToken, final String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }
 
-    public RequestSpecification givenWithServiceHeaders(final String serviceToken) {
+    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
+                .when()
+                .get("/credit-account-payments/{reference}", paymentReference);
+    }
+
+    public Response deletePayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
+                .when()
+                .delete("/credit-account-payments/{paymentReference}", paymentReference);
+    }
+
+    public Response deleteRefund(final String userToken, final String serviceToken,
+                                 final String refundReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+                .delete("/refund/{reference}", refundReference);
+    }
+
+    public Response patchCancelRefunds(final String serviceToken, final String paymentReference) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON).when()
+            .patch("/payment/{paymentReference}/action/cancel", paymentReference);
+    }
+
+    public RequestSpecification givenWithServiceHeaders(String serviceToken) {
         return RestAssured.given()
             .header("ServiceAuthorization", serviceToken);
     }

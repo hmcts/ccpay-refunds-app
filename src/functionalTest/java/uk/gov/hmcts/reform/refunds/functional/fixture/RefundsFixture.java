@@ -16,21 +16,17 @@ import java.util.Random;
 
 public final class RefundsFixture {
 
-    private RefundsFixture() {
-    }
+    private RefundsFixture() {}
 
-    public static final CreditAccountPaymentRequest pbaPaymentRequestForProbate(final String amountString,
-                                                                                final String service, final String pbaAccountNumber) {
+    public static CreditAccountPaymentRequest pbaPaymentRequestForProbate(final String amountString,
+                                                                          final String service, final String pbaAccountNumber) {
         Random rand = new Random();
-        String ccdCaseNumber = String.format(
-            (Locale) null, //don't want any thousand separators
-            "%04d22%04d%04d%02d",
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(10000),
-            rand.nextInt(99)
-        );
-        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+                                             "%04d22%04d%04d%02d",
+                                             rand.nextInt(10000),
+                                             rand.nextInt(10000),
+                                             rand.nextInt(10000),
+                                             rand.nextInt(99));
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -52,8 +48,8 @@ public final class RefundsFixture {
             .build();
     }
 
-    public static final PaymentRefundRequest refundRequest(final String refundReason,
-                                                           final String paymentReference, final String refundAmount, final String feeAmount) {
+    public static PaymentRefundRequest refundRequest(final String refundReason,
+                                                     final String paymentReference, final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
@@ -87,7 +83,7 @@ public final class RefundsFixture {
 
     }
 
-    public static final ResubmitRefundRequest resubmitRefundAllInput() {
+    public static ResubmitRefundRequest resubmitRefundAllInput() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(new BigDecimal("80.00"))
             .refundReason("RR002")
@@ -112,19 +108,19 @@ public final class RefundsFixture {
             .build();
     }
 
-    public static final ResubmitRefundRequest resubmitRefundWithAmount() {
+    public static ResubmitRefundRequest resubmitRefundWithAmount() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(new BigDecimal("85.00"))
             .build();
     }
 
-    public static final ResubmitRefundRequest resubmitRefundWithReason() {
+    public static ResubmitRefundRequest resubmitRefundWithReason() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .refundReason("RR011")
             .build();
     }
 
-    public static final ResubmitRefundRequest resubmitRefundWithContact() {
+    public static ResubmitRefundRequest resubmitRefundWithContact() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .contactDetails(ContactDetails.contactDetailsWith()
                                 .addressLine("High Street 115")
@@ -138,7 +134,7 @@ public final class RefundsFixture {
             .build();
     }
 
-    public static final ResubmitRefundRequest resubmitRefundWithRetroRemissionReason() {
+    public static ResubmitRefundRequest resubmitRefundWithRetroRemissionReason() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .refundReason("RR036")
             .build();

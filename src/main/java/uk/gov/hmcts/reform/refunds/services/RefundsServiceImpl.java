@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.Notification;
@@ -70,7 +71,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String OTHERREASONPATTERN = "Other - ";
 
-    private static final Pattern ROLEPATTERN = Pattern.compile("^.*refund.*$");
+    private static final String ROLEPATTERN = "^.*refund.*$";
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
     private static int amountCompareValue = 1;
@@ -179,7 +180,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         LOG.info("refundList: {}", refundList);
         // Get Refunds related Roles from logged in user
-        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> ROLEPATTERN.matcher(role).find())
+        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
             .collect(Collectors.toList());
         LOG.info("roles: {}", roles);
         return getRefundListDto(headers, refundList, roles);
@@ -207,11 +208,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             LOG.info("Fetching cached refunds user list from IDAM...");
             Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
                 Collectors.toSet());
+            LOG.info("userIdentityDataDtoSet retrieved from Context Listener {} ",userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
+            LOG.info("userIdsWithGivenRoles {}",userIdsWithGivenRoles);
+            LOG.info("refundList {}",refundList);
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
+                    LOG.info("refund created By {}",refund.getCreatedBy());
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
                     contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
                     userIdentityDataDtoSet.add(userIdentityDataDto);
@@ -308,8 +313,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .totalRefundedAmount(totalRefundedAmount)
                 .build();
 
+            LOG.info("TOTAL REFUNDED AMOUNT: {}", totalRefundedAmount);
+
+
             boolean payhubRemissionUpdateResponse = paymentService
                 .updateRemissionAmountInPayhub(headers, refund.getPaymentReference(), refundResubmitPayhubRequest);
+
+            LOG.info("PAYHUB REMISSION RESPONSE: {}", payhubRemissionUpdateResponse);
+
 
             if (payhubRemissionUpdateResponse) {
                 // Update Status History table
@@ -343,12 +354,30 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         throw new ActionNotFoundException("Action not allowed to proceed");
     }
 
+    @Override
+    @Transactional
+    public void deleteRefund(String reference) {
+        long records = refundsRepository.deleteByReference(reference);
+        if (records == 0) {
+            throw new RefundNotFoundException("No records found for given refund reference");
+        }
+    }
+
+    @Override
+    public List<Refund> getRefundsForPaymentReference(String paymentReference) {
+        Optional<List<Refund>> refundList = refundsRepository.findByPaymentReference(paymentReference);
+        if (refundList.isPresent() && !refundList.get().isEmpty()) {
+            return refundList.get();
+        }
+        throw new RefundNotFoundException("Refunds not found for payment reference " + paymentReference);
+    }
+
     private String validateRefundReason(String reason) {
 
         if (reason == null || reason.isBlank()) {
             throw new InvalidRefundRequestException("Refund reason is required");
         }
-        Boolean matcher = REASONPATTERN.matcher(reason).find();
+        boolean matcher = REASONPATTERN.matcher(reason).find();
         if (matcher) {
             String reasonCode = reason.split("-")[0];
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);

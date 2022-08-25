@@ -103,6 +103,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -939,8 +940,8 @@ class RefundControllerTest {
     @Test
     void approveRefundRequestReturnsSuccessResponseWithLetterNotification() throws Exception {
         when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
-             new ResponseEntity<>("Success", HttpStatus.OK)
+                Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+                new ResponseEntity<>("Success", HttpStatus.OK)
         );
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefundWithLetterDetails()));
@@ -949,33 +950,33 @@ class RefundControllerTest {
 
         ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamUserIdResponse.class)
+                eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
 
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
+                PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+                Optional.of(getPaymentGroupDto())
 
         ));
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefundWithLetterDetails());
 
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
-            "refund reason").build()));
+                "refund reason").build()));
 
         MvcResult result = mockMvc.perform(patch(
                 "/refund/{reference}/action/{reviewer-action}",
                 "RF-1628-5241-9956-2215",
                 "APPROVE"
-            )
-                                               .content(asJsonString(refundReviewRequest))
-                                               .header("Authorization", "user")
-                                               .header("ServiceAuthorization", "Services")
-                                               .contentType(MediaType.APPLICATION_JSON)
-                                               .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isCreated())
-            .andReturn();
+        )
+                .content(asJsonString(refundReviewRequest))
+                .header("Authorization", "user")
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn();
         assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
@@ -1729,6 +1730,29 @@ class RefundControllerTest {
             .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest())
             .andReturn();
+    }
+
+    @Test
+    void givenDummyReference_whenDeleteRefund_thenRefundNotFoundException() throws Exception {
+        mockMvc.perform(delete("/refund/dummy")
+                .header("Authorization", "user")
+                .header("ServiceAuthorization", "Services"))
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
+
+    @Test
+    void givenValidReference_whenDeleteRefund_thenRefundNotFoundException() throws Exception {
+
+        long records = 1;
+        when(refundsRepository.deleteByReference(anyString())).thenReturn(records);
+
+        mockMvc.perform(delete("/refund/RF-1234-1234-1234-1234")
+                .header("Authorization", "user")
+                .header("ServiceAuthorization", "Services"))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
     }
 
     @Test
