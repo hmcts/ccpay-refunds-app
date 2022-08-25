@@ -211,7 +211,7 @@ public class RefundsController {
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable String reference,
-            @PathVariable ReviewerAction reviewerAction,
+            @PathVariable(value = "reviewer-action") ReviewerAction reviewerAction,
             @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
