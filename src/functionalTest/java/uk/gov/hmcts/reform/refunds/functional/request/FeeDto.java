@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.functional.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -17,6 +18,7 @@ import javax.validation.constraints.Positive;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 @Builder(builderMethodName = "feeDtoWith")
@@ -41,8 +43,6 @@ public class FeeDto {
     private BigDecimal calculatedAmount;
 
     private BigDecimal feeAmount;
-
-    private BigDecimal refundAmount;
 
     private String memoLine;
 
@@ -83,6 +83,23 @@ public class FeeDto {
 
     private Date dateReceiptProcessed;
 
+    private Boolean remissionEnable;
+
     private boolean issueRefundAddRefundAddRemission;
 
+    private BigDecimal overPayment;
+
+    private boolean addRemission;
+
+    @Override
+    public String toString() {
+        return
+                "Fee DTO -  id='" + id + '\'' +
+                        "code ='" + code + '\'' +
+                        "apportionedPayment ='" + apportionedPayment + '\'' +
+                        "naturalAccountCode ='" + naturalAccountCode + '\'' +
+                        "volume ='" + volume + '\'' +
+                        "calculatedAmount ='" + calculatedAmount + '\''
+                ;
+    }
 }
