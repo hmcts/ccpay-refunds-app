@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
-
 @Component
 public class RefundResponseMapper {
 
@@ -99,13 +97,14 @@ public class RefundResponseMapper {
     }
 
     private List<PaymentFeeLibarataResponse> toFeeDtos(List<FeeDto> paymentFees,Refund refund) {
-        return paymentFees.stream().map(f -> toFeeDto(f,refund)).collect(Collectors.toList());
+        return paymentFees.stream().filter(pf -> refund.getRefundFees().stream().anyMatch(id -> id.getCode().equals(pf.getCode())))
+            .map(pf -> toFeeDto(pf,refund)).collect(Collectors.toList());
     }
 
     private PaymentFeeLibarataResponse toFeeDto(FeeDto fee, Refund refund) {
         return PaymentFeeLibarataResponse.feeLibarataDtoWith()
             .id(fee.getId())
-            .credit(toCreditAmount(refund))
+            .credit(toCreditAmount(refund,fee))
             .code(fee.getCode())
             .jurisdiction1(fee.getJurisdiction1())
             .jurisdiction2(fee.getJurisdiction2())
@@ -130,15 +129,14 @@ public class RefundResponseMapper {
     }
 
 
-    private BigDecimal toCreditAmount(Refund refund) {
+    private BigDecimal toCreditAmount(Refund refund, FeeDto fee) {
 
         BigDecimal creditAmount = BigDecimal.ZERO;
         for (RefundFees refundFee : refund.getRefundFees()) {
-            creditAmount = creditAmount.add(refundFee.getRefundAmount());
+            if (fee.getCode().equals(refundFee.getCode())) {
+                creditAmount = refundFee.getRefundAmount();
+            }
         }
         return creditAmount;
-
     }
-
-
 }

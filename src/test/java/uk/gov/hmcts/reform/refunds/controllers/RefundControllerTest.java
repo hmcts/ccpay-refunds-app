@@ -278,7 +278,8 @@ class RefundControllerTest {
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
             .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
-            .refundFees(Arrays.asList(RefundFees.refundFeesWith().refundAmount(BigDecimal.valueOf(100)).build()))
+            .refundFees(Arrays.asList(RefundFees.refundFeesWith().refundAmount(BigDecimal.valueOf(100)).code("1")
+            .build()))
             .build();
 
         refunds.add(ref);

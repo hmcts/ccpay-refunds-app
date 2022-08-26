@@ -47,8 +47,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-//@ContextConfiguration(classes = RefundsActionController.class)
 class RefundsActionControllerTest {
 
     @Autowired
