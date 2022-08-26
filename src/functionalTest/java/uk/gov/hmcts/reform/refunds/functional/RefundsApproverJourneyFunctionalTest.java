@@ -452,8 +452,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
-        //assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        final String paymentReference1 = paymentDtoOptional.get().getPaymentReference();
+        final String paymentReference1 = paymentDtoOptional.get().getReference();
 
         // delete payment record
         paymentTestService
@@ -502,7 +501,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        final String paymentReference = paymentsResponse.getPaymentReference();
+        final String paymentReference = paymentsResponse.getReference();
 
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
@@ -614,7 +613,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        final String paymentReference = paymentsResponse.getPaymentReference();
+        final String paymentReference = paymentsResponse.getReference();
 
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");

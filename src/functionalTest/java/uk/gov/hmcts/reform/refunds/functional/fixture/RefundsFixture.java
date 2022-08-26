@@ -53,7 +53,7 @@ public final class RefundsFixture {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
-            .serviceType("cmc")
+            .isOverPayment(false)
             .totalRefundAmount(new BigDecimal(refundAmount))
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
@@ -77,7 +77,6 @@ public final class RefundsFixture {
                                                            .email("ranjeet.kumar@HMCTS.NET")
                                                            .notificationType("EMAIL")
                                                            .build())
-
             .build();
 
     }
