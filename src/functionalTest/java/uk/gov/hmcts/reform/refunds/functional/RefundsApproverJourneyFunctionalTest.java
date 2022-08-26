@@ -123,12 +123,13 @@ public class RefundsApproverJourneyFunctionalTest {
     @Test
     public void positive_reject_a_refund_request() {
         final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -182,12 +183,13 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_sendback_a_refund_request() {
 
         final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -265,12 +267,13 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_approve_a_refund_request() {
 
         final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -324,12 +327,13 @@ public class RefundsApproverJourneyFunctionalTest {
     public void negative_unknown_action_refund_request() {
 
         final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -366,12 +370,13 @@ public class RefundsApproverJourneyFunctionalTest {
     public void negative_unauthorized_user_refund_request() {
 
         final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -408,12 +413,13 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_resubmit_refund_journey() {
 
         final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentReference);
 
         final Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -643,6 +649,10 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         final String paymentReference = paymentsResponse.getReference();
 
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                accountNumber,"5",
+                testConfigProperties.basePaymentsUrl);
+
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(
@@ -656,22 +666,19 @@ public class RefundsApproverJourneyFunctionalTest {
         final String refundReference = refundResponseFromPost.getRefundReference();
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
 
-        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
-                accountNumber,"5",
-                testConfigProperties.basePaymentsUrl);
-
         return refundReference;
     }
 
     @Test
     public void positive_resubmit_refund_journey_when_amount_provided() {
-
-        final String refundReference = performRefund(createPayment());
         final String accountNumber = testConfigProperties.existingAccountNumber;
+        String paymentRef = createPayment();
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentRef);
 
         final Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -801,13 +808,14 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_resubmit_refund_journey_when_contactDetails_provided() {
-
-        final String refundReference = performRefund(createPayment());
         final String accountNumber = testConfigProperties.existingAccountNumber;
+        String paymentRef = createPayment();
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentRef);
 
         final Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -873,13 +881,14 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void negative_not_change_reason_when_retro_remission_input_provided() {
-
-        final String refundReference = performRefund(createPayment());
         final String accountNumber = testConfigProperties.existingAccountNumber;
+        String paymentRef = createPayment();
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentRef);
 
         final Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
@@ -945,15 +954,15 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void negative_when_refund_cancelled_then_not_allow_refund_approve() {
-
         final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -991,14 +1000,14 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void negative_when_refund_cancelled_then_not_allow_refund_reject() {
-
         final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
         Response response = paymentTestService.getRetrieveActions(
@@ -1036,13 +1045,14 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_reject_a_refund_request_verify_contact_details_erased_from_service() {
-
-        final String refundReference = performRefund(createPayment());
+        String paymentRef = createPayment();
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 accountNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        final String refundReference = performRefund(paymentRef);
 
         Response response = paymentTestService.getRetrieveActions(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
