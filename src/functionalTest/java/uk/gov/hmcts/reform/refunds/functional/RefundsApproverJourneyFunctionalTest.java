@@ -565,7 +565,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        return paymentsResponse.getPaymentReference();
+        return paymentsResponse.getReference();
     }
 
     @NotNull
@@ -647,8 +647,6 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -713,8 +711,6 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -781,8 +777,6 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -849,8 +843,6 @@ public class RefundsApproverJourneyFunctionalTest {
                 .build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        System.out.println("The value of the response status : " + responseReviewRefund.getStatusLine());
-        System.out.println("The value of the response body : " + responseReviewRefund.getBody().asString());
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
