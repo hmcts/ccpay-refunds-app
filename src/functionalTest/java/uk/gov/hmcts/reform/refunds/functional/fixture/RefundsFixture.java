@@ -58,14 +58,12 @@ public final class RefundsFixture {
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
-                    .apportionedPayment(BigDecimal.valueOf(0))
                     .calculatedAmount(new BigDecimal(feeAmount))
-                    .feeAmount(new BigDecimal(feeAmount))
+                    .refundAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
                     .id(0)
                     .version("1")
-                    .volume(1)
-
+                    .updatedVolume(1)
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()
