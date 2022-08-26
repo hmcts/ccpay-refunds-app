@@ -31,7 +31,7 @@ public class RefundValidator {
     }
 
     private Optional<LocalDateTime> parseAndValidateDate(Optional<String> dateTimeString) {
-        return dateTimeString.flatMap(s -> validateDate(s));
+        return dateTimeString.flatMap(this::validateDate);
     }
 
     private Optional<LocalDateTime> validateDate(String dateString) {
