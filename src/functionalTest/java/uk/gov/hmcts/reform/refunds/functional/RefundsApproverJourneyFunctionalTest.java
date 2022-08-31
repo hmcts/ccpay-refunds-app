@@ -133,7 +133,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(4);
+        assertThat(refundEvents.size()).isEqualTo(3);
 
         Response responseReviewRefund
             = paymentTestService.patchReviewRefund(
@@ -267,7 +267,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(4);
+        assertThat(refundEvents.size()).isEqualTo(3);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
@@ -463,10 +463,6 @@ public class RefundsApproverJourneyFunctionalTest {
                 .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                         paymentReference, testConfigProperties.basePaymentsUrl).then()
                 .statusCode(NO_CONTENT.value());
-        paymentTestService
-                .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                        paymentReference1, testConfigProperties.basePaymentsUrl)
-                .then().statusCode(NO_CONTENT.value());
         // delete refund record
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
@@ -961,7 +957,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(4);
+        assertThat(refundEvents.size()).isEqualTo(3);
         Response cancelResponse = paymentTestService.patchCancelRefunds(
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             paymentReference);
@@ -1001,7 +997,7 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
-        assertThat(refundEvents.size()).isEqualTo(4);
+        assertThat(refundEvents.size()).isEqualTo(3);
         Response cancelResponse = paymentTestService.patchCancelRefunds(
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             paymentReference);
