@@ -274,7 +274,7 @@ public class RefundsApproverJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             ReviewerAction.APPROVE.name(),
-            RefundReviewRequest.buildRefundReviewRequest().build()
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
