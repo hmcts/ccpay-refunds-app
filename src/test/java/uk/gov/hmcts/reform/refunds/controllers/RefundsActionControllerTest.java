@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -26,7 +27,6 @@ import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
-import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -47,17 +47,13 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class RefundsActionControllerTest {
+public class RefundsActionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private WebApplicationContext webApplicationContext;
-
-    @MockBean
-    private RefundReviewService refundReviewService;
-
 
     @MockBean
     private RefundsRepository refundsRepository;
@@ -101,8 +97,7 @@ class RefundsActionControllerTest {
         mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
-
-    //@Test
+    @Test
     void givenPaymentReference_whenCancelRefunds_thenRefundsAreCancelled() throws Exception {
 
         List<Refund> refunds = Collections.singletonList(getRefund());
@@ -118,8 +113,7 @@ class RefundsActionControllerTest {
         assertEquals("Refund cancelled", message);
     }
 
-
-    //@Test
+    @Test
     void givenPaymentReference_whenCancelRefunds_thenRefundNotFoundException() throws Exception {
 
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));

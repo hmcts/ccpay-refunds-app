@@ -29,7 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.MultiValueMap;
@@ -132,7 +131,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @AutoConfigureMockMvc
 @ActiveProfiles({"local", "test"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ContextConfiguration
 @SuppressWarnings("PMD")
 class RefundControllerTest {
 
@@ -778,7 +776,6 @@ class RefundControllerTest {
                                                                                  .notificationType("EMAIL")
                                                                                  .build())
                                                                          .build()))
-
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
                                                .contentType(MediaType.APPLICATION_JSON)
