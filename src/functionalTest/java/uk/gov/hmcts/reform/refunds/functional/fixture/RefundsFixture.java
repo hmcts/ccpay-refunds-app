@@ -48,25 +48,22 @@ public final class RefundsFixture {
             .build();
     }
 
-    public static final PaymentRefundRequest refundRequest(final String refundReason,
-                                                           final String paymentReference, final String refundAmount, final String feeAmount) {
+    public static PaymentRefundRequest refundRequest(final String refundReason,
+                                                     final String paymentReference, final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
-            .serviceType("cmc")
+            .isOverPayment(false)
             .totalRefundAmount(new BigDecimal(refundAmount))
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
-                    .apportionedPayment(BigDecimal.valueOf(0))
                     .calculatedAmount(new BigDecimal(feeAmount))
-                    .feeAmount(new BigDecimal(feeAmount))
                     .refundAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
                     .id(0)
                     .version("1")
-                    .volume(1)
-
+                    .updatedVolume(1)
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()
@@ -78,12 +75,11 @@ public final class RefundsFixture {
                                                            .email("ranjeet.kumar@HMCTS.NET")
                                                            .notificationType("EMAIL")
                                                            .build())
-
             .build();
 
     }
 
-    public static final ResubmitRefundRequest resubmitRefundAllInput() {
+    public static ResubmitRefundRequest resubmitRefundAllInput() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(new BigDecimal("80.00"))
             .refundReason("RR002")
@@ -108,19 +104,19 @@ public final class RefundsFixture {
             .build();
     }
 
-    public static final ResubmitRefundRequest resubmitRefundWithAmount() {
+    public static ResubmitRefundRequest resubmitRefundWithAmount() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(new BigDecimal("85.00"))
             .build();
     }
 
-    public static final ResubmitRefundRequest resubmitRefundWithReason() {
+    public static ResubmitRefundRequest resubmitRefundWithReason() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .refundReason("RR011")
             .build();
     }
 
-    public static final ResubmitRefundRequest resubmitRefundWithContact() {
+    public static ResubmitRefundRequest resubmitRefundWithContact() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .contactDetails(ContactDetails.contactDetailsWith()
                                 .addressLine("High Street 115")
@@ -134,7 +130,7 @@ public final class RefundsFixture {
             .build();
     }
 
-    public static final ResubmitRefundRequest resubmitRefundWithRetroRemissionReason() {
+    public static ResubmitRefundRequest resubmitRefundWithRetroRemissionReason() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .refundReason("RR036")
             .build();
