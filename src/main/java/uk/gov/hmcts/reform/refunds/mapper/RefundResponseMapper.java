@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.refunds.mapper;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.eclipse.collections.impl.collector.Collectors2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
@@ -17,6 +19,7 @@ import uk.gov.hmcts.reform.refunds.model.RefundFees;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -94,8 +97,29 @@ public class RefundResponseMapper {
 
     }
 
+    @SuppressWarnings({"PMD"})
     private List<PaymentFeeLibarataResponse> toFeeDtos(List<FeeDto> paymentFees,Refund refund) {
-        return paymentFees.stream().filter(pf -> refund.getRefundFees().stream().anyMatch(id -> id.getCode().equals(pf.getCode())))
+
+        List<List<FeeDto>> groupedFee = paymentFees.stream()
+            .collect(Collectors.groupingBy(o -> Pair.of(o.getCode(), o.getNaturalAccountCode())))
+            .entrySet().stream()
+            .map(Map.Entry::getValue).collect(Collectors.toList());
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        Iterator<List<FeeDto>> groupedFeeIterator = groupedFee.iterator();
+        while (groupedFeeIterator.hasNext()) {
+            List<FeeDto> feeDtoL = groupedFeeIterator.next();
+            FeeDto feeDto = new FeeDto();
+            feeDto.setCode(feeDtoL.get(0).getCode());
+            feeDto.setId(feeDtoL.get(0).getId());
+            feeDto.setJurisdiction1(feeDtoL.get(0).getJurisdiction1());
+            feeDto.setJurisdiction2(feeDtoL.get(0).getJurisdiction2());
+            feeDto.setMemoLine(feeDtoL.get(0).getMemoLine());
+            feeDto.setNaturalAccountCode(feeDtoL.get(0).getNaturalAccountCode());
+            feeDto.setVersion(feeDtoL.get(0).getVersion());
+            feeDtoList.add(feeDto);
+        }
+
+        return feeDtoList.stream().filter(pf -> refund.getRefundFees().stream().anyMatch(id -> id.getCode().equals(pf.getCode())))
             .map(pf -> toFeeDto(pf,refund)).collect(Collectors.toList());
     }
 
@@ -129,10 +153,14 @@ public class RefundResponseMapper {
 
     private BigDecimal toCreditAmount(Refund refund, FeeDto fee) {
 
+        Map<String, BigDecimal> groupByFeeCode =
+            refund.getRefundFees().stream().collect(Collectors.groupingBy(RefundFees::getCode,
+                                                                          Collectors2.summingBigDecimal(RefundFees::getRefundAmount)));
+
         BigDecimal creditAmount = BigDecimal.ZERO;
-        for (RefundFees refundFee : refund.getRefundFees()) {
-            if (fee.getCode().equals(refundFee.getCode())) {
-                creditAmount = refundFee.getRefundAmount();
+        for (Map.Entry<String, BigDecimal> entry : groupByFeeCode.entrySet()) {
+            if (fee.getCode().equals(entry.getKey())) {
+                creditAmount = entry.getValue();
             }
         }
         return creditAmount;

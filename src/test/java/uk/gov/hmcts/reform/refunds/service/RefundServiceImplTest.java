@@ -185,6 +185,7 @@ class RefundServiceImplTest {
                                     .jurisdiction1("test1")
                                     .jurisdiction2("test2")
                                     .version("1")
+                                    .naturalAccountCode("123")
                                     .build()
                   )
             ).build();
