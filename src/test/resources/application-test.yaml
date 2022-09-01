@@ -84,3 +84,7 @@ notify:
     card-pba:
       letter: ${NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID:template3}
       email: ${NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID:template4}
+
+refund:
+  search:
+    days: 7

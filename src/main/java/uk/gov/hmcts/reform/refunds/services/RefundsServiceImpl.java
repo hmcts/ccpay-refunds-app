@@ -4,19 +4,27 @@ import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.E
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.eclipse.collections.impl.collector.Collectors2;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.Notification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
@@ -26,6 +34,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
@@ -43,12 +52,16 @@ import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
+import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
+import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
 import java.math.BigDecimal;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,11 +71,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
 
 @Service
-@SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports"})
+@SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports","PMD.TooManyMethods","PMD.GodClass"})
 public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
@@ -85,6 +104,21 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
 
     private static final String SEND_REFUND = "SendRefund";
+
+    private static final Predicate[] REF = new Predicate[0];
+
+    DateUtil dateUtil = new DateUtil();
+
+    private  long daysDifference;
+
+    @Value("${refund.search.days}")
+    private Integer numberOfDays;
+
+    private final DateTimeFormatter formatter = dateUtil.getIsoDateTimeFormatter();
+
+    @Autowired
+    private RefundValidator refundValidator;
+
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -575,5 +609,139 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private  String  validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
 
         return validateRefundReason(reason == null ? refund.getReason() : reason);
+    }
+
+    @Override
+    @SuppressWarnings({"PMD.ConfusingTernary", "PMD.LawOfDemeter"})
+    public List<RefundLiberata> search(Optional<String> startDateTimeString, Optional<String> endDateTimeString, String refundReference) {
+
+        List<String> referenceList =  new ArrayList<>();
+        List<RefundLiberata> refundLiberatas = new ArrayList<>();
+        List<Refund> refundListWithAccepted;
+
+        refundValidator.validate(startDateTimeString, endDateTimeString);
+
+        Date fromDateTime = getFromDateTime(startDateTimeString);
+
+        Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
+
+        if (null != fromDateTime && null != toDateTime) {
+            daysDifference = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
+        }
+
+        if (daysDifference > numberOfDays) {
+
+            throw new LargePayloadException("Date range exceeds the maximum supported by the system");
+        }
+
+
+        List<Refund> refundList = refundsRepository.findAll(searchByCriteria(getSearchCriteria(fromDateTime, toDateTime, refundReference)));
+        if (!refundList.isEmpty()) {
+            refundListWithAccepted = refundList.stream().filter(refund -> refund.getRefundStatus().equals(
+                    RefundStatus.APPROVED))
+                .collect(Collectors.toList());
+            for (Refund ref : refundListWithAccepted) {
+                referenceList.add(ref.getPaymentReference());
+            }
+        } else {
+            throw new RefundNotFoundException("No refunds available for the given date range");
+        }
+
+        List<Refund> refundListNotInDateRange = refundsRepository.findByDatesBetween(fromDateTime,toDateTime);
+        List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(referenceList);
+
+        Map<String, BigDecimal> groupByPaymentReference =
+            refundListWithAccepted.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
+                                                                          Collectors2.summingBigDecimal(Refund::getAmount)));
+
+        Map<String, BigDecimal> groupByPaymentReferenceForNotInDateRange =
+            refundListNotInDateRange.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
+                                                                            Collectors2.summingBigDecimal(Refund::getAmount)));
+
+        Map<String, BigDecimal> avlBalance = new ConcurrentHashMap<>();
+
+        BigDecimal amountSecond;
+        BigDecimal sumAmount;
+        for (Map.Entry<String, BigDecimal> entry : groupByPaymentReference.entrySet()) {
+            String key = entry.getKey();
+            BigDecimal amountFirst = entry.getValue();
+            amountSecond = groupByPaymentReferenceForNotInDateRange.get(key);
+            if (null != amountSecond) {
+                sumAmount = amountFirst.add(amountSecond);
+            } else {
+                sumAmount = amountFirst;
+            }
+            avlBalance.put(key,sumAmount);
+        }
+
+        refundListWithAccepted.stream()
+            .filter(e -> paymentData.stream()
+                .anyMatch(id -> id.getPaymentReference().equals(e.getPaymentReference())))
+            .collect(Collectors.toList())
+            .forEach(refund -> {
+                LOG.info("refund: {}", refund);
+                refundLiberatas.add(refundResponseMapper.getRefundLibrata(
+                    refund,
+                    paymentData.stream()
+                        .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
+                        .findAny().get(),
+                    avlBalance
+                ));
+            });
+        return refundLiberatas;
+    }
+
+    @SuppressWarnings({"PMD.UselessParentheses"})
+    public  Specification<Refund> searchByCriteria(RefundSearchCriteria searchCriteria) {
+        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
+    }
+
+    public Predicate getPredicate(
+        Root<Refund> root,
+        CriteriaBuilder cb,
+        RefundSearchCriteria searchCriteria, CriteriaQuery<?> query) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        final Expression<Date> dateUpdatedExpr = cb.function(
+            "date_trunc",
+            Date.class,
+            cb.literal("seconds"),
+            root.get("dateUpdated")
+        );
+
+        if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+            predicates.add(cb.between(
+                dateUpdatedExpr,
+                searchCriteria.getStartDate(),
+                searchCriteria.getEndDate()
+            ));
+        }
+        if (null != searchCriteria.getRefundReference()) {
+            predicates.add(cb.equal(root.get("reference"), searchCriteria.getRefundReference()));
+        }
+        query.groupBy(root.get("id"));
+        return cb.or(predicates.toArray(REF));
+    }
+
+    private Date getFromDateTime(@PathVariable(name = "start_date") Optional<String> startDateTimeString) {
+        return Optional.ofNullable(startDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
+            .map(org.joda.time.LocalDateTime::toDate)
+            .orElse(null);
+    }
+
+    private Date getToDateTime(@PathVariable(name = "end_date") Optional<String> endDateTimeString, Date fromDateTime) {
+        return Optional.ofNullable(endDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
+            .map(s -> fromDateTime != null && s.getHourOfDay() == 0 ? s.plusDays(1).minusSeconds(1).toDate() : s.toDate())
+            .orElse(null);
+    }
+
+    private RefundSearchCriteria getSearchCriteria(Date fromDateTime, Date toDateTime, String refundReference) {
+        return RefundSearchCriteria
+            .searchCriteriaWith()
+            .startDate(fromDateTime)
+            .endDate(toDateTime)
+            .refundReference(refundReference)
+            .build();
+
     }
 }
