@@ -280,19 +280,6 @@ public class RefundsController {
         refundNotificationService.processFailedNotificationsLetter();
     }
 
-
-
-    @ApiOperation(value = "Re-process failed refunds which are approved and sent it to liberata",
-        notes = "Re-process failed refunds which are approved and sent it to liberata")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "The approved refunds are sent to liberata")
-    })
-    @PatchMapping("/jobs/refund-approved-update")
-    @Transactional
-    public void postFailedRefundsToLiberata() throws JsonProcessingException {
-        refundNotificationService.reprocessPostFailedRefundsToLiberata();
-    }
-
     @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
         + "You can provide start date and end dates which can include times as well."
         + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
