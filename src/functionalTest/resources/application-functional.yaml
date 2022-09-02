@@ -50,7 +50,7 @@ auth:
 test:
   url :
     refunds : ${TEST_URL:http://localhost:8080}
-    payments : ${TEST_URL_PAYMENT:https://payment-api-pr-1254.service.core-compute-preview.internal}
+    payments : ${TEST_URL_PAYMENT:https://payment-api-pr-1149.service.core-compute-preview.internal}
   user:
     password: ${TEST_USER_PASSWORD}
 
