@@ -33,8 +33,6 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaS
 
     Optional<List<Refund>> findByNotificationSentFlag(String notificationSentFlag);
 
-    Optional<List<Refund>> findByRefundStatusAndRefundApproveFlag(String refundsStatus, String liberataSentFlag);
-
     @Query("select pf from Refund pf "
         + "where pf.dateUpdated NOT between ?1 and ?2 AND (pf.refundStatus = 'Approved' or pf.refundStatus = 'Accepted')")
     List<Refund> findByDatesBetween(Date fromDate, Date toDate);
