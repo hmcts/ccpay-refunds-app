@@ -26,8 +26,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderInvalidRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
@@ -60,8 +58,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
-        ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class,
-        InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class})
+        InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class})
     public ResponseEntity return400(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
@@ -86,9 +83,8 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class,
-        UserNotFoundException.class, RefundReasonNotFoundException.class,FeesNotFoundForRefundException.class,
-        RefundFeeNotFoundInPaymentException.class,
+    @ExceptionHandler({PaymentServerException.class, CheckDigitException.class, UserNotFoundException.class,
+        RefundReasonNotFoundException.class, FeesNotFoundForRefundException.class, RefundFeeNotFoundInPaymentException.class,
         RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class})
     public ResponseEntity return500(Exception ex) {
         LOG.error(ex.getMessage());

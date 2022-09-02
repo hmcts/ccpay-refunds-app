@@ -103,7 +103,7 @@ task integration(type: Test) {
 
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
-  useJUnitPlatform();
+  useJUnitPlatform()
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
   testLogging.showStandardStreams = true
@@ -352,8 +352,8 @@ bootJar {
 checkstyle {
   toolVersion "7.8.1"
 }
-pmdTest.enabled(false);
-pmdFunctionalTest.enabled(false);
+pmdTest.enabled(false)
+pmdFunctionalTest.enabled(false)
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
