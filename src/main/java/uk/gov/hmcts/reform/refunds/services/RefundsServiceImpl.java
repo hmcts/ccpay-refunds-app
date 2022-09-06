@@ -594,12 +594,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    @SuppressWarnings({"PMD.ConfusingTernary", "PMD.LawOfDemeter"})
+    @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundLiberata> search(Optional<String> startDateTimeString, Optional<String> endDateTimeString, String refundReference) {
 
         List<String> referenceList =  new ArrayList<>();
         List<RefundLiberata> refundLiberatas = new ArrayList<>();
         List<Refund> refundListWithAccepted;
+        List<Refund> refundListNotInDateRange;
 
         refundValidator.validate(startDateTimeString, endDateTimeString);
 
@@ -607,15 +608,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
 
-        if (null != fromDateTime && null != toDateTime) {
-            daysDifference = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
-        }
-
-        if (daysDifference > numberOfDays) {
-
-            throw new LargePayloadException("Date range exceeds the maximum supported by the system");
-        }
-
+        validateV2ApiDateRange(fromDateTime,toDateTime);
 
         List<Refund> refundList = refundsRepository.findAll(searchByCriteria(getSearchCriteria(fromDateTime, toDateTime, refundReference)));
         if (!refundList.isEmpty()) {
@@ -629,7 +622,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             throw new RefundNotFoundException("No refunds available for the given date range");
         }
 
-        List<Refund> refundListNotInDateRange = refundsRepository.findByDatesBetween(fromDateTime,toDateTime);
+        if (startDateTimeString.isPresent() && endDateTimeString.isPresent()) {
+            refundListNotInDateRange = refundsRepository.findByDatesBetween(fromDateTime,toDateTime);
+        } else {
+
+            refundListNotInDateRange = refundsRepository.findAllByPaymentReference(refundListWithAccepted.get(0).getPaymentReference(),
+                                                                                   refundListWithAccepted.get(0).getReference());
+        }
+
         List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(referenceList);
 
         Map<String, BigDecimal> groupByPaymentReference =
@@ -640,22 +640,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundListNotInDateRange.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
                                                                             Collectors2.summingBigDecimal(Refund::getAmount)));
 
-        Map<String, BigDecimal> avlBalance = new ConcurrentHashMap<>();
+        Map<String, BigDecimal> avlBalance;
 
-        BigDecimal amountSecond;
-        BigDecimal sumAmount;
-        for (Map.Entry<String, BigDecimal> entry : groupByPaymentReference.entrySet()) {
-            String key = entry.getKey();
-            BigDecimal amountFirst = entry.getValue();
-            amountSecond = groupByPaymentReferenceForNotInDateRange.get(key);
-            if (null != amountSecond) {
-                sumAmount = amountFirst.add(amountSecond);
-            } else {
-                sumAmount = amountFirst;
-            }
-            avlBalance.put(key,sumAmount);
-        }
+        avlBalance = calculateAvailableBalance(groupByPaymentReference,groupByPaymentReferenceForNotInDateRange);
 
+        Map<String, BigDecimal> finalAvlBalance = avlBalance;
         refundListWithAccepted.stream()
             .filter(e -> paymentData.stream()
                 .anyMatch(id -> id.getPaymentReference().equals(e.getPaymentReference())))
@@ -667,7 +656,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     paymentData.stream()
                         .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
                         .findAny().get(),
-                    avlBalance
+                    finalAvlBalance
                 ));
             });
         return refundLiberatas;
@@ -726,4 +715,39 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
 
     }
+
+    @SuppressWarnings({"PMD.ConfusingTernary"})
+    private  Map<String, BigDecimal> calculateAvailableBalance(Map<String, BigDecimal> groupByPaymentReference,
+                                                               Map<String, BigDecimal> groupByPaymentReferenceForNotInDateRange) {
+
+        BigDecimal amountSecond;
+        BigDecimal sumAmount;
+        Map<String, BigDecimal> avlBalance = new ConcurrentHashMap<>();
+        for (Map.Entry<String, BigDecimal> entry : groupByPaymentReference.entrySet()) {
+            String key = entry.getKey();
+            BigDecimal amountFirst = entry.getValue();
+            amountSecond = groupByPaymentReferenceForNotInDateRange.get(key);
+            if (null != amountSecond) {
+                sumAmount = amountFirst.add(amountSecond);
+            } else {
+                sumAmount = amountFirst;
+            }
+            avlBalance.put(key,sumAmount);
+        }
+        return  avlBalance;
+    }
+
+    @SuppressWarnings({"PMD.LawOfDemeter"})
+    private void validateV2ApiDateRange(Date fromDateTime, Date toDateTime) {
+
+        if (null != fromDateTime && null != toDateTime) {
+            daysDifference = ChronoUnit.DAYS.between(fromDateTime.toInstant(), toDateTime.toInstant());
+        }
+
+        if (daysDifference > numberOfDays) {
+
+            throw new LargePayloadException("Date range exceeds the maximum supported by the system");
+        }
+    }
+
 }
