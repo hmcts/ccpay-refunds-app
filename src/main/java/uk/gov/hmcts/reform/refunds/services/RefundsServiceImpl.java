@@ -75,7 +75,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final String ROLEPATTERN = "^.*refund.*$";
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
-    private static final String PAYMENT_REFUND = "payments-refund";
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -173,49 +172,23 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
-    @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
-        Set<UserIdentityDataDto> userIdentityDataDtoSet;
-        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+
         if (!roles.isEmpty()) {
-            LOG.info("Fetching cached refunds user list from IDAM...");
-            LOG.info("contextStartListener: {}", contextStartListener);
-            LOG.info("contextStartListener.getUserMap: {}", contextStartListener.getUserMap());
-            LOG.info("contextStartListener.getUserMap().get(PAYMENT_REFUND): {}", contextStartListener.getUserMap().get(PAYMENT_REFUND));
-            if (!contextStartListener.getUserMap().isEmpty()) {
-                LOG.info("Inside If block as contextStartListener values available ...");
-                userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
-                    Collectors.toSet());
-            } else {
-                LOG.info("Inside else block as contextStartListener value not available ...");
-                List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
-                                                                                                 Arrays.asList(PAYMENT_REFUND,
-                                                                                                               "payments-refund-approver"));
-                userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
-
-                userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
-
-            }
+            Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
+                Collectors.toSet());
+            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
-            for (Refund refund1 : refundList) {
-                if (!userIdsWithGivenRoles.contains(refund1.getCreatedBy())) {
-                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                                                                                              refund1.getCreatedBy());
-                    contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
-                    userIdentityDataDtoSet.add(userIdentityDataDto);
-                    userIdsWithGivenRoles.add(userIdentityDataDto.getId());
-                }
-            }
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
-                    contextStartListener.addUserToMap(PAYMENT_REFUND,userIdentityDataDto);
+                    contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
                     userIdentityDataDtoSet.add(userIdentityDataDto);
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -18,7 +19,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class ContextStartListener implements ApplicationListener<ContextStartedEvent> {
+public class ContextStartListener implements ApplicationListener<ContextRefreshedEvent> {
     private static Map<String, List<UserIdentityDataDto>> userMap;
     private static final Logger LOG = LoggerFactory.getLogger(ContextStartListener.class);
 
@@ -27,7 +28,7 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
     private IdamService idamService;
 
     @Override
-    public void onApplicationEvent(ContextStartedEvent event) {
+    public void onApplicationEvent(ContextRefreshedEvent event) {
         LOG.info("Context Start Event received.");
         userMap = new ConcurrentHashMap<>();
         List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
