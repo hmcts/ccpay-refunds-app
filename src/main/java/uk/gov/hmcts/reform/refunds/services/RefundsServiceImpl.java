@@ -184,9 +184,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (!roles.isEmpty()) {
             LOG.info("Fetching cached refunds user list from IDAM...");
             if (!contextStartListener.getUserMap().isEmpty()) {
+                LOG.info("Inside If block as contextStartListener values available ...");
                 userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
                     Collectors.toSet());
             } else {
+                LOG.info("Inside else block as contextStartListener value not available ...");
                 List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
                                                                                                  Arrays.asList(PAYMENT_REFUND,
                                                                                                                "payments-refund-approver"));
