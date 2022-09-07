@@ -601,14 +601,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundLiberata> refundLiberatas = new ArrayList<>();
         List<Refund> refundListWithAccepted;
         List<Refund> refundListNotInDateRange;
+        Date fromDateTime = new Date();
+        Date toDateTime = new Date();
+        if (startDateTimeString.isPresent() && endDateTimeString.isPresent()) {
+            refundValidator.validate(startDateTimeString, endDateTimeString);
 
-        refundValidator.validate(startDateTimeString, endDateTimeString);
+            fromDateTime = getFromDateTime(startDateTimeString);
 
-        Date fromDateTime = getFromDateTime(startDateTimeString);
+            toDateTime = getToDateTime(endDateTimeString, fromDateTime);
 
-        Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
+            validateV2ApiDateRange(fromDateTime,toDateTime);
+        }
 
-        validateV2ApiDateRange(fromDateTime,toDateTime);
 
         List<Refund> refundList = refundsRepository.findAll(searchByCriteria(getSearchCriteria(fromDateTime, toDateTime, refundReference)));
         if (!refundList.isEmpty()) {
