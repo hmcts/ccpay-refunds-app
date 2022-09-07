@@ -183,10 +183,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         if (!roles.isEmpty()) {
             LOG.info("Fetching cached refunds user list from IDAM...");
-            LOG.info("contextStartListener: {}", contextStartListener);
-            LOG.info("contextStartListener.getUserMap: {}", contextStartListener.getUserMap());
-            LOG.info("contextStartListener.getUserMap().get(PAYMENT_REFUND): {}", contextStartListener.getUserMap().get(PAYMENT_REFUND));
-            if (!contextStartListener.getUserMap().isEmpty()) {
+            LOG.info("contextStartListener:{}", contextStartListener);
+            LOG.info("contextStartListener.getUserMap:{}", contextStartListener.getUserMap());
+            LOG.info("contextStartListener.getUserMap().get(PAYMENT_REFUND):{}", contextStartListener.getUserMap().get(PAYMENT_REFUND));
+            if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
                 LOG.info("Inside If block as contextStartListener values available ...");
                 userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
                     Collectors.toSet());
