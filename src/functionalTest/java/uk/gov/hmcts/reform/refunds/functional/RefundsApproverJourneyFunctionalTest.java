@@ -1123,24 +1123,6 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
-        Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-            );
-        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryList =
-            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("Approved")
-                    || entry.get("status").trim().equals("Sent for approval"))
-                .isTrue();
-            assertThat(
-                entry.get("notes").trim().equals("Sent to middle office")
-                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
-                .isTrue();
-        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
-        //Should be verified as a call out to Liberata....
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("start_date", getReportDate(new Date(System.currentTimeMillis())));
         params.add("end_date", getReportDate(new Date(System.currentTimeMillis())));
@@ -1286,25 +1268,6 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
-        Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-            );
-        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryList =
-            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("Approved")
-                    || entry.get("status").trim().equals("Sent for approval"))
-                .isTrue();
-            assertThat(
-                entry.get("notes").trim().equals("Sent to middle office")
-                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
-                .isTrue();
-        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
-        //Should be verified as a call out to Liberata....
-
         Date date = new Date();
         LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         localDateTime = localDateTime.plusDays(8);
@@ -1346,25 +1309,6 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-
-        Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-            );
-        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryList =
-            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("Approved")
-                    || entry.get("status").trim().equals("Sent for approval"))
-                .isTrue();
-            assertThat(
-                entry.get("notes").trim().equals("Sent to middle office")
-                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
-                .isTrue();
-        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
-        //Should be verified as a call out to Liberata....
 
         Date date = new Date();
         LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -1409,24 +1353,6 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
-        Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-            );
-        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryList =
-            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("Approved")
-                    || entry.get("status").trim().equals("Sent for approval"))
-                .isTrue();
-            assertThat(
-                entry.get("notes").trim().equals("Sent to middle office")
-                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
-                .isTrue();
-        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
-        //Should be verified as a call out to Liberata....
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("start_date", getReportDate(new Date(System.currentTimeMillis())));
         params.add("end_date", getReportDate(new Date(System.currentTimeMillis())));
@@ -1491,25 +1417,6 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-
-        Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-            );
-        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        List<Map<String, String>> statusHistoryList =
-            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        statusHistoryList.forEach(entry -> {
-            assertThat(
-                entry.get("status").trim().equals("Approved")
-                    || entry.get("status").trim().equals("Sent for approval"))
-                .isTrue();
-            assertThat(
-                entry.get("notes").trim().equals("Sent to middle office")
-                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
-                .isTrue();
-        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
-        //Should be verified as a call out to Liberata....
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
