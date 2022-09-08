@@ -235,6 +235,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
+    @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
