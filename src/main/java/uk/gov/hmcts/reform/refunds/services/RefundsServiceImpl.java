@@ -246,10 +246,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (!roles.isEmpty()) {
             LOG.info("Fetching cached refunds user list from IDAM...");
-            LOG.info("Fetching cached refunds user list from IDAM...");
-            LOG.info("contextStartListener:{}", contextStartListener);
-            LOG.info("contextStartListener.getUserMap:{}", contextStartListener.getUserMap());
-            LOG.info("contextStartListener.getUserMap().get(PAYMENT_REFUND):{}", contextStartListener.getUserMap().get(PAYMENT_REFUND));
             if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
                 LOG.info("Inside If block as contextStartListener values available ...");
                 userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
@@ -623,18 +619,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         List<RefundLiberata> refundLiberatas = new ArrayList<>();
         List<Refund> refundListWithAccepted;
         List<Refund> refundListNotInDateRange;
-        Date fromDateTime = new Date();
-        Date toDateTime = new Date();
-        if (startDateTimeString.isPresent() && endDateTimeString.isPresent()) {
-            refundValidator.validate(startDateTimeString, endDateTimeString);
 
-            fromDateTime = getFromDateTime(startDateTimeString);
+        refundValidator.validate(startDateTimeString, endDateTimeString);
 
-            toDateTime = getToDateTime(endDateTimeString, fromDateTime);
+        Date fromDateTime = getFromDateTime(startDateTimeString);
 
-            validateV2ApiDateRange(fromDateTime,toDateTime);
-        }
+        Date  toDateTime = getToDateTime(endDateTimeString, fromDateTime);
 
+        validateV2ApiDateRange(fromDateTime,toDateTime);
 
         List<Refund> refundList = refundsRepository.findAll(searchByCriteria(getSearchCriteria(fromDateTime, toDateTime, refundReference)));
         if (!refundList.isEmpty()) {

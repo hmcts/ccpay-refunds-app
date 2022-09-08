@@ -1474,4 +1474,88 @@ public class RefundsApproverJourneyFunctionalTest {
                                         refundReference);
     }
 
+    @Test
+    public void positive_V2Api_response_refund_reference() {
+
+        PaymentDto paymentResponse = createPaymentForV2Api();
+        final String paymentReference = paymentResponse.getReference();
+
+        final String refundReference = performRefund(paymentReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        Response refundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
+            );
+        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> statusHistoryList =
+            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        statusHistoryList.forEach(entry -> {
+            assertThat(
+                entry.get("status").trim().equals("Approved")
+                    || entry.get("status").trim().equals("Sent for approval"))
+                .isTrue();
+            assertThat(
+                entry.get("notes").trim().equals("Sent to middle office")
+                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
+                .isTrue();
+        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
+        //Should be verified as a call out to Liberata....
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+
+        params.add("refund_reference", refundReference);
+        Response response1 = RestAssured.given()
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/refunds");
+
+        RerfundLiberataResponse rerfundLiberataResponse =  response1.getBody().as(RerfundLiberataResponse.class);;
+        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
+            .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
+
+        String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
+        String paymentDateCreated = getReportDate(refundLiberata.getPayment().getDateReceiptCreated());
+        String date = getReportDate(new Date(System.currentTimeMillis()));
+        assertThat("RR001").isEqualTo(refundLiberata.getReason());
+        assertThat("SendRefund").isEqualTo(refundLiberata.getInstructionType());
+        assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getTotalRefundAmount());
+        assertThat(date).isEqualTo(refundApproveDate);
+        assertThat(date).isEqualTo(paymentDateCreated);
+        assertThat("Probate").isEqualTo(refundLiberata.getPayment().getServiceName());
+        assertThat("ABA6").isEqualTo(refundLiberata.getPayment().getSiteId());
+        assertThat("online").isEqualTo(refundLiberata.getPayment().getChannel());
+        assertThat("payment by account").isEqualTo(refundLiberata.getPayment().getMethod());
+        assertThat(paymentResponse.getCcdCaseNumber()).isEqualTo(refundLiberata.getPayment().getCcdCaseNumber());
+        assertThat("aCaseReference").isEqualTo(refundLiberata.getPayment().getCaseReference());
+        assertThat("CUST101").isEqualTo(refundLiberata.getPayment().getCustomerReference());
+        assertThat("PBAFUNC12345").isEqualTo(refundLiberata.getPayment().getPbaNumber());
+        assertThat("FEE0001").isEqualTo(refundLiberata.getFees().get(0).getCode());
+        assertThat("4481102133").isEqualTo(refundLiberata.getFees().get(0).getNaturalAccountCode());
+        assertThat("1").isEqualTo(refundLiberata.getFees().get(0).getVersion());
+        assertThat("civil").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction1());
+        assertThat("county court").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction2());
+        assertThat("GOV - Paper fees - Money claim >£200,000").isEqualTo(refundLiberata.getFees().get(0).getMemoLine());
+        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
+        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getPayment().getAvailableFunds());
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
 }
