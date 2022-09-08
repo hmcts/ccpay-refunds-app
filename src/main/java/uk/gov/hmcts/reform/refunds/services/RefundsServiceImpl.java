@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
@@ -104,6 +106,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
 
     private static final String SEND_REFUND = "SendRefund";
+    private static final String PAYMENT_REFUND = "payments-refund";
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -237,11 +240,29 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
+        Set<UserIdentityDataDto> userIdentityDataDtoSet;
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
 
         if (!roles.isEmpty()) {
             LOG.info("Fetching cached refunds user list from IDAM...");
-            Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
-                Collectors.toSet());
+            LOG.info("Fetching cached refunds user list from IDAM...");
+            LOG.info("contextStartListener:{}", contextStartListener);
+            LOG.info("contextStartListener.getUserMap:{}", contextStartListener.getUserMap());
+            LOG.info("contextStartListener.getUserMap().get(PAYMENT_REFUND):{}", contextStartListener.getUserMap().get(PAYMENT_REFUND));
+            if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
+                LOG.info("Inside If block as contextStartListener values available ...");
+                userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
+                    Collectors.toSet());
+            } else {
+                LOG.info("Inside else block as contextStartListener value not available ...");
+                List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
+                                                                                                 Arrays.asList(PAYMENT_REFUND,
+                                                                                                               "payments-refund-approver"));
+                userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
+
+                userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
+
+            }
             LOG.info("userIdentityDataDtoSet retrieved from Context Listener {} ",userIdentityDataDtoSet);
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
@@ -752,6 +773,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             throw new LargePayloadException("Date range exceeds the maximum supported by the system");
         }
+    }
+
+    private MultiValueMap<String, String>  getAuthenticationHeaders() {
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.add("Authorization", getAccessToken());
+        return inputHeaders;
+    }
+
+    private String getAccessToken() {
+        IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+        return idamTokenResponse.getAccessToken();
     }
 
 }

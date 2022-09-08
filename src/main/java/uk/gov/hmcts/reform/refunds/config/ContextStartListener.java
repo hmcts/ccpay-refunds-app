@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,9 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
 
     public void addUserToMap(String userGroup, UserIdentityDataDto userIdentityDataDto) {
         List<UserIdentityDataDto> userIdentityDataDtoList = userMap.get(userGroup);
+        if (null == userIdentityDataDtoList) {
+            userIdentityDataDtoList = new ArrayList<>();
+        }
         userIdentityDataDtoList.add(userIdentityDataDto);
         userMap.put("payments-refund",userIdentityDataDtoList);
     }
