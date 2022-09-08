@@ -110,7 +110,6 @@ public class RefundResponseMapper {
             List<FeeDto> feeDtoL = groupedFeeIterator.next();
             FeeDto feeDto = new FeeDto();
             feeDto.setCode(feeDtoL.get(0).getCode());
-            feeDto.setId(feeDtoL.get(0).getId());
             feeDto.setJurisdiction1(feeDtoL.get(0).getJurisdiction1());
             feeDto.setJurisdiction2(feeDtoL.get(0).getJurisdiction2());
             feeDto.setMemoLine(feeDtoL.get(0).getMemoLine());
@@ -125,7 +124,6 @@ public class RefundResponseMapper {
 
     private PaymentFeeLibarataResponse toFeeDto(FeeDto fee, Refund refund) {
         return PaymentFeeLibarataResponse.feeLibarataDtoWith()
-            .id(fee.getId())
             .credit(toCreditAmount(refund,fee))
             .code(fee.getCode())
             .jurisdiction1(fee.getJurisdiction1())

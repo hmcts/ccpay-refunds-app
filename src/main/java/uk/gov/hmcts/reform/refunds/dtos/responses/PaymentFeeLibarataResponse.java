@@ -19,8 +19,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Data
 public class PaymentFeeLibarataResponse {
-    private Integer id;
-
     private String code;
 
     private String version;
