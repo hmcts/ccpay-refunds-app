@@ -13,7 +13,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.*;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
@@ -677,10 +685,6 @@ public class RefundServiceImplTest {
 
     @Test
     void testGetRefundResponseDtoList() {
-        MultiValueMap<String, String> headers = null;
-        List<Refund> refundList = List.of(refundListSupplierBasedOnCCDCaseNumber1.get());
-        List<String> roles = Arrays.asList("payments-refund-approver", "payments-refund");
-
         when(refundReasonRepository.findAll()).thenReturn(
                 Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
         when(contextStartListener.getUserMap()).thenReturn(null);
@@ -695,8 +699,11 @@ public class RefundServiceImplTest {
         when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("qwerrtyuiop").build();
         when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+        List<Refund> refundList = List.of(refundListSupplierBasedOnCCDCaseNumber1.get());
+        List<String> roles = Arrays.asList("payments-refund-approver", "payments-refund");
 
-        List<RefundDto> refundDtos = refundsService.getRefundResponseDtoList(headers, refundList, roles);
+        List<RefundDto> refundDtos = refundsService.getRefundResponseDtoList(null, refundList, roles);
+
         Assertions.assertNotNull(refundDtos);
         Assertions.assertEquals(1, refundDtos.size());
         Assertions.assertEquals("RF-1111-2234-1077-1123", refundDtos.get(0).getRefundReference());
