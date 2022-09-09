@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.service;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -672,6 +673,33 @@ public class RefundServiceImplTest {
         );
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("Refund list is empty for given criteria"));
+    }
+
+    @Test
+    void testGetRefundResponseDtoList() {
+        MultiValueMap<String, String> headers = null;
+        List<Refund> refundList = List.of(refundListSupplierBasedOnCCDCaseNumber1.get());
+        List<String> roles = Arrays.asList("payments-refund-approver", "payments-refund");
+
+        when(refundReasonRepository.findAll()).thenReturn(
+                Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
+        when(contextStartListener.getUserMap()).thenReturn(null);
+        List<UserIdentityDataDto> userIdentityDataDtoList =  Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
+                .fullName("ccd-full-name")
+                .emailId("j@mail.com")
+                .id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                .build());
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(userIdentityDataDtoList);
+        UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
+        userIdentityDataDto.setFullName("Forename Surname");
+        when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("qwerrtyuiop").build();
+        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+
+        List<RefundDto> refundDtos = refundsService.getRefundResponseDtoList(headers, refundList, roles);
+        Assertions.assertNotNull(refundDtos);
+        Assertions.assertEquals(1, refundDtos.size());
+        Assertions.assertEquals("RF-1111-2234-1077-1123", refundDtos.get(0).getRefundReference());
     }
 
 }
