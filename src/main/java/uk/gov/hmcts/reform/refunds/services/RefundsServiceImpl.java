@@ -58,7 +58,7 @@ import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
 
 @Service
-@SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports", "PMD.GodClass"})
+@SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports"})
 public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
@@ -188,16 +188,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             }
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
-                    Collectors.toList());
-            for (Refund refund1 : refundList) {
-                if (!userIdsWithGivenRoles.contains(refund1.getCreatedBy())) {
-                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                            refund1.getCreatedBy());
-                    contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
-                    userIdentityDataDtoSet.add(userIdentityDataDto);
-                    userIdsWithGivenRoles.add(userIdentityDataDto.getId());
-                }
-            }
+                Collectors.toList());
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
@@ -206,28 +197,24 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
-            for (Refund refund : refundList.stream()
-                    .filter(e -> userIdsWithGivenRoles.stream()
-                            .anyMatch(id -> id.equals(e.getCreatedBy())))
-                    .collect(Collectors.toList())) {
-                String reason = getRefundReason(refund.getReason(), refundReasonList);
-                LOG.info("refund: {}", refund);
-                Optional<UserIdentityDataDto> found = Optional.empty();
-                for (UserIdentityDataDto dto : userIdentityDataDtoSet) {
-                    if (refund.getCreatedBy().equals(dto.getId())) {
-                        found = Optional.of(dto);
-                        break;
-                    }
-                }
-                if (found.isPresent()) {
+            refundList.stream()
+                .filter(e -> userIdsWithGivenRoles.stream()
+                    .anyMatch(id -> id.equals(e.getCreatedBy())))
+                .collect(Collectors.toList())
+                .forEach(refund -> {
+                    String reason = getRefundReason(refund.getReason(), refundReasonList);
+                    LOG.info("refund: {}", refund);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
-                            refund,
-                            found.get(),
-                            reason
+                        refund,
+                        userIdentityDataDtoSet.stream()
+                            .filter(dto -> refund.getCreatedBy().equals(dto.getId()))
+                            .findAny().get(),
+                        reason
                     ));
-                }
-            }
+                });
         }
+
+        LOG.info("refundListDto: {}", refundListDto);
         return refundListDto;
     }
 
