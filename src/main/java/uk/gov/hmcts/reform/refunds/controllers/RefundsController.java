@@ -7,8 +7,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +43,6 @@ import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
-import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -77,8 +74,6 @@ public class RefundsController {
 
     @Autowired
     private RefundNotificationService refundNotificationService;
-
-    private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -174,13 +169,9 @@ public class RefundsController {
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
             @PathVariable("reference") String reference,
             @RequestBody @Valid ResubmitRefundRequest request) {
-        LOG.info("ENTERED THE RESUBMIT ENDPOINT");
-
         if (featureToggler.getBooleanValue("refunds-release",false)) {
-            LOG.info("ENTERED FEATURE TOGGLER");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
-        LOG.info("BEFORE RETURN");
         return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 
@@ -219,8 +210,8 @@ public class RefundsController {
     public ResponseEntity<String> reviewRefund(
             @RequestHeader("Authorization") String authorization,
             @RequestHeader(required = false) MultiValueMap<String, String> headers,
-            @PathVariable(value = "reference", required = true) String reference,
-            @PathVariable(value = "reviewer-action", required = true) ReviewerAction reviewerAction,
+            @PathVariable String reference,
+            @PathVariable("reviewer-action") ReviewerAction reviewerAction,
             @Valid @RequestBody RefundReviewRequest refundReviewRequest) {
         if (featureToggler.getBooleanValue("refunds-release",false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
@@ -286,20 +277,7 @@ public class RefundsController {
         refundNotificationService.processFailedNotificationsLetter();
     }
 
-
-
-    @ApiOperation(value = "Re-process failed refunds which are approved and sent it to liberata",
-        notes = "Re-process failed refunds which are approved and sent it to liberata")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "The approved refunds are sent to liberata")
-    })
-    @PatchMapping("/jobs/refund-approved-update")
-    @Transactional
-    public void postFailedRefundsToLiberata() throws JsonProcessingException {
-        refundNotificationService.reprocessPostFailedRefundsToLiberata();
-    }
-
-    @GetMapping("/refundstest")
+    @GetMapping("/refunds")
     public ResponseEntity<String> searchRefundReconciliation1(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date") Optional<String> endDateTimeString,
                                                         @RequestParam(name = "refund_reference", required = false) String refundReference

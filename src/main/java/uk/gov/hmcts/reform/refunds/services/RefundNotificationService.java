@@ -12,5 +12,4 @@ public interface RefundNotificationService {
 
     void processFailedNotificationsLetter() throws JsonProcessingException;
 
-    void reprocessPostFailedRefundsToLiberata() throws JsonProcessingException;
 }

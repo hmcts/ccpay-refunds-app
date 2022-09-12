@@ -1,26 +1,19 @@
 package uk.gov.hmcts.reform.refunds.services;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jmx.export.notification.UnableToSendNotificationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.reform.refunds.dtos.requests.ReconciliationProviderRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ReconciliationProviderResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.ForbiddenToApproveRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
-import uk.gov.hmcts.reform.refunds.mappers.ReconciliationProviderMapper;
 import uk.gov.hmcts.reform.refunds.mappers.RefundReviewMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -38,14 +31,11 @@ import java.util.List;
 
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
-
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.NOTAPPLICABLE;
 import static uk.gov.hmcts.reform.refunds.state.RefundState.SENTFORAPPROVAL;
 
 @Service
 public class RefundReviewServiceImpl extends StateUtil implements RefundReviewService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RefundReviewServiceImpl.class);
 
     @Autowired
     private IdamService idamService;
@@ -57,19 +47,10 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private RefundReviewMapper refundReviewMapper;
 
     @Autowired
-    private ReconciliationProviderService reconciliationProviderService;
-
-    @Autowired
-    private ReconciliationProviderMapper reconciliationProviderMapper;
-
-    @Autowired
     private RefundsService refundsService;
 
     @Autowired
     private PaymentService paymentService;
-
-    @Autowired
-    private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
     private NotificationService notificationService;
@@ -78,7 +59,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private RefundNotificationMapper refundNotificationMapper;
 
     @Autowired
-    RefundsUtil refundsUtil;
+    private RefundsUtil refundsUtil;
     private static final String NOTES = "Refund cancelled due to payment failure";
     private static final String REFUND_CANCELLED = "Refund cancelled";
     private static final String CANCELLED = "Cancelled";
@@ -101,45 +82,16 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         refundForGivenReference.setStatusHistories(statusHistories);
         String statusMessage = "";
         if (refundEvent.equals(RefundEvent.APPROVE)) {
-            boolean isRefundLiberata = this.featureToggler.getBooleanValue("refund-liberata", false);
-            HttpStatus liberataStatusCode = HttpStatus.I_AM_A_TEAPOT;
+            PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
+                headers,
+                refundForGivenReference.getPaymentReference()
+            );
+            refundsUtil.logPaymentDto(paymentData);
+            refundsUtil.validateRefundRequestFees(refundForGivenReference, paymentData);
+            updateRefundStatus(refundForGivenReference, refundEvent);
+            refundsRepository.save(refundForGivenReference);
+            updateNotification(headers, refundForGivenReference);
 
-            if (isRefundLiberata) {
-                PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
-                    headers,
-                    refundForGivenReference.getPaymentReference()
-                );
-
-                if (paymentData.getPayments().get(0).getMethod().equalsIgnoreCase("payment by account")) {
-                    LOG.info("Payment method is PBA");
-                    ReconciliationProviderRequest reconciliationProviderRequest = reconciliationProviderMapper.getReconciliationProviderRequest(
-                        paymentData,
-                        refundForGivenReference
-                    );
-
-                    LOG.info("reconciliationProviderRequest: {}", reconciliationProviderRequest);
-                    ResponseEntity<ReconciliationProviderResponse> reconciliationProviderResponseResponse = reconciliationProviderService
-                        .updateReconciliationProviderWithApprovedRefund(
-                            reconciliationProviderRequest
-                        );
-                    liberataStatusCode = reconciliationProviderResponseResponse.getStatusCode();
-                }
-                if (liberataStatusCode.is2xxSuccessful() || liberataStatusCode == HttpStatus.I_AM_A_TEAPOT) {
-                    updateRefundStatus(refundForGivenReference, refundEvent);
-                    refundForGivenReference.setRefundApproveFlag("SENT");
-                    refundsRepository.save(refundForGivenReference);
-                    updateNotification(headers, refundForGivenReference);
-                } else {
-                    refundForGivenReference.setRefundApproveFlag("NOT SENT");
-                    refundsRepository.save(refundForGivenReference);
-                    throw new ReconciliationProviderServerException("Reconciliation provider unavailable. Please try again later.");
-                }
-            } else {
-                updateRefundStatus(refundForGivenReference, refundEvent);
-                refundForGivenReference.setRefundApproveFlag("NOT SENT");
-                refundsRepository.save(refundForGivenReference);
-                updateNotification(headers, refundForGivenReference);
-            }
             statusMessage = "Refund approved";
         }
 
@@ -147,7 +99,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             refundForGivenReference.setContactDetails(null);
 
             refundForGivenReference.setNotificationSentFlag(NOTAPPLICABLE.getFlag());
-            refundForGivenReference.setRefundApproveFlag(NOTAPPLICABLE.getFlag());
 
             updateRefundStatus(refundForGivenReference, refundEvent);
             statusMessage = "Refund rejected";
@@ -259,8 +210,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
 
         }
         return responseEntity;
-
     }
-
 
 }

@@ -88,10 +88,6 @@ class RefundNotificationServiceImplTest {
     private IdamServiceImpl idamService;
 
     @MockBean
-    @Qualifier("restTemplateLiberata")
-    private RestTemplate restTemplateLiberata;
-
-    @MockBean
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
