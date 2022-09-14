@@ -214,7 +214,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 });
         }
 
-        LOG.info("refundListDto: {}", refundListDto);
         return refundListDto;
     }
 
