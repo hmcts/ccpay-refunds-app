@@ -203,7 +203,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .collect(Collectors.toList())
                 .forEach(refund -> {
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
-                    LOG.info("refund: {}", refund);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
