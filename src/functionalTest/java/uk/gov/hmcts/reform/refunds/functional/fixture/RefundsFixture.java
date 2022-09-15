@@ -45,7 +45,9 @@ public final class RefundsFixture {
     }
 
     public static CreditAccountPaymentRequest pbaPaymentRequestForProbate(final String amountString,
-                                                                          final String service, final String pbaAccountNumber, final String ccdCaseNumber) {
+                                                                          final String service,
+                                                                          final String pbaAccountNumber,
+                                                                          final String ccdCaseNumber) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
                 .amount(new BigDecimal(amountString))
                 .description("New passport application")
