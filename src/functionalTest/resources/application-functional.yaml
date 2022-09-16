@@ -66,7 +66,7 @@ idam:
   paybubble:
     client:
       id: ${IDAM_PAYBUBBLE_CLIENT_ID:paybubble}
-      secret: ${IDAM_PAYBUBBLE_CLIENT_SECRET}
+      secret: ${IDAM_PAYBUBBLE_CLIENT_SECRET:}
 oauth2:
   redirect:
     uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.service;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -12,10 +13,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
@@ -223,6 +226,41 @@ public class RefundServiceImplTest {
             map,
             GET_REFUND_LIST_CCD_CASE_NUMBER,
             "true"
+        );
+
+        assertNotNull(refundListDtoResponse);
+        assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals("ccd-full-name", refundListDtoResponse.getRefundList().get(0).getUserFullName());
+        assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
+
+    }
+
+    @Test
+    void testRefundListForGivenCcdCaseNumberWhenNullCache() {
+
+        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
+                refundListSupplierBasedOnCCDCaseNumber1.get())));
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID_RESPONSE);
+        when(refundReasonRepository.findAll()).thenReturn(
+                Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("qwerrtyuiop").build();
+        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+        List<UserIdentityDataDto> userIdentityDataDtoList =  Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
+                .fullName("ccd-full-name")
+                .emailId("j@mail.com")
+                .id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                .build());
+        when(contextStartListener.getUserMap()).thenReturn(null);
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(userIdentityDataDtoList);
+
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code(
+                "RR001").name("duplicate payment").build()));
+
+        RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
+                null,
+                map,
+                GET_REFUND_LIST_CCD_CASE_NUMBER,
+                "true"
         );
 
         assertNotNull(refundListDtoResponse);
@@ -652,6 +690,32 @@ public class RefundServiceImplTest {
     }
 
     @Test
+    void testGetRefundResponseDtoList() {
+        when(refundReasonRepository.findAll()).thenReturn(
+                Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
+        when(contextStartListener.getUserMap()).thenReturn(null);
+        List<UserIdentityDataDto> userIdentityDataDtoList =  Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
+                .fullName("ccd-full-name")
+                .emailId("j@mail.com")
+                .id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                .build());
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(userIdentityDataDtoList);
+        UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
+        userIdentityDataDto.setFullName("Forename Surname");
+        when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("qwerrtyuiop").build();
+        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+        List<Refund> refundList = List.of(refundListSupplierBasedOnCCDCaseNumber1.get());
+        List<String> roles = Arrays.asList("payments-refund-approver", "payments-refund");
+
+        List<RefundDto> refundDtos = refundsService.getRefundResponseDtoList(null, refundList, roles);
+
+        Assertions.assertNotNull(refundDtos);
+        Assertions.assertEquals(1, refundDtos.size());
+        Assertions.assertEquals("RF-1111-2234-1077-1123", refundDtos.get(0).getRefundReference());
+    }
+
+    @Test
     void testPaymentFailureForEmptyCriteria() {
         when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(),any()))
             .thenReturn(Optional.empty());
@@ -682,11 +746,5 @@ public class RefundServiceImplTest {
                 paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getRefundReference()
             );
         }
-
-
-
     }
-
-
-
 }

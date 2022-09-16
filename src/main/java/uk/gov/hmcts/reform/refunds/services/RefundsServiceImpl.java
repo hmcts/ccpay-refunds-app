@@ -153,7 +153,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        LOG.info("refundList: {}", refundList);
         // Get Refunds related Roles from logged in user
         List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
             .collect(Collectors.toList());
@@ -182,19 +181,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Set<UserIdentityDataDto> userIdentityDataDtoSet;
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         if (!roles.isEmpty()) {
-            LOG.info("Fetching cached refunds user list from IDAM...");
-            LOG.info("contextStartListener:{}", contextStartListener);
-            LOG.info("contextStartListener.getUserMap:{}", contextStartListener.getUserMap());
-            LOG.info("contextStartListener.getUserMap().get(PAYMENT_REFUND):{}", contextStartListener.getUserMap().get(PAYMENT_REFUND));
             if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
-                LOG.info("Inside If block as contextStartListener values available ...");
                 userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
-                    Collectors.toSet());
+                        Collectors.toSet());
             } else {
-                LOG.info("Inside else block as contextStartListener value not available ...");
                 List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
-                                                                                                 Arrays.asList(PAYMENT_REFUND,
-                                                                                                               "payments-refund-approver"));
+                        Arrays.asList(PAYMENT_REFUND,
+                                "payments-refund-approver"));
                 userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
 
                 userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
@@ -507,6 +500,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return rawReason;
     }
 
+    private MultiValueMap<String, String>  getAuthenticationHeaders() {
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.add("Authorization", getAccessToken());
+        return inputHeaders;
+    }
+
+    private String getAccessToken() {
+        IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+        return idamTokenResponse.getAccessToken();
+    }
+
     @Override
     public Optional<List<Refund>> getPaymentFailureReport(List<String> paymentReferenceList) {
 
@@ -540,14 +544,4 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return paymentFailureDtoList;
     }
 
-    private MultiValueMap<String, String>  getAuthenticationHeaders() {
-        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
-        inputHeaders.add("Authorization", getAccessToken());
-        return inputHeaders;
-    }
-
-    private String getAccessToken() {
-        IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
-        return idamTokenResponse.getAccessToken();
-    }
 }
