@@ -339,7 +339,6 @@ public class RefundsApproverJourneyFunctionalTest {
                 .isEqualTo("Sent for approval");
         assertThat(refundListDtoResponse.getRefundList().get(0).getRefundStatus().getDescription())
                 .isEqualTo("Refund request submitted");
-        System.out.println("Refund List from test positive_get_refund_list_for_an_approver: " + refundListDtoResponse.getRefundList());
 
         // delete payment record
         paymentTestService

@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
 import java.math.BigDecimal;
@@ -22,7 +21,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@ToString
 public class RefundDto {
 
     private String ccdCaseNumber;
