@@ -185,7 +185,6 @@ public class IdamServiceImpl implements IdamService {
                 HttpMethod.GET,
                 getEntity(headers), IdamUserInfoResponse[].class
             );
-        LOG.info("idamUserListResponseEntity: {}", idamUserListResponseEntity);
         if (idamUserListResponseEntity != null && idamUserListResponseEntity.getBody() != null) {
             IdamUserInfoResponse[] idamUserListResponse = idamUserListResponseEntity.getBody();
 
@@ -199,7 +198,6 @@ public class IdamServiceImpl implements IdamService {
                                                 .build());
             }
 
-            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoList);
             return userIdentityDataDtoList;
         }
 
