@@ -50,7 +50,7 @@ auth:
 test:
   url :
     refunds : ${TEST_URL:http://localhost:8080}
-    payments : ${TEST_URL_PAYMENT:http://payment-api-pr-972.service.core-compute-preview.internal}
+    payments : ${TEST_URL_PAYMENT:https://payment-api-pr-1262.service.core-compute-preview.internal}
   user:
     password: ${TEST_USER_PASSWORD}
 
@@ -66,7 +66,7 @@ idam:
   paybubble:
     client:
       id: ${IDAM_PAYBUBBLE_CLIENT_ID:paybubble}
-      secret: ${IDAM_PAYBUBBLE_CLIENT_SECRET}
+      secret: ${IDAM_PAYBUBBLE_CLIENT_SECRET:}
 oauth2:
   redirect:
     uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}

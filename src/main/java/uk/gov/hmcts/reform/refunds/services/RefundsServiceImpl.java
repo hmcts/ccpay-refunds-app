@@ -7,11 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -68,6 +70,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final String ROLEPATTERN = "^.*refund.*$";
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
+    private static final String PAYMENT_REFUND = "payments-refund";
+
     @Autowired
     private RefundsRepository refundsRepository;
 
@@ -141,7 +145,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        LOG.info("refundList: {}", refundList);
         // Get Refunds related Roles from logged in user
         List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
             .collect(Collectors.toList());
@@ -161,23 +164,34 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
+    @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
-
+        Set<UserIdentityDataDto> userIdentityDataDtoSet;
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         if (!roles.isEmpty()) {
-            Set<UserIdentityDataDto> userIdentityDataDtoSet =  contextStartListener.getUserMap().get("payments-refund").stream().collect(
-                Collectors.toSet());
-            LOG.info("userIdentityDataDtoList: {}", userIdentityDataDtoSet);
+            if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
+                userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
+                        Collectors.toSet());
+            } else {
+                List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
+                        Arrays.asList(PAYMENT_REFUND,
+                                "payments-refund-approver"));
+                userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
+
+                userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
+
+            }
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
-                    contextStartListener.addUserToMap("payments-refund",userIdentityDataDto);
+                    contextStartListener.addUserToMap(PAYMENT_REFUND,userIdentityDataDto);
                     userIdentityDataDtoSet.add(userIdentityDataDto);
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
@@ -188,7 +202,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .collect(Collectors.toList())
                 .forEach(refund -> {
                     String reason = getRefundReason(refund.getReason(), refundReasonList);
-                    LOG.info("refund: {}", refund);
                     refundListDto.add(refundResponseMapper.getRefundListDto(
                         refund,
                         userIdentityDataDtoSet.stream()
@@ -199,7 +212,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 });
         }
 
-        LOG.info("refundListDto: {}", refundListDto);
         return refundListDto;
     }
 
@@ -305,6 +317,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (records == 0) {
             throw new RefundNotFoundException("No records found for given refund reference");
         }
+    }
+
+    @Override
+    public List<Refund> getRefundsForPaymentReference(String paymentReference) {
+        Optional<List<Refund>> refundList = refundsRepository.findByPaymentReference(paymentReference);
+        if (refundList.isPresent() && !refundList.get().isEmpty()) {
+            return refundList.get();
+        }
+        throw new RefundNotFoundException("Refunds not found for payment reference " + paymentReference);
     }
 
     private String validateRefundReason(String reason) {
@@ -433,4 +454,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return rawReason;
     }
 
+    private MultiValueMap<String, String>  getAuthenticationHeaders() {
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.add("Authorization", getAccessToken());
+        return inputHeaders;
+    }
+
+    private String getAccessToken() {
+        IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+        return idamTokenResponse.getAccessToken();
+    }
 }
