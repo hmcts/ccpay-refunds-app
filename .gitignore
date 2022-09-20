@@ -3,8 +3,9 @@
 !gradle/wrapper/gradle-wrapper.jar
 *.class
 bin/main/application.yaml
-src/main/resources/application-local.yaml
 target
+src/main/resources/application-local.yaml
+
 
 ### STS ###
 .apt_generated
