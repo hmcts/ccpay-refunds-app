@@ -4,6 +4,7 @@
 *.class
 bin/main/application.yaml
 target
+src/main/resources/application-local.yaml
 
 ### STS ###
 .apt_generated
