@@ -9,8 +9,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/refunds
-    username: refunds
-    password: refunds
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
     properties:
       charSet: UTF-8
   jpa:
@@ -104,4 +104,3 @@ refunds:
     password: ${REFUND_SERVICE_ACCOUNT_PASSWORD:}
     scope: ${REFUND_SERVICE_ACCOUNT_SCOPE:}
     redirectUri: ${REFUND_SERVICE_ACCOUNT_REDIRECT_URI:}
-
