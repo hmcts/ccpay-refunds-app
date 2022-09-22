@@ -24,14 +24,11 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
@@ -42,8 +39,8 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
-import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
+import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -260,6 +257,7 @@ class RefundServiceImplTest {
         .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
         .statusHistories(Arrays.asList(Utility.STATUS_HISTORY_SUPPLIER.get()))
         .build();
+
     @Test
     void testRefundListEmptyForCriteria() {
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
@@ -1345,10 +1343,6 @@ class RefundServiceImplTest {
 
     @Test
     void testGetRefundResponseDtoList() {
-        MultiValueMap<String, String> headers = null;
-        List<Refund> refundList = List.of(refundListSupplierBasedOnCCDCaseNumber1.get());
-        List<String> roles = Arrays.asList("payments-refund-approver", "payments-refund");
-
         when(refundReasonRepository.findAll()).thenReturn(
             Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
         when(contextStartListener.getUserMap()).thenReturn(null);
@@ -1363,7 +1357,9 @@ class RefundServiceImplTest {
         when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("qwerrtyuiop").build();
         when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
-
+        MultiValueMap<String, String> headers = null;
+        List<Refund> refundList = List.of(refundListSupplierBasedOnCCDCaseNumber1.get());
+        List<String> roles = Arrays.asList("payments-refund-approver", "payments-refund");
         List<RefundDto> refundDtos = refundsService.getRefundResponseDtoList(headers, refundList, roles);
         Assertions.assertNotNull(refundDtos);
         Assertions.assertEquals(1, refundDtos.size());

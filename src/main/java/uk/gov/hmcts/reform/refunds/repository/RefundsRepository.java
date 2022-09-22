@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings({"PMD.TooManyMethods"})
 @Repository
 public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaSpecificationExecutor<Refund> {
     Optional<List<Refund>> findByPaymentReference(String paymentReference);
