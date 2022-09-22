@@ -252,6 +252,10 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         final String paymentReference = paymentsResponse.getReference();
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
 
         // Create Refund 1
         final PaymentRefundRequest paymentRefundRequest
@@ -284,6 +288,11 @@ public class RefundsApproverJourneyFunctionalTest {
         ).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
+
         // Create Refund 2
         final PaymentRefundRequest paymentRefundRequest1
                 = RefundsFixture.refundRequest("RR001", paymentDto1.getReference(),"100", "0");
@@ -315,6 +324,10 @@ public class RefundsApproverJourneyFunctionalTest {
         ).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
         // Create Refund 3
         final PaymentRefundRequest paymentRefundRequest2
                 = RefundsFixture.refundRequest("RR001", paymentDto2.getReference(),"190", "0");
