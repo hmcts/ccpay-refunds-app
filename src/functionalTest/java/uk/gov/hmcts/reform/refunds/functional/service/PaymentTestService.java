@@ -4,6 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
@@ -116,19 +117,21 @@ public class PaymentTestService {
     }
 
     public RequestSpecification givenWithAuthHeaders(final String userToken, final String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }
 
-    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference) {
+    public Response getPbaPayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
                 .when()
                 .get("/credit-account-payments/{reference}", paymentReference);
     }
 
-    public Response deletePayment(String userToken, String serviceToken, String paymentReference) {
+    public Response deletePayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
+                .baseUri(baseUri)
                 .when()
                 .delete("/credit-account-payments/{paymentReference}", paymentReference);
     }
@@ -137,5 +140,25 @@ public class PaymentTestService {
                                  final String refundReference) {
         return givenWithAuthHeaders(userToken, serviceToken)
                 .delete("/refund/{reference}", refundReference);
+    }
+
+    public Response patchCancelRefunds(final String serviceToken, final String paymentReference) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON).when()
+            .patch("/payment/{paymentReference}/action/cancel", paymentReference);
+    }
+
+    public RequestSpecification givenWithServiceHeaders(String serviceToken) {
+        return RestAssured.given()
+            .header("ServiceAuthorization", serviceToken);
+    }
+
+    public Response getPaymentFailureReport(final String userToken,
+                                  final String serviceToken,
+                                  final String paymentReferenceList) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON).when()
+            .queryParams("paymentReferenceList", paymentReferenceList)
+            .get("/refund/payment-failure-report");
     }
 }

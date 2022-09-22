@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
         LOG.info("Context Start Event received.");
         userMap = new ConcurrentHashMap<>();
         List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
-                                                                                         Arrays.asList("payments-refund","payments-refund-approver"));
+                Arrays.asList("payments-refund","payments-refund-approver"));
         userMap.put("payments-refund",userIdentityDataDtoList);
 
     }
@@ -42,6 +43,9 @@ public class ContextStartListener implements ApplicationListener<ContextStartedE
 
     public void addUserToMap(String userGroup, UserIdentityDataDto userIdentityDataDto) {
         List<UserIdentityDataDto> userIdentityDataDtoList = userMap.get(userGroup);
+        if (null == userIdentityDataDtoList) {
+            userIdentityDataDtoList = new ArrayList<>();
+        }
         userIdentityDataDtoList.add(userIdentityDataDto);
         userMap.put("payments-refund",userIdentityDataDtoList);
     }
