@@ -7,6 +7,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,12 +39,14 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -56,6 +60,8 @@ import static org.springframework.http.ResponseEntity.ok;
 @Api(tags = {"Refund Journey group"})
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     @Autowired
     private RefundReasonsService refundReasonsService;
@@ -139,6 +145,44 @@ public class RefundsController {
             ),
             HttpStatus.OK
         );
+    }
+
+    @ApiOperation(value = "GET /refund/payment-failure-report", notes = "Get payment failure report based on list of payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Success"),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "UnAuthorised"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 404, message = "Not found"),
+        @ApiResponse(code = 503, message = "Service Unavailable"),
+    })
+    @GetMapping("/refund/payment-failure-report")
+    public ResponseEntity getPaymentFailureReport(
+        @RequestParam(required = false) List<String> paymentReferenceList) {
+
+        if (featureToggler.getBooleanValue("payment-status-update-flag", false)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        if (paymentReferenceList == null || paymentReferenceList.isEmpty()) {
+            return new ResponseEntity<>("Please provide payment reference to retrieve payment failure report",HttpStatus.BAD_REQUEST);
+        }
+        LOG.info("Fetching the payment failure report based on given payment reference list");
+
+        Optional<List<Refund>> paymentFailureList = refundsService.getPaymentFailureReport(paymentReferenceList);
+
+        if (paymentFailureList.isPresent() && !paymentFailureList.get().isEmpty()) {
+            LOG.info("Sending the payment failure report response");
+
+            return new ResponseEntity<>(refundsService.getPaymentFailureDtoResponse(paymentFailureList.get()), HttpStatus.OK);
+        } else {
+            return new
+                ResponseEntity<>(
+                "Payment failure details for the given payment reference list is not found. Please provide valid Payment Reference",
+                HttpStatus.NOT_FOUND
+            );
+        }
+
     }
 
     @ApiOperation(value = "Update refund status by refund reference", notes = "Update refund status by refund reference")

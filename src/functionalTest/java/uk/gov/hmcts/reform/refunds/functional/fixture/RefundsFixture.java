@@ -48,6 +48,31 @@ public final class RefundsFixture {
             .build();
     }
 
+    public static CreditAccountPaymentRequest pbaPaymentRequestForProbate(final String amountString,
+                                                                          final String service,
+                                                                          final String pbaAccountNumber,
+                                                                          final String ccdCaseNumber) {
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+                .amount(new BigDecimal(amountString))
+                .description("New passport application")
+                .ccdCaseNumber(ccdCaseNumber)
+                .caseReference("aCaseReference")
+                .service(service)
+                .currency(CurrencyCode.GBP)
+                .siteId("ABA6")
+                .customerReference("CUST101")
+                .organisationName("ORG101")
+                .accountNumber(pbaAccountNumber)
+                .fees(Lists.newArrayList(
+                        FeeDto.feeDtoWith()
+                                .calculatedAmount(new BigDecimal(amountString))
+                                .code("FEE0001")
+                                .version("1")
+                                .build())
+                )
+                .build();
+    }
+
     public static PaymentRefundRequest refundRequest(final String refundReason,
                                                      final String paymentReference, final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest

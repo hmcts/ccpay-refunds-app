@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.service;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -14,6 +15,12 @@ import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
@@ -25,6 +32,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
+import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -43,6 +51,7 @@ import uk.gov.hmcts.reform.refunds.utils.Utility;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,6 +82,8 @@ class RefundServiceImplTest {
     @Mock
     private MultiValueMap<String, String> map;
     @Mock
+    private List<String> paymentReferenceList;
+    @Mock
     private RefundsRepository refundsRepository;
     @Mock
     private StatusHistoryRepository statusHistoryRepository;
@@ -88,6 +99,8 @@ class RefundServiceImplTest {
     private RefundResponseMapper refundResponseMapper;
     @Spy
     private RefundFeeMapper refundFeeMapper;
+    @Spy
+    private PaymentFailureResponseMapper paymentFailureResponseMapper;
 
     @Mock
     private ContextStartListener contextStartListener;
@@ -97,6 +110,34 @@ class RefundServiceImplTest {
         MockitoAnnotations.initMocks(this);
     }
 
+    public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber1 = () -> Refund.refundsWith()
+        .id(1)
+        .amount(BigDecimal.valueOf(100))
+        .ccdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_NUMBER)
+        .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .reference("RF-1111-2234-1077-1123")
+        .refundStatus(RefundStatus.SENTFORAPPROVAL)
+        .reason("RR001")
+        .paymentReference("RC-1111-2234-1077-1123")
+        .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+        .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+        .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+        .build();
+
+    public static final Supplier<Refund> refundListSupplierForSendBackStatus = () -> Refund.refundsWith()
+        .id(3)
+        .amount(BigDecimal.valueOf(300))
+        .ccdCaseNumber(Utility.GET_REFUND_LIST_SENDBACK_REFUND_STATUS)
+        .createdBy(Utility.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
+        .updatedBy(Utility.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID)
+        .reference("RF-3333-2234-1077-1123")
+        .refundStatus(RefundStatus.UPDATEREQUIRED)
+        .reason("Other")
+        .paymentReference("RC-3333-2234-1077-1123")
+        .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+        .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+        .statusHistories(Arrays.asList(Utility.STATUS_HISTORY_SUPPLIER.get()))
+        .build();
     @Test
     void testRefundListEmptyForCriteria() {
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
@@ -1086,4 +1127,63 @@ class RefundServiceImplTest {
                             .build())
         .build();
 
+    @Test
+    void testGetRefundResponseDtoList() {
+        MultiValueMap<String, String> headers = null;
+        List<Refund> refundList = List.of(refundListSupplierBasedOnCCDCaseNumber1.get());
+        List<String> roles = Arrays.asList("payments-refund-approver", "payments-refund");
+
+        when(refundReasonRepository.findAll()).thenReturn(
+            Arrays.asList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
+        when(contextStartListener.getUserMap()).thenReturn(null);
+        List<UserIdentityDataDto> userIdentityDataDtoList =  Arrays.asList(UserIdentityDataDto.userIdentityDataWith()
+                                                                               .fullName("ccd-full-name")
+                                                                               .emailId("j@mail.com")
+                                                                               .id("1f2b7025-0f91-4737-92c6-b7a9baef14c6")
+                                                                               .build());
+        when(idamService.getUsersForRoles(any(), any())).thenReturn(userIdentityDataDtoList);
+        UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
+        userIdentityDataDto.setFullName("Forename Surname");
+        when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("qwerrtyuiop").build();
+        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+
+        List<RefundDto> refundDtos = refundsService.getRefundResponseDtoList(headers, refundList, roles);
+        Assertions.assertNotNull(refundDtos);
+        Assertions.assertEquals(1, refundDtos.size());
+        Assertions.assertEquals("RF-1111-2234-1077-1123", refundDtos.get(0).getRefundReference());
+    }
+
+    @Test
+    void testPaymentFailureForEmptyCriteria() {
+        when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(),any()))
+            .thenReturn(Optional.empty());
+        assertEquals(Optional.empty(), refundsService.getPaymentFailureReport(paymentReferenceList));
+    }
+
+    @Test
+    void testPaymentFailureReportForGivenPaymentReferenceList() {
+
+        when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(), any()))
+            .thenReturn(Optional.ofNullable(List.of(refundListSupplierForSendBackStatus.get())));
+
+        Optional<List<Refund>> refundList = refundsService.getPaymentFailureReport(paymentReferenceList);
+
+        assertThat(refundList).isPresent();
+
+        if (refundList.isPresent() && !refundList.get().isEmpty()) {
+            PaymentFailureReportDtoResponse paymentFailureReportDtoResponse =
+                refundsService.getPaymentFailureDtoResponse(refundList.get());
+            assertNotNull(paymentFailureReportDtoResponse);
+            assertEquals(1, paymentFailureReportDtoResponse.getPaymentFailureDto().size());
+            assertEquals(
+                "RC-3333-2234-1077-1123",
+                paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getPaymentReference()
+            );
+            assertEquals(
+                "RF-3333-2234-1077-1123",
+                paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getRefundReference()
+            );
+        }
+    }
 }
