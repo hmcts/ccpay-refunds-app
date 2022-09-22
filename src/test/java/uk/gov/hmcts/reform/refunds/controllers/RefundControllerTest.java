@@ -56,6 +56,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
@@ -983,7 +984,6 @@ class RefundControllerTest {
              new ResponseEntity<>("Success", HttpStatus.OK)
         );
         RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1");
-        when(featureToggler.getBooleanValue(eq("refund-liberata"), anyBoolean())).thenReturn(true);
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1875,6 +1875,62 @@ class RefundControllerTest {
             .notificationType(NotificationType.EMAIL)
             .reference("RF-1233-2134-1234-1234")
             .build();
+    }
+
+    @Test
+    void testPaymentFailureReportNotAvailableForBlankInput() throws Exception {
+
+        MvcResult mvcResult = mockMvc.perform(get("/refund/payment-failure-report")
+                                                  .queryParam("paymentReferenceList", "")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertEquals("Please provide payment reference to retrieve payment failure report",mvcResult.getResponse().getContentAsString());
+
+    }
+
+    @Test
+    void testPaymentFailureReportForNotAvailablePaymentReference() throws Exception {
+
+        when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(),any()))
+            .thenReturn(Optional.of(Collections.emptyList()));
+
+        MvcResult mvcResult = mockMvc.perform(get("/refund/payment-failure-report")
+                                                  .queryParam("paymentReferenceList", "RC-1628-5241-9956-2315")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+        assertEquals("Payment failure details for the given payment reference list is not found. Please provide valid Payment Reference",
+                     mvcResult.getResponse().getContentAsString());
+
+    }
+
+    @Test
+    void testPaymentFailureReportForAvailablePaymentReference() throws Exception {
+
+        when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(),any()))
+            .thenReturn(Optional.of(List.of(getRefund())));
+
+        MvcResult mvcResult = mockMvc.perform(get("/refund/payment-failure-report")
+                                                  .queryParam("paymentReferenceList", "RC-1111-1111-1111-1111")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentFailureReportDtoResponse paymentFailureReportDtoResponse =
+            mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), PaymentFailureReportDtoResponse.class);
+
+        assertNotNull(paymentFailureReportDtoResponse);
+        assertEquals(1,paymentFailureReportDtoResponse.getPaymentFailureDto().size());
+        assertEquals("RC-1628-5241-9956-2315",paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getPaymentReference());
+        assertEquals("RF-1628-5241-9956-2215",paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getRefundReference());
+        assertEquals(BigDecimal.valueOf(100),paymentFailureReportDtoResponse.getPaymentFailureDto().get(0).getAmount());
+
     }
 
     private PaymentGroupResponse getPaymentGroupDto() {
