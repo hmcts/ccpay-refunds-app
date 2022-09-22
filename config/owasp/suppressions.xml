@@ -49,7 +49,7 @@
     </notes>
     <cve>CVE-2022-22950</cve>
   </suppress>
-  <suppress until="2022-12-31">
+  <suppress until="2022-09-30">
     <notes>Pivotal Spring Framework through 5.3.16 suffers from a potential remote code execution (RCE) issue if used
       for Java deserialization of untrusted data. Depending on how the library is implemented within a product, this
       issue may or not occur, and authentication may be required. NOTE: the vendor's position is that untrusted data is
