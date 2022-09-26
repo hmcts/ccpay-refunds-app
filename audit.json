@@ -62,5 +62,6 @@
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund?ccdCaseNumber=ccdCaseNumber&excludeCurrentUser=excludeCurrentUser&status=status_GET":"ignore",
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference_PATCH":"ignore",
-  "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/resubmit/reference_PATCH":"ignore"
+  "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/resubmit/reference_PATCH":"ignore",
+  "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore"
 }
