@@ -18,7 +18,7 @@ module "ccpay-refund-status-api" {
   name          = join("-", [var.product_name, "api"])
   display_name  = "Refund Status API"
   path          = "refunds-api"
-  swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-status.json"
+  swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-status-v1.json"
 }
 
 data "template_file" "refund_status_policy_template" {
