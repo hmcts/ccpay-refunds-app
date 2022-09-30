@@ -32,9 +32,11 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
@@ -46,7 +48,6 @@ import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
-import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
@@ -60,8 +61,6 @@ import static org.springframework.http.ResponseEntity.ok;
 @Api(tags = {"Refund Journey group"})
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
     @Autowired
     private RefundReasonsService refundReasonsService;
@@ -80,6 +79,7 @@ public class RefundsController {
 
     @Autowired
     private RefundNotificationService refundNotificationService;
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsController.class);
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -321,12 +321,28 @@ public class RefundsController {
         refundNotificationService.processFailedNotificationsLetter();
     }
 
+    @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
+        + "You can provide start date and end dates which can include times as well."
+        + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
+        + "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "successful operation"),
+        @ApiResponse(code = 404, message = "No refunds available for the given date range"),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 413, message = "Date range exceeds the maximum supported by the system"),
+        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
+    })
+
     @GetMapping("/refunds")
-    public ResponseEntity<String> searchRefundReconciliation1(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
-                                                        @RequestParam(name = "end_date") Optional<String> endDateTimeString,
-                                                        @RequestParam(name = "refund_reference", required = false) String refundReference
-    ) {
-        return new ResponseEntity<>("test",HttpStatus.OK);
+    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
+                                                                              @RequestParam(name = "end_date") Optional<String> endDateTimeString,
+                                                                              @RequestParam(name = "refund_reference", required = false)
+                                                                                      String refundReference) {
+
+        List<RefundLiberata> refunds = refundsService
+            .search(startDateTimeString, endDateTimeString,refundReference);
+
+        return new ResponseEntity<>(new RerfundLiberataResponse(refunds),HttpStatus.OK);
     }
 
 }

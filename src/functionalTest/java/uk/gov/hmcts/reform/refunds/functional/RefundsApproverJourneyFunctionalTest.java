@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.functional;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
@@ -12,9 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
 import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
@@ -31,6 +36,9 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -244,6 +252,10 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         final String paymentReference = paymentsResponse.getReference();
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
 
         // Create Refund 1
         final PaymentRefundRequest paymentRefundRequest
@@ -276,6 +288,11 @@ public class RefundsApproverJourneyFunctionalTest {
         ).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
+
         // Create Refund 2
         final PaymentRefundRequest paymentRefundRequest1
                 = RefundsFixture.refundRequest("RR001", paymentDto1.getReference(),"100", "0");
@@ -307,6 +324,10 @@ public class RefundsApproverJourneyFunctionalTest {
         ).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
 
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
         // Create Refund 3
         final PaymentRefundRequest paymentRefundRequest2
                 = RefundsFixture.refundRequest("RR001", paymentDto2.getReference(),"190", "0");
@@ -635,6 +656,23 @@ public class RefundsApproverJourneyFunctionalTest {
     private String performRefund(String paymentReference) {
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
+        Response refundResponse = paymentTestService.postInitiateRefund(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            paymentRefundRequest,
+            testConfigProperties.basePaymentsUrl
+        );
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        final String refundReference = refundResponseFromPost.getRefundReference();
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
+        return refundReference;
+    }
+
+    @NotNull
+    private String performRefund2Fees(String paymentReference) {
+        final PaymentRefundRequest paymentRefundRequest
+            = RefundsFixture.refundRequest2Fees("RR001", paymentReference, "90", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -1134,4 +1172,365 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                 refundReference);
     }
+
+    @Test
+    public void positive_V2Api_response_date_range() {
+
+        PaymentDto paymentResponse = createPaymentForV2Api();
+        final String paymentReference = paymentResponse.getReference();
+
+        final String refundReference = performRefund(paymentReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("start_date", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("end_date", getReportDate(new Date(System.currentTimeMillis())));
+        Response response1 = RestAssured.given()
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/refunds");
+
+        RerfundLiberataResponse rerfundLiberataResponse =  response1.getBody().as(RerfundLiberataResponse.class);;
+        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
+            .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
+
+        String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
+        String paymentDateCreated = getReportDate(refundLiberata.getPayment().getDateReceiptCreated());
+        String date = getReportDate(new Date(System.currentTimeMillis()));
+        assertThat("RR001").isEqualTo(refundLiberata.getReason());
+        assertThat("SendRefund").isEqualTo(refundLiberata.getInstructionType());
+        assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getTotalRefundAmount());
+        assertThat(date).isEqualTo(refundApproveDate);
+        assertThat(date).isEqualTo(paymentDateCreated);
+        assertThat("Probate").isEqualTo(refundLiberata.getPayment().getServiceName());
+        assertThat("ABA6").isEqualTo(refundLiberata.getPayment().getSiteId());
+        assertThat("online").isEqualTo(refundLiberata.getPayment().getChannel());
+        assertThat("payment by account").isEqualTo(refundLiberata.getPayment().getMethod());
+        assertThat(paymentResponse.getCcdCaseNumber()).isEqualTo(refundLiberata.getPayment().getCcdCaseNumber());
+        assertThat("aCaseReference").isEqualTo(refundLiberata.getPayment().getCaseReference());
+        assertThat("CUST101").isEqualTo(refundLiberata.getPayment().getCustomerReference());
+        assertThat("PBAFUNC12345").isEqualTo(refundLiberata.getPayment().getPbaNumber());
+        assertThat("FEE0001").isEqualTo(refundLiberata.getFees().get(0).getCode());
+        assertThat("4481102133").isEqualTo(refundLiberata.getFees().get(0).getNaturalAccountCode());
+        assertThat("1").isEqualTo(refundLiberata.getFees().get(0).getVersion());
+        assertThat("civil").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction1());
+        assertThat("county court").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction2());
+        assertThat("GOV - Paper fees - Money claim >£200,000").isEqualTo(refundLiberata.getFees().get(0).getMemoLine());
+        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
+        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getPayment().getAvailableFunds());
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
+    private String getReportDate(Date date) {
+        java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return date == null ? null : java.time.LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).format(reportNameDateFormat);
+    }
+
+    private PaymentDto createPaymentForV2Api() {
+        final String accountNumber = testConfigProperties.existingAccountNumber;
+        final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
+            .pbaPaymentRequestForProbate(
+                "100.00",
+                "PROBATE",
+                accountNumber
+            );
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(
+                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                SERVICE_TOKEN_CMC,
+                testConfigProperties.basePaymentsUrl,
+                accountPaymentRequest
+            ).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference(),
+                                             testConfigProperties.basePaymentsUrl).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("100.00"));
+        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+
+        // Update Payments for CCDCaseNumber by certain days
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
+
+        return paymentsResponse;
+    }
+
+    private PaymentDto createPaymentForV2Api2Fees() {
+        final String accountNumber = testConfigProperties.existingAccountNumber;
+        final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
+            .pbaPaymentRequestForProbate2Fees(
+                "100.00",
+                "PROBATE",
+                accountNumber
+            );
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(
+                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                SERVICE_TOKEN_CMC,
+                testConfigProperties.basePaymentsUrl,
+                accountPaymentRequest
+            ).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference(),
+                                             testConfigProperties.basePaymentsUrl).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("100.00"));
+        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+
+        // Update Payments for CCDCaseNumber by certain days
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
+
+        return paymentsResponse;
+    }
+
+
+
+    @Test
+    public void negative_return_400_V2Api_date_range_not_supported() {
+        PaymentDto paymentResponse = createPaymentForV2Api();
+        final String paymentReference = paymentResponse.getReference();
+
+        final String refundReference = performRefund(paymentReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        Date date = new Date();
+        LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        localDateTime = localDateTime.plusDays(8);
+        Date currentDatePlusOneDay = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("start_date", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("end_date", getReportDate(currentDatePlusOneDay));
+        Response response = RestAssured.given()
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/refunds");
+
+        assertThat(400).isEqualTo(response.getStatusCode());
+
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
+    @Test
+    public void negative_return_413_V2Api_date_range_not_supported() {
+        PaymentDto paymentResponse = createPaymentForV2Api();
+        final String paymentReference = paymentResponse.getReference();
+
+        final String refundReference = performRefund(paymentReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        Date date = new Date();
+        LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        localDateTime = localDateTime.minusDays(8);
+        Date currentDatePlusOneDay = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("start_date", getReportDate(currentDatePlusOneDay));
+        params.add("end_date", getReportDate(new Date(System.currentTimeMillis())));
+        Response response = RestAssured.given()
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/refunds");
+
+        assertThat(413).isEqualTo(response.getStatusCode());
+
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
+    @Test
+    public void positive_V2Api_response_date_range_2Fees() {
+
+        PaymentDto paymentResponse = createPaymentForV2Api2Fees();
+        final String paymentReference = paymentResponse.getReference();
+
+        final String refundReference = performRefund2Fees(paymentReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("start_date", getReportDate(new Date(System.currentTimeMillis())));
+        params.add("end_date", getReportDate(new Date(System.currentTimeMillis())));
+        Response response1 = RestAssured.given()
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/refunds");
+
+        RerfundLiberataResponse rerfundLiberataResponse =  response1.getBody().as(RerfundLiberataResponse.class);;
+        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
+            .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
+
+        String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
+        String paymentDateCreated = getReportDate(refundLiberata.getPayment().getDateReceiptCreated());
+        String date = getReportDate(new Date(System.currentTimeMillis()));
+        assertThat("RR001").isEqualTo(refundLiberata.getReason());
+        assertThat("SendRefund").isEqualTo(refundLiberata.getInstructionType());
+        assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getTotalRefundAmount());
+        assertThat(date).isEqualTo(refundApproveDate);
+        assertThat(date).isEqualTo(paymentDateCreated);
+        assertThat("Probate").isEqualTo(refundLiberata.getPayment().getServiceName());
+        assertThat("ABA6").isEqualTo(refundLiberata.getPayment().getSiteId());
+        assertThat("online").isEqualTo(refundLiberata.getPayment().getChannel());
+        assertThat("payment by account").isEqualTo(refundLiberata.getPayment().getMethod());
+        assertThat(paymentResponse.getCcdCaseNumber()).isEqualTo(refundLiberata.getPayment().getCcdCaseNumber());
+        assertThat("aCaseReference").isEqualTo(refundLiberata.getPayment().getCaseReference());
+        assertThat("CUST101").isEqualTo(refundLiberata.getPayment().getCustomerReference());
+        assertThat("PBAFUNC12345").isEqualTo(refundLiberata.getPayment().getPbaNumber());
+        assertThat("FEE0001").isEqualTo(refundLiberata.getFees().get(0).getCode());
+        assertThat("4481102133").isEqualTo(refundLiberata.getFees().get(0).getNaturalAccountCode());
+        assertThat("1").isEqualTo(refundLiberata.getFees().get(0).getVersion());
+        assertThat("civil").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction1());
+        assertThat("county court").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction2());
+        assertThat("GOV - Paper fees - Money claim >£200,000").isEqualTo(refundLiberata.getFees().get(0).getMemoLine());
+        assertThat(new BigDecimal("20.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
+        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getPayment().getAvailableFunds());
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
+    @Test
+    public void positive_V2Api_response_refund_reference() {
+
+        PaymentDto paymentResponse = createPaymentForV2Api();
+        final String paymentReference = paymentResponse.getReference();
+
+        final String refundReference = performRefund(paymentReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+
+        params.add("refund_reference", refundReference);
+        Response response1 = RestAssured.given()
+            .header("ServiceAuthorization", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/refunds");
+
+        RerfundLiberataResponse rerfundLiberataResponse =  response1.getBody().as(RerfundLiberataResponse.class);;
+        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
+            .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
+
+        String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
+        String paymentDateCreated = getReportDate(refundLiberata.getPayment().getDateReceiptCreated());
+        String date = getReportDate(new Date(System.currentTimeMillis()));
+        assertThat("RR001").isEqualTo(refundLiberata.getReason());
+        assertThat("SendRefund").isEqualTo(refundLiberata.getInstructionType());
+        assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getTotalRefundAmount());
+        assertThat(date).isEqualTo(refundApproveDate);
+        assertThat(date).isEqualTo(paymentDateCreated);
+        assertThat("Probate").isEqualTo(refundLiberata.getPayment().getServiceName());
+        assertThat("ABA6").isEqualTo(refundLiberata.getPayment().getSiteId());
+        assertThat("online").isEqualTo(refundLiberata.getPayment().getChannel());
+        assertThat("payment by account").isEqualTo(refundLiberata.getPayment().getMethod());
+        assertThat(paymentResponse.getCcdCaseNumber()).isEqualTo(refundLiberata.getPayment().getCcdCaseNumber());
+        assertThat("aCaseReference").isEqualTo(refundLiberata.getPayment().getCaseReference());
+        assertThat("CUST101").isEqualTo(refundLiberata.getPayment().getCustomerReference());
+        assertThat("PBAFUNC12345").isEqualTo(refundLiberata.getPayment().getPbaNumber());
+        assertThat("FEE0001").isEqualTo(refundLiberata.getFees().get(0).getCode());
+        assertThat("4481102133").isEqualTo(refundLiberata.getFees().get(0).getNaturalAccountCode());
+        assertThat("1").isEqualTo(refundLiberata.getFees().get(0).getVersion());
+        assertThat("civil").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction1());
+        assertThat("county court").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction2());
+        assertThat("GOV - Paper fees - Money claim >£200,000").isEqualTo(refundLiberata.getFees().get(0).getMemoLine());
+        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
+        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getPayment().getAvailableFunds());
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
 }

@@ -118,3 +118,7 @@ logging:
     org:
       springframework:
         web: DEBUG
+
+refund:
+  search:
+    days: 7

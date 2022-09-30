@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
@@ -25,6 +27,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -142,5 +145,52 @@ public class PaymentServiceImpl implements PaymentService {
             MultiValueMap<String, String> headers, RefundResubmitPayhubRequest request) {
         return new HttpEntity<>(request, getFormatedHeaders(headers));
     }
+
+    @SuppressWarnings({"PMD.UselessOverridingMethod"})
+    private ResponseEntity<List<PaymentDto>> fetchRefundPaymentFromPayhub(List<String> paymentReference) {
+        String referenceId = paymentReference.stream()
+            .map(Object::toString)
+            .collect(Collectors.joining(","));
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(paymentApiUrl + "/refunds/payments")
+            .queryParam("paymentReferenceList", referenceId);
+
+        return restTemplatePayment
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                getHeaders(),new ParameterizedTypeReference<List<PaymentDto>>() {
+
+                }
+            );
+    }
+
+    private HttpEntity<String> getHeaders() {
+
+        return new HttpEntity<>(getFormatedHeadersForS2S());
+    }
+
+    private MultiValueMap<String, String> getFormatedHeadersForS2S() {
+        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
+
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.put("ServiceAuthorization", servauthtoken);
+
+        return inputHeaders;
+    }
+
+    @Override
+    public List<PaymentDto> fetchPaymentResponse(List<String> paymentReference) {
+
+        try {
+            ResponseEntity<List<PaymentDto>> paymentResponse =
+                fetchRefundPaymentFromPayhub(paymentReference);
+            logger.info("payment Response status code {}", paymentResponse.getStatusCode());
+            return  paymentResponse.getBody();
+        } catch (Exception e) {
+            throw new PaymentServerException("Payment Server Exception", e);
+        }
+    }
+
 
 }

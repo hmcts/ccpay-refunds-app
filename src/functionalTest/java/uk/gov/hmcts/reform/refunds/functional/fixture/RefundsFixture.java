@@ -89,6 +89,7 @@ public final class RefundsFixture {
                     .id(0)
                     .version("1")
                     .updatedVolume(1)
+                    .refundAmount(new BigDecimal("10"))
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()
@@ -100,6 +101,48 @@ public final class RefundsFixture {
                                                            .email("ranjeet.kumar@HMCTS.NET")
                                                            .notificationType("EMAIL")
                                                            .build())
+            .build();
+
+    }
+
+    public static PaymentRefundRequest refundRequest2Fees(final String refundReason,
+                                                     final String paymentReference, final String refundAmount, final String feeAmount) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .isOverPayment(false)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .refundAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(0)
+                    .version("1")
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal("10"))
+                    .build(),
+                FeeDto.feeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .refundAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(1)
+                    .version("1")
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal("10"))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 112")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("P1 1PO")
+                                .email("ranjeet.kumar@HMCTS.NET")
+                                .notificationType("EMAIL")
+                                .build())
             .build();
 
     }
@@ -158,6 +201,41 @@ public final class RefundsFixture {
     public static ResubmitRefundRequest resubmitRefundWithRetroRemissionReason() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
             .refundReason("RR036")
+            .build();
+    }
+
+    public static CreditAccountPaymentRequest pbaPaymentRequestForProbate2Fees(final String amountString,
+                                                                          final String service, final String pbaAccountNumber) {
+        Random rand = new Random();
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+                                             "%04d22%04d%04d%02d",
+                                             rand.nextInt(10000),
+                                             rand.nextInt(10000),
+                                             rand.nextInt(10000),
+                                             rand.nextInt(99));
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("ABA6")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber(pbaAccountNumber)
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0001")
+                    .version("1")
+                    .build(),
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
             .build();
     }
 }

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.mappers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
@@ -20,6 +21,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class RefundNotificationMapperTest {
 
     private static final Refund REFUND = Refund.refundsWith()
