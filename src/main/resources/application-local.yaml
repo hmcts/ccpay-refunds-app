@@ -42,7 +42,7 @@ auth:
   provider:
     service:
       client:
-        baseUrl: http://localhost:8085
+        baseUrl: http://localhost:8084
   idam:
     client:
       baseUrl: http://localhost:8085
