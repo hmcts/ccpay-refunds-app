@@ -124,9 +124,9 @@ public class RefundsApproverJourneyFunctionalTest {
             .getRefundReasons(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT);
         assertThat(responseRefundReasons.getStatusCode()).isEqualTo(OK.value());
         RefundReason overPay = new RefundReason();
-         overPay.setCode("RR037");
-         overPay.setName("Overpayment");
-         overPay.setDescription("Overpayment");
+        overPay.setCode("RR037");
+        overPay.setName("Overpayment");
+        overPay.setDescription("Overpayment");
         List<RefundReason> refundReasons = responseRefundReasons.getBody().jsonPath().get("$");
         assertThat(refundReasons.size()).isEqualTo(35);
         assertThat(refundReasons.contains(overPay));
