@@ -20,7 +20,7 @@ locals {
   # list of the thumbprints of the SSL certificates that should be accepted by the refund status API (gateway)
   refund_status_thumbprints_in_quotes     = formatlist("&quot;%s&quot;", var.refunds_api_gateway_certificate_thumbprints)
   refund_status_thumbprints_in_quotes_str = join(",", local.refund_status_thumbprints_in_quotes)
-  
+
   refund_list_thumbprints_in_quotes     = formatlist("&quot;%s&quot;", var.refunds_api_gateway_certificate_thumbprints)
   refund_list_thumbprints_in_quotes_str = join(",", local.refund_list_thumbprints_in_quotes)
 }
@@ -46,6 +46,7 @@ module "ccpay-refunds-database-v11" {
   common_tags        = var.common_tags
   subscription       = var.subscription
   postgresql_version = var.postgresql_version
+  additional_databases = var.additional_databases
 }
 
 # Populate Vault with DB info
