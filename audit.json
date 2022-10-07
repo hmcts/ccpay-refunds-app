@@ -20,6 +20,7 @@
   "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/payment/paymentReference/action/cancel_PATCH":"ignore",
   "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference/action/APPROVE_PATCH":"ignore",
   "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund_POST":"ignore",
+  "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore",
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference/status-history_GET":"ignore",
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/rejection-reasons_GET":"ignore",
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/payment/paymentReference/action/cancel_PATCH":"ignore",
