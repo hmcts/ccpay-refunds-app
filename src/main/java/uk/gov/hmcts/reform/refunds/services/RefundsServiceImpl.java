@@ -97,7 +97,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String OTHERREASONPATTERN = "Other - ";
 
-    private static final String ROLEPATTERN = "^[^_]*refund.*$";
     private static final String RETROSPECTIVE_REMISSION_REASON = "RR036";
     private static int reasonPrefixLength = 6;
     private static final String PAYMENT_REFUND = "payments-refund";
@@ -261,7 +260,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             } else {
                 List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
                         Arrays.asList(PAYMENT_REFUND,
-                                "payments-refund-approver"));
+                                      PAYMENT_REFUND_APPROVER));
                 userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
 
                 userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
