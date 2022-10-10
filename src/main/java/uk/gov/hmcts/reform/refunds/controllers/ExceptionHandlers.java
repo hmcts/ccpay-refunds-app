@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jmx.export.notification.UnableToSendNotificationException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,13 +19,13 @@ import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.FeesNotFoundForRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.ForbiddenToApproveRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderInvalidRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReconciliationProviderServerException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
@@ -57,7 +58,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
-        ReconciliationProviderInvalidRequestException.class, InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class})
+        InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class})
     public ResponseEntity return400(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
@@ -82,9 +83,8 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler({PaymentServerException.class, ReconciliationProviderServerException.class, CheckDigitException.class,
-        UserNotFoundException.class, RefundReasonNotFoundException.class,FeesNotFoundForRefundException.class,
-        RefundFeeNotFoundInPaymentException.class,
+    @ExceptionHandler({PaymentServerException.class, CheckDigitException.class, UserNotFoundException.class,
+        RefundReasonNotFoundException.class, FeesNotFoundForRefundException.class, RefundFeeNotFoundInPaymentException.class,
         RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class})
     public ResponseEntity return500(Exception ex) {
         LOG.error(ex.getMessage());
@@ -95,6 +95,19 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     public ResponseEntity return504(GatewayTimeoutException ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
+    }
+
+
+    @ExceptionHandler(UnableToSendNotificationException.class)
+    public ResponseEntity return501(UnableToSendNotificationException ex) {
+        LOG.error(ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(LargePayloadException.class)
+    public ResponseEntity return413(LargePayloadException ex) {
+        LOG.error(ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
 }
