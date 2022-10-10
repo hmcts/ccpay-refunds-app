@@ -40,6 +40,7 @@ module "ccpay-refunds-database-v11" {
   common_tags = var.common_tags
   subscription = var.subscription
   postgresql_version = var.postgresql_version
+  additional_databases = var.additional_databases
 }
 
 # Populate Vault with DB info
