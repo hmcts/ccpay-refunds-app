@@ -59,7 +59,7 @@ import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
 
 @Service
 @SuppressWarnings({"PMD.PreserveStackTrace", "PMD.ExcessiveImports"})
-public class RefundsServiceImpl extends StateUtil implements RefundsService {
+public abstract class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsServiceImpl.class);
 
