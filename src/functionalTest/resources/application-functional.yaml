@@ -104,3 +104,6 @@ mock:
   callback:
     url:
       endpoint : ${TEST_URL:http://payment-api-aat-staging.service.core-compute-aat.internal}/mock-api/serviceCallback
+refund:
+  search:
+    days: 7

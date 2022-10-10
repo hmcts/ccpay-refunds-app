@@ -21,7 +21,7 @@ import uk.gov.hmcts.reform.refunds.config.security.filiters.ServiceAndUserAuthFi
 import uk.gov.hmcts.reform.refunds.config.security.utils.SecurityUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,7 +63,6 @@ public class ServiceAndUserAuthFilterTest {
         SecurityContextHolder.setContext(securityContext);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldReturn200ResponseWhenRoleMatches() throws Exception {
         request.setRequestURI("/refunds/");
@@ -101,13 +100,12 @@ public class ServiceAndUserAuthFilterTest {
     public static UserInfo getUserInfoBasedOnUidRoles(String uid, String roles) {
         return UserInfo.builder()
             .uid(uid)
-            .roles(Arrays.asList(roles))
+            .roles(Collections.singletonList(roles))
             .build();
     }
 
-    @SuppressWarnings("unchecked")
     private JwtAuthenticationToken getJwtAuthenticationTokenBasedOnRoles(String authority) {
-        List<String> stringGrantedAuthority = new ArrayList();
+        List<String> stringGrantedAuthority = new ArrayList<>();
         stringGrantedAuthority.add(authority);
 
         Map<String,Object> claimsMap = new ConcurrentHashMap<>();

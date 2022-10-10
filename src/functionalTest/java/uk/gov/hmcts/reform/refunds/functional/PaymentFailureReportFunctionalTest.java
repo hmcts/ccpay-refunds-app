@@ -177,7 +177,7 @@ public class PaymentFailureReportFunctionalTest {
     @NotNull
     private String performRefund(String paymentReference) {
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference);
+            = RefundsFixture.refundRequest("RR001", paymentReference,"90","0");
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
