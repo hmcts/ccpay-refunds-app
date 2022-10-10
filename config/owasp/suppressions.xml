@@ -164,7 +164,6 @@
     <cve>CVE-2022-38751</cve>
     <cve>CVE-2022-38752</cve>
   </suppress>
-  
   <suppress until="2022-12-31">
         <notes>
           In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check in 
