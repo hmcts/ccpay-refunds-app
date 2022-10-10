@@ -1,25 +1,28 @@
 package uk.gov.hmcts.reform.refunds.dtos.requests;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import lombok.Setter;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonInclude(NON_NULL)
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Builder(builderMethodName = "refundReconcilitationProviderFeeRequest")
-public class ReconcilitationProviderFeeRequest {
-    private String code;
+@Builder(builderMethodName = "personalisationRequestWith")
+public class Personalisation {
 
-    private int version;
+    private String ccdCaseNumber;
 
-    private String refundAmount;
+    private String refundReference;
+
+    private String serviceUrl;
+
+    private String serviceMailBox;
+
+    private int refundLagTime;
 }

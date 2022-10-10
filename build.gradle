@@ -1,4 +1,9 @@
 buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+  }
   dependencies {
     classpath("net.serenity-bdd:serenity-gradle-plugin:2.0.83")
     classpath("net.serenity-bdd:serenity-single-page-report:2.1.4")
@@ -98,7 +103,7 @@ task integration(type: Test) {
 
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
-  useJUnitPlatform();
+  useJUnitPlatform()
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
   testLogging.showStandardStreams = true
@@ -132,6 +137,10 @@ project.tasks['sonarqube'].dependsOn jacocoTestReport
 
 def sonarExclusions = [
   '**/model/**',
+  '**/exceptions/**',
+  '**/mapper/**',
+  '**/mappers/**',
+  '**/dtos/**',
   '**/config/**'
 ]
 
@@ -269,12 +278,11 @@ dependencies {
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.12.4'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '2.5.3'
   implementation group: 'joda-time', name: 'joda-time', version: '2.10.10'
-
-
-
-
+  implementation group: "com.vladmihalcea", name: "hibernate-types-55", version: "2.14.0"
+  implementation group: 'org.eclipse.collections', name: 'eclipse-collections-api', version: '11.0.0'
+  implementation group: 'org.eclipse.collections', name: 'eclipse-collections', version: '11.0.0'
   implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.8.0'
-  implementation(group: 'org.postgresql', name: 'postgresql', version: '42.3.3') {
+  implementation(group: 'org.postgresql', name: 'postgresql', version: '42.3.4') {
     exclude(module: 'commons-logging')
     exclude(module: 'slf4j-simple')
   }
@@ -344,8 +352,8 @@ bootJar {
 checkstyle {
   toolVersion "7.8.1"
 }
-pmdTest.enabled(false);
-pmdFunctionalTest.enabled(false);
+pmdTest.enabled(false)
+pmdFunctionalTest.enabled(false)
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL

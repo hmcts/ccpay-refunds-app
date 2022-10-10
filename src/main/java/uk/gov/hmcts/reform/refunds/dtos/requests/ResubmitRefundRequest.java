@@ -8,8 +8,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 
 import java.math.BigDecimal;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -25,5 +28,10 @@ public class ResubmitRefundRequest {
     private String refundReason;
 
     private BigDecimal amount;
+
+    @NotNull(message = "Refund Fee  cannot be null")
+    private List<RefundFeeDto> refundFees;
+
+    private ContactDetails contactDetails;
 
 }
