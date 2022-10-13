@@ -1089,7 +1089,7 @@ class RefundServiceImplTest {
 
         Exception exception = assertThrows(InvalidRefundRequestException.class, () -> refundsService.initiateRefund(refundRequest, map));
         String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("The amount you want to refund is more than the amount paid"));
+        assertTrue(actualMessage.contains("The amount to refund can not be more than"));
     }
 
     @Test
@@ -1214,7 +1214,7 @@ class RefundServiceImplTest {
 
         Exception exception = assertThrows(InvalidRefundRequestException.class, () -> refundsService.initiateRefund(refundRequest, map));
         String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("The amount you want to refund is more than the amount paid"));
+        assertTrue(actualMessage.contains("The amount to refund can not be more than"));
     }
 
     @Test
