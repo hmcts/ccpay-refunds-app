@@ -602,7 +602,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         BigDecimal totalRefundedAmount;
         BigDecimal refundEligibleAmount;
         if (refundRequest.getRefundAmount().compareTo(refundRequest.getPaymentAmount()) > 0) {
-            throw new InvalidRefundRequestException("The amount to refund can not be more than" +" "+"£"+refundRequest.getPaymentAmount());
+            throw new InvalidRefundRequestException("The amount to refund can not be more than" + " " + "£" + refundRequest.getPaymentAmount());
         }
 
         BigDecimal refundAmount = getTotalRefundedAmountIssueRefund(refundRequest.getPaymentReference());
@@ -612,7 +612,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         int amountCompare = totalRefundedAmount.compareTo(refundRequest.getPaymentAmount());
 
         if (amountCompare == amountCompareValue) {
-            throw new InvalidRefundRequestException("The amount to refund can not be more than" +" "+"£"+refundEligibleAmount);
+            throw new InvalidRefundRequestException("The amount to refund can not be more than" + " " + "£" + refundEligibleAmount);
         }
     }
 
