@@ -1539,4 +1539,48 @@ public class RefundsApproverJourneyFunctionalTest {
                                         refundReference);
     }
 
+    @Test
+    public void negative_bad_request_400_when_refund_amount_more_than_payment_amount() {
+
+        final String paymentReference = createPayment();
+
+        final PaymentRefundRequest paymentRefundRequest
+            = RefundsFixture.refundRequest("RR001", paymentReference, "50", "0");
+        Response refundResponse = paymentTestService.postInitiateRefund(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            paymentRefundRequest,
+            testConfigProperties.basePaymentsUrl
+        );
+        final RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        final String refundReference = refundResponseFromPost.getRefundReference();
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        final PaymentRefundRequest paymentRefundRequest1
+            = RefundsFixture.refundRequest("RR001", paymentReference, "50", "0");
+        Response refundResponse1 = paymentTestService.postInitiateRefund(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            paymentRefundRequest1,
+            testConfigProperties.basePaymentsUrl
+        );
+
+        assertThat(refundResponse1.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(refundResponse1.getBody().prettyPrint()).isEqualTo(
+            "The amount to refund can not be more than £40.00");
+
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
 }
