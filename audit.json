@@ -20,6 +20,7 @@
   "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/payment/paymentReference/action/cancel_PATCH":"ignore",
   "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference/action/APPROVE_PATCH":"ignore",
   "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund_POST":"ignore",
+  "10010_Cookie No HttpOnly Flag_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore",
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference/status-history_GET":"ignore",
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/rejection-reasons_GET":"ignore",
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/payment/paymentReference/action/cancel_PATCH":"ignore",
@@ -30,6 +31,7 @@
   "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/payment/paymentReference/action/cancel_PATCH":"ignore",
   "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference/action/APPROVE_PATCH":"ignore",
   "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund_POST":"ignore",
+  "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore",
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference/status-history_GET":"ignore",
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/rejection-reasons_GET":"ignore",
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/payment/paymentReference/action/cancel_PATCH":"ignore",
@@ -51,6 +53,7 @@
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference_PATCH":"ignore",
   "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/resubmit/reference_PATCH":"ignore",
+  "10054_Cookie without SameSite Attribute_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore",
   "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reasons_GET":"ignore",
   "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference/actions_GET":"ignore",
   "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund?ccdCaseNumber=ccdCaseNumber&excludeCurrentUser=excludeCurrentUser&status=status_GET":"ignore",
@@ -63,5 +66,6 @@
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference_PATCH":"ignore",
   "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/resubmit/reference_PATCH":"ignore",
+  "90033_Loosely Scoped Cookie_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore",
   "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore"
 }
