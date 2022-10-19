@@ -5,7 +5,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
-//import org.junit.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,9 +16,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
-//import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
-//import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
 import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
@@ -27,29 +27,29 @@ import uk.gov.hmcts.reform.refunds.functional.fixture.RefundsFixture;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
-//import uk.gov.hmcts.reform.refunds.functional.response.PaymentsResponse;
+import uk.gov.hmcts.reform.refunds.functional.response.PaymentsResponse;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
-//import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-//import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.math.BigDecimal;
-//import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.Optional;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-//import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
-//import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -115,7 +115,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         }
     }
-    /*
+
     @Test
     public void positive_get_reasons() {
 
@@ -657,7 +657,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         return paymentsResponse.getReference();
     }
-    */
+
     @NotNull
     private String performRefund(String paymentReference) {
         final PaymentRefundRequest paymentRefundRequest
@@ -674,7 +674,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
         return refundReference;
     }
-    /*
+
     @NotNull
     private String performRefund2Fees(String paymentReference) {
         final PaymentRefundRequest paymentRefundRequest
@@ -1178,7 +1178,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                 refundReference);
     }
-    */
+
     @Test
     public void positive_V2Api_response_date_range() {
 
@@ -1285,7 +1285,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         return paymentsResponse;
     }
-    /*
+
     private PaymentDto createPaymentForV2Api2Fees() {
         final String accountNumber = testConfigProperties.existingAccountNumber;
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
@@ -1538,5 +1538,5 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                         refundReference);
     }
-    */
+
 }
