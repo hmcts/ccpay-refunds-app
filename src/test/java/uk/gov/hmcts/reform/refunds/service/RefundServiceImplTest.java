@@ -45,11 +45,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -351,7 +347,8 @@ public class RefundServiceImplTest {
     @Test
     void givenReferenceIsNull_whenGetStatusHistory_thenNullIsReceived() {
         StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(null, null);
-        assertThat(StatusHistoryResponseDto.statusHistoryResponseDtoWith().build().equals(statusHistoryResponseDto));
+        assertEquals(Collections.emptyList(), statusHistoryResponseDto.getStatusHistoryDtoList());
+        assertEquals(false, statusHistoryResponseDto.getLastUpdatedByCurrentUser());
     }
 
     @Test
