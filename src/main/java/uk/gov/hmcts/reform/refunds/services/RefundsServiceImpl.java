@@ -458,11 +458,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private List<String> getNonRejectedFeeList(Optional<List<Refund>> refundsList) {
         List<String> nonRejectedFeeList = new ArrayList<>();
-        for (Refund refund : refundsList.get()) {
-            if (!refund.getRefundStatus().equals(
-                    RefundStatus.REJECTED)) {
-                String feeIds = refund.getFeeIds();
-                nonRejectedFeeList.add(feeIds);
+        if (refundsList.isPresent()) {
+            for (Refund refund : refundsList.get()) {
+                if (!refund.getRefundStatus().equals(
+                        RefundStatus.REJECTED)) {
+                    String feeIds = refund.getFeeIds();
+                    nonRejectedFeeList.add(feeIds);
+                }
             }
         }
         return nonRejectedFeeList;
