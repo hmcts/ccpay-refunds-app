@@ -387,7 +387,8 @@ class RefundServiceImplTest {
     @Test
     void givenReferenceIsNull_whenGetStatusHistory_thenNullIsReceived() {
         StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(null, null);
-        assertThat(statusHistoryResponseDto.getStatusHistoryDtoList()).isEmpty();
+        assertEquals(Collections.emptyList(), statusHistoryResponseDto.getStatusHistoryDtoList());
+        assertEquals(false, statusHistoryResponseDto.getLastUpdatedByCurrentUser());
     }
 
     @Test
