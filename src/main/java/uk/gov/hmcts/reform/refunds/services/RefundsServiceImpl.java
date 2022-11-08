@@ -237,13 +237,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     break;
                 }
             }
-            if (found.isPresent()) {
-                refundListDto.add(refundResponseMapper.getRefundListDto(
-                        refund,
-                        found.get(),
-                        reason
-                ));
-            }
+            found.ifPresent(userIdentityDataDto -> refundListDto.add(refundResponseMapper.getRefundListDto(
+                    refund,
+                    userIdentityDataDto,
+                    reason
+            )));
         }
         return refundListDto;
     }
