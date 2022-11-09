@@ -535,7 +535,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
     }
-/*
+
     @Test
     public void positive_resubmit_refund_journey() {
 
@@ -620,7 +620,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
     }
-*/
+
     private String createPayment() {
         final String accountNumber = testConfigProperties.existingAccountNumber;
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture

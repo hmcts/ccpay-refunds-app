@@ -72,7 +72,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
                                                RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         IdamUserIdResponse userId = idamService.getUserId(headers);
-
+        LOG.info("Validating Refund in reviewRefund {} ", reference);
         Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference,userId.getUid());
 
         List<StatusHistory> statusHistories = new ArrayList<>(refundForGivenReference.getStatusHistories());
@@ -85,10 +85,12 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         refundForGivenReference.setStatusHistories(statusHistories);
         String statusMessage = "";
         if (refundEvent.equals(RefundEvent.APPROVE)) {
+            LOG.info("Calling Payment App for reference {} ", refundForGivenReference.getPaymentReference());
             PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
                 headers,
                 refundForGivenReference.getPaymentReference()
             );
+            LOG.info("Received Response from Payment App for reference {} ", paymentData.getPayments());
             refundsUtil.logPaymentDto(paymentData);
             refundsUtil.validateRefundRequestFees(refundForGivenReference, paymentData);
             updateRefundStatus(refundForGivenReference, refundEvent);

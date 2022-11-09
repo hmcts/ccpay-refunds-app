@@ -224,7 +224,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 idamUserIdResponse.getUid()
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
-
+        LOG.info("refund list returned by Repository {}",refundList.get().size());
         // Get Refunds related Roles from logged in user
         List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
             .collect(Collectors.toList());
@@ -246,7 +246,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
-
+        LOG.info("Inside getRefundResponseDtoList");
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
@@ -307,6 +307,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 }
             }
         }
+        LOG.info("refundListDto size before returning {}",refundListDto.size());
         return refundListDto;
     }
 
