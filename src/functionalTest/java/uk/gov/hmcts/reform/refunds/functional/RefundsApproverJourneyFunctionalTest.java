@@ -535,7 +535,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
     }
-
+/*
     @Test
     public void positive_resubmit_refund_journey() {
 
@@ -620,7 +620,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
     }
-
+*/
     private String createPayment() {
         final String accountNumber = testConfigProperties.existingAccountNumber;
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
@@ -744,7 +744,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         return refundReference;
     }
-
+/*
     @Test
     public void positive_resubmit_refund_journey_when_amount_provided() {
 
@@ -1243,7 +1243,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                         refundReference);
     }
-
+*/
     private String getReportDate(Date date) {
         java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return date == null ? null : java.time.LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).format(reportNameDateFormat);
@@ -1324,7 +1324,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
 
-
+/*
     @Test
     public void negative_return_400_V2Api_date_range_not_supported() {
         PaymentDto paymentResponse = createPaymentForV2Api();
@@ -1473,7 +1473,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                         refundReference);
     }
-
+*/
     @Test
     public void positive_V2Api_response_refund_reference() {
 
