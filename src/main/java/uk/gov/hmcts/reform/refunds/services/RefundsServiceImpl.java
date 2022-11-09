@@ -224,7 +224,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 idamUserIdResponse.getUid()
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
-        LOG.info("refund list returned by Repository {}",refundList.get().size());
         // Get Refunds related Roles from logged in user
         List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
             .collect(Collectors.toList());

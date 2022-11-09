@@ -4,7 +4,6 @@ import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,7 +91,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @ActiveProfiles({"local", "test"})
 @SpringBootTest(webEnvironment = MOCK)
-@Ignore
 class RefundServiceImplTest {
 
     @InjectMocks
@@ -260,7 +258,6 @@ class RefundServiceImplTest {
         .statusHistories(Arrays.asList(Utility.STATUS_HISTORY_SUPPLIER.get()))
         .build();
 
-    @Ignore
     @Test
     void testRefundListEmptyForCriteria() {
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
@@ -807,7 +804,6 @@ class RefundServiceImplTest {
         assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
     }
 
-    @Ignore
     @Test
     void givenEmptyRefundList_whenGetRefundList_thenRefundListEmptyExceptionIsReceived() {
 
