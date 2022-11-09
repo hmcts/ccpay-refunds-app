@@ -35,6 +35,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -1322,7 +1323,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
 
-    /*
+
     @Test
     public void negative_return_400_V2Api_date_range_not_supported() {
         PaymentDto paymentResponse = createPaymentForV2Api();
@@ -1471,7 +1472,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                         refundReference);
     }
-    */
+
     @Test
     public void positive_V2Api_response_refund_reference() {
 
