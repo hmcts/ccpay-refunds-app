@@ -1,9 +1,10 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jmx.export.notification.UnableToSendNotificationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
@@ -65,6 +66,8 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private static final String CANCELLED = "Cancelled";
     private static final String FEE_AND_PAY = "Fee and Pay";
 
+    private static final Logger LOG = LoggerFactory.getLogger(RefundReviewServiceImpl.class);
+
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
                                                RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
@@ -122,16 +125,16 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             if (refundForGivenReference.getContactDetails().getNotificationType().equals(EMAIL.name())) {
                 refundForGivenReference.setNotificationSentFlag("EMAIL_NOT_SENT");
                 refundsRepository.save(refundForGivenReference);
-                throw new UnableToSendNotificationException("Notification not sent ");
+                LOG.error("Notification not sent ");
             } else {
                 refundForGivenReference.setNotificationSentFlag("LETTER_NOT_SENT");
                 refundsRepository.save(refundForGivenReference);
-                throw new UnableToSendNotificationException("Notification Not sent ");
+                LOG.error("Notification Not sent ");
             }
         } else {
             refundForGivenReference.setNotificationSentFlag("ERROR");
             refundsRepository.save(refundForGivenReference);
-            throw new UnableToSendNotificationException("Notification Not sent ");
+            LOG.error("Notification Not sent ");
 
         }
 
