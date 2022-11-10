@@ -745,7 +745,7 @@ public class RefundsApproverJourneyFunctionalTest {
         return refundReference;
     }
 
-        @Test
+    @Test
     public void positive_resubmit_refund_journey_when_amount_provided() {
 
         final String paymentReference = createPayment();
