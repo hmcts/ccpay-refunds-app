@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.org/hmcts/ccpay-refunds-app.svg?branch=master)](https://travis-ci.org/hmcts/ccpay-refunds-app)
 
-## Notes
+## Notes Functional Test run
+
+
 
 Since Spring Boot 2.1 bean overriding is disabled. If you want to enable it you will need to set `spring.main.allow-bean-definition-overriding` to `true`.
 
