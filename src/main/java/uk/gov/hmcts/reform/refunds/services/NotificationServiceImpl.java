@@ -160,12 +160,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     private ResponseEntity<String> sendNotification(Refund refund,MultiValueMap<String, String> headers) {
         ResponseEntity<String> responseEntity;
-        log.debug("Send Notification1 ---> " + refund.toString());
-        log.debug("Send Notification4 ---> " + refund.getRefundInstructionType());
-        log.debug("Send Notification5 ---> " + refund.getReason());
-        log.debug("Send Notification6 ---> " + refundsUtil.getTemplate(refund));
+        log.info("Send Notification1 ---> " + refund.toString());
+        log.info("Send Notification4 ---> " + refund.getRefundInstructionType());
+        log.info("Send Notification5 ---> " + refund.getReason());
+        log.info("Send Notification5 ---> " + refund.getContactDetails());
+        log.info("Send Notification6 ---> " + refundsUtil.getTemplate(refund));
 
-        if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
+        if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .email(refund.getContactDetails().getEmail())
                 .templateId(refundsUtil.getTemplate(refund))
