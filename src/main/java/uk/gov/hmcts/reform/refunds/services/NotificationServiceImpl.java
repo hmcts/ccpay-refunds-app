@@ -19,17 +19,37 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
+import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
+import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
+import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
+
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
     @Autowired
     private RestTemplate restTemplateNotify;
+
+    @Autowired
+    private RefundsRepository refundsRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private RefundNotificationMapper refundNotificationMapper;
+
+    @Autowired
+    RefundsUtil refundsUtil;
 
     @Value("${notification.url}")
     private String notificationUrl;
@@ -111,5 +131,63 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
         throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
+    }
+
+    @Override
+    public ResponseEntity<String> updateNotification(MultiValueMap<String, String> headers, Refund refund) {
+        ResponseEntity<String>  responseEntity =  sendNotification(refund, headers);
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            refund.setNotificationSentFlag("SENT");
+            refund.setContactDetails(null);
+            refundsRepository.save(refund);
+        } else if (responseEntity.getStatusCode().is5xxServerError()) {
+            if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
+                refund.setNotificationSentFlag("EMAIL_NOT_SENT");
+                refundsRepository.save(refund);
+                log.error("Notification not sent ");
+            } else {
+                refund.setNotificationSentFlag("LETTER_NOT_SENT");
+                refundsRepository.save(refund);
+                log.error("Notification not sent ");
+            }
+        } else {
+            refund.setNotificationSentFlag("ERROR");
+            refundsRepository.save(refund);
+            log.error("Notification not sent ");
+        }
+        return responseEntity;
+    }
+
+    private ResponseEntity<String> sendNotification(Refund refund,MultiValueMap<String, String> headers) {
+        ResponseEntity<String> responseEntity;
+        if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
+            ContactDetails newContact = ContactDetails.contactDetailsWith()
+                .email(refund.getContactDetails().getEmail())
+                .templateId(refundsUtil.getTemplate(refund))
+                .notificationType(EMAIL.name())
+                .build();
+            refund.setContactDetails(newContact);
+            refund.setNotificationSentFlag("email_not_sent");
+            RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
+                .getRefundNotificationEmailRequestApproveJourney(refund);
+            responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
+        } else {
+            ContactDetails newContact = ContactDetails.contactDetailsWith()
+                .templateId(refundsUtil.getTemplate(refund))
+                .addressLine(refund.getContactDetails().getAddressLine())
+                .county(refund.getContactDetails().getCounty())
+                .postalCode(refund.getContactDetails().getPostalCode())
+                .city(refund.getContactDetails().getCity())
+                .country(refund.getContactDetails().getCountry())
+                .notificationType(LETTER.name())
+                .build();
+            refund.setContactDetails(newContact);
+            refund.setNotificationSentFlag("letter_not_sent");
+            RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
+                .getRefundNotificationLetterRequestApproveJourney(refund);
+            responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
+
+        }
+        return responseEntity;
     }
 }

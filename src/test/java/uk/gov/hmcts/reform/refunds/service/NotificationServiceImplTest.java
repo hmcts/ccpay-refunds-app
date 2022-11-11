@@ -23,10 +23,21 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
+import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
+import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.NotificationService;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -43,6 +54,9 @@ class NotificationServiceImplTest {
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
+
+    @MockBean
+    private RefundsRepository refundsRepository;
 
     @MockBean
     @Qualifier("restTemplateNotify")
@@ -111,6 +125,119 @@ class NotificationServiceImplTest {
         assertThrows(
             InvalidRefundNotificationResendRequestException.class,
             () -> notificationService.postLetterNotificationData(getHeaders(), getRefundNotificationLetterRequest()));
+    }
+
+    private Refund getRefund() {
+        return Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .reason("RR0001")
+            .reference("RF-1628-5241-9956-2215")
+            .paymentReference("RC-1628-5241-9956-2315")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
+            .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .feeIds("50")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .email("abc@abc.com")
+                                .notificationType("EMAIL")
+                                .build())
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                                               .id(1)
+                                               .status(RefundStatus.SENTFORAPPROVAL.getName())
+                                               .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+                                               .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                               .notes("Refund initiated and sent to team leader")
+                                               .build()))
+            .build();
+    }
+
+    @Test
+    void updateNotificationWith2xxCode() {
+        Refund refund = getRefund();
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        ResponseEntity<String> responseEntity = notificationService
+            .updateNotification(getHeaders(),refund);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals("SENT",refund.getNotificationSentFlag());
+    }
+
+    @Test
+    void updateNotificationEmailWith5xxCode() {
+        Refund refund = getRefund();
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        ResponseEntity<String> responseEntity = notificationService
+            .updateNotification(getHeaders(),refund);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals("EMAIL_NOT_SENT",refund.getNotificationSentFlag());
+    }
+
+    @Test
+    void updateNotificationLetterWith5xxCode() {
+
+        Refund refund = getRefund();
+        refund.setContactDetails(ContactDetails.contactDetailsWith()
+                               .addressLine("ABC Street")
+                               .city("London")
+                               .county("Greater London")
+                               .country("UK")
+                               .postalCode("E1 6AN")
+                               .notificationType("LETTER")
+                               .build());
+
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        ResponseEntity<String> responseEntity = notificationService
+            .updateNotification(getHeaders(),refund);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals("LETTER_NOT_SENT",refund.getNotificationSentFlag());
+    }
+
+    @Test
+    void updateNotificationWithErrorCode() {
+        Refund refund = getRefund();
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Bed request", HttpStatus.BAD_REQUEST));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        ResponseEntity<String> responseEntity = notificationService
+            .updateNotification(getHeaders(),refund);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals("ERROR",refund.getNotificationSentFlag());
     }
 
     private MultiValueMap<String,String> getHeaders() {
