@@ -48,8 +48,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         LOG.info("Send Notification1 ---> " + refund.toString());
-        LOG.info("Send Notification2 ---> " + refund.getContactDetails());
-        LOG.info("Send Notification3 ---> " + refund.getContactDetails().getNotificationType());
         LOG.info("Send Notification4 ---> " + refund.getRefundInstructionType());
         LOG.info("Send Notification5 ---> " + refund.getReason());
         LOG.info("Send Notification6 ---> " + refund.getRefundStatus().getName());
