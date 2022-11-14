@@ -47,10 +47,10 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
-        LOG.info("Send Notification1 ---> " + refund.toString());
-        LOG.info("Send Notification4 ---> " + refund.getRefundInstructionType());
-        LOG.info("Send Notification5 ---> " + refund.getReason());
-        LOG.info("Send Notification6 ---> " + refund.getRefundStatus().getName());
+        LOG.info("updateRefundStatus 1 ---> " + refund.toString());
+        LOG.info("updateRefundStatus 2 ---> " + refund.getRefundInstructionType());
+        LOG.info("updateRefundStatus 3 ---> " + refund.getReason());
+        LOG.info("updateRefundStatus 4---> " + refund.getRefundStatus().getName());
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         if (currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
@@ -81,7 +81,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
         }
-        return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
+        LOG.info("updateRefundStatus 5---> " + refund.toString());
+        LOG.info("updateRefundStatus 6---> " + new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT));
+        return new ResponseEntity<String>("Refund status updated successfully", HttpStatus.NO_CONTENT);
     }
 
 }

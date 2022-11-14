@@ -140,6 +140,8 @@ public class NotificationServiceImpl implements NotificationService {
     public void updateNotification(MultiValueMap<String, String> headers, Refund refund) {
         try {
             ResponseEntity<String>  responseEntity =  sendNotification(refund, headers);
+            log.info("updateNotification 0 --->" + responseEntity);
+            log.info("updateNotification 00 --->" + responseEntity.getStatusCode());
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
                 refund.setNotificationSentFlag("SENT");
                 refund.setContactDetails(null);
@@ -162,6 +164,7 @@ public class NotificationServiceImpl implements NotificationService {
             log.info("updateNotification 1 ---> " + refund.toString());
             log.info("updateNotification 2 ---> " + responseEntity.toString());
         } catch (ServiceUnavailableException e) {
+            log.info("updateNotification 3  throws ---> " + e.getMessage());
             refund.setNotificationSentFlag("ERROR");
             refundsRepository.save(refund);
             log.error(NOTIFICATION_NOT_SENT);
