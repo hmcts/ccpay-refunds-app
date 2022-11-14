@@ -14,5 +14,5 @@ public interface NotificationService {
     ResponseEntity<String> postLetterNotificationData(MultiValueMap<String, String> headers,
                                                       RefundNotificationLetterRequest refundNotificationLetterRequest);
 
-    ResponseEntity<String> updateNotification(MultiValueMap<String, String> headers, Refund refund);
+    void updateNotification(MultiValueMap<String, String> headers, Refund refund);
 }

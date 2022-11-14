@@ -166,10 +166,8 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        ResponseEntity<String> responseEntity = notificationService
-            .updateNotification(getHeaders(),refund);
+        notificationService.updateNotification(getHeaders(),refund);
 
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals("SENT",refund.getNotificationSentFlag());
     }
 
@@ -185,10 +183,8 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        ResponseEntity<String> responseEntity = notificationService
-            .updateNotification(getHeaders(),refund);
+        notificationService.updateNotification(getHeaders(),refund);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals("EMAIL_NOT_SENT",refund.getNotificationSentFlag());
     }
 
@@ -214,10 +210,8 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        ResponseEntity<String> responseEntity = notificationService
-            .updateNotification(getHeaders(),refund);
+        notificationService.updateNotification(getHeaders(),refund);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals("LETTER_NOT_SENT",refund.getNotificationSentFlag());
     }
 
@@ -233,10 +227,8 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        ResponseEntity<String> responseEntity = notificationService
-            .updateNotification(getHeaders(),refund);
+        notificationService.updateNotification(getHeaders(),refund);
 
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals("ERROR",refund.getNotificationSentFlag());
     }
 

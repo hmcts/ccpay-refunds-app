@@ -134,7 +134,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public ResponseEntity<String> updateNotification(MultiValueMap<String, String> headers, Refund refund) {
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund) {
         ResponseEntity<String>  responseEntity =  sendNotification(refund, headers);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refund.setNotificationSentFlag("SENT");
@@ -155,7 +155,6 @@ public class NotificationServiceImpl implements NotificationService {
             refundsRepository.save(refund);
             log.error("Notification not sent ");
         }
-        return responseEntity;
     }
 
     private ResponseEntity<String> sendNotification(Refund refund,MultiValueMap<String, String> headers) {
