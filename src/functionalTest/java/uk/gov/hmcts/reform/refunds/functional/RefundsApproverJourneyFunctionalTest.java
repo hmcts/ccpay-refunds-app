@@ -1577,16 +1577,13 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
         //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
-        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
-            RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON,
-            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED
-        );
 
         Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
-            refundStatusUpdateRequest
+            RefundStatusUpdateRequest.RefundRequestWith().reason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED).build()
         );
         LOG.info("updateRefundStatusResponse1 ---> " + updateRefundStatusResponse.toString());
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
