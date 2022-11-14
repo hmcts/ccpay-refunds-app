@@ -74,11 +74,11 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     && statusUpdateRequest.getReason().equalsIgnoreCase(
                         RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
                     refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+                    refundsRepository.save(refund);
                     notificationService.updateNotification(headers,refund);
                 }
             }
             refund.setUpdatedBy(LIBERATA_NAME);
-            refundsRepository.save(refund);
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
         }
