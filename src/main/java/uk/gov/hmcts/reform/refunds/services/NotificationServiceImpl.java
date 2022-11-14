@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.naming.ServiceUnavailableException;
 
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
@@ -61,6 +62,8 @@ public class NotificationServiceImpl implements NotificationService {
     private String letterUrlPath;
 
     public static final String CONTENT_TYPE = "content-type";
+
+    private static final String NOTIFICATION_NOT_SENT = "Notification not sent";
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
@@ -135,31 +138,37 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void updateNotification(MultiValueMap<String, String> headers, Refund refund) {
-        ResponseEntity<String>  responseEntity =  sendNotification(refund, headers);
-        if (responseEntity.getStatusCode().is2xxSuccessful()) {
-            refund.setNotificationSentFlag("SENT");
-            refund.setContactDetails(null);
-            refundsRepository.save(refund);
-        } else if (responseEntity.getStatusCode().is5xxServerError()) {
-            if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
-                refund.setNotificationSentFlag("EMAIL_NOT_SENT");
+        try {
+            ResponseEntity<String>  responseEntity =  sendNotification(refund, headers);
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                refund.setNotificationSentFlag("SENT");
+                refund.setContactDetails(null);
                 refundsRepository.save(refund);
-                log.error("Notification not sent ");
+            } else if (responseEntity.getStatusCode().is5xxServerError()) {
+                if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
+                    refund.setNotificationSentFlag("EMAIL_NOT_SENT");
+                    refundsRepository.save(refund);
+                    log.error(NOTIFICATION_NOT_SENT);
+                } else {
+                    refund.setNotificationSentFlag("LETTER_NOT_SENT");
+                    refundsRepository.save(refund);
+                    log.error(NOTIFICATION_NOT_SENT);
+                }
             } else {
-                refund.setNotificationSentFlag("LETTER_NOT_SENT");
+                refund.setNotificationSentFlag("ERROR");
                 refundsRepository.save(refund);
-                log.error("Notification not sent ");
+                log.error(NOTIFICATION_NOT_SENT);
             }
-        } else {
+            log.info("updateNotification 1 ---> " + refund.toString());
+            log.info("updateNotification 2 ---> " + responseEntity.toString());
+        } catch (ServiceUnavailableException e) {
             refund.setNotificationSentFlag("ERROR");
             refundsRepository.save(refund);
-            log.error("Notification not sent ");
+            log.error(NOTIFICATION_NOT_SENT);
         }
-        log.info("updateNotification 1 ---> " + refund.toString());
-        log.info("updateNotification 2 ---> " + responseEntity.toString());
     }
 
-    private ResponseEntity<String> sendNotification(Refund refund,MultiValueMap<String, String> headers) {
+    private ResponseEntity<String> sendNotification(Refund refund,MultiValueMap<String, String> headers) throws ServiceUnavailableException {
         ResponseEntity<String> responseEntity;
         log.info("Send Notification1 ---> " + refund.toString());
         log.info("Send Notification4 ---> " + refund.getRefundInstructionType());
