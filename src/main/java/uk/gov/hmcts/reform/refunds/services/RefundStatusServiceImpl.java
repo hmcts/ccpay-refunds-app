@@ -78,6 +78,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 }
             }
             refund.setUpdatedBy(LIBERATA_NAME);
+            refundsRepository.save(refund);
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
         }
