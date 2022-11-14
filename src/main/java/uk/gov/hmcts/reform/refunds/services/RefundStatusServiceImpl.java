@@ -86,7 +86,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         }
         LOG.info("RefundStatusService.updateRefundStatus 5---> " + refund.toString());
         LOG.info("RefundStatusService.updateRefundStatus 6---> " + new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT));
-        return new ResponseEntity<String>("Refund status updated successfully", HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
     }
 
 }
