@@ -105,6 +105,38 @@ public final class RefundsFixture {
 
     }
 
+    public static PaymentRefundRequest refundRequestWithLetter(final String refundReason,
+                                                     final String paymentReference, final String refundAmount, final String feeAmount) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .isOverPayment(false)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .refundAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(0)
+                    .version("1")
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal("10"))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 112")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("P1 1PO")
+                                .email("ranjeet.kumar@HMCTS.NET")
+                                .notificationType("LETTER")
+                                .build())
+            .build();
+
+    }
+
     public static PaymentRefundRequest refundRequest2Fees(final String refundReason,
                                                      final String paymentReference, final String refundAmount, final String feeAmount) {
         return PaymentRefundRequest

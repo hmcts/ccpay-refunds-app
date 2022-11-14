@@ -43,14 +43,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     @Override
     public ResponseEntity updateRefundStatus(String reference, RefundStatusUpdateRequest statusUpdateRequest, MultiValueMap<String, String> headers) {
         LOG.info("statusUpdateRequest: {}", statusUpdateRequest);
-        LOG.info("Reference -----> " + reference);
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
-
-        LOG.info("RefundStatusService.updateRefundStatus 1 ---> " + refund.toString());
-        LOG.info("RefundStatusService.updateRefundStatus 2 ---> " + refund.getRefundInstructionType());
-        LOG.info("RefundStatusService.updateRefundStatus 3 ---> " + refund.getReason());
-        LOG.info("RefundStatusService.updateRefundStatus 4---> " + refund.getRefundStatus().getName());
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         if (currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
@@ -73,19 +67,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 if (null != statusUpdateRequest.getReason()
                     && statusUpdateRequest.getReason().equalsIgnoreCase(
                         RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
-                    LOG.info("RefundStatusService.updateRefundStatus 5.1 ---> " + refund.toString());
                     refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
-                    LOG.info("RefundStatusService.updateRefundStatus 5.2---> " + refund.toString());
                     notificationService.updateNotification(headers,refund);
-                    LOG.info("RefundStatusService.updateRefundStatus 5.3---> " + refund.toString());
                 }
             }
             refund.setUpdatedBy(LIBERATA_NAME);
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
         }
-        LOG.info("RefundStatusService.updateRefundStatus 5---> " + refund.toString());
-        LOG.info("RefundStatusService.updateRefundStatus 6---> " + new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT));
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
     }
 

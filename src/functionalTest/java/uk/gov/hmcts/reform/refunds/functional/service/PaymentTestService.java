@@ -87,6 +87,17 @@ public class PaymentTestService {
             .get("/refund");
     }
 
+    public Response getRefundReconciliation(final String userToken,
+                                  final String serviceToken,
+                                  final String status,
+                                  final String excludeCurrentUser) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON).when()
+            .queryParams("status", status)
+            .queryParam("excludeCurrentUser", excludeCurrentUser)
+            .get("/refunds");
+    }
+
     public Response getRefundList(final String userToken,
                                   final String serviceToken,
                                   final String ccdCaseNumber) {
