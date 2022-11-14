@@ -9,8 +9,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -89,8 +87,6 @@ public class RefundsApproverJourneyFunctionalTest {
     private static boolean TOKENS_INITIALIZED;
     private static final Pattern
         REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
-
-    private static final Logger LOG = LoggerFactory.getLogger(RefundsApproverJourneyFunctionalTest.class);
 
     @Before
     public void setUp() {
@@ -1577,7 +1573,6 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
         //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
-
         Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -1585,9 +1580,7 @@ public class RefundsApproverJourneyFunctionalTest {
             RefundStatusUpdateRequest.RefundRequestWith().reason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)
                 .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED).build()
         );
-        LOG.info("updateRefundStatusResponse1 ---> " + updateRefundStatusResponse.asString());
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
-        assertEquals("Refund status updated successfully", updateRefundStatusResponse.getBody().asString());
 
         // verify that contact details is erased
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1649,7 +1642,6 @@ public class RefundsApproverJourneyFunctionalTest {
             refundStatusUpdateRequest
         );
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
-        assertEquals("Refund status updated successfully", updateRefundStatusResponse.getBody().asString());
 
         // verify that contact details is erased
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
