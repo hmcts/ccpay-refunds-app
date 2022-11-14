@@ -1651,7 +1651,7 @@ public class RefundsApproverJourneyFunctionalTest {
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
 
         assertEquals(RefundStatus.REJECTED, refundsListDto.getRefundList().get(0).getRefundStatus());
-        assertNotEquals("Unable to apply refund to Card",
+        assertNotEquals("Different Reason",
                      refundsListDto.getRefundList().get(0).getReason());
 
         // delete payment record
