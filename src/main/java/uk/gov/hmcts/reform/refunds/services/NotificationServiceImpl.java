@@ -155,6 +155,8 @@ public class NotificationServiceImpl implements NotificationService {
             refundsRepository.save(refund);
             log.error("Notification not sent ");
         }
+        log.info("updateNotification 1 ---> " + refund.toString());
+        log.info("updateNotification 2 ---> " + responseEntity.toString());
     }
 
     private ResponseEntity<String> sendNotification(Refund refund,MultiValueMap<String, String> headers) {
@@ -162,8 +164,8 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Send Notification1 ---> " + refund.toString());
         log.info("Send Notification4 ---> " + refund.getRefundInstructionType());
         log.info("Send Notification5 ---> " + refund.getReason());
-        log.info("Send Notification5 ---> " + refund.getContactDetails());
-        log.info("Send Notification6 ---> " + refundsUtil.getTemplate(refund));
+        log.info("Send Notification6 ---> " + refund.getContactDetails());
+        log.info("Send Notification7 ---> " + refundsUtil.getTemplate(refund));
 
         if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
@@ -193,6 +195,7 @@ public class NotificationServiceImpl implements NotificationService {
             responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }
+        log.info("Send Notification8 ---> " + responseEntity.toString());
         return responseEntity;
     }
 }
