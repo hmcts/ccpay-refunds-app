@@ -1738,7 +1738,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
         assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON, refundDto.getReason());
         assertEquals("LETTER", refundDto.getContactDetails().getNotificationType());
-        assertEquals("5ab7fe1f-c4a6-4f53-b560-80cd83da3ca1", refundDto.getContactDetails().getTemplateId());
+        assertEquals("62ea4d00-2a80-4065-a125-c46dbedb24c2", refundDto.getContactDetails().getTemplateId());
 
         // delete payment record
         paymentTestService
