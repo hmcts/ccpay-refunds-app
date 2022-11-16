@@ -246,12 +246,11 @@ class NotificationServiceImplTest {
             .reference("RF-1234-1234-1234")
             .personalisation(
                 Personalisation.personalisationRequestWith()
-                    .serviceUrl("service@gmail.com")
-                    .serviceMailBox("service")
                     .refundReference("RF-1234-1234-1234")
                     .build())
             .emailReplyToId("mockmail@mock.com")
             .templateId("TEMP-123")
+            .serviceName("Probate")
             .build();
     }
 
@@ -262,8 +261,6 @@ class NotificationServiceImplTest {
             .reference("RF-1234-1234-1234")
             .personalisation(
                     Personalisation.personalisationRequestWith()
-                        .serviceUrl("service@gmail.com")
-                        .serviceMailBox("service")
                         .refundReference("RF-1234-1234-1234")
                         .build())
             .recipientPostalAddress(RecipientPostalAddress.recipientPostalAddressWith()
@@ -272,6 +269,7 @@ class NotificationServiceImplTest {
                                         .postalCode("NG2 2DA")
                                         .build())
             .templateId("TEMP-123")
+            .serviceName("Probate")
             .build();
     }
 }

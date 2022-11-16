@@ -18,12 +18,6 @@ public class RefundNotificationMapper {
     @Value("${notification.email-to-reply}")
     private String emailReplyToId;
 
-    @Value("${notification.service-mailbox}")
-    private String serviceMailBox;
-
-    @Value("${notification.service-url}")
-    private String serviceUrl;
-
     @Autowired
     RefundsUtil refundsUtil;
 
@@ -37,10 +31,11 @@ public class RefundNotificationMapper {
                 .personalisation(Personalisation.personalisationRequestWith()
                                      .ccdCaseNumber(refund.getCcdCaseNumber())
                                      .refundReference(refund.getReference())
-                                     .serviceMailBox(serviceMailBox)
-                                     .serviceUrl(serviceUrl)
+                                     .refundAmount(refund.getAmount())
+                                     .refundReason(refund.getReason())
                                      .build())
-                .build();
+            .serviceName(refund.getServiceType())
+            .build();
     }
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
@@ -52,9 +47,10 @@ public class RefundNotificationMapper {
             .personalisation(Personalisation.personalisationRequestWith()
                                  .ccdCaseNumber(refund.getCcdCaseNumber())
                                  .refundReference(refund.getReference())
-                                 .serviceMailBox(serviceMailBox)
-                                 .serviceUrl(serviceUrl)
+                                 .refundAmount(refund.getAmount())
+                                 .refundReason(refund.getReason())
                                  .build())
+            .serviceName(refund.getServiceType())
             .build();
     }
 
@@ -68,9 +64,10 @@ public class RefundNotificationMapper {
             .personalisation(Personalisation.personalisationRequestWith()
                                  .ccdCaseNumber(refund.getCcdCaseNumber())
                                  .refundReference(refund.getReference())
-                                 .serviceMailBox(serviceMailBox)
-                                 .serviceUrl(serviceUrl)
+                                 .refundAmount(refund.getAmount())
+                                 .refundReason(refund.getReason())
                                  .build())
+            .serviceName(refund.getServiceType())
             .build();
     }
 
@@ -89,9 +86,10 @@ public class RefundNotificationMapper {
             .personalisation(Personalisation.personalisationRequestWith()
                                  .ccdCaseNumber(refund.getCcdCaseNumber())
                                  .refundReference(refund.getReference())
-                                 .serviceMailBox(serviceMailBox)
-                                 .serviceUrl(serviceUrl)
+                                 .refundAmount(refund.getAmount())
+                                 .refundReason(refund.getReason())
                                  .build())
+            .serviceName(refund.getServiceType())
             .build();
     }
 

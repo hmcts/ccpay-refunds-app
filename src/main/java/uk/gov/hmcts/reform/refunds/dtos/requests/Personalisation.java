@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Setter
 @Getter
@@ -20,9 +22,7 @@ public class Personalisation {
 
     private String refundReference;
 
-    private String serviceUrl;
+    private BigDecimal refundAmount;
 
-    private String serviceMailBox;
-
-    private int refundLagTime;
+    private String  refundReason;
 }

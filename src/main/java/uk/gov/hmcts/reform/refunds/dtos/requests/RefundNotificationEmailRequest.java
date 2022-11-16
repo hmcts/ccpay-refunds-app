@@ -31,4 +31,6 @@ public class RefundNotificationEmailRequest {
 
     private Personalisation personalisation;
 
+    private String serviceName;
+
 }

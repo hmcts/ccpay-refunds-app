@@ -165,6 +165,7 @@ public class NotificationServiceImpl implements NotificationService {
             refund.setNotificationSentFlag("email_not_sent");
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                 .getRefundNotificationEmailRequestApproveJourney(refund);
+            log.info("send notification  -> " + refundNotificationEmailRequest);
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
