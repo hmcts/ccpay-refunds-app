@@ -25,12 +25,14 @@ import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
 import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.functional.fixture.RefundsFixture;
+import uk.gov.hmcts.reform.refunds.functional.request.ContactDetails;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
 import uk.gov.hmcts.reform.refunds.functional.response.PaymentsResponse;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
+import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
@@ -57,6 +59,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
+import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 
 @ActiveProfiles("functional")
 @RunWith(SpringIntegrationSerenityRunner.class)
@@ -660,6 +663,43 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 ccdCaseNumber,"5",
                 testConfigProperties.basePaymentsUrl);
+
+        return paymentsResponse.getReference();
+    }
+
+    private String createPayment(String ccdCaseNumber) {
+        final String accountNumber = testConfigProperties.existingAccountNumber;
+        final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
+            .pbaPaymentRequestForProbate(
+                "90.00",
+                "PROBATE",
+                accountNumber
+            );
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(
+                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                SERVICE_TOKEN_CMC,
+                testConfigProperties.basePaymentsUrl,
+                accountPaymentRequest
+            ).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference(),
+                                             testConfigProperties.basePaymentsUrl).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+
+        // Update Payments for CCDCaseNumber by certain days
+        ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
 
         return paymentsResponse.getReference();
     }
@@ -1589,6 +1629,25 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
+        Optional<List<Refund>> refundListOptional = refundsRepository.findByPaymentReference(paymentReference);
+        if(refundListOptional.isPresent()){
+            List<Refund> refundList = refundListOptional.get();
+          }
+        Refund refund = refundsRepository.findByReferenceOrThrow(refundReference);
+
+        uk.gov.hmcts.reform.refunds.model.ContactDetails newContact = uk.gov.hmcts.reform.refunds.model.ContactDetails.contactDetailsWith()
+            .addressLine("High Street 112")
+            .country("UK")
+            .county("Londonshire")
+            .city("London")
+            .postalCode("HA5 3XT")
+            .email("ranjeet.kumar@HMCTS.NET")
+            .notificationType("EMAIL")
+            .build();
+        refund.setContactDetails(newContact);
+
+        refundsRepository.save(refund);
+
         //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
         Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1600,27 +1659,11 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that contact details is erased
-        Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                              "Rejected", "false");
-        assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
-
-        RefundDto refundDto = refundsListDto.getRefundList().stream()
-            .filter(rf -> rf.getRefundReference().equals(refundReference)).findFirst().get();
-
+        RefundDto refundDto = getRejectRefundDto(refundReference, "Rejected");
         assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
         assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON, refundDto.getReason());
-        assertEquals("EMAIL", refundDto.getContactDetails().getNotificationType());
-        assertEquals("5ab7fe1f-c4a6-4f53-b560-80cd83da3ca1", refundDto.getContactDetails().getTemplateId());
 
-        // delete payment record
-        paymentTestService
-            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
-        // delete refund record
-        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                        refundReference);
+        deletePaymentAndRefund(paymentReference, refundReference);
     }
 
     @Test
@@ -1650,6 +1693,27 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
+
+        Refund refund = null;
+        Optional<Refund> optionalRefund = refundsRepository.findByReference(refundReference);
+        if (optionalRefund.isPresent()) {
+            refund = optionalRefund.get();
+        }
+
+
+        uk.gov.hmcts.reform.refunds.model.ContactDetails newContact = uk.gov.hmcts.reform.refunds.model.ContactDetails.contactDetailsWith()
+            .addressLine("High Street 112")
+            .country("UK")
+            .county("Londonshire")
+            .city("London")
+            .postalCode("HA5 3XT")
+            .email("ranjeet.kumar@HMCTS.NET")
+            .notificationType("EMAIL")
+            .build();
+        refund.setContactDetails(newContact);
+
+        refundsRepository.save(refund);
+
         //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
         RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
             "Different Reason",
@@ -1665,27 +1729,11 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that contact details is erased
-        Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                                       SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       "Rejected", "false");
-        assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
-
-        RefundDto refundDto = refundsListDto.getRefundList().stream()
-            .filter(rf -> rf.getRefundReference().equals(refundReference)).findFirst().get();
-
+        RefundDto refundDto = getRejectRefundDto(refundReference, "Rejected");
         assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
         assertNotEquals("Unable to apply refund to Card", refundDto.getReason());
-        assertEquals("EMAIL", refundDto.getContactDetails().getNotificationType());
-        assertEquals("93124f5e-2354-4e64-8869-6da93951d672", refundDto.getContactDetails().getTemplateId());
 
-        // delete payment record
-        paymentTestService
-            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
-        // delete refund record
-        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                        refundReference);
+        deletePaymentAndRefund(paymentReference, refundReference);
     }
 
     @Test
@@ -1715,6 +1763,26 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
+        Refund refund = null;
+        Optional<Refund> optionalRefund = refundsRepository.findByReference(refundReference);
+        if (optionalRefund.isPresent()) {
+            refund = optionalRefund.get();
+        }
+
+
+        uk.gov.hmcts.reform.refunds.model.ContactDetails newContact = uk.gov.hmcts.reform.refunds.model.ContactDetails.contactDetailsWith()
+            .addressLine("High Street 112")
+            .country("UK")
+            .county("Londonshire")
+            .city("London")
+            .postalCode("HA5 3XT")
+            .email("ranjeet.kumar@HMCTS.NET")
+            .notificationType("LETTER")
+            .build();
+        refund.setContactDetails(newContact);
+
+        refundsRepository.save(refund);
+
         //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
         Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1726,27 +1794,12 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that contact details is erased
-        Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                                       SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       "Rejected", "false");
-        assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-        RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
 
-        RefundDto refundDto = refundsListDto.getRefundList().stream()
-            .filter(rf -> rf.getRefundReference().equals(refundReference)).findFirst().get();
-
+        RefundDto refundDto = getRejectRefundDto(refundReference, "Rejected");
         assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
         assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON, refundDto.getReason());
-        assertEquals("LETTER", refundDto.getContactDetails().getNotificationType());
-        assertEquals("62ea4d00-2a80-4065-a125-c46dbedb24c2", refundDto.getContactDetails().getTemplateId());
 
-        // delete payment record
-        paymentTestService
-            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
-        // delete refund record
-        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                        refundReference);
+        deletePaymentAndRefund(paymentReference, refundReference);
     }
 
     @Test
@@ -1791,20 +1844,29 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that contact details is erased
+
+        RefundDto refundDto = getRejectRefundDto(refundReference,"Rejected");
+        assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
+        assertNotEquals("Unable to apply refund to Card", refundDto.getReason());
+
+        deletePaymentAndRefund(paymentReference, refundReference);
+    }
+
+    private RefundDto getRejectRefundDto(String refundReference, String status){
+
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       "Rejected", "false");
+                                                                       status, "false");
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
 
         RefundDto refundDto = refundsListDto.getRefundList().stream()
             .filter(rf -> rf.getRefundReference().equals(refundReference)).findFirst().get();
 
-        assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
-        assertNotEquals("Unable to apply refund to Card", refundDto.getReason());
-        assertEquals("LETTER", refundDto.getContactDetails().getNotificationType());
-        assertEquals("bc27054e-d13f-4c31-90ab-7972b88f3ff2", refundDto.getContactDetails().getTemplateId());
+        return refundDto;
+    }
 
+    private void deletePaymentAndRefund(String paymentReference, String refundReference){
         // delete payment record
         paymentTestService
             .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
