@@ -139,7 +139,10 @@ public class NotificationServiceImpl implements NotificationService {
         ResponseEntity<String>  responseEntity =  sendNotification(refund, headers);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refund.setNotificationSentFlag("SENT");
-            refund.setContactDetails(null);
+            ContactDetails newContact = ContactDetails.contactDetailsWith()
+                .notificationType(refund.getContactDetails().getNotificationType())
+                .build();
+            refund.setContactDetails(newContact);
         } else if (responseEntity.getStatusCode().is5xxServerError()) {
             if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
                 refund.setNotificationSentFlag("EMAIL_NOT_SENT");
