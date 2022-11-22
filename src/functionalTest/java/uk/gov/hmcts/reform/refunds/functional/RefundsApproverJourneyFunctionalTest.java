@@ -25,14 +25,12 @@ import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
 import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.functional.fixture.RefundsFixture;
-import uk.gov.hmcts.reform.refunds.functional.request.ContactDetails;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
 import uk.gov.hmcts.reform.refunds.functional.response.PaymentsResponse;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
-import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
@@ -59,7 +57,6 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
-import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
 
 @ActiveProfiles("functional")
 @RunWith(SpringIntegrationSerenityRunner.class)
@@ -1629,25 +1626,6 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
-        Optional<List<Refund>> refundListOptional = refundsRepository.findByPaymentReference(paymentReference);
-        if(refundListOptional.isPresent()){
-            List<Refund> refundList = refundListOptional.get();
-          }
-        Refund refund = refundsRepository.findByReferenceOrThrow(refundReference);
-
-        uk.gov.hmcts.reform.refunds.model.ContactDetails newContact = uk.gov.hmcts.reform.refunds.model.ContactDetails.contactDetailsWith()
-            .addressLine("High Street 112")
-            .country("UK")
-            .county("Londonshire")
-            .city("London")
-            .postalCode("HA5 3XT")
-            .email("ranjeet.kumar@HMCTS.NET")
-            .notificationType("EMAIL")
-            .build();
-        refund.setContactDetails(newContact);
-
-        refundsRepository.save(refund);
-
         //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
         Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1692,27 +1670,6 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-
-
-        Refund refund = null;
-        Optional<Refund> optionalRefund = refundsRepository.findByReference(refundReference);
-        if (optionalRefund.isPresent()) {
-            refund = optionalRefund.get();
-        }
-
-
-        uk.gov.hmcts.reform.refunds.model.ContactDetails newContact = uk.gov.hmcts.reform.refunds.model.ContactDetails.contactDetailsWith()
-            .addressLine("High Street 112")
-            .country("UK")
-            .county("Londonshire")
-            .city("London")
-            .postalCode("HA5 3XT")
-            .email("ranjeet.kumar@HMCTS.NET")
-            .notificationType("EMAIL")
-            .build();
-        refund.setContactDetails(newContact);
-
-        refundsRepository.save(refund);
 
         //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
         RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
@@ -1762,26 +1719,6 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
-
-        Refund refund = null;
-        Optional<Refund> optionalRefund = refundsRepository.findByReference(refundReference);
-        if (optionalRefund.isPresent()) {
-            refund = optionalRefund.get();
-        }
-
-
-        uk.gov.hmcts.reform.refunds.model.ContactDetails newContact = uk.gov.hmcts.reform.refunds.model.ContactDetails.contactDetailsWith()
-            .addressLine("High Street 112")
-            .country("UK")
-            .county("Londonshire")
-            .city("London")
-            .postalCode("HA5 3XT")
-            .email("ranjeet.kumar@HMCTS.NET")
-            .notificationType("LETTER")
-            .build();
-        refund.setContactDetails(newContact);
-
-        refundsRepository.save(refund);
 
         //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
         Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
@@ -1852,7 +1789,7 @@ public class RefundsApproverJourneyFunctionalTest {
         deletePaymentAndRefund(paymentReference, refundReference);
     }
 
-    private RefundDto getRejectRefundDto(String refundReference, String status){
+    private RefundDto getRejectRefundDto(String refundReference, String status) {
 
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -1866,7 +1803,7 @@ public class RefundsApproverJourneyFunctionalTest {
         return refundDto;
     }
 
-    private void deletePaymentAndRefund(String paymentReference, String refundReference){
+    private void deletePaymentAndRefund(String paymentReference, String refundReference) {
         // delete payment record
         paymentTestService
             .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
