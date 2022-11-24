@@ -50,6 +50,7 @@ import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -172,39 +173,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
-    @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
-        Set<UserIdentityDataDto> userIdentityDataDtoSet;
-        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+
         if (!roles.isEmpty()) {
-            if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
-                userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
-                        Collectors.toSet());
-            } else {
-                List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
-                        Arrays.asList(PAYMENT_REFUND,
-                                "payments-refund-approver"));
-                userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
+            Set<UserIdentityDataDto> userIdentityDataDtoSet = getUserIdentityDataDtoSet();
 
-                userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
-
-            }
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
-            for (Refund refund1 : refundList) {
-                if (!userIdsWithGivenRoles.contains(refund1.getCreatedBy())) {
-                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                                                                                              refund1.getCreatedBy());
-                    contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
-                    userIdentityDataDtoSet.add(userIdentityDataDto);
-                    userIdsWithGivenRoles.add(userIdentityDataDto.getId());
-                }
-            }
+
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
@@ -213,27 +194,54 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
-            for (Refund refund : refundList.stream()
+
+            refundListDto =
+                    populateRefundListDto(refundList, userIdsWithGivenRoles, refundReasonList, userIdentityDataDtoSet,
+                            refundListDto);
+        }
+        return refundListDto;
+    }
+
+    @SuppressWarnings({"PMD.ConfusingTernary"})
+    private Set<UserIdentityDataDto> getUserIdentityDataDtoSet() {
+        Set<UserIdentityDataDto> userIdentityDataDtoSet;
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
+            userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
+                    Collectors.toSet());
+        } else {
+            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
+                    Arrays.asList(PAYMENT_REFUND,
+                            "payments-refund-approver"));
+            userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
+
+            userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
+
+        }
+        return userIdentityDataDtoSet;
+    }
+
+    private List<RefundDto> populateRefundListDto(List<Refund> refundList, List<String> userIdsWithGivenRoles,
+                                    List<RefundReason> refundReasonList,
+                                    Set<UserIdentityDataDto> userIdentityDataDtoSet,
+                                    List<RefundDto> refundListDto) {
+        for (Refund refund : refundList.stream()
                 .filter(e -> userIdsWithGivenRoles.stream()
-                    .anyMatch(id -> id.equals(e.getCreatedBy())))
+                        .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())) {
-                String reason = getRefundReason(refund.getReason(), refundReasonList);
-                LOG.info("refund: {}", refund);
-                Optional<UserIdentityDataDto> found = Optional.empty();
-                for (UserIdentityDataDto dto : userIdentityDataDtoSet) {
-                    if (refund.getCreatedBy().equals(dto.getId())) {
-                        found = Optional.of(dto);
-                        break;
-                    }
-                }
-                if (found.isPresent()) {
-                    refundListDto.add(refundResponseMapper.getRefundListDto(
-                        refund,
-                        found.get(),
-                        reason
-                    ));
+            String reason = getRefundReason(refund.getReason(), refundReasonList);
+            Optional<UserIdentityDataDto> found = Optional.empty();
+            for (UserIdentityDataDto dto : userIdentityDataDtoSet) {
+                if (refund.getCreatedBy().equals(dto.getId())) {
+                    found = Optional.of(dto);
+                    break;
                 }
             }
+            found.ifPresent(userIdentityDataDto -> refundListDto.add(refundResponseMapper.getRefundListDto(
+                    refund,
+                    userIdentityDataDto,
+                    reason
+            )));
         }
         return refundListDto;
     }
@@ -359,7 +367,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (reason == null || reason.isBlank()) {
             throw new InvalidRefundRequestException("Refund reason is required");
         }
-        Boolean matcher = REASONPATTERN.matcher(reason).find();
+        boolean matcher = REASONPATTERN.matcher(reason).find();
         if (matcher) {
             String reasonCode = reason.split("-")[0];
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
@@ -427,39 +435,47 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(refundRequest.getPaymentReference());
 
         if (refundsList.isPresent()) {
-            List<String> nonRejectedFeeList = new ArrayList<>();
-            for (Refund refund : refundsList.get()) {
-                if (!refund.getRefundStatus().equals(
-                    RefundStatus.REJECTED)) {
-                    String feeIds = refund.getFeeIds();
-                    nonRejectedFeeList.add(feeIds);
-                }
-            }
+            List<String> nonRejectedFeeList = getNonRejectedFeeList(refundsList);
 
             List<String> feeIdsofRequestedRefund;
             if (refundRequest.getFeeIds().contains(",")) {
                 List<String> list = new ArrayList<>();
-                for (String s : refundRequest.getFeeIds().split(
-                    ",")) {
-                    list.add(s);
-                }
+                Collections.addAll(list, refundRequest.getFeeIds().split(
+                        ","));
                 feeIdsofRequestedRefund = list;
             } else {
                 feeIdsofRequestedRefund = Arrays.asList(refundRequest.getFeeIds());
             }
 
-            for (String feeId : feeIdsofRequestedRefund) {
-                for (String nonRejectFee : nonRejectedFeeList) {
-                    if (nonRejectFee.contains(feeId)) {
-                        throw new InvalidRefundRequestException("Refund is already requested for this payment");
-                    }
-                }
-
-            }
+            verifyFeeId(feeIdsofRequestedRefund, nonRejectedFeeList);
         }
 
         refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
 
+    }
+
+    private List<String> getNonRejectedFeeList(Optional<List<Refund>> refundsList) {
+        List<String> nonRejectedFeeList = new ArrayList<>();
+        if (refundsList.isPresent()) {
+            for (Refund refund : refundsList.get()) {
+                if (!refund.getRefundStatus().equals(
+                        RefundStatus.REJECTED)) {
+                    String feeIds = refund.getFeeIds();
+                    nonRejectedFeeList.add(feeIds);
+                }
+            }
+        }
+        return nonRejectedFeeList;
+    }
+
+    private void verifyFeeId(List<String> feeIdsofRequestedRefund, List<String> nonRejectedFeeList) {
+        for (String feeId : feeIdsofRequestedRefund) {
+            for (String nonRejectFee : nonRejectedFeeList) {
+                if (nonRejectFee.contains(feeId)) {
+                    throw new InvalidRefundRequestException("Refund is already requested for this payment");
+                }
+            }
+        }
     }
 
     private Refund initiateRefundEntity(RefundRequest refundRequest, String uid) throws CheckDigitException {
@@ -514,7 +530,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public Optional<List<Refund>> getPaymentFailureReport(List<String> paymentReferenceList) {
 
-        Optional<List<Refund>> refundList = Optional.empty();
+        Optional<List<Refund>> refundList;
 
         List<RefundStatus> refundStatusFilterNotIn = Arrays.asList(RefundStatus.ACCEPTED, RefundStatus.REJECTED);
         LOG.info("Payment failure report requested for: {}", paymentReferenceList.size());
@@ -536,9 +552,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         List<PaymentFailureDto> paymentFailureDtoList = new ArrayList<>();
 
-        refundList.forEach(refund -> {
-            paymentFailureDtoList.add(paymentFailureResponseMapper.getPaymentFailureDto(refund));
-        });
+        refundList.forEach(refund -> paymentFailureDtoList.add(paymentFailureResponseMapper.getPaymentFailureDto(refund)));
         LOG.info("Converted payment failure report to response");
 
         return paymentFailureDtoList;
