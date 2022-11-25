@@ -29,4 +29,6 @@ public class RefundNotificationLetterRequest {
     private RecipientPostalAddress recipientPostalAddress;
 
     private String serviceName;
+
+    private TemplatePreview templatePreview;
 }

@@ -33,4 +33,6 @@ public class RefundNotificationEmailRequest {
 
     private String serviceName;
 
+    private TemplatePreview templatePreview;
+
 }
