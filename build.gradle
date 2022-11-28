@@ -220,7 +220,7 @@ apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
 dependencies {
 
-  compile ('com.sun.xml.bind:jaxb-osgi:2.3.1')
+  compile ('com.sun.xml.bind:jaxb-osgi:4.0.1')
   compile group: 'org.pitest', name: 'pitest', version: versions.pitest
   compile 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.4.6'
   compile 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
