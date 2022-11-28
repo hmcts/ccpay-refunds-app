@@ -49,6 +49,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
@@ -102,6 +103,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -316,6 +318,16 @@ class RefundControllerTest {
         return payments;
     }
 
+    private TemplatePreview getTemplatePreview() {
+        return TemplatePreview.templatePreviewWith()
+            .id(UUID.randomUUID())
+            .templateType("email")
+            .version(11)
+            .body("Dear Sir Madam")
+            .subject("HMCTS refund request approved")
+            .html("Dear Sir Madam")
+            .build();
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -1020,6 +1032,48 @@ class RefundControllerTest {
     }
 
     @Test
+    void approveRefundRequestReturnsSuccessResponseAndTemplatePreview() throws Exception {
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+            new ResponseEntity<>("Success", HttpStatus.OK)
+        );
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1", getTemplatePreview());
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+            "refund reason").build()));
+
+        MvcResult result = mockMvc.perform(patch(
+                "/refund/{reference}/action/{reviewer-action}",
+                "RF-1628-5241-9956-2215",
+                "APPROVE"
+            )
+               .content(asJsonString(refundReviewRequest))
+               .header("Authorization", "user")
+               .header("ServiceAuthorization", "Services")
+               .contentType(MediaType.APPLICATION_JSON)
+               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andReturn();
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
+    }
+
+    @Test
     void approveRefundRequestReturnsSuccessResponseWithLetterNotification() throws Exception {
         when(restTemplateNotify.exchange(anyString(),
                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
@@ -1059,6 +1113,49 @@ class RefundControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andReturn();
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
+    }
+
+    @Test
+    void approveRefundRequestReturnsSuccessResponseWithLetterNotificationAndTemplatePreview() throws Exception {
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
+            new ResponseEntity<>("Success", HttpStatus.OK)
+        );
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1", getTemplatePreview());
+        when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefundWithLetterDetails()));
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(getRefundWithLetterDetails());
+
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+            "refund reason").build()));
+
+        MvcResult result = mockMvc.perform(patch(
+                "/refund/{reference}/action/{reviewer-action}",
+                "RF-1628-5241-9956-2215",
+                "APPROVE"
+            )
+                                               .content(asJsonString(refundReviewRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andReturn();
         assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 

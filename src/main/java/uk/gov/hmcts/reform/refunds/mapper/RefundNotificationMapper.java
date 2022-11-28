@@ -61,7 +61,7 @@ public class RefundNotificationMapper {
         RefundNotificationEmailRequest request = getRefundNotificationEmailRequestApproveJourney(refund);
 
         if (templatePreview != null) {
-            request.setTemplatePreview(TemplatePreview.templatePreviewDtoWith()
+            request.setTemplatePreview(TemplatePreview.templatePreviewWith()
                                            .id(templatePreview.getId())
                                            .subject(templatePreview.getSubject())
                                            .templateType(templatePreview.getTemplateType())
@@ -96,7 +96,7 @@ public class RefundNotificationMapper {
         RefundNotificationLetterRequest request = getRefundNotificationLetterRequestApproveJourney(refund);
 
         if (templatePreview != null) {
-            request.setTemplatePreview(TemplatePreview.templatePreviewDtoWith()
+            request.setTemplatePreview(TemplatePreview.templatePreviewWith()
                                            .id(templatePreview.getId())
                                            .subject(templatePreview.getSubject())
                                            .templateType(templatePreview.getTemplateType())

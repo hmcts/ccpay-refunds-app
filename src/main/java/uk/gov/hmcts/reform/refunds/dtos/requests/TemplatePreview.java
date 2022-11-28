@@ -16,7 +16,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "templatePreviewDtoWith")
+@Builder(builderMethodName = "templatePreviewWith")
 @JsonInclude(NON_NULL)
 @Setter
 @Getter

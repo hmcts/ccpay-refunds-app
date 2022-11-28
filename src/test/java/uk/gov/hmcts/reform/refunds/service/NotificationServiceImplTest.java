@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.Personalisation;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -36,6 +37,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -154,6 +156,17 @@ class NotificationServiceImplTest {
             .build();
     }
 
+    private TemplatePreview getTemplatePreview() {
+        return TemplatePreview.templatePreviewWith()
+            .id(UUID.randomUUID())
+            .templateType("email")
+            .version(11)
+            .body("Dear Sir Madam")
+            .subject("HMCTS refund request approved")
+            .html("Dear Sir Madam")
+            .build();
+    }
+
     @Test
     void updateNotificationWith2xxCode() {
         Refund refund = getRefund();
@@ -231,6 +244,43 @@ class NotificationServiceImplTest {
 
         assertEquals("ERROR",refund.getNotificationSentFlag());
     }
+
+    @Test
+    void updateNotificationSuccessWithTemplatePreview() {
+
+        Refund refund = getRefund();
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        notificationService.updateNotification(getHeaders(),refund, getTemplatePreview());
+
+        assertEquals("SENT",refund.getNotificationSentFlag());
+    }
+
+    @Test
+    void updateNotificationSuccessWithTemplatePreviewNull() {
+
+        Refund refund = getRefund();
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        notificationService.updateNotification(getHeaders(),refund, null);
+
+        assertEquals("SENT",refund.getNotificationSentFlag());
+    }
+
 
     private MultiValueMap<String,String> getHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
