@@ -6,6 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
+import uk.gov.hmcts.reform.refunds.dtos.requests.FromTemplateContact;
+import uk.gov.hmcts.reform.refunds.dtos.requests.MailAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
@@ -77,15 +79,6 @@ class RefundNotificationMapperTest {
                     .build())
             .build();
 
-    private static final TemplatePreview TEMPLATE_PREVIEW = TemplatePreview.templatePreviewWith()
-                .id(UUID.randomUUID())
-                .templateType("email")
-                .version(11)
-                .body("Dear Sir Madam")
-                .subject("HMCTS refund request approved")
-                .html("Dear Sir Madam")
-            .build();
-
     @Autowired
     private RefundNotificationMapper refundNotificationMapper;
 
@@ -131,9 +124,21 @@ class RefundNotificationMapperTest {
     @Test
     void testGetRefundNotificationEmailRequestApproveJourneyWithTemplatePreviewIsNotNull() {
 
+        TemplatePreview templatePreview = TemplatePreview.templatePreviewWith()
+            .id(UUID.randomUUID())
+            .templateType("email")
+            .version(11)
+            .body("Dear Sir Madam")
+            .subject("HMCTS refund request approved")
+            .html("Dear Sir Madam")
+            .from(FromTemplateContact
+                      .buildFromTemplateContactWith()
+                      .fromEmailAddress("test@test.com")
+                      .build())
+            .build();
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
-            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, TEMPLATE_PREVIEW);
+            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, templatePreview);
 
         assertNotNull(refundNotificationEmailRequest);
         assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
@@ -179,8 +184,29 @@ class RefundNotificationMapperTest {
     @Test
     void testGetRefundNotificationLetterRequestApproveJourneyWithTemplatePreviewIsNotNull() {
 
+        TemplatePreview templatePreview = TemplatePreview.templatePreviewWith()
+            .id(UUID.randomUUID())
+            .templateType("email")
+            .version(11)
+            .body("Dear Sir Madam")
+            .subject("HMCTS refund request approved")
+            .html("Dear Sir Madam")
+            .from(FromTemplateContact
+                      .buildFromTemplateContactWith()
+                      .fromMailAddress(
+                          MailAddress
+                              .buildRecipientMailAddressWith()
+                              .addressLine("6 Test")
+                              .city("city")
+                              .country("country")
+                              .county("county")
+                              .postalCode("HA3 5TT")
+                              .build())
+                      .build())
+            .build();
+
         RefundNotificationLetterRequest refundNotificationLetterRequest =
-            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, TEMPLATE_PREVIEW);
+            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, templatePreview);
 
         assertNotNull(refundNotificationLetterRequest);
         assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());

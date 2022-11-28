@@ -42,6 +42,8 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
+import uk.gov.hmcts.reform.refunds.dtos.requests.FromTemplateContact;
+import uk.gov.hmcts.reform.refunds.dtos.requests.MailAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
@@ -318,7 +320,7 @@ class RefundControllerTest {
         return payments;
     }
 
-    private TemplatePreview getTemplatePreview() {
+    private TemplatePreview getTemplatePreviewForEmail() {
         return TemplatePreview.templatePreviewWith()
             .id(UUID.randomUUID())
             .templateType("email")
@@ -326,6 +328,33 @@ class RefundControllerTest {
             .body("Dear Sir Madam")
             .subject("HMCTS refund request approved")
             .html("Dear Sir Madam")
+            .from(FromTemplateContact
+                      .buildFromTemplateContactWith()
+                      .fromEmailAddress("test@test.com")
+                      .build())
+            .build();
+    }
+
+    private TemplatePreview getTemplatePreviewForLetter() {
+        return TemplatePreview.templatePreviewWith()
+            .id(UUID.randomUUID())
+            .templateType("email")
+            .version(11)
+            .body("Dear Sir Madam")
+            .subject("HMCTS refund request approved")
+            .html("Dear Sir Madam")
+            .from(FromTemplateContact
+                      .buildFromTemplateContactWith()
+                      .fromMailAddress(
+                          MailAddress
+                              .buildRecipientMailAddressWith()
+                              .addressLine("6 Test")
+                              .city("city")
+                              .country("country")
+                              .county("county")
+                              .postalCode("HA3 5TT")
+                              .build())
+                      .build())
             .build();
     }
 
@@ -1032,12 +1061,12 @@ class RefundControllerTest {
     }
 
     @Test
-    void approveRefundRequestReturnsSuccessResponseAndTemplatePreview() throws Exception {
+    void approveRefundRequestReturnsSuccessResponseWithEmailNotificationAndTemplatePreview() throws Exception {
         when(restTemplateNotify.exchange(anyString(),
                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
             new ResponseEntity<>("Success", HttpStatus.OK)
         );
-        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1", getTemplatePreview());
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1", getTemplatePreviewForEmail());
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefund()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1122,7 +1151,7 @@ class RefundControllerTest {
                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
             new ResponseEntity<>("Success", HttpStatus.OK)
         );
-        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1", getTemplatePreview());
+        RefundReviewRequest refundReviewRequest = new RefundReviewRequest("RR0001", "reason1", getTemplatePreviewForLetter());
         when(refundsRepository.findByReference(anyString())).thenReturn(Optional.of(getRefundWithLetterDetails()));
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1149,11 +1178,11 @@ class RefundControllerTest {
                 "RF-1628-5241-9956-2215",
                 "APPROVE"
             )
-                                               .content(asJsonString(refundReviewRequest))
-                                               .header("Authorization", "user")
-                                               .header("ServiceAuthorization", "Services")
-                                               .contentType(MediaType.APPLICATION_JSON)
-                                               .accept(MediaType.APPLICATION_JSON))
+               .content(asJsonString(refundReviewRequest))
+               .header("Authorization", "user")
+               .header("ServiceAuthorization", "Services")
+               .contentType(MediaType.APPLICATION_JSON)
+               .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
         assertEquals("Refund approved", result.getResponse().getContentAsString());

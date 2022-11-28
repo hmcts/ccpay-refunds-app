@@ -33,4 +33,6 @@ public class TemplatePreview {
     private String subject;
 
     private String html;
+
+    private FromTemplateContact from;
 }

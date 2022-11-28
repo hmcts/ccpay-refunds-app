@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.refunds.dtos.requests.FromTemplateContact;
+import uk.gov.hmcts.reform.refunds.dtos.requests.MailAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
@@ -484,6 +486,10 @@ public class RefundsApproverJourneyFunctionalTest {
                                                                                  .body("Dear Sir Madam")
                                                                                  .subject("HMCTS refund request approved")
                                                                                  .html("Dear Sir Madam")
+                                                                                 .from(FromTemplateContact
+                                                                                           .buildFromTemplateContactWith()
+                                                                                           .fromEmailAddress("test@test.com")
+                                                                                           .build())
                                                                                  .build())
                                                             .build();
 
@@ -552,6 +558,18 @@ public class RefundsApproverJourneyFunctionalTest {
                                  .body("Dear Sir Madam")
                                  .subject("HMCTS refund request approved")
                                  .html("Dear Sir Madam")
+                                 .from(FromTemplateContact
+                                           .buildFromTemplateContactWith()
+                                           .fromMailAddress(
+                                               MailAddress
+                                                   .buildRecipientMailAddressWith()
+                                                   .addressLine("6 Test")
+                                                   .city("city")
+                                                   .country("country")
+                                                   .county("county")
+                                                   .postalCode("HA3 5TT")
+                                                   .build())
+                                           .build())
                                  .build())
             .build();
 

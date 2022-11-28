@@ -68,6 +68,7 @@ public class RefundNotificationMapper {
                                            .version(templatePreview.getVersion())
                                            .body(templatePreview.getBody())
                                            .html(templatePreview.getHtml())
+                                           .from(templatePreview.getFrom())
                                            .build());
         }
         return request;
@@ -103,6 +104,7 @@ public class RefundNotificationMapper {
                                            .version(templatePreview.getVersion())
                                            .body(templatePreview.getBody())
                                            .html(templatePreview.getHtml())
+                                           .from(templatePreview.getFrom())
                                            .build()
             );
         }

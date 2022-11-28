@@ -18,6 +18,8 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
+import uk.gov.hmcts.reform.refunds.dtos.requests.FromTemplateContact;
+import uk.gov.hmcts.reform.refunds.dtos.requests.MailAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.Personalisation;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
@@ -156,7 +158,38 @@ class NotificationServiceImplTest {
             .build();
     }
 
-    private TemplatePreview getTemplatePreview() {
+    private Refund getRefundForLetter() {
+        return Refund.refundsWith()
+            .id(1)
+            .amount(BigDecimal.valueOf(100))
+            .reason("RR0001")
+            .reference("RF-1628-5241-9956-2215")
+            .paymentReference("RC-1628-5241-9956-2315")
+            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .refundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL)
+            .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .updatedBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+            .feeIds("50")
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("Test addressline")
+                                .county("county")
+                                .country("country")
+                                .city("test")
+                                .postalCode("TA1 TA2")
+                                .notificationType("LETTER")
+                                .build())
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                                               .id(1)
+                                               .status(RefundStatus.SENTFORAPPROVAL.getName())
+                                               .createdBy("6463ca66-a2e5-4f9f-af95-653d4dd4a79c")
+                                               .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                                               .notes("Refund initiated and sent to team leader")
+                                               .build()))
+            .build();
+    }
+
+    private TemplatePreview getTemplatePreviewForEmail() {
         return TemplatePreview.templatePreviewWith()
             .id(UUID.randomUUID())
             .templateType("email")
@@ -164,6 +197,33 @@ class NotificationServiceImplTest {
             .body("Dear Sir Madam")
             .subject("HMCTS refund request approved")
             .html("Dear Sir Madam")
+            .from(FromTemplateContact
+                      .buildFromTemplateContactWith()
+                      .fromEmailAddress("test@test.com")
+                      .build())
+            .build();
+    }
+
+    private TemplatePreview getTemplatePreviewForLetter() {
+        return TemplatePreview.templatePreviewWith()
+            .id(UUID.randomUUID())
+            .templateType("email")
+            .version(11)
+            .body("Dear Sir Madam")
+            .subject("HMCTS refund request approved")
+            .html("Dear Sir Madam")
+            .from(FromTemplateContact
+                      .buildFromTemplateContactWith()
+                      .fromMailAddress(
+                          MailAddress
+                              .buildRecipientMailAddressWith()
+                              .addressLine("6 Test")
+                              .city("city")
+                              .country("country")
+                              .county("county")
+                              .postalCode("HA3 5TT")
+                              .build())
+                      .build())
             .build();
     }
 
@@ -246,7 +306,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void updateNotificationSuccessWithTemplatePreview() {
+    void updateNotificationSuccessWithTemplatePreviewAndEmail() {
 
         Refund refund = getRefund();
         refund.setRefundStatus(RefundStatus.REJECTED);
@@ -258,7 +318,25 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        notificationService.updateNotification(getHeaders(),refund, getTemplatePreview());
+        notificationService.updateNotification(getHeaders(),refund, getTemplatePreviewForEmail());
+
+        assertEquals("SENT",refund.getNotificationSentFlag());
+    }
+
+    @Test
+    void updateNotificationSuccessWithTemplatePreviewAndLetter() {
+
+        Refund refund = getRefundForLetter();
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        notificationService.updateNotification(getHeaders(),refund, getTemplatePreviewForLetter());
 
         assertEquals("SENT",refund.getNotificationSentFlag());
     }
