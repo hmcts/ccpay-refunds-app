@@ -47,6 +47,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -351,7 +352,8 @@ public class RefundServiceImplTest {
     @Test
     void givenReferenceIsNull_whenGetStatusHistory_thenNullIsReceived() {
         StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(null, null);
-        assertThat(StatusHistoryResponseDto.statusHistoryResponseDtoWith().build().equals(statusHistoryResponseDto));
+        assertEquals(Collections.emptyList(), statusHistoryResponseDto.getStatusHistoryDtoList());
+        assertEquals(false, statusHistoryResponseDto.getLastUpdatedByCurrentUser());
     }
 
     @Test
