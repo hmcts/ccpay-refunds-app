@@ -23,7 +23,7 @@ public class PaymentTestService {
                                    final String baseUri,
                                    final CreditAccountPaymentRequest request) {
         return givenWithAuthHeaders(userToken, serviceToken)
-            .contentType(ContentType.ANY)
+            .contentType(ContentType.JSON)
             .baseUri(baseUri)
             .body(request)
             .when()
