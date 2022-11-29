@@ -48,7 +48,7 @@ public class ReconciliationProviderServiceImpl implements ReconciliationProvider
             .refundRequest(reconciliationProviderRequest).build();
         try {
             MultiValueMap<String, String> header = new HttpHeaders();
-            header.add("X-API-KEY", apiKey);
+            //header.add("X-API-KEY", apiKey);
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(reconciliationProviderApi + refundStatusUpdatePath);
             return restTemplateLiberata.exchange(
