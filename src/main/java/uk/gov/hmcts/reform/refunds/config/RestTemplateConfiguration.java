@@ -42,7 +42,7 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplateLiberata() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
         CertificateException, IOException {
         SSLContext sslContext = new SSLContextBuilder()
-            .loadTrustMaterial(new URL("file:src/main/resources/application.yaml"),
+            .loadTrustMaterial(new URL("file:src/main/resources/liberatadigicert.p12"),
                                "liberatadigicert".toCharArray()).build();
         SSLConnectionSocketFactory sslConFactory = new SSLConnectionSocketFactory(sslContext);
         ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(
