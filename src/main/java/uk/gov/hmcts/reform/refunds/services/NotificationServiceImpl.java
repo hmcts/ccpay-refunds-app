@@ -56,12 +56,14 @@ public class NotificationServiceImpl implements NotificationService {
 
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(emailUrlPath).toString());
+            log.info("Notification URL in Refunds app {}",builder.toUriString());
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
                     new HttpEntity<>(refundNotificationEmailRequest, getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
             handleHttpClientErrorException(exception);
         } catch (HttpServerErrorException exception) {
-            log.info("Notification service is unavailable. Please try again later.");
+            log.error("Exception message {}",exception.getMessage());
+            log.error("Notification service is unavailable. Please try again later. {}", exception);
         }
         return new ResponseEntity<>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
     }
