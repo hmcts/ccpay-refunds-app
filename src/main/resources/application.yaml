@@ -147,7 +147,7 @@ payments:
 
 reconciliation-provider:
   api:
-    url: ${LIBERATA_BASE_URL:https://bpacustomerportal.liberata.com}
+    url: ${LIBERATA_BASE_URL:https://lascustomerportaluat.liberata.com}
   refund-status-update-path: ${REFUND_STATUS_UPDATE_PATH:/refunds-api/refunds}
 
 liberata:
