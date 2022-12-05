@@ -203,4 +203,9 @@ public class Utility {
             IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
                     .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ")
                     .build();
+
+    public static final IdamUserIdResponse IDAM_USER_ID_RESPONSE_PAYMENT_ROLE =
+        IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
+            .roles(Arrays.asList("payments")).sub("ZZ")
+            .build();
 }
