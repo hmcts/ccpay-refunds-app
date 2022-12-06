@@ -230,7 +230,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return getRefundListDto(headers, refundList, idamUserIdResponse);
     }
 
-    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList, IdamUserIdResponse idamUserIdResponse) {
+    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers,
+                                                  Optional<List<Refund>> refundList, IdamUserIdResponse idamUserIdResponse) {
 
         List<String> refundRoles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
             .collect(Collectors.toList());
@@ -239,12 +240,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (refundList.isPresent() && !refundList.get().isEmpty()) {
 
-            if(paymentRole.isPresent() && refundRoles.isEmpty()) {
+            if (paymentRole.isPresent() && refundRoles.isEmpty()) {
                 return RefundListDtoResponse
                     .buildRefundListWith()
                     .refundList(getRefundResponseDtoListForPaymentRole(headers, refundList.get()))
                     .build();
-            } else{
+            } else {
                 return RefundListDtoResponse
                     .buildRefundListWith()
                     .refundList(getRefundResponseDtoList(headers, refundList.get(), refundRoles))
@@ -854,19 +855,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
-            for (Refund refund : refundList) {
-                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                                                                                              refund.getCreatedBy());
+        for (Refund refund: refundList) {
+            UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
+                                                                                      refund.getCreatedBy());
 
-                String reason = getRefundReason(refund.getReason(), refundReasonList);
-                if (refund.getCreatedBy().equals(userIdentityDataDto.getId())) {
-                    refundListDto.add(refundResponseMapper.getRefundListDto(
-                        refund,
-                        userIdentityDataDto,
-                        reason
-                    ));
-                }
+            String reason = getRefundReason(refund.getReason(), refundReasonList);
+            if (refund.getCreatedBy().equals(userIdentityDataDto.getId())) {
+                refundListDto.add(refundResponseMapper.getRefundListDto(
+                    refund,
+                    userIdentityDataDto,
+                    reason
+                ));
             }
+        }
         return refundListDto;
     }
 
