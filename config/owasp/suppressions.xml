@@ -186,5 +186,5 @@
       Major release 3.9.0+ needed to be upgraded to.
     </notes>
     <cve>CVE-2021-37533</cve>
-  </suppress
+  </suppress>
 </suppressions>
