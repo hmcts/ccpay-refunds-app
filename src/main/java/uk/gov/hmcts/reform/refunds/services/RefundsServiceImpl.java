@@ -67,6 +67,7 @@ import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -195,7 +196,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
         IdamUserIdResponse uid = idamService.getUserId(headers);
         Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), instructionType);
-        LOG.info("Saving refund: {}", refund);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -244,39 +244,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
-    @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
-        Set<UserIdentityDataDto> userIdentityDataDtoSet;
-        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+
         if (!roles.isEmpty()) {
-            if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
-                userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
-                        Collectors.toSet());
-            } else {
-                List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
-                        Arrays.asList(PAYMENT_REFUND,
-                                "payments-refund-approver"));
-                userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
+            Set<UserIdentityDataDto> userIdentityDataDtoSet = getUserIdentityDataDtoSet();
 
-                userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
-
-            }
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
-            for (Refund refund1 : refundList) {
-                if (!userIdsWithGivenRoles.contains(refund1.getCreatedBy())) {
-                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                                                                                              refund1.getCreatedBy());
-                    contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
-                    userIdentityDataDtoSet.add(userIdentityDataDto);
-                    userIdsWithGivenRoles.add(userIdentityDataDto.getId());
-                }
-            }
+
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
@@ -285,27 +265,54 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
-            for (Refund refund : refundList.stream()
+
+            refundListDto =
+                    populateRefundListDto(refundList, userIdsWithGivenRoles, refundReasonList, userIdentityDataDtoSet,
+                            refundListDto);
+        }
+        return refundListDto;
+    }
+
+    @SuppressWarnings({"PMD.ConfusingTernary"})
+    private Set<UserIdentityDataDto> getUserIdentityDataDtoSet() {
+        Set<UserIdentityDataDto> userIdentityDataDtoSet;
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
+            userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
+                    Collectors.toSet());
+        } else {
+            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
+                    Arrays.asList(PAYMENT_REFUND,
+                            "payments-refund-approver"));
+            userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
+
+            userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
+
+        }
+        return userIdentityDataDtoSet;
+    }
+
+    private List<RefundDto> populateRefundListDto(List<Refund> refundList, List<String> userIdsWithGivenRoles,
+                                    List<RefundReason> refundReasonList,
+                                    Set<UserIdentityDataDto> userIdentityDataDtoSet,
+                                    List<RefundDto> refundListDto) {
+        for (Refund refund : refundList.stream()
                 .filter(e -> userIdsWithGivenRoles.stream()
-                    .anyMatch(id -> id.equals(e.getCreatedBy())))
+                        .anyMatch(id -> id.equals(e.getCreatedBy())))
                 .collect(Collectors.toList())) {
-                String reason = getRefundReason(refund.getReason(), refundReasonList);
-                LOG.info("refund: {}", refund);
-                Optional<UserIdentityDataDto> found = Optional.empty();
-                for (UserIdentityDataDto dto : userIdentityDataDtoSet) {
-                    if (refund.getCreatedBy().equals(dto.getId())) {
-                        found = Optional.of(dto);
-                        break;
-                    }
-                }
-                if (found.isPresent()) {
-                    refundListDto.add(refundResponseMapper.getRefundListDto(
-                        refund,
-                        found.get(),
-                        reason
-                    ));
+            String reason = getRefundReason(refund.getReason(), refundReasonList);
+            Optional<UserIdentityDataDto> found = Optional.empty();
+            for (UserIdentityDataDto dto : userIdentityDataDtoSet) {
+                if (refund.getCreatedBy().equals(dto.getId())) {
+                    found = Optional.of(dto);
+                    break;
                 }
             }
+            found.ifPresent(userIdentityDataDto -> refundListDto.add(refundResponseMapper.getRefundListDto(
+                    refund,
+                    userIdentityDataDto,
+                    reason
+            )));
         }
         return refundListDto;
     }
@@ -568,7 +575,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public Optional<List<Refund>> getPaymentFailureReport(List<String> paymentReferenceList) {
 
-        Optional<List<Refund>> refundList = Optional.empty();
+        Optional<List<Refund>> refundList;
 
         List<RefundStatus> refundStatusFilterNotIn = Arrays.asList(RefundStatus.ACCEPTED, RefundStatus.REJECTED);
         LOG.info("Payment failure report requested for: {}", paymentReferenceList.size());
@@ -590,9 +597,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         List<PaymentFailureDto> paymentFailureDtoList = new ArrayList<>();
 
-        refundList.forEach(refund -> {
-            paymentFailureDtoList.add(paymentFailureResponseMapper.getPaymentFailureDto(refund));
-        });
+        refundList.forEach(refund -> paymentFailureDtoList.add(paymentFailureResponseMapper.getPaymentFailureDto(refund)));
         LOG.info("Converted payment failure report to response");
 
         return paymentFailureDtoList;
