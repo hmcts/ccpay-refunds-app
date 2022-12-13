@@ -2050,7 +2050,7 @@ class RefundControllerTest {
 
     private NotificationsDtoResponse getNotificationDtoResponse() {
         return NotificationsDtoResponse.notificationsDtoWith()
-            .notificationList(Arrays.asList(
+            .notifications(Arrays.asList(
                 Notification.notificationWith()
                     .notificationType("EMAIL")
                     .reference("refund-reference")
