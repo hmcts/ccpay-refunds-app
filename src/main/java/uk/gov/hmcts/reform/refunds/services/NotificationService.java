@@ -15,4 +15,6 @@ public interface NotificationService {
                                                       RefundNotificationLetterRequest refundNotificationLetterRequest);
 
     void updateNotification(MultiValueMap<String, String> headers, Refund refund);
+
+    String getNotificationType(MultiValueMap<String, String> headers, String reference);
 }

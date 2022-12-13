@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
+import uk.gov.hmcts.reform.refunds.exceptions.NotificationNotFoundException;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
@@ -68,10 +70,20 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     && statusUpdateRequest.getReason().equalsIgnoreCase(
                         RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
                     refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+
+                    String notificationType = notificationService.getNotificationType(headers, refund.getReference());
+                    if (notificationType == null) {
+                        throw new NotificationNotFoundException("Notification not found");
+                    }
+                    ContactDetails newContact = ContactDetails.contactDetailsWith()
+                        .notificationType(notificationType)
+                        .build();
+                    refund.setContactDetails(newContact);
                     notificationService.updateNotification(headers,refund);
                 }
             }
             refund.setUpdatedBy(LIBERATA_NAME);
+            refundsRepository.save(refund);
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
         }
