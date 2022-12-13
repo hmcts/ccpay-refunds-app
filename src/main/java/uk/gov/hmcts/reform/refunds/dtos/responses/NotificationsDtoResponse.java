@@ -23,5 +23,5 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @ToString
 public class NotificationsDtoResponse {
-    private List<Notification> notificationList;
+    private List<Notification> notifications;
 }
