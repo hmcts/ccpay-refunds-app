@@ -57,6 +57,8 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
+import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
@@ -1812,6 +1814,10 @@ class RefundControllerTest {
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
 
+        when(restTemplateNotify.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            NotificationsDtoResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getNotificationDtoResponse())));
+
         RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
             RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON,
             uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED
@@ -2166,6 +2172,20 @@ class RefundControllerTest {
                             .amountDue(BigDecimal.valueOf(0))
                             .build()
             )).build();
+    }
+
+    private NotificationsDtoResponse getNotificationDtoResponse() {
+        return NotificationsDtoResponse.notificationsDtoWith()
+            .notifications(Arrays.asList(
+                Notification.notificationWith()
+                    .notificationType("EMAIL")
+                    .reference("refund-reference")
+                    .dateCreated(Date.from(Instant.now()))
+                    .dateUpdated(Date.from(Instant.now()))
+                    .build()
+            ))
+            .build();
+
     }
 
     private PaymentGroupResponse getPaymentGroupDto1() {

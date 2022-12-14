@@ -18,4 +18,6 @@ public interface NotificationService {
     void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview);
 
     void updateNotification(MultiValueMap<String, String> headers, Refund refund);
+
+    String getNotificationType(MultiValueMap<String, String> headers, String reference);
 }

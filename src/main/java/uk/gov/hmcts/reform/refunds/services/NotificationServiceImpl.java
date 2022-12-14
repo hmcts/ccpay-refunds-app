@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
+import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -145,10 +146,7 @@ public class NotificationServiceImpl implements NotificationService {
         ResponseEntity<String>  responseEntity =  sendNotification(headers, refund, templatePreview);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refund.setNotificationSentFlag("SENT");
-            ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .notificationType(refund.getContactDetails().getNotificationType())
-                .build();
-            refund.setContactDetails(newContact);
+            refund.setContactDetails(null);
         } else if (responseEntity.getStatusCode().is5xxServerError()) {
             if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
                 refund.setNotificationSentFlag("EMAIL_NOT_SENT");
@@ -198,5 +196,42 @@ public class NotificationServiceImpl implements NotificationService {
 
         }
         return responseEntity;
+    }
+
+    @Override
+    public String getNotificationType(MultiValueMap<String, String> headers, String reference) {
+        String notificationType = null;
+
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
+                new StringBuilder(notificationUrl).append("/notifications/").append(reference)
+                    .toString());
+            log.info("Get Notification URI {}", builder.toUriString());
+
+            ResponseEntity<NotificationsDtoResponse> responseNotification = restTemplateNotify
+                .exchange(
+                    builder.toUriString(),
+                    HttpMethod.GET,
+                    new HttpEntity<>(getFormatedHeaders(headers)), NotificationsDtoResponse.class);
+
+            log.info("Notification get api response {}",responseNotification.toString());
+
+            if (responseNotification != null) {
+                log.info("responseNotification.getBody(): {}", responseNotification.getBody());
+
+                NotificationsDtoResponse notificationsDtoResponse = responseNotification.getBody();
+                /*
+                    Getting last notification type which was used while approval or send last notification.
+                */
+                notificationType = notificationsDtoResponse.getNotifications().get(0).getNotificationType();
+            }
+
+        } catch (HttpClientErrorException exception) {
+            handleHttpClientErrorException(exception);
+        } catch (HttpServerErrorException exception) {
+            log.error("Exception message {}",exception.getMessage());
+            log.error("Notification service is unavailable. Please try again later. {}", exception);
+        }
+        return notificationType;
     }
 }
