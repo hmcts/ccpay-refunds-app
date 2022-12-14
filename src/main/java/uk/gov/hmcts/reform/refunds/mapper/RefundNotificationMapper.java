@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
@@ -54,6 +55,25 @@ public class RefundNotificationMapper {
             .build();
     }
 
+    public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(
+        Refund refund, TemplatePreview templatePreview) {
+
+        RefundNotificationEmailRequest request = getRefundNotificationEmailRequestApproveJourney(refund);
+
+        if (templatePreview != null) {
+            request.setTemplatePreview(TemplatePreview.templatePreviewWith()
+                                           .id(templatePreview.getId())
+                                           .subject(templatePreview.getSubject())
+                                           .templateType(templatePreview.getTemplateType())
+                                           .version(templatePreview.getVersion())
+                                           .body(templatePreview.getBody())
+                                           .html(templatePreview.getHtml())
+                                           .from(templatePreview.getFrom())
+                                           .build());
+        }
+        return request;
+    }
+
     public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(Refund refund) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
             .templateId(refundsUtil.getTemplate(refund))
@@ -69,6 +89,26 @@ public class RefundNotificationMapper {
                                  .build())
             .serviceName(refund.getServiceType())
             .build();
+    }
+
+    public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(
+        Refund refund, TemplatePreview templatePreview) {
+
+        RefundNotificationLetterRequest request = getRefundNotificationLetterRequestApproveJourney(refund);
+
+        if (templatePreview != null) {
+            request.setTemplatePreview(TemplatePreview.templatePreviewWith()
+                                           .id(templatePreview.getId())
+                                           .subject(templatePreview.getSubject())
+                                           .templateType(templatePreview.getTemplateType())
+                                           .version(templatePreview.getVersion())
+                                           .body(templatePreview.getBody())
+                                           .html(templatePreview.getHtml())
+                                           .from(templatePreview.getFrom())
+                                           .build()
+            );
+        }
+        return request;
     }
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(Refund refund) {

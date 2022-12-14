@@ -18,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
@@ -136,8 +137,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void updateNotification(MultiValueMap<String, String> headers, Refund refund) {
+        updateNotification(headers, refund, null);
+    }
 
-        ResponseEntity<String>  responseEntity =  sendNotification(refund, headers);
+    @Override
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+
+        ResponseEntity<String>  responseEntity =  sendNotification(headers, refund, templatePreview);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refund.setNotificationSentFlag("SENT");
             refund.setContactDetails(null);
@@ -155,7 +161,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private ResponseEntity<String> sendNotification(Refund refund,MultiValueMap<String, String> headers) {
+    private ResponseEntity<String> sendNotification(
+        MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+
         ResponseEntity<String> responseEntity;
 
         if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
@@ -167,7 +175,7 @@ public class NotificationServiceImpl implements NotificationService {
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag("email_not_sent");
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
-                .getRefundNotificationEmailRequestApproveJourney(refund);
+                .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview);
             log.info("send notification  -> " + refundNotificationEmailRequest);
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
@@ -183,7 +191,7 @@ public class NotificationServiceImpl implements NotificationService {
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag("letter_not_sent");
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
-                .getRefundNotificationLetterRequestApproveJourney(refund);
+                .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview);
             responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }
