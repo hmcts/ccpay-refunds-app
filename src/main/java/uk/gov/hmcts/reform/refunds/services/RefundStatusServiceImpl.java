@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.exceptions.NotificationNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Service
 public class RefundStatusServiceImpl extends StateUtil implements RefundStatusService {
@@ -33,6 +35,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private IdamService idamService;
 
     private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
         return StatusHistory.statusHistoryWith()
@@ -70,6 +75,13 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     && statusUpdateRequest.getReason().equalsIgnoreCase(
                         RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
                     refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+
+                    IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+                    LOG.info("idamTokenResponse {}", idamTokenResponse.getAccessToken());
+                    String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
+                    LOG.info("idamTokenResponse authorization {}", idamTokenResponse.getAccessToken());
+                    headers.put("Authorization", Collections.singletonList(authorization));
+                    LOG.info("idamTokenResponse headers {}", headers);
 
                     String notificationType = notificationService.getNotificationType(headers, refund.getReference());
                     LOG.info(" Refund Status Service Impl Notifition type {}", notificationType);
