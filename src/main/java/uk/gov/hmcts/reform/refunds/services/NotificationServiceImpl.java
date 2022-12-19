@@ -215,7 +215,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .exchange(
                     builder.toUriString(),
                     HttpMethod.GET,
-                    new HttpEntity<>(headers), NotificationsDtoResponse.class);
+                    new HttpEntity<>(getFormatedHeaders(headers)), NotificationsDtoResponse.class);
 
             log.info("Notification get api response {}",responseNotification.toString());
 
