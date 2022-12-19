@@ -171,6 +171,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Pattern.CASE_INSENSITIVE
     );
 
+    private static final String PAYMENTS_ROLE = "payments";
+
     @Override
     public RefundEvent[] retrieveActions(String reference) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -224,20 +226,30 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        // Get Refunds related Roles from logged in user
-        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
-            .collect(Collectors.toList());
-        LOG.info("roles: {}", roles);
-        return getRefundListDto(headers, refundList, roles);
+        return getRefundListDto(headers, refundList, idamUserIdResponse);
     }
 
-    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList, List<String> roles) {
+    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers,
+                                                  Optional<List<Refund>> refundList, IdamUserIdResponse idamUserIdResponse) {
+
+        List<String> refundRoles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
+            .collect(Collectors.toList());
+
+        Optional<String> paymentRole = idamUserIdResponse.getRoles().stream().filter(role -> role.equals(PAYMENTS_ROLE)).findAny();
 
         if (refundList.isPresent() && !refundList.get().isEmpty()) {
-            return RefundListDtoResponse
-                .buildRefundListWith()
-                .refundList(getRefundResponseDtoList(headers, refundList.get(), roles))
-                .build();
+
+            if (paymentRole.isPresent() && refundRoles.isEmpty()) {
+                return RefundListDtoResponse
+                    .buildRefundListWith()
+                    .refundList(getRefundResponseDtoListForPaymentRole(headers, refundList.get()))
+                    .build();
+            } else {
+                return RefundListDtoResponse
+                    .buildRefundListWith()
+                    .refundList(getRefundResponseDtoList(headers, refundList.get(), refundRoles))
+                    .build();
+            }
         } else {
             throw new RefundListEmptyException("Refund list is empty for given criteria");
         }
@@ -842,5 +854,25 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
+    private List<RefundDto> getRefundResponseDtoListForPaymentRole(MultiValueMap<String, String> headers, List<Refund> refundList) {
+
+        //Create Refund response List
+        List<RefundDto> refundListDto = new ArrayList<>();
+        List<RefundReason> refundReasonList = refundReasonRepository.findAll();
+        for (Refund refund: refundList) {
+            UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
+                                                                                      refund.getCreatedBy());
+
+            String reason = getRefundReason(refund.getReason(), refundReasonList);
+            if (refund.getCreatedBy().equals(userIdentityDataDto.getId())) {
+                refundListDto.add(refundResponseMapper.getRefundListDto(
+                    refund,
+                    userIdentityDataDto,
+                    reason
+                ));
+            }
+        }
+        return refundListDto;
+    }
 
 }

@@ -234,4 +234,5 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return notificationType;
     }
+
 }

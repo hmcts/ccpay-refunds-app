@@ -97,8 +97,8 @@ public final class RefundsFixture {
                                                            .country("UK")
                                                            .county("Londonshire")
                                                            .city("London")
-                                                           .postalCode("HA5 3XT")
-                                                           .email("ranjeet.kumar@HMCTS.NET")
+                                                           .postalCode("P1 1PO")
+                                                           .email("test@HMCTS.NET")
                                                            .notificationType("EMAIL")
                                                            .build())
             .build();
@@ -171,8 +171,8 @@ public final class RefundsFixture {
                                 .country("UK")
                                 .county("Londonshire")
                                 .city("London")
-                                .postalCode("HA5 3XT")
-                                .email("ranjeet.kumar@HMCTS.NET")
+                                .postalCode("P1 1PO")
+                                .email("test@HMCTS.NET")
                                 .notificationType("EMAIL")
                                 .build())
             .build();

@@ -1399,4 +1399,35 @@ class RefundServiceImplTest {
             );
         }
     }
+
+    @Test
+    void testRefundListForGivenCcdCaseNumberWhenRoleIsPayment() {
+        refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
+        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
+            Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE_PAYMENT_ROLE);
+        when(refundReasonRepository.findAll()).thenReturn(
+            Collections.singletonList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
+        UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
+        userIdentityDataDto.setId("1f2b7025-0f91-4737-92c6-b7a9baef14c6");
+        userIdentityDataDto.setFullName("full-name");
+        userIdentityDataDto.setEmailId("j@mail.com");
+        when(idamService.getUserIdentityData(any(), anyString())).thenReturn(userIdentityDataDto);
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().code(
+            "RR001").name("duplicate payment").build()));
+
+        RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
+            null,
+            map,
+            Utility.GET_REFUND_LIST_CCD_CASE_NUMBER,
+            "true"
+        );
+
+        assertNotNull(refundListDtoResponse);
+        assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals("full-name", refundListDtoResponse.getRefundList().get(0).getUserFullName());
+        assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
+        assertEquals("1111-2222-3333-4444", refundListDtoResponse.getRefundList().get(0).getCcdCaseNumber());
+
+    }
 }
