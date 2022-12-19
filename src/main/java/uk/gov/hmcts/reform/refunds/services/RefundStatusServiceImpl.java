@@ -72,6 +72,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
 
                     String notificationType = notificationService.getNotificationType(headers, refund.getReference());
+                    LOG.info(" Refund Status Service Impl Notifition type {}", notificationType);
                     if (notificationType == null) {
                         throw new NotificationNotFoundException("Notification not found");
                     }

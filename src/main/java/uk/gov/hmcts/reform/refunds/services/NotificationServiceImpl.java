@@ -230,6 +230,8 @@ public class NotificationServiceImpl implements NotificationService {
             }
 
         } catch (HttpClientErrorException exception) {
+            log.error("Last exception e {}", exception.getMessage());
+            log.error("Last exception {}", exception);
             handleHttpClientErrorException(exception);
         } catch (HttpServerErrorException exception) {
             log.error("Exception message {}",exception.getMessage());
