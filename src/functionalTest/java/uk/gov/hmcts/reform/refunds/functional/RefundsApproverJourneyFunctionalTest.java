@@ -15,7 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.refunds.dtos.requests.FromTemplateContact;
+import uk.gov.hmcts.reform.refunds.dtos.requests.MailAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -31,8 +35,10 @@ import uk.gov.hmcts.reform.refunds.functional.response.PaymentsResponse;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.math.BigDecimal;
@@ -42,11 +48,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -467,6 +476,158 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
+    public void positive_approve_a_refund_request_with_template_preview_for_email() {
+
+        final String paymentReference = createPayment();
+
+        final String refundReference = performRefund(paymentReference);
+
+        final RefundReviewRequest  refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
+                                                            .code("RE001")
+                                                            .reason("Wrong Data")
+                                                            .templatePreview(TemplatePreview.templatePreviewWith()
+                                                                                 .id(UUID.randomUUID())
+                                                                                 .templateType("email")
+                                                                                 .version(11)
+                                                                                 .body("Dear Sir Madam")
+                                                                                 .subject("HMCTS refund request approved")
+                                                                                 .html("Dear Sir Madam")
+                                                                                 .from(FromTemplateContact
+                                                                                           .buildFromTemplateContactWith()
+                                                                                           .fromEmailAddress("test@test.com")
+                                                                                           .build())
+                                                                                 .build())
+                                                            .build();
+
+        //This API Request tests the Retrieve Actions endpoint as well.
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
+        assertThat(refundEvents.size()).isEqualTo(3);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            refundReviewRequest
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        Response refundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
+            );
+        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> statusHistoryList =
+            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        statusHistoryList.forEach(entry -> {
+            assertThat(
+                entry.get("status").trim().equals("Approved")
+                    || entry.get("status").trim().equals("Sent for approval"))
+                .isTrue();
+            assertThat(
+                entry.get("notes").trim().equals("Sent to middle office")
+                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
+                .isTrue();
+        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
+        //Should be verified as a call out to Liberata....
+
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
+    @Test
+    public void positive_approve_a_refund_request_with_template_preview_for_letter() {
+
+        final String paymentReference = createPayment();
+
+        final String refundReference = performRefundWithLetter(paymentReference);
+
+        final RefundReviewRequest  refundReviewRequest = RefundReviewRequest.buildRefundReviewRequest()
+            .code("RE001")
+            .reason("Wrong Data")
+            .templatePreview(TemplatePreview.templatePreviewWith()
+                                 .id(UUID.randomUUID())
+                                 .templateType("email")
+                                 .version(11)
+                                 .body("Dear Sir Madam")
+                                 .subject("HMCTS refund request approved")
+                                 .html("Dear Sir Madam")
+                                 .from(FromTemplateContact
+                                           .buildFromTemplateContactWith()
+                                           .fromMailAddress(
+                                               MailAddress
+                                                   .buildRecipientMailAddressWith()
+                                                   .addressLine("6 Test")
+                                                   .city("city")
+                                                   .country("country")
+                                                   .county("county")
+                                                   .postalCode("HA3 5TT")
+                                                   .build())
+                                           .build())
+                                 .build())
+            .build();
+
+        //This API Request tests the Retrieve Actions endpoint as well.
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
+        assertThat(refundEvents.size()).isEqualTo(3);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            refundReviewRequest
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        Response refundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
+            );
+        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> statusHistoryList =
+            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        statusHistoryList.forEach(entry -> {
+            assertThat(
+                entry.get("status").trim().equals("Approved")
+                    || entry.get("status").trim().equals("Sent for approval"))
+                .isTrue();
+            assertThat(
+                entry.get("notes").trim().equals("Sent to middle office")
+                    || entry.get("notes").trim().equals("Refund initiated and sent to team leader"))
+                .isTrue();
+        });//The Lifecycle of Statuses against a Refund will be maintained for all the statuses should be checked
+        //Should be verified as a call out to Liberata....
+
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
+
+    @Test
     public void negative_unknown_action_refund_request() {
 
         final String paymentReference = createPayment();
@@ -664,10 +825,64 @@ public class RefundsApproverJourneyFunctionalTest {
         return paymentsResponse.getReference();
     }
 
+    private String createPayment(String ccdCaseNumber) {
+        final String accountNumber = testConfigProperties.existingAccountNumber;
+        final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
+            .pbaPaymentRequestForProbate(
+                "90.00",
+                "PROBATE",
+                accountNumber
+            );
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(
+                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                SERVICE_TOKEN_CMC,
+                testConfigProperties.basePaymentsUrl,
+                accountPaymentRequest
+            ).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        // Get pba payment by reference
+        PaymentDto paymentsResponse =
+            paymentTestService.getPbaPayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference(),
+                                             testConfigProperties.basePaymentsUrl).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+
+        // Update Payments for CCDCaseNumber by certain days
+        ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
+
+        return paymentsResponse.getReference();
+    }
+
     @NotNull
     private String performRefund(String paymentReference) {
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference, "90", "0");
+        Response refundResponse = paymentTestService.postInitiateRefund(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            paymentRefundRequest,
+            testConfigProperties.basePaymentsUrl
+        );
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        final RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        final String refundReference = refundResponseFromPost.getRefundReference();
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
+        return refundReference;
+    }
+
+    @NotNull
+    private String performRefundWithLetter(String paymentReference) {
+        final PaymentRefundRequest paymentRefundRequest
+            = RefundsFixture.refundRequestWithLetter("RR001", paymentReference, "90", "0");
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -1692,4 +1907,171 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
 
+    @Test
+    public void positive_refund_reject_reason_unable_to_apply_refund_to_card_and_email() {
+
+        final String paymentReference = createPayment();
+
+        final String refundReference = performRefund(paymentReference);
+
+        //This API Request tests the Retrieve Actions endpoint as well.
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
+        assertThat(refundEvents.size()).isEqualTo(3);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
+        Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith().reason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED).build()
+        );
+        assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that contact details is erased
+        RefundDto refundDto = getRejectRefundDto(refundReference, "Rejected");
+        assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
+        assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON, refundDto.getReason());
+
+        deletePaymentAndRefund(paymentReference, refundReference);
+    }
+
+    @Test
+    public void positive_refund_reject_reason_with_different_reason_and_email() {
+
+        final String paymentReference = createPayment();
+
+        final String refundReference = performRefund(paymentReference);
+
+        //This API Request tests the Retrieve Actions endpoint as well.
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
+        assertThat(refundEvents.size()).isEqualTo(3);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
+        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
+            "Different Reason",
+            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED
+        );
+
+        Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            refundStatusUpdateRequest
+        );
+        assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that contact details is erased
+        RefundDto refundDto = getRejectRefundDto(refundReference, "Rejected");
+        assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
+        assertNotEquals("Unable to apply refund to Card", refundDto.getReason());
+
+        deletePaymentAndRefund(paymentReference, refundReference);
+    }
+
+    @Test
+    public void positive_refund_reject_reason_with_different_reason_and_letter() {
+
+        final String paymentReference = createPayment();
+
+        final String refundReference = performRefundWithLetter(paymentReference);
+
+        //This API Request tests the Retrieve Actions endpoint as well.
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
+        assertThat(refundEvents.size()).isEqualTo(3);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
+        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
+            "Different Reason",
+            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED
+        );
+
+        Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            refundStatusUpdateRequest
+        );
+        assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that contact details is erased
+
+        RefundDto refundDto = getRejectRefundDto(refundReference,"Rejected");
+        assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
+        assertNotEquals("Unable to apply refund to Card", refundDto.getReason());
+
+        deletePaymentAndRefund(paymentReference, refundReference);
+    }
+
+    private RefundDto getRejectRefundDto(String refundReference, String status) {
+
+        Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                                       SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                                                       status, "false");
+        assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
+
+        RefundDto refundDto = refundsListDto.getRefundList().stream()
+            .filter(rf -> rf.getRefundReference().equals(refundReference)).findFirst().get();
+
+        return refundDto;
+    }
+
+    private void deletePaymentAndRefund(String paymentReference, String refundReference) {
+        // delete payment record
+        paymentTestService
+            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                           paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+        // delete refund record
+        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                        refundReference);
+    }
 }

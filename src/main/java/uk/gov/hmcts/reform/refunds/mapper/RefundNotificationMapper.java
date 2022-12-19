@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
@@ -17,12 +18,6 @@ public class RefundNotificationMapper {
 
     @Value("${notification.email-to-reply}")
     private String emailReplyToId;
-
-    @Value("${notification.service-mailbox}")
-    private String serviceMailBox;
-
-    @Value("${notification.service-url}")
-    private String serviceUrl;
 
     @Autowired
     RefundsUtil refundsUtil;
@@ -37,10 +32,11 @@ public class RefundNotificationMapper {
                 .personalisation(Personalisation.personalisationRequestWith()
                                      .ccdCaseNumber(refund.getCcdCaseNumber())
                                      .refundReference(refund.getReference())
-                                     .serviceMailBox(serviceMailBox)
-                                     .serviceUrl(serviceUrl)
+                                     .refundAmount(refund.getAmount())
+                                     .refundReason(refund.getReason())
                                      .build())
-                .build();
+            .serviceName(refund.getServiceType())
+            .build();
     }
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
@@ -52,10 +48,30 @@ public class RefundNotificationMapper {
             .personalisation(Personalisation.personalisationRequestWith()
                                  .ccdCaseNumber(refund.getCcdCaseNumber())
                                  .refundReference(refund.getReference())
-                                 .serviceMailBox(serviceMailBox)
-                                 .serviceUrl(serviceUrl)
+                                 .refundAmount(refund.getAmount())
+                                 .refundReason(refund.getReason())
                                  .build())
+            .serviceName(refund.getServiceType())
             .build();
+    }
+
+    public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(
+        Refund refund, TemplatePreview templatePreview) {
+
+        RefundNotificationEmailRequest request = getRefundNotificationEmailRequestApproveJourney(refund);
+
+        if (templatePreview != null) {
+            request.setTemplatePreview(TemplatePreview.templatePreviewWith()
+                                           .id(templatePreview.getId())
+                                           .subject(templatePreview.getSubject())
+                                           .templateType(templatePreview.getTemplateType())
+                                           .version(templatePreview.getVersion())
+                                           .body(templatePreview.getBody())
+                                           .html(templatePreview.getHtml())
+                                           .from(templatePreview.getFrom())
+                                           .build());
+        }
+        return request;
     }
 
     public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(Refund refund) {
@@ -68,10 +84,31 @@ public class RefundNotificationMapper {
             .personalisation(Personalisation.personalisationRequestWith()
                                  .ccdCaseNumber(refund.getCcdCaseNumber())
                                  .refundReference(refund.getReference())
-                                 .serviceMailBox(serviceMailBox)
-                                 .serviceUrl(serviceUrl)
+                                 .refundAmount(refund.getAmount())
+                                 .refundReason(refund.getReason())
                                  .build())
+            .serviceName(refund.getServiceType())
             .build();
+    }
+
+    public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(
+        Refund refund, TemplatePreview templatePreview) {
+
+        RefundNotificationLetterRequest request = getRefundNotificationLetterRequestApproveJourney(refund);
+
+        if (templatePreview != null) {
+            request.setTemplatePreview(TemplatePreview.templatePreviewWith()
+                                           .id(templatePreview.getId())
+                                           .subject(templatePreview.getSubject())
+                                           .templateType(templatePreview.getTemplateType())
+                                           .version(templatePreview.getVersion())
+                                           .body(templatePreview.getBody())
+                                           .html(templatePreview.getHtml())
+                                           .from(templatePreview.getFrom())
+                                           .build()
+            );
+        }
+        return request;
     }
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(Refund refund) {
@@ -89,9 +126,10 @@ public class RefundNotificationMapper {
             .personalisation(Personalisation.personalisationRequestWith()
                                  .ccdCaseNumber(refund.getCcdCaseNumber())
                                  .refundReference(refund.getReference())
-                                 .serviceMailBox(serviceMailBox)
-                                 .serviceUrl(serviceUrl)
+                                 .refundAmount(refund.getAmount())
+                                 .refundReason(refund.getReason())
                                  .build())
+            .serviceName(refund.getServiceType())
             .build();
     }
 

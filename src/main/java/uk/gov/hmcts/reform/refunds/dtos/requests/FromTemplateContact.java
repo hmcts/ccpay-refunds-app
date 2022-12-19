@@ -8,21 +8,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@Setter
-@Getter
+@Builder(builderMethodName = "buildFromTemplateContactWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "personalisationRequestWith")
-public class Personalisation {
+@Getter
+@Setter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class FromTemplateContact {
 
-    private String ccdCaseNumber;
-
-    private String refundReference;
-
-    private BigDecimal refundAmount;
-
-    private String  refundReason;
+    private String fromEmailAddress;
+    private MailAddress fromMailAddress;
 }

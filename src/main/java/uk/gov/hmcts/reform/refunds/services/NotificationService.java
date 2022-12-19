@@ -4,6 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
+import uk.gov.hmcts.reform.refunds.model.Refund;
 
 public interface NotificationService {
 
@@ -12,4 +14,10 @@ public interface NotificationService {
 
     ResponseEntity<String> postLetterNotificationData(MultiValueMap<String, String> headers,
                                                       RefundNotificationLetterRequest refundNotificationLetterRequest);
+
+    void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview);
+
+    void updateNotification(MultiValueMap<String, String> headers, Refund refund);
+
+    String getNotificationType(MultiValueMap<String, String> headers, String reference);
 }

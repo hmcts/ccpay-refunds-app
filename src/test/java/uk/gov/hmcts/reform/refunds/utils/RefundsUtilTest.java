@@ -37,6 +37,12 @@ class RefundsUtilTest {
     @Value("${notify.template.card-pba.email}")
     private String cardPbaEmailTemplateId;
 
+    @Value("${notify.template.refund-when-contacted.email}")
+    private String refundWhenContactedEmailTemplateId;
+
+    @Value("${notify.template.refund-when-contacted.letter}")
+    private String refundWhenContactedLetterTemplateId;
+
     private static final Refund REFUND = Refund.refundsWith()
             .id(1)
         .amount(BigDecimal.valueOf(100))
@@ -44,7 +50,6 @@ class RefundsUtilTest {
         .createdBy("AAAA")
         .reference("RF-1111-2222-3333-4444")
         .refundStatus(RefundStatus.SENTFORAPPROVAL)
-        .reason("RR001")
         .paymentReference("RC-1111-2234-1077-1123")
         .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
@@ -60,6 +65,13 @@ class RefundsUtilTest {
     private Refund getRefund(Refund refund, String instructionType, String notificationType) {
         refund.setRefundInstructionType(instructionType);
         refund.getContactDetails().setNotificationType(notificationType);
+        refund.setReason("RR001");
+        return refund;
+    }
+
+    private Refund getRefund(Refund refund, String instructionType, String notificationType, String reason) {
+        refund = getRefund(refund, instructionType, notificationType);
+        refund.setReason(reason);
         return refund;
     }
 
@@ -86,5 +98,19 @@ class RefundsUtilTest {
     void givenPbaLetter_whenGetTemplate_thenTemplateIdIsReceived() {
         String result = util.getTemplate(getRefund(REFUND,"SendRefund", LETTER.toString()));
         assertEquals(cardPbaLetterTemplateId, result);
+    }
+
+    @Test
+    void givenUnableToProcessRefundEmail_whenGetTemplate_thenTemplateIdIsReceived() {
+        String result = util.getTemplate(getRefund(REFUND,RefundsUtil.REFUND_WHEN_CONTACTED, EMAIL.toString(),
+                                                   RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON));
+        assertEquals(refundWhenContactedEmailTemplateId, result);
+    }
+
+    @Test
+    void givenUnableToProcessRefundLetter_whenGetTemplate_thenTemplateIdIsReceived() {
+        String result = util.getTemplate(getRefund(REFUND,RefundsUtil.REFUND_WHEN_CONTACTED, LETTER.toString(),
+                                                   RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON));
+        assertEquals(refundWhenContactedLetterTemplateId, result);
     }
 }
