@@ -59,6 +59,7 @@ public class RefundResponseMapper {
             .serviceType(refund.getServiceType())
             .feeIds(refund.getFeeIds())
             .refundFees(refundFeesDtoList)
+            .reasonCode(refund.getReason())
             .build();
     }
 
