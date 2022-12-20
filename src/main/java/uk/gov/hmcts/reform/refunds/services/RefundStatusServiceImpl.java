@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.exceptions.NotificationNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -34,6 +35,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private IdamService idamAuthService;
 
     private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
         return StatusHistory.statusHistoryWith()
@@ -73,6 +77,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
 
 
+                    /*
                     String authorization =  "Bearer eyJ0eXAiOiJKV1QiLCJraWQiOiIxZXIwV1J3Z0lPVEFGb2pFNHJDL2ZiZUt1M0k9Ii"
                         + "wiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJhcHByb3ZlcmFhdHRlc3QxQG1haWxuZXNpYS5jb20iLCJjdHMiOiJPQVVUSDJfU"
                         + "1RBVEVMRVNTX0dSQU5UIiwiYXV0aF9sZXZlbCI6MCwiYXVkaXRUcmFja2luZ0lkIjoiZTQwMmMxOGYtMDM1Yi00NjI4LTg"
@@ -87,6 +92,11 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                         + "GsvuIx9y4szwMfSLr8l4lZYcbdInn6y5IFiUoVRU9m8h0YaiI6bYGkgIbyiFHFpihM54-fqX1Rf2GFBw1Q9iJrzQUb4DJY"
                         + "NI_AmrpH8Oh4JkwVwuhvjdUbGVG8c99lHFiJnWWfvh_J_wZrDyvhN6OFI4_RiHzDHXPdZ2U7DOQzoasocq8p_SHAn0v"
                         + "5rlrShFYYXouh-zr1wlQf_lGJCR2EJcJ1n7ez4FDjaGnBgMFaA";
+                      */
+                    IdamTokenResponse idamTokenResponse = idamAuthService.getSecurityTokens();
+                    LOG.info("idamTokenResponse {}", idamTokenResponse.getAccessToken());
+                    String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
+
                     headers.put("authorization", Collections.singletonList(authorization));
                     LOG.info("idamTokenResponse headers {}", headers);
 
