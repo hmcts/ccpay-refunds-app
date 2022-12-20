@@ -68,11 +68,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     RefundStatus.REJECTED,
                     statusUpdateRequest.getReason())
                 ));
+
+                String previousReason = refund.getReason();
                 refund.setReason(statusUpdateRequest.getReason());
 
                 if (null != statusUpdateRequest.getReason()
                     && statusUpdateRequest.getReason().equalsIgnoreCase(
                         RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
+
                     refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
 
                     IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
@@ -83,12 +86,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     LOG.info(" Refund Status Service Impl Notifition type {}", notificationType);
                     if (notificationType == null) {
                         LOG.error("Notification not found");
+                    } else {
+                        ContactDetails newContact = ContactDetails.contactDetailsWith()
+                            .notificationType(notificationType)
+                            .build();
+                        refund.setContactDetails(newContact);
+                        notificationService.updateNotification(headers,refund);
                     }
-                    ContactDetails newContact = ContactDetails.contactDetailsWith()
-                        .notificationType(notificationType)
-                        .build();
-                    refund.setContactDetails(newContact);
-                    notificationService.updateNotification(headers,refund);
+                    refund.setReason(previousReason);
                 }
             }
             refund.setUpdatedBy(LIBERATA_NAME);
