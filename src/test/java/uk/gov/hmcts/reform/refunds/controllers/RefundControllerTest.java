@@ -55,6 +55,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
@@ -360,6 +361,15 @@ class RefundControllerTest {
             .build();
     }
 
+    private final IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith()
+        .refreshToken("refresh-token")
+        .idToken("id-token")
+        .accessToken("access-token")
+        .expiresIn("10")
+        .scope("openid profile roles")
+        .tokenType("type")
+        .build();
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -378,7 +388,8 @@ class RefundControllerTest {
     private ContextStartListener contextStartListener;
 
     @Mock
-    private IdamServiceImpl idamService;
+    private IdamServiceImpl idamServiceImpl;
+
     @InjectMocks
     private RefundsController refundsController;
     @Mock
@@ -1790,6 +1801,61 @@ class RefundControllerTest {
 
         assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
     }
+
+    @Test
+    void updateRefundStatusRejectedWithReasonRefundWhenContacted() throws Exception {
+
+        refund.setRefundStatus(RefundStatus.APPROVED);
+        refund.setContactDetails(ContactDetails.contactDetailsWith()
+                                   .email("abc@abc.com")
+                                   .notificationType("EMAIL")
+                                   .build());
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Ok", HttpStatus.OK));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        when(restTemplateIdam.exchange(anyString(),
+                                       Mockito.any(HttpMethod.class),
+                                       Mockito.any(HttpEntity.class), eq(IdamTokenResponse.class)))
+            .thenReturn(new ResponseEntity<>(idamTokenResponse, HttpStatus.OK));
+
+        when(restTemplateNotify.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            NotificationsDtoResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getNotificationDtoResponse())));
+
+        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
+            RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON,
+            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED
+        );
+
+        MvcResult result = mockMvc.perform(patch(
+                "/refund/{reference}",
+                "RF-1234-1234-1234-1234"
+            )
+               .content(asJsonString(refundStatusUpdateRequest))
+               .header("Authorization", "user")
+               .header("ServiceAuthorization", "Services")
+               .contentType(MediaType.APPLICATION_JSON)
+               .accept(MediaType.APPLICATION_JSON))
+               .andExpect(status().isNoContent())
+               .andReturn();
+
+        assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
+        assertEquals(RefundStatus.REJECTED, refund.getRefundStatus());
+        assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
+    }
+
 
     @Test
     void updateRefundStatusRejectedWithOutReason() throws Exception {
