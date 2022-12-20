@@ -87,7 +87,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                         + "GsvuIx9y4szwMfSLr8l4lZYcbdInn6y5IFiUoVRU9m8h0YaiI6bYGkgIbyiFHFpihM54-fqX1Rf2GFBw1Q9iJrzQUb4DJY"
                         + "NI_AmrpH8Oh4JkwVwuhvjdUbGVG8c99lHFiJnWWfvh_J_wZrDyvhN6OFI4_RiHzDHXPdZ2U7DOQzoasocq8p_SHAn0v"
                         + "5rlrShFYYXouh-zr1wlQf_lGJCR2EJcJ1n7ez4FDjaGnBgMFaA";
-                    headers.put("Authorization", Collections.singletonList(authorization));
+                    headers.put("authorization", Collections.singletonList(authorization));
                     LOG.info("idamTokenResponse headers {}", headers);
 
                     String notificationType = notificationService.getNotificationType(headers, refund.getReference());
