@@ -206,10 +206,6 @@ public class NotificationServiceImpl implements NotificationService {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                 new StringBuilder(notificationUrl).append("/notifications/").append(reference)
                     .toString());
-            log.info("Get Notification URI {}", builder.toUriString());
-
-            log.info("restTemplateNotify {} ", restTemplateNotify.toString());
-            log.info("getFormatedHeaders(headers) {} ", getFormatedHeaders(headers));
 
             ResponseEntity<NotificationsDtoResponse> responseNotification = restTemplateNotify
                 .exchange(
@@ -217,10 +213,7 @@ public class NotificationServiceImpl implements NotificationService {
                     HttpMethod.GET,
                     new HttpEntity<>(getFormatedHeaders(headers)), NotificationsDtoResponse.class);
 
-            log.info("Notification get api response {}",responseNotification.toString());
-
             if (responseNotification != null) {
-                log.info("responseNotification.getBody(): {}", responseNotification.getBody());
 
                 NotificationsDtoResponse notificationsDtoResponse = responseNotification.getBody();
                 /*
@@ -232,7 +225,6 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (HttpClientErrorException exception) {
             log.error("Last exception e {}", exception.getMessage());
             log.error("Last exception {}", exception);
-            handleHttpClientErrorException(exception);
         } catch (HttpServerErrorException exception) {
             log.error("Exception message {}",exception.getMessage());
             log.error("Notification service is unavailable. Please try again later. {}", exception);
