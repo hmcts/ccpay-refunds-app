@@ -83,7 +83,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     String notificationType = notificationService.getNotificationType(headers, refund.getReference());
                     LOG.info(" Refund Status Service Impl Notifition type {}", notificationType);
                     if (notificationType == null) {
-                        throw new NotificationNotFoundException("Notification not found");
+                        LOG.error("Notification not found");
                     }
                     ContactDetails newContact = ContactDetails.contactDetailsWith()
                         .notificationType(notificationType)
@@ -98,5 +98,4 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         }
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
     }
-
 }
