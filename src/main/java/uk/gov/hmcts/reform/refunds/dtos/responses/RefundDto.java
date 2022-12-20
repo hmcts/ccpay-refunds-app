@@ -54,5 +54,6 @@ public class RefundDto {
 
     private List<RefundFeeDto> refundFees;
 
+    private String reasonCode;
 
 }
