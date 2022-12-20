@@ -1947,7 +1947,7 @@ public class RefundsApproverJourneyFunctionalTest {
         // verify that contact details is erased
         RefundDto refundDto = getRejectRefundDto(refundReference, "Rejected");
         assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
-        assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON, refundDto.getReason());
+        assertEquals("Amended claim", refundDto.getReason());
 
         deletePaymentAndRefund(paymentReference, refundReference);
     }
