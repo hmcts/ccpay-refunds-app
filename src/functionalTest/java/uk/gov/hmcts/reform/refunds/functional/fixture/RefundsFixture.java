@@ -98,9 +98,41 @@ public final class RefundsFixture {
                                                            .county("Londonshire")
                                                            .city("London")
                                                            .postalCode("P1 1PO")
-                                                           .email("ranjeet.kumar@HMCTS.NET")
+                                                           .email("test@HMCTS.NET")
                                                            .notificationType("EMAIL")
                                                            .build())
+            .build();
+
+    }
+
+    public static PaymentRefundRequest refundRequestWithLetter(final String refundReason,
+                                                     final String paymentReference, final String refundAmount, final String feeAmount) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .isOverPayment(false)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .refundAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(0)
+                    .version("1")
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal("10"))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 112")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("HA5 3XT")
+                                .email("ranjeet.kumar@HMCTS.NET")
+                                .notificationType("LETTER")
+                                .build())
             .build();
 
     }
@@ -140,7 +172,7 @@ public final class RefundsFixture {
                                 .county("Londonshire")
                                 .city("London")
                                 .postalCode("P1 1PO")
-                                .email("ranjeet.kumar@HMCTS.NET")
+                                .email("test@HMCTS.NET")
                                 .notificationType("EMAIL")
                                 .build())
             .build();
@@ -164,7 +196,7 @@ public final class RefundsFixture {
                                 .country("UK")
                                 .county("Londonshire")
                                 .city("London")
-                                .postalCode("P1 1PO")
+                                .postalCode("HA5 3XT")
                                 .email("testperson@somemail.com")
                                 .notificationType("EMAIL")
                                 .build())
@@ -191,7 +223,7 @@ public final class RefundsFixture {
                                 .country("UK")
                                 .county("Londonshire")
                                 .city("London")
-                                .postalCode("P1 1PO")
+                                .postalCode("HA5 3XT")
                                 .email("testperson@somemail.com")
                                 .notificationType("EMAIL")
                                 .build())

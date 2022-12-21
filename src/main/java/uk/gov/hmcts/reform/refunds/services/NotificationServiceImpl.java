@@ -18,18 +18,36 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
+import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
+import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
+import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL;
+import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
+
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
     @Autowired
     private RestTemplate restTemplateNotify;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private RefundNotificationMapper refundNotificationMapper;
+
+    @Autowired
+    RefundsUtil refundsUtil;
 
     @Value("${notification.url}")
     private String notificationUrl;
@@ -41,6 +59,8 @@ public class NotificationServiceImpl implements NotificationService {
     private String letterUrlPath;
 
     public static final String CONTENT_TYPE = "content-type";
+
+    private static final String NOTIFICATION_NOT_SENT = "Notification not sent";
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
@@ -114,4 +134,113 @@ public class NotificationServiceImpl implements NotificationService {
         }
         throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
     }
+
+    @Override
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund) {
+        updateNotification(headers, refund, null);
+    }
+
+    @Override
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+
+        ResponseEntity<String>  responseEntity =  sendNotification(headers, refund, templatePreview);
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            refund.setNotificationSentFlag("SENT");
+            refund.setContactDetails(null);
+        } else if (responseEntity.getStatusCode().is5xxServerError()) {
+            if (refund.getContactDetails().getNotificationType().equals(EMAIL.name())) {
+                refund.setNotificationSentFlag("EMAIL_NOT_SENT");
+                log.error(NOTIFICATION_NOT_SENT);
+            } else {
+                refund.setNotificationSentFlag("LETTER_NOT_SENT");
+                log.error(NOTIFICATION_NOT_SENT);
+            }
+        } else {
+            refund.setNotificationSentFlag("ERROR");
+            log.error(NOTIFICATION_NOT_SENT);
+        }
+    }
+
+    private ResponseEntity<String> sendNotification(
+        MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+
+        ResponseEntity<String> responseEntity;
+
+        if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+            ContactDetails newContact = ContactDetails.contactDetailsWith()
+                .email(refund.getContactDetails().getEmail())
+                .templateId(refundsUtil.getTemplate(refund))
+                .notificationType(EMAIL.name())
+                .build();
+            refund.setContactDetails(newContact);
+            refund.setNotificationSentFlag("email_not_sent");
+            RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
+                .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview);
+            log.info("send notification  -> " + refundNotificationEmailRequest);
+            responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
+        } else {
+            ContactDetails newContact = ContactDetails.contactDetailsWith()
+                .templateId(refundsUtil.getTemplate(refund))
+                .addressLine(refund.getContactDetails().getAddressLine())
+                .county(refund.getContactDetails().getCounty())
+                .postalCode(refund.getContactDetails().getPostalCode())
+                .city(refund.getContactDetails().getCity())
+                .country(refund.getContactDetails().getCountry())
+                .notificationType(LETTER.name())
+                .build();
+            refund.setContactDetails(newContact);
+            refund.setNotificationSentFlag("letter_not_sent");
+            RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
+                .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview);
+            responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
+
+        }
+        return responseEntity;
+    }
+
+    @Override
+    public String getNotificationType(MultiValueMap<String, String> headers, String reference) {
+        String notificationType = null;
+
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
+                new StringBuilder(notificationUrl).append("/notifications/").append(reference)
+                    .toString());
+            log.info("Get Notification URI {}", builder.toUriString());
+
+            log.info("restTemplateNotify {} ", restTemplateNotify.toString());
+            log.info("getFormatedHeaders(headers) {} ", getFormatedHeaders(headers));
+
+            ResponseEntity<NotificationsDtoResponse> responseNotification = restTemplateNotify
+                .exchange(
+                    builder.toUriString(),
+                    HttpMethod.GET,
+                    new HttpEntity<>(getFormatedHeaders(headers)), NotificationsDtoResponse.class);
+
+            log.info("Notification get api response {}",responseNotification.toString());
+
+            if (responseNotification != null) {
+                log.info("responseNotification.getBody(): {}", responseNotification.getBody());
+
+                NotificationsDtoResponse notificationsDtoResponse = responseNotification.getBody();
+                /*
+                    Getting last notification type which was used while approval or send last notification.
+                */
+                notificationType = notificationsDtoResponse.getNotifications().get(0).getNotificationType();
+            }
+
+        } catch (HttpClientErrorException exception) {
+            log.error("Last exception e {}", exception.getMessage());
+            log.error("Last exception {}", exception);
+            handleHttpClientErrorException(exception);
+        } catch (HttpServerErrorException exception) {
+            log.error("Exception message {}",exception.getMessage());
+            log.error("Notification service is unavailable. Please try again later. {}", exception);
+        } catch (Exception e) {
+            log.error("Last exception e {}", e.getMessage());
+            log.error("Last exception {}", e);
+        }
+        return notificationType;
+    }
+
 }

@@ -35,14 +35,28 @@ public class RefundsUtil {
     @Value("${notify.template.card-pba.email}")
     private String cardPbaEmailTemplateId;
 
-    private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
+    @Value("${notify.template.refund-when-contacted.email}")
+    private String refundWhenContactedEmailTemplateId;
+
+    @Value("${notify.template.refund-when-contacted.letter}")
+    private String refundWhenContactedLetterTemplateId;
+
+    public static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
+
+    public static final String REFUND_WHEN_CONTACTED_REJECT_REASON = "Unable to apply refund to Card";
 
     public String getTemplate(Refund refund) {
         String templateId = null;
         if (null != refund.getRefundInstructionType()) {
 
             if (REFUND_WHEN_CONTACTED.equals(refund.getRefundInstructionType())) {
-                if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+                if (REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(refund.getReason())) {
+                    if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+                        templateId = refundWhenContactedEmailTemplateId;
+                    } else {
+                        templateId = refundWhenContactedLetterTemplateId;
+                    }
+                } else if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
                     templateId = chequePoCashEmailTemplateId;
                 } else {
                     templateId = chequePoCashLetterTemplateId;

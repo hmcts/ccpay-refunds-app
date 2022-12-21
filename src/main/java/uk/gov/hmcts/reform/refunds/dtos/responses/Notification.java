@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.dtos.requests;
+package uk.gov.hmcts.reform.refunds.dtos.responses;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -7,22 +7,24 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-import java.math.BigDecimal;
+import java.util.Date;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@Setter
-@Getter
+@Builder(builderMethodName = "notificationWith")
 @AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Builder(builderMethodName = "personalisationRequestWith")
-public class Personalisation {
+@ToString
+public class Notification {
 
-    private String ccdCaseNumber;
+    private String reference;
 
-    private String refundReference;
+    private String notificationType;
 
-    private BigDecimal refundAmount;
+    private Date dateCreated;
 
-    private String  refundReason;
+    private Date dateUpdated;
 }
