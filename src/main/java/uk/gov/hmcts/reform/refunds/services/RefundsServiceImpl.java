@@ -615,17 +615,20 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private void validateRefundAmount(RefundRequest refundRequest) {
-
+        BigDecimal totalRefundedAmount;
+        BigDecimal refundEligibleAmount;
         if (refundRequest.getRefundAmount().compareTo(refundRequest.getPaymentAmount()) > 0) {
-            throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
+            throw new InvalidRefundRequestException("The amount to refund can not be more than" + " " + "£" + refundRequest.getPaymentAmount());
         }
 
-        BigDecimal refundAmount = getTotalRefundedAmountIssueRefund(refundRequest.getPaymentReference(), refundRequest.getRefundAmount());
+        BigDecimal refundAmount = getTotalRefundedAmountIssueRefund(refundRequest.getPaymentReference());
 
-        int amountCompare = refundAmount.compareTo(refundRequest.getPaymentAmount());
+        refundEligibleAmount = refundRequest.getPaymentAmount().subtract(refundAmount);
+        totalRefundedAmount = refundAmount.add(refundRequest.getRefundAmount());
+        int amountCompare = totalRefundedAmount.compareTo(refundRequest.getPaymentAmount());
 
         if (amountCompare == amountCompareValue) {
-            throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
+            throw new InvalidRefundRequestException("The amount to refund can not be more than" + " " + "£" + refundEligibleAmount);
         }
     }
 
@@ -646,7 +649,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return totalRefundedAmount;
     }
 
-    private BigDecimal getTotalRefundedAmountIssueRefund(String paymentReference, BigDecimal refundAmount) {
+    private BigDecimal getTotalRefundedAmountIssueRefund(String paymentReference) {
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(paymentReference);
         BigDecimal totalRefundedAmount = BigDecimal.ZERO;
 
@@ -658,7 +661,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             for (Refund ref : refundsListStatus) {
                 totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
             }
-            totalRefundedAmount = refundAmount.add(totalRefundedAmount);
         }
         return totalRefundedAmount;
     }
