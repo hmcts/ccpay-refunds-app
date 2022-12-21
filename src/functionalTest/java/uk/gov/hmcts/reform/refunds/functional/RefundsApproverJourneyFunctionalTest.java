@@ -2074,6 +2074,7 @@ public class RefundsApproverJourneyFunctionalTest {
         paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                         refundReference);
     }
+
     @Test
     public void negative_bad_request_400_when_refund_amount_more_than_payment_amount() {
 
