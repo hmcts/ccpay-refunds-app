@@ -55,6 +55,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
@@ -360,6 +361,15 @@ class RefundControllerTest {
             .build();
     }
 
+    private final IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith()
+        .refreshToken("refresh-token")
+        .idToken("id-token")
+        .accessToken("access-token")
+        .expiresIn("10")
+        .scope("openid profile roles")
+        .tokenType("type")
+        .build();
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -378,7 +388,8 @@ class RefundControllerTest {
     private ContextStartListener contextStartListener;
 
     @Mock
-    private IdamServiceImpl idamService;
+    private IdamServiceImpl idamServiceImpl;
+
     @InjectMocks
     private RefundsController refundsController;
     @Mock
@@ -1813,6 +1824,11 @@ class RefundControllerTest {
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
+
+        when(restTemplateIdam.exchange(anyString(),
+                                       Mockito.any(HttpMethod.class),
+                                       Mockito.any(HttpEntity.class), eq(IdamTokenResponse.class)))
+            .thenReturn(new ResponseEntity<>(idamTokenResponse, HttpStatus.OK));
 
         when(restTemplateNotify.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
             NotificationsDtoResponse.class))).thenReturn(ResponseEntity.of(
