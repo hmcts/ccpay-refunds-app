@@ -462,14 +462,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String validateRefundReason(String reason) {
-
+        LOG.info("Refund reason {}", reason);
         if (reason == null || reason.isBlank()) {
             throw new InvalidRefundRequestException("Refund reason is required");
         }
         boolean matcher = REASONPATTERN.matcher(reason).find();
+        LOG.info("Refund reason matcher {}", matcher);
         if (matcher) {
             String reasonCode = reason.split("-")[0];
+            LOG.info("reasonCode in If loop {}",reasonCode);
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
+            LOG.info("reasonName If loop {}",refundReason.getName());
+            LOG.info("reasonCode If loop {}",refundReason.getCode());
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
                 return refundReason.getName().split(OTHERREASONPATTERN)[1] + "-" + reason.substring(reasonPrefixLength);
             } else {
@@ -478,6 +482,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reason);
+            LOG.info("reasonName Else loop {}",refundReason.getName());
+            LOG.info("reasonCode Else loop {}",refundReason.getCode());
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
                 throw new InvalidRefundRequestException("reason required");
             }
