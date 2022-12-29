@@ -574,6 +574,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 if (refundReason.getCode().equalsIgnoreCase(rawReason)) {
                     LOG.info("refundReason name in getRefundsReason >> {}", refundReason.getName());
                     refundReasonOptional.add(refundReason);
+                    break;
                 }
             }
             if (refundReasonOptional.isEmpty()) {

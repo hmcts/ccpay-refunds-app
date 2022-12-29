@@ -50,17 +50,18 @@ public class RefundResponseMapper {
                                          .map(refundFeeMapper::toRefundFeeDto)
                                          .collect(Collectors.toList()));
         }
-        LOG.info("Refund reason in getRefundListDto {}",reason);
-        String refundCode = "";
+        LOG.info("reason in getRefundListDto {}",reason);
+        LOG.info("Refund reason in getRefundListDto {}",refund.getReason());
+        String refundReasonCode = "";
         String reasonName = reason;
-        if (reason.length() > REASON_PREFIX_LENGTH) {
-            refundCode = reason.substring(REASON_CODE_START, REASON_PREFIX_LENGTH);
+        if (refund.getReason().startsWith("RR") && refund.getReason().length() > REASON_PREFIX_LENGTH) {
+            refundReasonCode = reason.substring(REASON_CODE_START, REASON_PREFIX_LENGTH);
             reasonName = reason.substring(REASON_CODE_END);
         } else {
-            refundCode = refund.getReason();
+            refundReasonCode = refund.getReason();
         }
-        LOG.info("Final Refund reason {}",reason);
-        LOG.info("Final Refund code {}",refundCode);
+        LOG.info("Final Refund reason {}",reasonName);
+        LOG.info("Final Refund code {}",refundReasonCode);
         return RefundDto
             .buildRefundListDtoWith()
             .ccdCaseNumber(refund.getCcdCaseNumber())
@@ -77,7 +78,7 @@ public class RefundResponseMapper {
             .serviceType(refund.getServiceType())
             .feeIds(refund.getFeeIds())
             .refundFees(refundFeesDtoList)
-            .reasonCode(refundCode)
+            .reasonCode(refundReasonCode)
             .build();
     }
 
