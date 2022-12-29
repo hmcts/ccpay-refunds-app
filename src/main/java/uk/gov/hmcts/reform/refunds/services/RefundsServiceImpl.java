@@ -463,6 +463,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String validateRefundReason(String reason) {
+        final int reasonNameLength = 8;
         LOG.info("Refund reason {}", reason);
         if (reason == null || reason.isBlank()) {
             throw new InvalidRefundRequestException("Refund reason is required");
@@ -475,9 +476,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
             LOG.info("reasonName If loop {}",refundReason.getName());
             LOG.info("reasonCode If loop {}",refundReason.getCode());
+            LOG.info("Final REASON >> {}",refundReason.getCode() + "-"
+                + refundReason.getName().substring(reasonNameLength) + "-"
+                + reason.substring(reasonPrefixLength));
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
                 return refundReason.getCode() + "-"
-                    + refundReason.getName() + "-"
+                    + refundReason.getName().substring(reasonNameLength) + "-"
                     + reason.substring(reasonPrefixLength);
             } else {
                 throw new InvalidRefundRequestException("Invalid reason selected");
