@@ -576,11 +576,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     refundReasonOptional.add(refundReason);
                 }
             }
-            if (!refundReasonOptional.isEmpty()) {
+            if (refundReasonOptional.isEmpty()) {
+                return rawReason;
+            } else {
                 LOG.info("Refund Name {}", refundReasonOptional.get(0).getName());
                 return refundReasonOptional.get(0).getName();
-            } else {
-                return rawReason;
             }
         }
         LOG.info("Raw Reason being returned {}", rawReason);
