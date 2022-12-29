@@ -183,7 +183,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundAmount(refundRequest);
-        refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
+        String reason =  validateRefundReason(refundRequest.getRefundReason());
+        LOG.info("Refund reason before saving Refund >>>   {}", reason);
+        refundRequest.setRefundReason(reason);
         String instructionType = null;
 
         if (refundRequest.getPaymentMethod() != null) {
@@ -384,7 +386,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             // Refund Reason Validation
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
                 validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
-
+            LOG.info("Refund Reason in resubmitRefund {}",refundReason);
             refund.setAmount(request.getAmount());
 
             if (!(refund.getReason().equals(RETROSPECTIVE_REMISSION_REASON)) && !(RETROSPECTIVE_REMISSION_REASON.equals(refundReason))) {
@@ -475,7 +477,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             LOG.info("reasonName If loop {}",refundReason.getName());
             LOG.info("reasonCode If loop {}",refundReason.getCode());
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
-                return refundReason.getName().split(OTHERREASONPATTERN)[1] + "-" + reason.substring(reasonPrefixLength);
+                return refundReason.getCode() + "-" +
+                    refundReason.getName() + "-" +
+                    reason.substring(reasonPrefixLength);
             } else {
                 throw new InvalidRefundRequestException("Invalid reason selected");
             }
@@ -563,18 +567,25 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
+        LOG.info("rawReason in getRefundsReason >> {}", rawReason);
         if (null != rawReason && rawReason.startsWith("RR")) {
             List<RefundReason> refundReasonOptional = new ArrayList<>();
             for (RefundReason refundReason : refundReasonList) {
+                LOG.info("refundReason code in getRefundsReason >> {}", refundReason.getCode());
                 if (refundReason.getCode().equalsIgnoreCase(rawReason)) {
+                    LOG.info("refundReason name in getRefundsReason >> {}", refundReason.getName());
                     refundReasonOptional.add(refundReason);
                 }
             }
             if (!refundReasonOptional.isEmpty()) {
+                LOG.info("Refund Name {}", refundReasonOptional.get(0).getName());
                 return refundReasonOptional.get(0).getName();
             }
-            throw new RefundReasonNotFoundException(rawReason);
+            else {
+                return rawReason;
+            }
         }
+        LOG.info("Raw Reason being returned {}", rawReason);
         return rawReason;
     }
 

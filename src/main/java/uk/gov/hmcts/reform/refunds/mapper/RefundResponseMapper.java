@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.refunds.mapper;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.collections.impl.collector.Collectors2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundFees;
+import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -27,8 +30,13 @@ import java.util.stream.Collectors;
 @Component
 public class RefundResponseMapper {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RefundResponseMapper.class);
     @Autowired
     private RefundFeeMapper refundFeeMapper;
+
+    private static int reasonCodeStart = 0;
+    private static int reasonPrefixLength = 5;
+    private static int reasonCodeEnd = 6;
 
     // To enable unit testing
     public void setRefundFeeMapper(RefundFeeMapper refundFeeMapper) {
@@ -42,7 +50,17 @@ public class RefundResponseMapper {
                                          .map(refundFeeMapper::toRefundFeeDto)
                                          .collect(Collectors.toList()));
         }
-
+        LOG.info("Refund reason in getRefundListDto {}",reason);
+        String refundCode = "";
+        if(reason.length() > reasonPrefixLength) {
+            refundCode = reason.substring(reasonCodeStart, reasonPrefixLength);
+            reason = reason.substring(reasonCodeEnd);
+        }
+        else {
+            refundCode = refund.getReason();
+        }
+        LOG.info("Final Refund reason {}",reason);
+        LOG.info("Final Refund code {}",refundCode);
         return RefundDto
             .buildRefundListDtoWith()
             .ccdCaseNumber(refund.getCcdCaseNumber())
@@ -59,7 +77,7 @@ public class RefundResponseMapper {
             .serviceType(refund.getServiceType())
             .feeIds(refund.getFeeIds())
             .refundFees(refundFeesDtoList)
-            .reasonCode(refund.getReason())
+            .reasonCode(refundCode)
             .build();
     }
 
