@@ -41,7 +41,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
@@ -477,9 +476,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             LOG.info("reasonName If loop {}",refundReason.getName());
             LOG.info("reasonCode If loop {}",refundReason.getCode());
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
-                return refundReason.getCode() + "-" +
-                    refundReason.getName() + "-" +
-                    reason.substring(reasonPrefixLength);
+                return refundReason.getCode() + "-"
+                    + refundReason.getName() + "-"
+                    + reason.substring(reasonPrefixLength);
             } else {
                 throw new InvalidRefundRequestException("Invalid reason selected");
             }
@@ -580,8 +579,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             if (!refundReasonOptional.isEmpty()) {
                 LOG.info("Refund Name {}", refundReasonOptional.get(0).getName());
                 return refundReasonOptional.get(0).getName();
-            }
-            else {
+            } else {
                 return rawReason;
             }
         }

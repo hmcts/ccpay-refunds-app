@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundFees;
-import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -52,11 +51,10 @@ public class RefundResponseMapper {
         }
         LOG.info("Refund reason in getRefundListDto {}",reason);
         String refundCode = "";
-        if(reason.length() > reasonPrefixLength) {
+        if (reason.length() > reasonPrefixLength) {
             refundCode = reason.substring(reasonCodeStart, reasonPrefixLength);
             reason = reason.substring(reasonCodeEnd);
-        }
-        else {
+        } else {
             refundCode = refund.getReason();
         }
         LOG.info("Final Refund reason {}",reason);
