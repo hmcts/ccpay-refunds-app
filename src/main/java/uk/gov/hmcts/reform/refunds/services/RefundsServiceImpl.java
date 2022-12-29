@@ -183,7 +183,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundAmount(refundRequest);
         String reason =  validateRefundReason(refundRequest.getRefundReason());
-        LOG.info("Refund reason before saving Refund >>>   {}", reason);
         refundRequest.setRefundReason(reason);
         String instructionType = null;
 
@@ -464,21 +463,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private String validateRefundReason(String reason) {
         final int reasonNameLength = 8;
-        LOG.info("Refund reason {}", reason);
         if (reason == null || reason.isBlank()) {
             throw new InvalidRefundRequestException("Refund reason is required");
         }
         boolean matcher = REASONPATTERN.matcher(reason).find();
-        LOG.info("Refund reason matcher {}", matcher);
         if (matcher) {
             String reasonCode = reason.split("-")[0];
-            LOG.info("reasonCode in If loop {}",reasonCode);
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
-            LOG.info("reasonName If loop {}",refundReason.getName());
-            LOG.info("reasonCode If loop {}",refundReason.getCode());
-            LOG.info("Final REASON >> {}",refundReason.getCode() + "-"
-                + refundReason.getName().substring(reasonNameLength) + "-"
-                + reason.substring(reasonPrefixLength));
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
                 return refundReason.getCode() + "-"
                     + refundReason.getName().substring(reasonNameLength) + "-"
@@ -489,8 +480,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         } else {
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reason);
-            LOG.info("reasonName Else loop {}",refundReason.getName());
-            LOG.info("reasonCode Else loop {}",refundReason.getCode());
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
                 throw new InvalidRefundRequestException("reason required");
             }
@@ -570,13 +559,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String getRefundReason(String rawReason, List<RefundReason> refundReasonList) {
-        LOG.info("rawReason in getRefundsReason >> {}", rawReason);
         if (null != rawReason && rawReason.startsWith("RR")) {
             List<RefundReason> refundReasonOptional = new ArrayList<>();
             for (RefundReason refundReason : refundReasonList) {
-                LOG.info("refundReason code in getRefundsReason >> {}", refundReason.getCode());
                 if (refundReason.getCode().equalsIgnoreCase(rawReason)) {
-                    LOG.info("refundReason name in getRefundsReason >> {}", refundReason.getName());
                     refundReasonOptional.add(refundReason);
                     break;
                 }
@@ -584,11 +570,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             if (refundReasonOptional.isEmpty()) {
                 return rawReason;
             } else {
-                LOG.info("Refund Name {}", refundReasonOptional.get(0).getName());
                 return refundReasonOptional.get(0).getName();
             }
         }
-        LOG.info("Raw Reason being returned {}", rawReason);
         return rawReason;
     }
 

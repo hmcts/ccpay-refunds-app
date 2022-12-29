@@ -50,8 +50,7 @@ public class RefundResponseMapper {
                                          .map(refundFeeMapper::toRefundFeeDto)
                                          .collect(Collectors.toList()));
         }
-        LOG.info("reason in getRefundListDto {}",reason);
-        LOG.info("Refund reason in getRefundListDto {}",refund.getReason());
+
         String refundReasonCode = "";
         String reasonName = reason;
         if (refund.getReason().startsWith("RR") && refund.getReason().length() > REASON_PREFIX_LENGTH) {
@@ -60,8 +59,7 @@ public class RefundResponseMapper {
         } else {
             refundReasonCode = refund.getReason();
         }
-        LOG.info("Final Refund reason {}",reasonName);
-        LOG.info("Final Refund code {}",refundReasonCode);
+
         return RefundDto
             .buildRefundListDtoWith()
             .ccdCaseNumber(refund.getCcdCaseNumber())
