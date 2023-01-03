@@ -165,35 +165,29 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private ResponseEntity<String> sendNotification(
-        MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview, String templateId) {
+        MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview, String notificationTemplateId) {
 
         ResponseEntity<String> responseEntity;
 
-        // create new string variable for avoid PWD violation
-        String notificationTemplateId = templateId;
+        String templateId = StringUtils.isEmpty(notificationTemplateId) ? refundsUtil.getTemplate(refund) : notificationTemplateId;
 
-        if (StringUtils.isEmpty(templateId)) {
-            log.info("Send notification template id if {}", notificationTemplateId);
-            notificationTemplateId = refundsUtil.getTemplate(refund);
-        }
-
-        log.info("Send notification template id final {}", notificationTemplateId);
+        log.info("Send notification template id final {}", templateId);
 
         if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .email(refund.getContactDetails().getEmail())
-                .templateId(notificationTemplateId)
+                .templateId(templateId)
                 .notificationType(EMAIL.name())
                 .build();
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag("email_not_sent");
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
-                .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview);
+                .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview, templateId);
             log.info("send notification  -> " + refundNotificationEmailRequest);
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(notificationTemplateId)
+                .templateId(templateId)
                 .addressLine(refund.getContactDetails().getAddressLine())
                 .county(refund.getContactDetails().getCounty())
                 .postalCode(refund.getContactDetails().getPostalCode())
@@ -204,7 +198,7 @@ public class NotificationServiceImpl implements NotificationService {
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag("letter_not_sent");
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
-                .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview);
+                .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview, templateId);
             responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }

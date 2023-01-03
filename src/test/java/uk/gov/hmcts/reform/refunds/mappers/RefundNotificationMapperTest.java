@@ -138,7 +138,7 @@ class RefundNotificationMapperTest {
             .build();
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
-            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, templatePreview);
+            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, templatePreview, "Template-1");
 
         assertNotNull(refundNotificationEmailRequest);
         assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
@@ -158,7 +158,7 @@ class RefundNotificationMapperTest {
 
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
-            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, null);
+            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, null, null);
 
         assertNotNull(refundNotificationEmailRequest);
         assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
@@ -206,7 +206,7 @@ class RefundNotificationMapperTest {
             .build();
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
-            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, templatePreview);
+            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, templatePreview, null);
 
         assertNotNull(refundNotificationLetterRequest);
         assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());
@@ -225,7 +225,7 @@ class RefundNotificationMapperTest {
     void tesGetRefundNotificationLetterRequestApproveJourneyWithTemplatePreviewIsNull() {
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
-            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, null);
+            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, null, null);
 
         assertNotNull(refundNotificationLetterRequest);
         assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());

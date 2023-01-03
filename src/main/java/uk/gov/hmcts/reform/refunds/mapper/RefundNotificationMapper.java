@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.mapper;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -56,9 +57,13 @@ public class RefundNotificationMapper {
     }
 
     public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(
-        Refund refund, TemplatePreview templatePreview) {
+        Refund refund, TemplatePreview templatePreview, String templateId) {
 
         RefundNotificationEmailRequest request = getRefundNotificationEmailRequestApproveJourney(refund);
+
+        if (!StringUtils.isEmpty(templateId)) {
+            request.setTemplateId(templateId);
+        }
 
         if (templatePreview != null) {
             request.setTemplatePreview(TemplatePreview.templatePreviewWith()
@@ -92,9 +97,13 @@ public class RefundNotificationMapper {
     }
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(
-        Refund refund, TemplatePreview templatePreview) {
+        Refund refund, TemplatePreview templatePreview, String templateId) {
 
         RefundNotificationLetterRequest request = getRefundNotificationLetterRequestApproveJourney(refund);
+
+        if (!StringUtils.isEmpty(templateId)) {
+            request.setTemplateId(templateId);
+        }
 
         if (templatePreview != null) {
             request.setTemplatePreview(TemplatePreview.templatePreviewWith()
