@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,10 +169,20 @@ public class NotificationServiceImpl implements NotificationService {
 
         ResponseEntity<String> responseEntity;
 
+        // create new string variable for avoid PWD violation
+        String notificationTemplateId = templateId;
+
+        if (StringUtils.isEmpty(templateId)) {
+            log.info("Send notification template id if {}", notificationTemplateId);
+            notificationTemplateId = refundsUtil.getTemplate(refund);
+        }
+
+        log.info("Send notification template id final {}", notificationTemplateId);
+
         if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .email(refund.getContactDetails().getEmail())
-                .templateId(templateId == null ? refundsUtil.getTemplate(refund) : templateId)
+                .templateId(notificationTemplateId)
                 .notificationType(EMAIL.name())
                 .build();
             refund.setContactDetails(newContact);
@@ -182,7 +193,7 @@ public class NotificationServiceImpl implements NotificationService {
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(templateId == null ? refundsUtil.getTemplate(refund) : templateId)
+                .templateId(notificationTemplateId)
                 .addressLine(refund.getContactDetails().getAddressLine())
                 .county(refund.getContactDetails().getCounty())
                 .postalCode(refund.getContactDetails().getPostalCode())
