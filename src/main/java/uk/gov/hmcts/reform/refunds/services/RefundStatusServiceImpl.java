@@ -98,8 +98,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                             .email(notificationDetails.getContactDetails().getEmail())
                             .build();
                         refund.setContactDetails(newContact);
+                        LOG.info("statusUpdateRequest.getReason() {}", statusUpdateRequest.getReason());
                         String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
-
+                        LOG.info("Template ID {}", templateId);
                         notificationService.updateNotification(headers,refund, templateId);
                     }
                 }

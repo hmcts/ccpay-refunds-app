@@ -52,24 +52,33 @@ public class RefundsUtil {
     public String getTemplate(Refund refund, String reason) {
         String templateId = null;
         if (null != refund.getRefundInstructionType()) {
-
+            LOG.info("getTemplate --> type {}", refund.getContactDetails().getNotificationType());
+            LOG.info("getTemplate --> getRefundInstructionType {}", refund.getRefundInstructionType());
             if (REFUND_WHEN_CONTACTED.equals(refund.getRefundInstructionType())) {
+                LOG.info("getTemplate --> reason 1 {}", reason);
                 if (REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(reason)) {
+                    LOG.info("getTemplate --> reason 2 {}", reason);
                     if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
                         templateId = refundWhenContactedEmailTemplateId;
+                        LOG.info("getTemplate --> 1 {}", templateId);
                     } else {
                         templateId = refundWhenContactedLetterTemplateId;
+                        LOG.info("getTemplate --> 2 {}", templateId);
                     }
                 } else if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
                     templateId = chequePoCashEmailTemplateId;
+                    LOG.info("getTemplate --> 3 {}", templateId);
                 } else {
                     templateId = chequePoCashLetterTemplateId;
+                    LOG.info("getTemplate --> 4 {}", templateId);
                 }
             } else {
                 if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
                     templateId = cardPbaEmailTemplateId;
+                    LOG.info("getTemplate --> 5 {}", templateId);
                 } else {
                     templateId = cardPbaLetterTemplateId;
+                    LOG.info("getTemplate --> 6 {}", templateId);
                 }
             }
         }
