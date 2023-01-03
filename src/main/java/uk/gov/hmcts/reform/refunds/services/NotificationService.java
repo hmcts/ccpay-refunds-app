@@ -20,7 +20,5 @@ public interface NotificationService {
 
     void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview, String templateId);
 
-    void updateNotification(MultiValueMap<String, String> headers, Refund refund, String templateId);
-
     Notification getNotificationDetails(MultiValueMap<String, String> headers, String reference);
 }

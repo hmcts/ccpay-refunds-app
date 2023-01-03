@@ -136,23 +136,14 @@ public class NotificationServiceImpl implements NotificationService {
         throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
     }
 
-    /*@Override
-    public void updateNotification(MultiValueMap<String, String> headers, Refund refund) {
-        updateNotification(headers, refund, null, null);
-    }*/
-
-    @Override
-    public void updateNotification(MultiValueMap<String, String> headers, Refund refund, String templateId) {
-        updateNotification(headers, refund, null, templateId);
-    }
-
     @Override
     public void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
         updateNotification(headers, refund, templatePreview, null);
     }
 
     @Override
-    public void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview, String templateId) {
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund,
+                                   TemplatePreview templatePreview, String templateId) {
 
         ResponseEntity<String>  responseEntity =  sendNotification(headers, refund, templatePreview, templateId);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {

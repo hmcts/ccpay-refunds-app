@@ -101,7 +101,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                         LOG.info("statusUpdateRequest.getReason() {}", statusUpdateRequest.getReason());
                         String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
                         LOG.info("Template ID {}", templateId);
-                        notificationService.updateNotification(headers,refund, templateId);
+                        notificationService.updateNotification(headers, refund, null, templateId);
                     }
                 }
             }
