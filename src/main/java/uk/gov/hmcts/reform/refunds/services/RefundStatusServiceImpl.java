@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -37,6 +38,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     @Autowired
     private IdamService idamService;
+
+    @Autowired
+    RefundsUtil refundsUtil;
 
     private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
         return StatusHistory.statusHistoryWith()
@@ -69,9 +73,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     statusUpdateRequest.getReason())
                 ));
 
-                String previousReason = refund.getReason();
-                refund.setReason(statusUpdateRequest.getReason());
-
                 if (null != statusUpdateRequest.getReason()
                     && statusUpdateRequest.getReason().equalsIgnoreCase(
                         RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
@@ -82,18 +83,25 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
                     headers.put("authorization", Collections.singletonList(authorization));
 
-                    String notificationType = notificationService.getNotificationType(headers, refund.getReference());
-                    LOG.info(" Refund Status Service Impl Notifition type {}", notificationType);
-                    if (notificationType == null) {
+                    Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
+                    LOG.info(" Refund Status Service Impl Notifition type {}", notificationDetails.getNotificationType());
+                    if (notificationDetails == null) {
                         LOG.error("Notification not found");
                     } else {
                         ContactDetails newContact = ContactDetails.contactDetailsWith()
-                            .notificationType(notificationType)
+                            .notificationType(notificationDetails.getNotificationType())
+                            .postalCode(notificationDetails.getContactDetails().getPostalCode())
+                            .city(notificationDetails.getContactDetails().getCity())
+                            .country(notificationDetails.getContactDetails().getCountry())
+                            .county(notificationDetails.getContactDetails().getCounty())
+                            .addressLine(notificationDetails.getContactDetails().getAddressLine())
+                            .email(notificationDetails.getContactDetails().getEmail())
                             .build();
                         refund.setContactDetails(newContact);
-                        notificationService.updateNotification(headers,refund);
+                        String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
+
+                        notificationService.updateNotification(headers,refund, templateId);
                     }
-                    refund.setReason(previousReason);
                 }
             }
             refund.setUpdatedBy(LIBERATA_NAME);

@@ -46,11 +46,15 @@ public class RefundsUtil {
     public static final String REFUND_WHEN_CONTACTED_REJECT_REASON = "Unable to apply refund to Card";
 
     public String getTemplate(Refund refund) {
+        return getTemplate(refund, refund.getReason());
+    }
+
+    public String getTemplate(Refund refund, String reason) {
         String templateId = null;
         if (null != refund.getRefundInstructionType()) {
 
             if (REFUND_WHEN_CONTACTED.equals(refund.getRefundInstructionType())) {
-                if (REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(refund.getReason())) {
+                if (REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(reason)) {
                     if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
                         templateId = refundWhenContactedEmailTemplateId;
                     } else {

@@ -239,7 +239,7 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        notificationService.updateNotification(getHeaders(),refund);
+        notificationService.updateNotification(getHeaders(),refund,  "template-1");
 
         assertEquals("SENT",refund.getNotificationSentFlag());
     }
@@ -256,7 +256,7 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        notificationService.updateNotification(getHeaders(),refund);
+        notificationService.updateNotification(getHeaders(), refund, "template-1");
 
         assertEquals("EMAIL_NOT_SENT",refund.getNotificationSentFlag());
     }
@@ -283,7 +283,7 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        notificationService.updateNotification(getHeaders(),refund);
+        notificationService.updateNotification(getHeaders(), refund, "template-1");
 
         assertEquals("LETTER_NOT_SENT",refund.getNotificationSentFlag());
     }
@@ -300,7 +300,7 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        notificationService.updateNotification(getHeaders(),refund);
+        notificationService.updateNotification(getHeaders(), refund, "template-1");
 
         assertEquals("ERROR",refund.getNotificationSentFlag());
     }
@@ -354,7 +354,7 @@ class NotificationServiceImplTest {
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
-        notificationService.updateNotification(getHeaders(),refund, null);
+        notificationService.updateNotification(getHeaders(),refund, null, null);
 
         assertEquals("SENT",refund.getNotificationSentFlag());
     }

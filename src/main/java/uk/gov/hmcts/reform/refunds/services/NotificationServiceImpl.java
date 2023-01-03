@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
+import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
@@ -135,15 +136,25 @@ public class NotificationServiceImpl implements NotificationService {
         throw new InvalidRefundNotificationResendRequestException(exceptionMessage, exception);
     }
 
-    @Override
+    /*@Override
     public void updateNotification(MultiValueMap<String, String> headers, Refund refund) {
-        updateNotification(headers, refund, null);
+        updateNotification(headers, refund, null, null);
+    }*/
+
+    @Override
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund, String templateId) {
+        updateNotification(headers, refund, null, templateId);
     }
 
     @Override
     public void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+        updateNotification(headers, refund, templatePreview, null);
+    }
 
-        ResponseEntity<String>  responseEntity =  sendNotification(headers, refund, templatePreview);
+    @Override
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview, String templateId) {
+
+        ResponseEntity<String>  responseEntity =  sendNotification(headers, refund, templatePreview, templateId);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refund.setNotificationSentFlag("SENT");
             refund.setContactDetails(null);
@@ -162,14 +173,14 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private ResponseEntity<String> sendNotification(
-        MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+        MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview, String templateId) {
 
         ResponseEntity<String> responseEntity;
 
         if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .email(refund.getContactDetails().getEmail())
-                .templateId(refundsUtil.getTemplate(refund))
+                .templateId(templateId == null ? refundsUtil.getTemplate(refund) : templateId)
                 .notificationType(EMAIL.name())
                 .build();
             refund.setContactDetails(newContact);
@@ -180,7 +191,7 @@ public class NotificationServiceImpl implements NotificationService {
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(refundsUtil.getTemplate(refund))
+                .templateId(templateId == null ? refundsUtil.getTemplate(refund) : templateId)
                 .addressLine(refund.getContactDetails().getAddressLine())
                 .county(refund.getContactDetails().getCounty())
                 .postalCode(refund.getContactDetails().getPostalCode())
@@ -199,8 +210,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public String getNotificationType(MultiValueMap<String, String> headers, String reference) {
-        String notificationType = null;
+    public Notification getNotificationDetails(MultiValueMap<String, String> headers, String reference) {
+        Notification notificationDetails = null;
 
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
@@ -219,7 +230,7 @@ public class NotificationServiceImpl implements NotificationService {
                 /*
                     Getting last notification type which was used while approval or send last notification.
                 */
-                notificationType = notificationsDtoResponse.getNotifications().get(0).getNotificationType();
+                notificationDetails = notificationsDtoResponse.getNotifications().get(0);
             }
 
         } catch (HttpClientErrorException exception) {
@@ -232,7 +243,7 @@ public class NotificationServiceImpl implements NotificationService {
             log.error("Last exception e {}", e.getMessage());
             log.error("Last exception {}", e);
         }
-        return notificationType;
+        return notificationDetails;
     }
 
 }
