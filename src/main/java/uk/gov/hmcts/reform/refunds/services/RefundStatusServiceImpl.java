@@ -84,9 +84,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     headers.put("authorization", Collections.singletonList(authorization));
 
                     Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
-                    LOG.info(" Refund Status Service Impl Notifition type {}", notificationDetails.getNotificationType());
                     if (notificationDetails == null) {
-                        LOG.error("Notification not found");
+                        LOG.error("Notification not found. Not able to send notification.");
                     } else {
                         ContactDetails newContact = ContactDetails.contactDetailsWith()
                             .notificationType(notificationDetails.getNotificationType())
@@ -98,9 +97,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                             .email(notificationDetails.getContactDetails().getEmail())
                             .build();
                         refund.setContactDetails(newContact);
-                        LOG.info("statusUpdateRequest.getReason() {}", statusUpdateRequest.getReason());
                         String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
-                        LOG.info("Template ID {}", templateId);
                         notificationService.updateNotification(headers, refund, null, templateId);
                     }
                 }
