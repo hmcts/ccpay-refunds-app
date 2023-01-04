@@ -391,8 +391,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 refund.setReason(refundReason);
             }
 
-            BigDecimal totalRefundedAmount = getTotalRefundedAmountResubmitRefund(refund.getPaymentReference(), request.getAmount());
-
+            BigDecimal refundAmount = getTotalRefundedAmountIssueRefund(refund.getPaymentReference());
+            BigDecimal totalRefundedAmount = refundAmount.add(request.getAmount());
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
                 .refundResubmitRequestPayhubWith()
@@ -634,23 +634,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (amountCompare == amountCompareValue) {
             throw new InvalidRefundRequestException("The amount to refund can not be more than" + " " + "£" + refundEligibleAmount);
         }
-    }
-
-    private BigDecimal getTotalRefundedAmountResubmitRefund(String paymentReference, BigDecimal refundAmount) {
-        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(paymentReference);
-        BigDecimal totalRefundedAmount = BigDecimal.ZERO;
-
-        if (refundsList.isPresent()) {
-            List<Refund> refundsListStatus =
-                    refundsList.get().stream().filter(refund -> refund.getRefundStatus().equals(
-                            RefundStatus.ACCEPTED) || refund.getRefundStatus().equals(RefundStatus.APPROVED))
-                            .collect(Collectors.toList());
-            for (Refund ref : refundsListStatus) {
-                totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
-            }
-            totalRefundedAmount = refundAmount.add(totalRefundedAmount);
-        }
-        return totalRefundedAmount;
     }
 
     private BigDecimal getTotalRefundedAmountIssueRefund(String paymentReference) {
