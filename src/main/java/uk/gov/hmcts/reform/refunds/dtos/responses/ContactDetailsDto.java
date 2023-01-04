@@ -2,29 +2,29 @@ package uk.gov.hmcts.reform.refunds.dtos.responses;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Date;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@Builder(builderMethodName = "notificationWith")
+@Builder(builderMethodName = "buildContactDetailsWith")
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@ToString
-public class Notification {
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class ContactDetailsDto {
 
-    private String reference;
-
-    private String notificationType;
-
-    private ContactDetailsDto contactDetails;
+    private String addressLine;
+    private String city;
+    private String country;
+    private String postalCode;
+    private String email;
+    private String county;
 
     private Date dateCreated;
 

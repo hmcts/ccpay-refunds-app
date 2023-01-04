@@ -52,6 +52,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ContactDetailsDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
@@ -2196,6 +2197,14 @@ class RefundControllerTest {
                 Notification.notificationWith()
                     .notificationType("EMAIL")
                     .reference("refund-reference")
+                    .contactDetails(ContactDetailsDto.buildContactDetailsWith()
+                                        .addressLine("1 ABC Road")
+                                        .city("City")
+                                        .country("Country")
+                                        .county("County")
+                                        .postalCode("NR13 1AB")
+                                        .email("abc@gmail.com")
+                                        .build())
                     .dateCreated(Date.from(Instant.now()))
                     .dateUpdated(Date.from(Instant.now()))
                     .build()

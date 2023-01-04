@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
+import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
@@ -136,14 +138,15 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void updateNotification(MultiValueMap<String, String> headers, Refund refund) {
-        updateNotification(headers, refund, null);
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+        updateNotification(headers, refund, templatePreview, null);
     }
 
     @Override
-    public void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+    public void updateNotification(MultiValueMap<String, String> headers, Refund refund,
+                                   TemplatePreview templatePreview, String templateId) {
 
-        ResponseEntity<String>  responseEntity =  sendNotification(headers, refund, templatePreview);
+        ResponseEntity<String>  responseEntity =  sendNotification(headers, refund, templatePreview, templateId);
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             refund.setNotificationSentFlag("SENT");
             refund.setContactDetails(null);
@@ -162,25 +165,29 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private ResponseEntity<String> sendNotification(
-        MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview) {
+        MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview, String notificationTemplateId) {
 
         ResponseEntity<String> responseEntity;
+
+        String templateId = StringUtils.isEmpty(notificationTemplateId) ? refundsUtil.getTemplate(refund) : notificationTemplateId;
+
+        log.info("Send notification template id final {}", templateId);
 
         if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .email(refund.getContactDetails().getEmail())
-                .templateId(refundsUtil.getTemplate(refund))
+                .templateId(templateId)
                 .notificationType(EMAIL.name())
                 .build();
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag("email_not_sent");
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
-                .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview);
+                .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview, templateId);
             log.info("send notification  -> " + refundNotificationEmailRequest);
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                .templateId(refundsUtil.getTemplate(refund))
+                .templateId(templateId)
                 .addressLine(refund.getContactDetails().getAddressLine())
                 .county(refund.getContactDetails().getCounty())
                 .postalCode(refund.getContactDetails().getPostalCode())
@@ -191,7 +198,7 @@ public class NotificationServiceImpl implements NotificationService {
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag("letter_not_sent");
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
-                .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview);
+                .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview, templateId);
             responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }
@@ -199,8 +206,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public String getNotificationType(MultiValueMap<String, String> headers, String reference) {
-        String notificationType = null;
+    public Notification getNotificationDetails(MultiValueMap<String, String> headers, String reference) {
+        Notification notificationDetails = null;
 
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
@@ -219,7 +226,7 @@ public class NotificationServiceImpl implements NotificationService {
                 /*
                     Getting last notification type which was used while approval or send last notification.
                 */
-                notificationType = notificationsDtoResponse.getNotifications().get(0).getNotificationType();
+                notificationDetails = notificationsDtoResponse.getNotifications().get(0);
             }
 
         } catch (HttpClientErrorException exception) {
@@ -232,7 +239,7 @@ public class NotificationServiceImpl implements NotificationService {
             log.error("Last exception e {}", e.getMessage());
             log.error("Last exception {}", e);
         }
-        return notificationType;
+        return notificationDetails;
     }
 
 }
