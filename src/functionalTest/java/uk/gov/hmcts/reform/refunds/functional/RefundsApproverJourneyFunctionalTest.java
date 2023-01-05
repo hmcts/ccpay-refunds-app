@@ -2162,7 +2162,7 @@ public class RefundsApproverJourneyFunctionalTest {
         int paymentId = getPaymentsResponse.getFees().get(0).getId();
 
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference, "50", "0", paymentId);
+            = RefundsFixture.refundRequest("RR001", paymentReference, "90", "550", paymentId);
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
