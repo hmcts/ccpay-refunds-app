@@ -184,7 +184,7 @@ public final class RefundsFixture {
 
     public static ResubmitRefundRequest resubmitRefundAllInput() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
-            .amount(new BigDecimal("80.00"))
+            .amount(new BigDecimal("10.00"))
             .refundReason("RR002")
             .refundFees(Arrays.asList(
                 RefundFeeDto.refundFeeRequestWith()
@@ -192,7 +192,7 @@ public final class RefundsFixture {
                     .code("FEE0001")
                     .version("1")
                     .volume(1)
-                    .refundAmount(new BigDecimal("80.00"))
+                    .refundAmount(new BigDecimal("10.00"))
                     .build()))
             .contactDetails(ContactDetails.contactDetailsWith()
                                 .addressLine("High Street 112")
