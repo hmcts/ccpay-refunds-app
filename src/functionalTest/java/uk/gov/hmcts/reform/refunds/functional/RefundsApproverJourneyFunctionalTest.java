@@ -284,7 +284,7 @@ public class RefundsApproverJourneyFunctionalTest {
         System.out.println("PaymentId 1 ---> " + paymentId);
         // Create Refund 1
         final PaymentRefundRequest paymentRefundRequest
-                = RefundsFixture.refundRequest("RR001", paymentReference,"90", "0", paymentId);
+                = RefundsFixture.refundRequest("RR001", paymentReference,"90.00", "550", paymentId);
         Response refundResponse = paymentTestService.postInitiateRefund(
                 USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -953,20 +953,24 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         final String paymentReference = paymentsResponse.getReference();
 
-
-
         // Update Payments for CCDCaseNumber by certain days
         String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
         paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
                 ccdCaseNumber,"5",
                 testConfigProperties.basePaymentsUrl);
 
-        int paymentId = paymentsResponse.getFees().get(0).getId();
+        PaymentDto getPaymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                           SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentDto.getReference(),
+                                           testConfigProperties.basePaymentsUrl).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        int paymentId = getPaymentsResponse.getFees().get(0).getId();
         System.out.println("PaymentId 4 ---> " + paymentId);
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001",
-                                           paymentReference, "90",
-                                           "0", paymentId);
+                                           paymentReference, "90.00",
+                                           "550", paymentId);
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
