@@ -107,7 +107,8 @@ public final class RefundsFixture {
     }
 
     public static PaymentRefundRequest refundRequestWithLetter(final String refundReason,
-                                                     final String paymentReference, final String refundAmount, final String feeAmount) {
+                                                     final String paymentReference, final String refundAmount,
+                                                     final String feeAmount, final int paymentId) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
@@ -119,7 +120,7 @@ public final class RefundsFixture {
                     .calculatedAmount(new BigDecimal(feeAmount))
                     .refundAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
-                    .id(0)
+                    .id(paymentId)
                     .version("1")
                     .updatedVolume(1)
                     .refundAmount(new BigDecimal("10"))
