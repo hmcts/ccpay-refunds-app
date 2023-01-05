@@ -141,6 +141,13 @@ public class PaymentTestService {
                 .get("/credit-account-payments/{reference}", paymentReference);
     }
 
+    public Response getPayments(String userToken, String serviceToken, String paymentReference, final String baseUri) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .baseUri(baseUri)
+            .when()
+            .get("/payments/{reference}", paymentReference);
+    }
+
     public Response deletePayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
                 .baseUri(baseUri)
