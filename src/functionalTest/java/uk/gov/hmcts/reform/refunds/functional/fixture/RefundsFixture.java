@@ -90,7 +90,7 @@ public final class RefundsFixture {
                     .id(paymentId)
                     .version("1")
                     .updatedVolume(1)
-                    .refundAmount(new BigDecimal("10.00"))
+                    .refundAmount(new BigDecimal("90.00"))
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()
