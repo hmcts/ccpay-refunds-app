@@ -331,7 +331,7 @@ public class RefundsApproverJourneyFunctionalTest {
         int paymentId1 = getPaymentsResponse1.getFees().get(0).getId();
         // Create Refund 2
         final PaymentRefundRequest paymentRefundRequest1
-                = RefundsFixture.refundRequest("RR001", paymentDto1.getReference(),"100", "550", paymentId1);
+                = RefundsFixture.refundRequest("RR001", paymentDto1.getReference(),"90", "550", paymentId1);
         Response refundResponse1 = paymentTestService.postInitiateRefund(
                 USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -1509,7 +1509,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat("civil").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction1());
         assertThat("county court").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction2());
         assertThat("GOV - Paper fees - Money claim >£200,000").isEqualTo(refundLiberata.getFees().get(0).getMemoLine());
-        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
+        assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
         assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getPayment().getAvailableFunds());
         // delete payment record
         paymentTestService
@@ -1804,7 +1804,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat("civil").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction1());
         assertThat("county court").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction2());
         assertThat("GOV - Paper fees - Money claim >£200,000").isEqualTo(refundLiberata.getFees().get(0).getMemoLine());
-        assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
+        assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
         assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getPayment().getAvailableFunds());
         // delete payment record
         paymentTestService
