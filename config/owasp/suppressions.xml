@@ -190,5 +190,14 @@
     </notes>
     <cve>CVE-2021-37533</cve>
   </suppress>
+  <suppress until="2023-03-31">
+    <notes>
+      A vulnerability, which was classified as problematic, has been found in fredsmith utils.
+      This issue affects some unknown processing of the file screenshot_sync of the component Filename Handler.
+      The manipulation leads to predictable from observable state.
+    </notes>
+    <cve>CVE-2021-4277</cve>
+  </suppress>
+
 
 </suppressions>
