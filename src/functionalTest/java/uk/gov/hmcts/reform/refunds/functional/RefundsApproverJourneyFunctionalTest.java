@@ -1085,7 +1085,7 @@ public class RefundsApproverJourneyFunctionalTest {
         Optional<RefundDto> optionalRefundDtoAfterUpdate = refundsListDtosAfterUpdate.getRefundList().stream()
             .sorted((s1, s2) -> s2.getDateUpdated().compareTo(s1.getDateUpdated())).findFirst();
 
-        assertThat(optionalRefundDtoAfterUpdate.get().getAmount()).isEqualTo(new BigDecimal("80.00"));
+        assertThat(optionalRefundDtoAfterUpdate.get().getAmount()).isEqualTo(new BigDecimal("10.00"));
 
         // delete payment record
         paymentTestService
