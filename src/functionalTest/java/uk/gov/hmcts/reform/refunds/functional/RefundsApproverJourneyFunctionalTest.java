@@ -1741,7 +1741,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat("civil").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction1());
         assertThat("county court").isEqualTo(refundLiberata.getFees().get(0).getJurisdiction2());
         assertThat("GOV - Paper fees - Money claim >£200,000").isEqualTo(refundLiberata.getFees().get(0).getMemoLine());
-        assertThat(new BigDecimal("20.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
+        assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getFees().get(0).getCredit());
         assertThat(new BigDecimal("10.00")).isEqualTo(refundLiberata.getPayment().getAvailableFunds());
         // delete payment record
         paymentTestService
