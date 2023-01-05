@@ -373,7 +373,7 @@ public class RefundsApproverJourneyFunctionalTest {
         int paymentId2 = getPaymentsResponse2.getFees().get(0).getId();
         // Create Refund 3
         final PaymentRefundRequest paymentRefundRequest2
-                = RefundsFixture.refundRequest("RR001", paymentDto2.getReference(),"190", "550", paymentId2);
+                = RefundsFixture.refundRequest("RR001", paymentDto2.getReference(),"90", "550", paymentId2);
         Response refundResponse2 = paymentTestService.postInitiateRefund(
                 USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -943,9 +943,11 @@ public class RefundsApproverJourneyFunctionalTest {
                                            testConfigProperties.basePaymentsUrl).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        int paymentId = getPaymentsResponse.getFees().get(0).getId();
+        int paymentId1 = getPaymentsResponse.getFees().get(0).getId();
+        int paymentId2 = getPaymentsResponse.getFees().get(0).getId();
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest2Fees("RR001", paymentReference, "90", "550");
+            = RefundsFixture.refundRequest2Fees("RR001", paymentReference, "90",
+                                                "550", paymentId1, paymentId2);
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
