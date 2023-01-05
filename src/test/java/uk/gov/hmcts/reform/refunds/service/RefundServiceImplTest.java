@@ -1003,6 +1003,7 @@ class RefundServiceImplTest {
                         .refundAmount(new BigDecimal(1))
                         .build()));
         resubmitRefundRequest.setRefundReason("RR002");
+        resubmitRefundRequest.setAmount(BigDecimal.ONE);
         RefundReason refundReason =
             RefundReason.refundReasonWith().code("RR001").description("The claim is amended").name("Amended claim").build();
         when(refundsRepository.findByReferenceOrThrow(anyString()))
@@ -1040,6 +1041,7 @@ class RefundServiceImplTest {
                         .volume(1)
                         .refundAmount(new BigDecimal(1))
                         .build()));
+        resubmitRefundRequest.setAmount(BigDecimal.ONE);
         RefundReason refundReason =
             RefundReason.refundReasonWith().code("RR001").description("The claim is amended").name("Amended claim").build();
         when(refundsRepository.findByReferenceOrThrow(anyString()))
