@@ -156,7 +156,7 @@ public final class RefundsFixture {
                     .id(paymentId1)
                     .version("1")
                     .updatedVolume(1)
-                    .refundAmount(new BigDecimal("90"))
+                    .refundAmount(new BigDecimal("45"))
                     .build(),
                 FeeDto.feeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
@@ -166,7 +166,7 @@ public final class RefundsFixture {
                     .id(paymentId2)
                     .version("1")
                     .updatedVolume(1)
-                    .refundAmount(new BigDecimal("90"))
+                    .refundAmount(new BigDecimal("45"))
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()
