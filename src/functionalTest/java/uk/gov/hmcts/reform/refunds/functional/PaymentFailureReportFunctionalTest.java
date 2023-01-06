@@ -99,7 +99,6 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void paymentFailureReportRequestForRejectedRefundStatus() {
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
@@ -134,7 +133,6 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void paymentFailureReportRequestForEmptyPaymentReference() {
 
         paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
