@@ -174,8 +174,16 @@ public class PaymentFailureReportFunctionalTest {
     @NotNull
     private String performRefund(String paymentReference) {
 
+        PaymentDto getPaymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                           SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference,
+                                           testConfigProperties.basePaymentsUrl).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        int paymentId = getPaymentsResponse.getFees().get(0).getId();
+
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference,"90","0", 0);
+            = RefundsFixture.refundRequest("RR001", paymentReference,"90","550", paymentId);
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
