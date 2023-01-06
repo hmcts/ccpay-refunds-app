@@ -226,7 +226,9 @@ public class NotificationServiceImpl implements NotificationService {
                 /*
                     Getting last notification type which was used while approval or send last notification.
                 */
-                notificationDetails = notificationsDtoResponse.getNotifications().get(0);
+                if (null != notificationsDtoResponse) {
+                    notificationDetails = notificationsDtoResponse.getNotifications().get(0);
+                }
             }
 
         } catch (HttpClientErrorException exception) {
