@@ -9,7 +9,6 @@ databaseChangeLog:
             baseTableName: refunds
             constraintName: FK_1000081
             deferrable: false
-            onUpdate: CASCADE
             initiallyDeferred: false
             referencedColumnNames: name
             referencedTableName: refund_status
@@ -23,10 +22,37 @@ databaseChangeLog:
             splitStatements: true
             sql: >
               ALTER TABLE refunds DROP CONSTRAINT FK_1000041;
+#New constraints added with cascade option enabled
+  - changeSet:
+      id: 100008-4
+      author: Jennings
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: refund_status
+            baseTableName: refunds
+            constraintName: FK_1000084
+            deferrable: false
+            onUpdate: CASCADE
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: refund_status
+
+  - changeSet:
+      id: 100008-5
+      author: Jennings
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              ALTER TABLE refunds DROP CONSTRAINT FK_1000081;
+
   - changeSet:
       id: 100008-3
       author: Anshika
       failOnError: true
+      onUpdate: CASCADE
       changes:
         - sql:
             splitStatements: true
@@ -36,8 +62,6 @@ databaseChangeLog:
               UPDATE refund_status SET name = 'Rejected' where name = 'rejected';
               UPDATE refund_status SET name = 'Accepted' where name = 'accepted';
               UPDATE refund_status SET name = 'Sent for approval' where name = 'sent for approval';
-
-
   - changeSet:
       id: 100008-4
       author: Arbab
