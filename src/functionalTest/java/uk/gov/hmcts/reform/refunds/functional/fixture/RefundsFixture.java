@@ -74,7 +74,8 @@ public final class RefundsFixture {
     }
 
     public static PaymentRefundRequest refundRequest(final String refundReason,
-                                                     final String paymentReference, final String refundAmount, final String feeAmount) {
+                                                     final String paymentReference, final String refundAmount,
+                                                     final String feeAmount, final int paymentId) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
@@ -86,10 +87,10 @@ public final class RefundsFixture {
                     .calculatedAmount(new BigDecimal(feeAmount))
                     .refundAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
-                    .id(0)
+                    .id(paymentId)
                     .version("1")
                     .updatedVolume(1)
-                    .refundAmount(new BigDecimal("10"))
+                    .refundAmount(new BigDecimal("90.00"))
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()
@@ -98,15 +99,16 @@ public final class RefundsFixture {
                                                            .county("Londonshire")
                                                            .city("London")
                                                            .postalCode("P1 1PO")
-                                                           .email("ranjeet.kumar@HMCTS.NET")
+                                                           .email("test@HMCTS.NET")
                                                            .notificationType("EMAIL")
                                                            .build())
             .build();
 
     }
 
-    public static PaymentRefundRequest refundRequest2Fees(final String refundReason,
-                                                     final String paymentReference, final String refundAmount, final String feeAmount) {
+    public static PaymentRefundRequest refundRequestWithLetter(final String refundReason,
+                                                     final String paymentReference, final String refundAmount,
+                                                     final String feeAmount, final int paymentId) {
         return PaymentRefundRequest
             .refundRequestWith().paymentReference(paymentReference)
             .refundReason(refundReason)
@@ -118,20 +120,53 @@ public final class RefundsFixture {
                     .calculatedAmount(new BigDecimal(feeAmount))
                     .refundAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
-                    .id(0)
+                    .id(paymentId)
                     .version("1")
                     .updatedVolume(1)
-                    .refundAmount(new BigDecimal("10"))
+                    .refundAmount(new BigDecimal("90"))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 112")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("HA5 3XT")
+                                .email("ranjeet.kumar@HMCTS.NET")
+                                .notificationType("LETTER")
+                                .build())
+            .build();
+
+    }
+
+    public static PaymentRefundRequest refundRequest2Fees(final String refundReason, final String paymentReference,
+                                                          final String refundAmount, final String feeAmount,
+                                                          final int paymentId1, final int paymentId2) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .isOverPayment(false)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .apportionAmount(BigDecimal.valueOf(0))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .refundAmount(new BigDecimal(feeAmount))
+                    .code("FEE0001")
+                    .id(paymentId1)
+                    .version("1")
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal("45"))
                     .build(),
                 FeeDto.feeDtoWith()
                     .apportionAmount(BigDecimal.valueOf(0))
                     .calculatedAmount(new BigDecimal(feeAmount))
                     .refundAmount(new BigDecimal(feeAmount))
                     .code("FEE0001")
-                    .id(1)
+                    .id(paymentId2)
                     .version("1")
                     .updatedVolume(1)
-                    .refundAmount(new BigDecimal("10"))
+                    .refundAmount(new BigDecimal("45"))
                     .build())
             )
             .contactDetails(ContactDetails.contactDetailsWith()
@@ -140,7 +175,7 @@ public final class RefundsFixture {
                                 .county("Londonshire")
                                 .city("London")
                                 .postalCode("P1 1PO")
-                                .email("ranjeet.kumar@HMCTS.NET")
+                                .email("test@HMCTS.NET")
                                 .notificationType("EMAIL")
                                 .build())
             .build();
@@ -149,7 +184,7 @@ public final class RefundsFixture {
 
     public static ResubmitRefundRequest resubmitRefundAllInput() {
         return ResubmitRefundRequest.ResubmitRefundRequestWith()
-            .amount(new BigDecimal("80.00"))
+            .amount(new BigDecimal("10.00"))
             .refundReason("RR002")
             .refundFees(Arrays.asList(
                 RefundFeeDto.refundFeeRequestWith()
@@ -157,14 +192,14 @@ public final class RefundsFixture {
                     .code("FEE0001")
                     .version("1")
                     .volume(1)
-                    .refundAmount(new BigDecimal("80.00"))
+                    .refundAmount(new BigDecimal("10.00"))
                     .build()))
             .contactDetails(ContactDetails.contactDetailsWith()
                                 .addressLine("High Street 112")
                                 .country("UK")
                                 .county("Londonshire")
                                 .city("London")
-                                .postalCode("P1 1PO")
+                                .postalCode("HA5 3XT")
                                 .email("testperson@somemail.com")
                                 .notificationType("EMAIL")
                                 .build())
@@ -191,7 +226,7 @@ public final class RefundsFixture {
                                 .country("UK")
                                 .county("Londonshire")
                                 .city("London")
-                                .postalCode("P1 1PO")
+                                .postalCode("HA5 3XT")
                                 .email("testperson@somemail.com")
                                 .notificationType("EMAIL")
                                 .build())

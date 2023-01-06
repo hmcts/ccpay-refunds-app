@@ -30,12 +30,17 @@ public class RefundResponseMapper {
     @Autowired
     private RefundFeeMapper refundFeeMapper;
 
+    private static final int REASON_CODE_START = 0;
+    private static final int REASON_PREFIX_LENGTH = 5;
+    private static final int REASON_CODE_END = 6;
+
     // To enable unit testing
     public void setRefundFeeMapper(RefundFeeMapper refundFeeMapper) {
         this.refundFeeMapper = refundFeeMapper;
     }
 
     public RefundDto getRefundListDto(Refund refund, UserIdentityDataDto userData,String reason) {
+
         List<RefundFeeDto> refundFeesDtoList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(refund.getRefundFees())) {
             refundFeesDtoList.addAll(refund.getRefundFees().stream()
@@ -43,11 +48,20 @@ public class RefundResponseMapper {
                                          .collect(Collectors.toList()));
         }
 
+        String refundReasonCode = "";
+        String reasonName = reason;
+        if (refund.getReason().startsWith("RR") && refund.getReason().length() > REASON_PREFIX_LENGTH) {
+            refundReasonCode = reason.substring(REASON_CODE_START, REASON_PREFIX_LENGTH);
+            reasonName = reason.substring(REASON_CODE_END);
+        } else {
+            refundReasonCode = refund.getReason();
+        }
+
         return RefundDto
             .buildRefundListDtoWith()
             .ccdCaseNumber(refund.getCcdCaseNumber())
             .amount(refund.getAmount())
-            .reason(reason)
+            .reason(reasonName)
             .refundStatus(refund.getRefundStatus())
             .refundReference(refund.getReference())
             .paymentReference(refund.getPaymentReference())
@@ -59,6 +73,7 @@ public class RefundResponseMapper {
             .serviceType(refund.getServiceType())
             .feeIds(refund.getFeeIds())
             .refundFees(refundFeesDtoList)
+            .reasonCode(refundReasonCode)
             .build();
     }
 

@@ -41,7 +41,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
@@ -171,6 +170,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Pattern.CASE_INSENSITIVE
     );
 
+    private static final String PAYMENTS_ROLE = "payments";
+
     @Override
     public RefundEvent[] retrieveActions(String reference) {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
@@ -181,7 +182,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Override
     public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
         validateRefundAmount(refundRequest);
-        refundRequest.setRefundReason(validateRefundReason(refundRequest.getRefundReason()));
+        String reason =  validateRefundReason(refundRequest.getRefundReason());
+        refundRequest.setRefundReason(reason);
         String instructionType = null;
 
         if (refundRequest.getPaymentMethod() != null) {
@@ -224,20 +226,30 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             ) : refundsRepository.findByRefundStatus(refundStatus);
         }
 
-        // Get Refunds related Roles from logged in user
-        List<String> roles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
-            .collect(Collectors.toList());
-        LOG.info("roles: {}", roles);
-        return getRefundListDto(headers, refundList, roles);
+        return getRefundListDto(headers, refundList, idamUserIdResponse);
     }
 
-    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers, Optional<List<Refund>> refundList, List<String> roles) {
+    public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers,
+                                                  Optional<List<Refund>> refundList, IdamUserIdResponse idamUserIdResponse) {
+
+        List<String> refundRoles = idamUserIdResponse.getRoles().stream().filter(role -> role.matches(ROLEPATTERN))
+            .collect(Collectors.toList());
+
+        Optional<String> paymentRole = idamUserIdResponse.getRoles().stream().filter(role -> role.equals(PAYMENTS_ROLE)).findAny();
 
         if (refundList.isPresent() && !refundList.get().isEmpty()) {
-            return RefundListDtoResponse
-                .buildRefundListWith()
-                .refundList(getRefundResponseDtoList(headers, refundList.get(), roles))
-                .build();
+
+            if (paymentRole.isPresent() && refundRoles.isEmpty()) {
+                return RefundListDtoResponse
+                    .buildRefundListWith()
+                    .refundList(getRefundResponseDtoListForPaymentRole(headers, refundList.get()))
+                    .build();
+            } else {
+                return RefundListDtoResponse
+                    .buildRefundListWith()
+                    .refundList(getRefundResponseDtoList(headers, refundList.get(), refundRoles))
+                    .build();
+            }
         } else {
             throw new RefundListEmptyException("Refund list is empty for given criteria");
         }
@@ -372,15 +384,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             // Refund Reason Validation
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
                 validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
-
+            LOG.info("Refund Reason in resubmitRefund {}",refundReason);
             refund.setAmount(request.getAmount());
 
             if (!(refund.getReason().equals(RETROSPECTIVE_REMISSION_REASON)) && !(RETROSPECTIVE_REMISSION_REASON.equals(refundReason))) {
                 refund.setReason(refundReason);
             }
 
-            BigDecimal totalRefundedAmount = getTotalRefundedAmountResubmitRefund(refund.getPaymentReference(), request.getAmount());
-
+            BigDecimal refundAmount = getTotalRefundedAmountIssueRefund(refund.getPaymentReference());
+            BigDecimal totalRefundedAmount = refundAmount.add(request.getAmount());
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
                 .refundResubmitRequestPayhubWith()
@@ -450,7 +462,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String validateRefundReason(String reason) {
-
+        final int reasonNameLength = 8;
         if (reason == null || reason.isBlank()) {
             throw new InvalidRefundRequestException("Refund reason is required");
         }
@@ -459,7 +471,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             String reasonCode = reason.split("-")[0];
             RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
             if (refundReason.getName().startsWith(OTHERREASONPATTERN)) {
-                return refundReason.getName().split(OTHERREASONPATTERN)[1] + "-" + reason.substring(reasonPrefixLength);
+                return refundReason.getCode() + "-"
+                    + refundReason.getName().substring(reasonNameLength) + "-"
+                    + reason.substring(reasonPrefixLength);
             } else {
                 throw new InvalidRefundRequestException("Invalid reason selected");
             }
@@ -550,12 +564,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             for (RefundReason refundReason : refundReasonList) {
                 if (refundReason.getCode().equalsIgnoreCase(rawReason)) {
                     refundReasonOptional.add(refundReason);
+                    break;
                 }
             }
-            if (!refundReasonOptional.isEmpty()) {
+            if (refundReasonOptional.isEmpty()) {
+                return rawReason;
+            } else {
                 return refundReasonOptional.get(0).getName();
             }
-            throw new RefundReasonNotFoundException(rawReason);
         }
         return rawReason;
     }
@@ -603,38 +619,24 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private void validateRefundAmount(RefundRequest refundRequest) {
-
+        BigDecimal totalRefundedAmount;
+        BigDecimal refundEligibleAmount;
         if (refundRequest.getRefundAmount().compareTo(refundRequest.getPaymentAmount()) > 0) {
-            throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
+            throw new InvalidRefundRequestException("The amount to refund can not be more than" + " " + "£" + refundRequest.getPaymentAmount());
         }
 
-        BigDecimal refundAmount = getTotalRefundedAmountIssueRefund(refundRequest.getPaymentReference(), refundRequest.getRefundAmount());
+        BigDecimal refundAmount = getTotalRefundedAmountIssueRefund(refundRequest.getPaymentReference());
 
-        int amountCompare = refundAmount.compareTo(refundRequest.getPaymentAmount());
+        refundEligibleAmount = refundRequest.getPaymentAmount().subtract(refundAmount);
+        totalRefundedAmount = refundAmount.add(refundRequest.getRefundAmount());
+        int amountCompare = totalRefundedAmount.compareTo(refundRequest.getPaymentAmount());
 
         if (amountCompare == amountCompareValue) {
-            throw new InvalidRefundRequestException("The amount you want to refund is more than the amount paid");
+            throw new InvalidRefundRequestException("The amount to refund can not be more than" + " " + "£" + refundEligibleAmount);
         }
     }
 
-    private BigDecimal getTotalRefundedAmountResubmitRefund(String paymentReference, BigDecimal refundAmount) {
-        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(paymentReference);
-        BigDecimal totalRefundedAmount = BigDecimal.ZERO;
-
-        if (refundsList.isPresent()) {
-            List<Refund> refundsListStatus =
-                    refundsList.get().stream().filter(refund -> refund.getRefundStatus().equals(
-                            RefundStatus.ACCEPTED) || refund.getRefundStatus().equals(RefundStatus.APPROVED))
-                            .collect(Collectors.toList());
-            for (Refund ref : refundsListStatus) {
-                totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
-            }
-            totalRefundedAmount = refundAmount.add(totalRefundedAmount);
-        }
-        return totalRefundedAmount;
-    }
-
-    private BigDecimal getTotalRefundedAmountIssueRefund(String paymentReference, BigDecimal refundAmount) {
+    private BigDecimal getTotalRefundedAmountIssueRefund(String paymentReference) {
         Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(paymentReference);
         BigDecimal totalRefundedAmount = BigDecimal.ZERO;
 
@@ -646,7 +648,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             for (Refund ref : refundsListStatus) {
                 totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
             }
-            totalRefundedAmount = refundAmount.add(totalRefundedAmount);
         }
         return totalRefundedAmount;
     }
@@ -842,5 +843,25 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
+    private List<RefundDto> getRefundResponseDtoListForPaymentRole(MultiValueMap<String, String> headers, List<Refund> refundList) {
+
+        //Create Refund response List
+        List<RefundDto> refundListDto = new ArrayList<>();
+        List<RefundReason> refundReasonList = refundReasonRepository.findAll();
+        for (Refund refund: refundList) {
+            UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
+                                                                                      refund.getCreatedBy());
+
+            String reason = getRefundReason(refund.getReason(), refundReasonList);
+            if (refund.getCreatedBy().equals(userIdentityDataDto.getId())) {
+                refundListDto.add(refundResponseMapper.getRefundListDto(
+                    refund,
+                    userIdentityDataDto,
+                    reason
+                ));
+            }
+        }
+        return refundListDto;
+    }
 
 }

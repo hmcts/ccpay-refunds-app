@@ -6,17 +6,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
+import uk.gov.hmcts.reform.refunds.dtos.requests.FromTemplateContact;
+import uk.gov.hmcts.reform.refunds.dtos.requests.MailAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @ActiveProfiles({"local", "test"})
@@ -115,6 +122,53 @@ class RefundNotificationMapperTest {
     }
 
     @Test
+    void testGetRefundNotificationEmailRequestApproveJourneyWithTemplatePreviewIsNotNull() {
+
+        TemplatePreview templatePreview = TemplatePreview.templatePreviewWith()
+            .id(UUID.randomUUID())
+            .templateType("email")
+            .version(11)
+            .body("Dear Sir Madam")
+            .subject("HMCTS refund request approved")
+            .html("Dear Sir Madam")
+            .from(FromTemplateContact
+                      .buildFromTemplateContactWith()
+                      .fromEmailAddress("test@test.com")
+                      .build())
+            .build();
+
+        RefundNotificationEmailRequest refundNotificationEmailRequest =
+            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, templatePreview, "Template-1");
+
+        assertNotNull(refundNotificationEmailRequest);
+        assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
+        assertEquals("abc@abc.com", refundNotificationEmailRequest.getRecipientEmailAddress());
+        assertEquals("1234567812345678", refundNotificationEmailRequest.getPersonalisation().getCcdCaseNumber());
+        assertEquals("RF-1642-6117-6119-7355", refundNotificationEmailRequest.getPersonalisation().getRefundReference());
+        assertNotNull(refundNotificationEmailRequest.getTemplatePreview());
+        assertEquals("email", refundNotificationEmailRequest.getTemplatePreview().getTemplateType());
+        assertEquals("11", "" + refundNotificationEmailRequest.getTemplatePreview().getVersion());
+        assertEquals("Dear Sir Madam", refundNotificationEmailRequest.getTemplatePreview().getBody());
+        assertEquals("HMCTS refund request approved", refundNotificationEmailRequest.getTemplatePreview().getSubject());
+        assertEquals("Dear Sir Madam", refundNotificationEmailRequest.getTemplatePreview().getHtml());
+    }
+
+    @Test
+    void testGetRefundNotificationEmailRequestApproveJourneyWithTemplatePreviewIsNull() {
+
+
+        RefundNotificationEmailRequest refundNotificationEmailRequest =
+            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, null, null);
+
+        assertNotNull(refundNotificationEmailRequest);
+        assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
+        assertEquals("abc@abc.com", refundNotificationEmailRequest.getRecipientEmailAddress());
+        assertEquals("1234567812345678", refundNotificationEmailRequest.getPersonalisation().getCcdCaseNumber());
+        assertEquals("RF-1642-6117-6119-7355", refundNotificationEmailRequest.getPersonalisation().getRefundReference());
+        assertNull(refundNotificationEmailRequest.getTemplatePreview());
+    }
+
+    @Test
     void givenResendNotificationLetterRequest_whenGetRefundNotificationLetterRequest_thenRefundNotificationLetterRequestIsReceived_approvalJourney() {
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
@@ -125,5 +179,59 @@ class RefundNotificationMapperTest {
         assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
         assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
+    }
+
+    @Test
+    void testGetRefundNotificationLetterRequestApproveJourneyWithTemplatePreviewIsNotNull() {
+
+        TemplatePreview templatePreview = TemplatePreview.templatePreviewWith()
+            .id(UUID.randomUUID())
+            .templateType("email")
+            .version(11)
+            .body("Dear Sir Madam")
+            .subject("HMCTS refund request approved")
+            .html("Dear Sir Madam")
+            .from(FromTemplateContact
+                      .buildFromTemplateContactWith()
+                      .fromMailAddress(
+                          MailAddress
+                              .buildRecipientMailAddressWith()
+                              .addressLine("6 Test")
+                              .city("city")
+                              .country("country")
+                              .county("county")
+                              .postalCode("HA3 5TT")
+                              .build())
+                      .build())
+            .build();
+
+        RefundNotificationLetterRequest refundNotificationLetterRequest =
+            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, templatePreview, null);
+
+        assertNotNull(refundNotificationLetterRequest);
+        assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());
+        assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
+        assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
+        assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
+        assertNotNull(refundNotificationLetterRequest.getTemplatePreview());
+        assertEquals("email", refundNotificationLetterRequest.getTemplatePreview().getTemplateType());
+        assertEquals("11", "" + refundNotificationLetterRequest.getTemplatePreview().getVersion());
+        assertEquals("Dear Sir Madam", refundNotificationLetterRequest.getTemplatePreview().getBody());
+        assertEquals("HMCTS refund request approved", refundNotificationLetterRequest.getTemplatePreview().getSubject());
+        assertEquals("Dear Sir Madam", refundNotificationLetterRequest.getTemplatePreview().getHtml());
+    }
+
+    @Test
+    void tesGetRefundNotificationLetterRequestApproveJourneyWithTemplatePreviewIsNull() {
+
+        RefundNotificationLetterRequest refundNotificationLetterRequest =
+            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, null, null);
+
+        assertNotNull(refundNotificationLetterRequest);
+        assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());
+        assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
+        assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
+        assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
+        assertNull(refundNotificationLetterRequest.getTemplatePreview());
     }
 }

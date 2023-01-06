@@ -152,6 +152,8 @@
       snakeyaml v1.31 (most recent patch available currently) does not resolve the issue.
     </notes>
     <cve>CVE-2022-25857</cve>
+    <cve>CVE-2022-41854</cve>
+    <cve>CVE-2022-31690</cve>
   </suppress>
   <suppress until="2023-03-31">
     <notes>
@@ -173,6 +175,8 @@
         </notes>
         <cve>CVE-2022-42003</cve>
         <cve>CVE-2022-42004</cve>
+        <cve>CVE-2021-37533</cve>
+        <cve>CVE-2022-41946</cve>
   </suppress>
   <suppress until="2023-03-31">
     <notes>
@@ -186,4 +190,14 @@
     </notes>
     <cve>CVE-2021-37533</cve>
   </suppress>
+  <suppress until="2023-03-31">
+    <notes>
+      A vulnerability, which was classified as problematic, has been found in fredsmith utils.
+      This issue affects some unknown processing of the file screenshot_sync of the component Filename Handler.
+      The manipulation leads to predictable from observable state.
+    </notes>
+    <cve>CVE-2021-4277</cve>
+  </suppress>
+
+
 </suppressions>

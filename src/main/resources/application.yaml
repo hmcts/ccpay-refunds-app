@@ -187,6 +187,9 @@ notify:
     card-pba:
       letter: ${NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID:}
       email: ${NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID:}
+    refund-when-contacted:
+      letter: ${NOTIFICATION_LETTER_REFUND_WHEN_CONTACTED_TEMPLATE_ID:}
+      email: ${NOTIFICATION_EMAIL_REFUND_WHEN_CONTACTED_TEMPLATE_ID:}
 
 refund:
   search:
