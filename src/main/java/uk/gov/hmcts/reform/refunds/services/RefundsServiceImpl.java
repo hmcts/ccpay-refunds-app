@@ -392,6 +392,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             }
 
             BigDecimal refundAmount = getTotalRefundedAmountIssueRefund(refund.getPaymentReference());
+            refundAmount = refundAmount.subtract(refund.getAmount());
             BigDecimal totalRefundedAmount = refundAmount.add(request.getAmount());
             // Remission update in payhub
             RefundResubmitPayhubRequest refundResubmitPayhubRequest = RefundResubmitPayhubRequest
