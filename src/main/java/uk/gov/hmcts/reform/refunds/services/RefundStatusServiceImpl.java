@@ -100,6 +100,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                         String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
                         notificationService.updateNotification(headers, refund, null, templateId);
                     }
+
+                    refund.setRefundStatus(RefundStatus.APPROVED);
+                    refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+                        "System user",
+                        RefundStatus.APPROVED,
+                        "Refund approved by system")
+                    ));
+
                 }
             }
             refund.setUpdatedBy(LIBERATA_NAME);
