@@ -42,3 +42,19 @@ module "ccpay-refund-status-policy" {
   api_policy_xml_content = data.template_file.refund_status_policy_template.rendered
 }
 
+
+data "azurerm_api_management_user" "refund_user" {
+  user_id             = "5731a75ae4bcd512288c690e"
+  api_management_name = local.api_mgmt_name
+  resource_group_name = local.api_mgmt_rg
+}
+
+
+resource "azurerm_api_management_subscription" "refund_subs" {
+  api_management_name = local.api_mgmt_name
+  resource_group_name = local.api_mgmt_rg
+  user_id             = data.azurerm_api_management_user.refund_user.id
+  product_id          = module.ccpay-refund-status-product.id
+  display_name        = "Refund Subscription"
+  state               = "active"
+}
