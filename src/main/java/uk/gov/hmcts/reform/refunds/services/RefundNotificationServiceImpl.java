@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -13,12 +16,17 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
+import uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationTemplatePreviewResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundIdamNotificationException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
@@ -62,6 +70,14 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
+
+    @Value("${notification.url}")
+    private String notificationUrl;
+
+    @Autowired
+    private RestTemplate restTemplateNotify;
+
+    public static final String CONTENT_TYPE = "content-type";
 
     @Override
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
@@ -218,5 +234,38 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
         LOG.info("idamTokenResponse {}",idamTokenResponse.getAccessToken());
         return idamTokenResponse.getAccessToken();
+    }
+
+    public NotificationTemplatePreviewResponse previewNotification(DocPreviewRequest docPreviewRequest, MultiValueMap<String, String> headers) {
+
+        LOG.info("docPreviewRequest object: {}", docPreviewRequest);
+        ResponseEntity<NotificationTemplatePreviewResponse> notificationTemplatePreviewResponse = null;
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append("/doc-preview").toString());
+            LOG.info("Notification URL in Refunds app {}",builder.toUriString());
+
+            notificationTemplatePreviewResponse =
+            restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
+                                               new HttpEntity<>(docPreviewRequest, getFormatedHeaders(headers)), NotificationTemplatePreviewResponse.class);
+
+       return notificationTemplatePreviewResponse.getBody();
+        } catch (HttpClientErrorException exception) {
+            LOG.error("HttpClientErrorException message {}",exception.getMessage());
+        } catch (HttpServerErrorException exception) {
+            LOG.error("Exception message {}",exception.getMessage());
+            LOG.error("Notification service is unavailable. Please try again later. {}", exception);
+        }
+        return notificationTemplatePreviewResponse.getBody();
+    }
+
+    private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {
+        List<String> authtoken = headers.get("authorization");
+        List<String> servauthtoken = Arrays.asList(authTokenGenerator.generate());
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
+        inputHeaders.put("Authorization", authtoken);
+        inputHeaders.put("ServiceAuthorization", servauthtoken);
+        LOG.info("ServiceAuthorization: {}", servauthtoken);
+        return inputHeaders;
     }
 }
