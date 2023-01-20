@@ -234,6 +234,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         LOG.info("idamTokenResponse {}",idamTokenResponse.getAccessToken());
         return idamTokenResponse.getAccessToken();
     }
+
     @Override
     public NotificationTemplatePreviewResponse previewNotification(DocPreviewRequest docPreviewRequest, MultiValueMap<String, String> headers) {
 
@@ -245,9 +246,10 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
             notificationTemplatePreviewResponse =
             restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
-                                               new HttpEntity<>(docPreviewRequest, getFormatedHeaders(headers)), NotificationTemplatePreviewResponse.class);
+                                               new HttpEntity<>(docPreviewRequest, getFormatedHeaders(headers)),
+                                        NotificationTemplatePreviewResponse.class);
 
-       return notificationTemplatePreviewResponse.getBody();
+            return notificationTemplatePreviewResponse.getBody();
         } catch (HttpClientErrorException exception) {
             LOG.error("HttpClientErrorException message {}",exception.getMessage());
         } catch (HttpServerErrorException exception) {

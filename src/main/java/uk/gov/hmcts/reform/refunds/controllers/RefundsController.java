@@ -27,8 +27,20 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
-import uk.gov.hmcts.reform.refunds.dtos.requests.*;
-import uk.gov.hmcts.reform.refunds.dtos.responses.*;
+import uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationTemplatePreviewResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -350,7 +362,7 @@ public class RefundsController {
         @RequestHeader("Authorization") String authorization,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody DocPreviewRequest docPreviewRequest) {
-      //  log.info("Doc Preview Hit");
+        LOG.info("Doc Preview Hit");
         return new ResponseEntity<>(
             refundNotificationService.previewNotification(docPreviewRequest,headers),
             HttpStatus.OK
