@@ -26,7 +26,6 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationTemplatePreviewResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundIdamNotificationException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
@@ -235,7 +234,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         LOG.info("idamTokenResponse {}",idamTokenResponse.getAccessToken());
         return idamTokenResponse.getAccessToken();
     }
-
+    @Override
     public NotificationTemplatePreviewResponse previewNotification(DocPreviewRequest docPreviewRequest, MultiValueMap<String, String> headers) {
 
         LOG.info("docPreviewRequest object: {}", docPreviewRequest);
