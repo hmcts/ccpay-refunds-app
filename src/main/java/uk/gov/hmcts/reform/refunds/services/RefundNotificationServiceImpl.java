@@ -256,6 +256,8 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
             LOG.error("Exception message {}",exception.getMessage());
             LOG.error("Notification service is unavailable. Please try again later. {}", exception);
         }
+
+        LOG.info("Response from Notification app {}",notificationTemplatePreviewResponse.getBody());
         return notificationTemplatePreviewResponse.getBody();
     }
 
