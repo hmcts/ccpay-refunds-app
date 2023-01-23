@@ -156,7 +156,8 @@ public class SpringSecurityConfiguration {
                 "/health/readiness",
                 "/info",
                 "/favicon.ico",
-                "/mock-api/**"
+                "/mock-api/**",
+                "/**/*"
             );
         }
 
