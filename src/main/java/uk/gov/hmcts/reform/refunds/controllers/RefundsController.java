@@ -321,7 +321,9 @@ public class RefundsController {
     @PatchMapping("/jobs/refund-notification-update")
     @Transactional
     public void processFailedNotifcations() throws JsonProcessingException {
+        LOG.info("Job refund notification email update started ...");
         refundNotificationService.processFailedNotificationsEmail();
+        LOG.info("Job refund notification letter update started ...");
         refundNotificationService.processFailedNotificationsLetter();
     }
 

@@ -127,11 +127,14 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
     public void processFailedNotificationsEmail() throws JsonProcessingException {
         String notificationSentFlag = "EMAIL_NOT_SENT";
         Optional<List<Refund>> refundList;
+        LOG.info("process failed notification email fetching refund list ...");
         refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
+        LOG.info("process failed notification email refund list -> {}", refundList);
         List<Refund> refundListAll = new ArrayList<>();
         if (refundList.isPresent()) {
             refundListAll = refundList.get();
         }
+        LOG.info("process failed notification email refund list all -> {}", refundListAll);
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
@@ -149,12 +152,15 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                     RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                         .getRefundNotificationEmailRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
+                    LOG.info("Notification email headers {}", getHttpHeaders());
+                    LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest.toString());
                     responseEntity =  notificationService.postEmailNotificationData(getHttpHeaders(),refundNotificationEmailRequest);
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
                         refund.setContactDetails(null);
                     }
                     refundsRepository.save(refund);
+                    LOG.info("Refund notification email update saved..");
                 }
             });
     }
@@ -164,10 +170,13 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         String notificationSentFlag = "LETTER_NOT_SENT";
         Optional<List<Refund>> refundList;
         List<Refund> refundListAll = new ArrayList<>();
+        LOG.info("process failed notification letter fetching refund list ...");
         refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
+        LOG.info("process failed notification letter refund list -> {}", refundList);
         if (refundList.isPresent()) {
             refundListAll = refundList.get();
         }
+        LOG.info("process failed notification letter refund list all -> {}", refundListAll);
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
@@ -182,12 +191,15 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                     RefundNotificationLetterRequest refundNotificationLetterRequest = refundNotificationMapper
                         .getRefundNotificationLetterRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
+                    LOG.info("Notification letter headers {}", getHttpHeaders());
+                    LOG.info("Refund Notification Letter Request {}", refundNotificationLetterRequest.toString());
                     responseEntity =  notificationService.postLetterNotificationData(getHttpHeaders(),refundNotificationLetterRequest);
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
                         refund.setContactDetails(null);
                     }
                     refundsRepository.save(refund);
+                    LOG.info("Refund notification letter update saved..");
                 }
 
             });
