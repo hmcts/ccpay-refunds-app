@@ -200,7 +200,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
     private MultiValueMap<String,String> getHttpHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
-        inputHeaders.put("content-Type", Arrays.asList("application/json"));
+        inputHeaders.put("content-type", Arrays.asList("application/json"));
         inputHeaders.put("authorization", Arrays.asList("Bearer " + getAccessToken()));
         inputHeaders.put("ServiceAuthorization", Arrays.asList(getServiceAuthorisationToken()));
         LOG.info("HttpHeader {}", inputHeaders);
