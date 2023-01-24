@@ -138,14 +138,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
-                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-                String refundsDto = null;
-                try {
-                    refundsDto = ow.writeValueAsString(refund);
-                } catch (JsonProcessingException e) {
-                    LOG.error("JsonProcessingException : {}",  e);
-                }
-                LOG.info("Refund object : {}",  refundsDto);
+                LOG.info("Refund object : {}",  refund.toString());
 
                 if (refund.getContactDetails().getNotificationType().equalsIgnoreCase("email")) {
                     refund.setNotificationSentFlag("EMAIL_NOT_SENT");

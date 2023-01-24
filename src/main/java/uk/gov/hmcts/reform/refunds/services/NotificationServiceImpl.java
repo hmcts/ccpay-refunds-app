@@ -79,6 +79,10 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(emailUrlPath).toString());
             log.info("Notification URL in Refunds app {}",builder.toUriString());
+            log.info("Post email notification exchange get header ---> {}",getFormatedHeaders(headers));
+            log.info("Post email notification exchange request ---> {}",refundNotificationEmailRequest);
+            log.info("Post email notification exchange personalization ---> {}",refundNotificationEmailRequest.getPersonalisation().toString());
+            log.info("Post email notification exchange ---> {}",restTemplateNotify);
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
                     new HttpEntity<>(refundNotificationEmailRequest, getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
