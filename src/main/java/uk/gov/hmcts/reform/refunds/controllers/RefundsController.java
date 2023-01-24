@@ -357,7 +357,7 @@ public class RefundsController {
         @ApiResponse(code = 403, message = "AuthError"),
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
-    @PostMapping("/refund/doc-preview")
+    @PatchMapping("/refund/doc-preview")
     public ResponseEntity<NotificationTemplatePreviewResponse> previewNotification(
         @RequestHeader("Authorization") String authorization,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
