@@ -153,7 +153,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                         .getRefundNotificationEmailRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
                     LOG.info("Notification email headers {}", getHttpHeaders());
-                    LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest.toString());
+                    LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest);
                     responseEntity =  notificationService.postEmailNotificationData(getHttpHeaders(),refundNotificationEmailRequest);
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
@@ -192,7 +192,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                         .getRefundNotificationLetterRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
                     LOG.info("Notification letter headers {}", getHttpHeaders());
-                    LOG.info("Refund Notification Letter Request {}", refundNotificationLetterRequest.toString());
+                    LOG.info("Refund Notification Letter Request {}", refundNotificationLetterRequest);
                     responseEntity =  notificationService.postLetterNotificationData(getHttpHeaders(),refundNotificationLetterRequest);
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
