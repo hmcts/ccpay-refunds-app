@@ -351,13 +351,13 @@ public class RefundsController {
         return new ResponseEntity<>(new RerfundLiberataResponse(refunds),HttpStatus.OK);
     }
 
-    @ApiOperation(value = "POST /doc-preview ", notes = "Preview Notification by passing personalisation")
+    @ApiOperation(value = "POST refund/doc-preview ", notes = "Preview Notification by passing personalisation")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Success"),
         @ApiResponse(code = 403, message = "AuthError"),
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
-    @PatchMapping("/doc-preview")
+    @PatchMapping("/refund/doc-preview")
     public ResponseEntity<NotificationTemplatePreviewResponse> previewNotification(
         @RequestHeader("Authorization") String authorization,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
