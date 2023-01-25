@@ -264,6 +264,7 @@ public class RefundsController {
         if (featureToggler.getBooleanValue(REFUNDS_RELEASE,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
+        LOG.info("Inside reviewer-action endpoint {}", reference);
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 

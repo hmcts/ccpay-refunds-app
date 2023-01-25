@@ -1,10 +1,13 @@
 package uk.gov.hmcts.reform.refunds.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.refunds.controllers.RefundsController;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
@@ -55,13 +58,15 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private static final String CANCELLED = "Cancelled";
     private static final String FEE_AND_PAY = "Fee and Pay";
 
+    private static final Logger LOG = LoggerFactory.getLogger(RefundReviewServiceImpl.class);
+
     @Override
     public ResponseEntity<String> reviewRefund(MultiValueMap<String, String> headers, String reference,
                                                RefundEvent refundEvent, RefundReviewRequest refundReviewRequest) {
         IdamUserIdResponse userId = idamService.getUserId(headers);
 
         Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference, userId.getUid());
-
+        LOG.info("Refund validated before further processing, RC -> {}", refundForGivenReference.getPaymentReference());
         List<StatusHistory> statusHistories = new ArrayList<>(refundForGivenReference.getStatusHistories());
         refundForGivenReference.setUpdatedBy(userId.getUid());
         statusHistories.add(StatusHistory.statusHistoryWith()
@@ -72,10 +77,12 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         refundForGivenReference.setStatusHistories(statusHistories);
         String statusMessage = "";
         if (refundEvent.equals(RefundEvent.APPROVE)) {
+            LOG.info("Before Calling Payment app, RC -> {}", refundForGivenReference.getPaymentReference());
             PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(
                 headers,
                 refundForGivenReference.getPaymentReference()
             );
+            LOG.info("Response received from Payment app {}", paymentData);
             refundsUtil.logPaymentDto(paymentData);
             refundsUtil.validateRefundRequestFees(refundForGivenReference, paymentData);
             updateRefundStatus(refundForGivenReference, refundEvent);
@@ -83,6 +90,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
                                                    refundReviewRequest.getTemplatePreview());
             refundsRepository.save(refundForGivenReference);
             statusMessage = "Refund approved";
+            LOG.info("APPROVED Status saved in Refunds DB");
         }
 
         if (refundEvent.equals(RefundEvent.REJECT)) {
