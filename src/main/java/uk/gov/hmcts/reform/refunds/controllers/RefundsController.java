@@ -309,6 +309,7 @@ public class RefundsController {
         @PathVariable String reference,
         @RequestParam NotificationType notificationType
     ) {
+        LOG.info("Inside /refund/resend/notification/{reference}");
         resendNotificationRequest.setReference(reference);
         resendNotificationRequest.setNotificationType(notificationType);
         return refundNotificationService.resendRefundNotification(resendNotificationRequest,headers);
