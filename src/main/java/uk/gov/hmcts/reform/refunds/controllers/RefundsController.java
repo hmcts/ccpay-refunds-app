@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
@@ -43,12 +44,14 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.services.IdamService;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.util.List;
@@ -84,6 +87,12 @@ public class RefundsController {
     @Autowired
     private RefundNotificationService refundNotificationService;
 
+    @Autowired
+    private IdamService idamService;
+
+    @Autowired
+    private RefundServiceRoleUtil refundServiceRoleUtil;
+
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
         if (featureToggler.getBooleanValue(REFUNDS_RELEASE,false)) {
@@ -110,7 +119,10 @@ public class RefundsController {
         if (featureToggler.getBooleanValue(REFUNDS_RELEASE,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
-        return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers), HttpStatus.CREATED);
+
+        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
+        refundServiceRoleUtil.validateRefundRoleWithServiceName(idamUserIdResponse.getRoles(), refundRequest.getServiceType());
+        return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers, idamUserIdResponse), HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "GET /refund ", notes = "Get refund list based on status")
@@ -220,6 +232,7 @@ public class RefundsController {
         if (featureToggler.getBooleanValue(REFUNDS_RELEASE,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
+
         return new ResponseEntity<>(refundsService.resubmitRefund(reference, request, headers), HttpStatus.CREATED);
     }
 

@@ -46,6 +46,8 @@ public class SpringSecurityConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
+    private static final String AUTHORISED_REFUNDS_ROLE_REGEX = "payments-refund-*";
+    private static final String AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX = "payments-refund-approver-*";
     private static final String PAYMENTS_ROLE = "payments";
 
     @Configuration
@@ -165,6 +167,7 @@ public class SpringSecurityConfiguration {
             justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         protected void configure(HttpSecurity http) {
             try {
+
                 http
                     .addFilterAfter(serviceAndUserAuthFilter, BearerTokenAuthenticationFilter.class)
                     .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
@@ -173,14 +176,28 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                    .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
+                                                                             AUTHORISED_REFUNDS_ROLE,
+                                                                             AUTHORISED_REFUNDS_ROLE_REGEX,
+                                                                             AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
+                    .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
+                                                                             AUTHORISED_REFUNDS_ROLE,
+                                                                             AUTHORISED_REFUNDS_ROLE_REGEX,
+                                                                             AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
                     .antMatchers(HttpMethod.GET, "/refunds/**").permitAll()
                     .antMatchers(HttpMethod.GET,"/refund/payment-failure-report").permitAll()
-                    .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
-                    .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                    .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
+                    .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
+                                                                           AUTHORISED_REFUNDS_ROLE,
+                                                                           PAYMENTS_ROLE,
+                                                                           AUTHORISED_REFUNDS_ROLE_REGEX,
+                                                                           AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
+                    .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
+                                                                              AUTHORISED_REFUNDS_ROLE,
+                                                                              AUTHORISED_REFUNDS_ROLE_REGEX,
+                                                                              AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
+                    .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
+                                                                                     AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
                     .antMatchers(HttpMethod.PATCH,"/payment/**").permitAll()
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()

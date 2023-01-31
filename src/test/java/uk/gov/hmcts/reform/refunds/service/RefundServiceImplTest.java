@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
@@ -56,6 +57,7 @@ import uk.gov.hmcts.reform.refunds.services.IdamService;
 import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
+import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.Utility;
 import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
@@ -119,6 +121,9 @@ class RefundServiceImplTest {
     private RefundFeeMapper refundFeeMapper;
     @Spy
     private PaymentFailureResponseMapper paymentFailureResponseMapper;
+
+    @Spy
+    private RefundServiceRoleUtil refundServiceRoleUtil;
 
     @Mock
     private ContextStartListener contextStartListener;
@@ -308,9 +313,10 @@ class RefundServiceImplTest {
     void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
-        when(refundsRepository.findByRefundStatusAndUpdatedByIsNot(
+        when(refundsRepository.findByRefundStatusAndUpdatedByIsNotAndServiceTypeIn(
             any(),
-            anyString()
+            anyString(),
+            any()
         ))
             .thenReturn(Optional.ofNullable(List.of(
                 Utility.refundListSupplierForSubmittedStatus.get())));
@@ -341,9 +347,9 @@ class RefundServiceImplTest {
     @Test
     void testRefundListForRefundSubmittedStatusExcludeCurrentUserFalse() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
-        when(refundsRepository.findByRefundStatus(
-            RefundStatus.SENTFORAPPROVAL
-        ))
+
+        List<String> list = List.of("cmc");
+        when(refundsRepository.findByRefundStatusAndServiceTypeIn(RefundStatus.SENTFORAPPROVAL, list))
             .thenReturn(Optional.ofNullable(List.of(
                 Utility.refundListSupplierBasedOnCCDCaseNumber1.get(),
                 Utility.refundListSupplierForSubmittedStatus.get()
@@ -518,6 +524,7 @@ class RefundServiceImplTest {
     void givenRefundWithSubmitStatus_whenResubmitRefund_thenActionNotFoundExceptionIsReceived() {
         when(refundsRepository.findByReferenceOrThrow(anyString()))
             .thenReturn(Utility.refundListSupplierForSubmittedStatus.get());
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(BigDecimal.valueOf(10))
             .refundReason("new reason")
@@ -546,6 +553,7 @@ class RefundServiceImplTest {
     void givenRefundWithSentForApprovalStateAndWithoutReasonInResubmitRequestThrowsInvalidRefundRequestException() {
         when(refundsRepository.findByReferenceOrThrow(anyString()))
             .thenReturn(Utility.refundListSupplierForSendBackStatusForNullReason.get());
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         ResubmitRefundRequest resubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
             .amount(BigDecimal.valueOf(10))
             .contactDetails(ContactDetails.contactDetailsWith()
@@ -590,6 +598,7 @@ class RefundServiceImplTest {
         when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(false);
         when(refundReasonRepository.findByCodeOrThrow(anyString()))
             .thenReturn(RefundReason.refundReasonWith().name("RR001").build());
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
 
         Exception exception = assertThrows(
             ActionNotFoundException.class,
@@ -608,6 +617,7 @@ class RefundServiceImplTest {
         when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
             .thenReturn(Utility.PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenThrow(RefundReasonNotFoundException.class);
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         ResubmitRefundRequest validResubmitRefundRequest = ResubmitRefundRequest.ResubmitRefundRequestWith()
             .refundReason("RRII3")
             .amount(BigDecimal.valueOf(10))
@@ -648,7 +658,7 @@ class RefundServiceImplTest {
         when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
             .thenReturn(Utility.PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
-
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         Exception exception = assertThrows(
             InvalidRefundRequestException.class,
             () -> refundsService.resubmitRefund("RF-1629-8081-7517-5855", resubmitRefundRequest, null)
@@ -714,6 +724,7 @@ class RefundServiceImplTest {
         when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
             .thenReturn(Utility.PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(refundReason);
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
 
         Exception exception = assertThrows(
             InvalidRefundRequestException.class,
@@ -1090,7 +1101,14 @@ class RefundServiceImplTest {
                 .paymentMethod("CCC")
                 .build();
 
-        Exception exception = assertThrows(InvalidRefundRequestException.class, () -> refundsService.initiateRefund(refundRequest, map));
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1")
+            .givenName("XX").familyName("YY").name("XX YY")
+            .roles(Arrays.asList("payments-refund-approver", "payments-refund", "payments-refund-approver-AAA", "payments-refund-AAA"))
+            .sub("ZZ")
+            .build();
+
+        Exception exception = assertThrows(InvalidRefundRequestException.class, () ->
+            refundsService.initiateRefund(refundRequest, map, idamUserIdResponse));
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("The amount to refund can not be more than"));
     }
@@ -1126,13 +1144,19 @@ class RefundServiceImplTest {
                 .paymentMethod("CCC")
                 .build();
 
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1")
+            .givenName("XX").familyName("YY").name("XX YY")
+            .roles(Arrays.asList("payments-refund-approver", "payments-refund", "payments-refund-approver-AAA", "payments-refund-AAA"))
+            .sub("ZZ")
+            .build();
+
         when(refundsRepository.findByPaymentReference(anyString()))
             .thenReturn(Optional.of(Collections.singletonList(Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name("RR007").build());
 
-        RefundResponse refundResponse = refundsService.initiateRefund(refundRequest, map);
+        RefundResponse refundResponse = refundsService.initiateRefund(refundRequest, map, idamUserIdResponse);
         assertNotNull(refundResponse);
         assertEquals("RF1234567890", refundResponse.getRefundReference());
     }
@@ -1168,13 +1192,19 @@ class RefundServiceImplTest {
                 .paymentMethod("CCC")
                 .build();
 
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1")
+            .givenName("XX").familyName("YY").name("XX YY")
+            .roles(Arrays.asList("payments-refund-approver", "payments-refund", "payments-refund-approver-AAA", "payments-refund-AAA"))
+            .sub("ZZ")
+            .build();
+
         when(refundsRepository.findByPaymentReference(anyString()))
                 .thenReturn(Optional.of(Collections.singletonList(Utility.refundListSupplierForApprovedStatus.get())));
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name("RR007").build());
 
-        RefundResponse refundResponse = refundsService.initiateRefund(refundRequest, map);
+        RefundResponse refundResponse = refundsService.initiateRefund(refundRequest, map, idamUserIdResponse);
         assertNotNull(refundResponse);
         assertEquals("RF1234567890", refundResponse.getRefundReference());
     }
@@ -1210,12 +1240,19 @@ class RefundServiceImplTest {
                 .paymentMethod("CCC")
                 .build();
 
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1")
+            .givenName("XX").familyName("YY").name("XX YY")
+            .roles(Arrays.asList("payments-refund-approver", "payments-refund", "payments-refund-approver-AAA", "payments-refund-AAA"))
+            .sub("ZZ")
+            .build();
+
         when(refundsRepository.findByPaymentReference(anyString()))
                 .thenReturn(Optional.of(Collections.singletonList(Utility.refundListSupplierForAcceptedStatus.get())));
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
 
-        Exception exception = assertThrows(InvalidRefundRequestException.class, () -> refundsService.initiateRefund(refundRequest, map));
+        Exception exception = assertThrows(InvalidRefundRequestException.class, () ->
+            refundsService.initiateRefund(refundRequest, map, idamUserIdResponse));
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains("The amount to refund can not be more than"));
     }

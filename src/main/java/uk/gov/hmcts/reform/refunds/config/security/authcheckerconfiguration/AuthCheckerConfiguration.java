@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGeneratorFactory;
 import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
 import uk.gov.hmcts.reform.authorisation.validators.ServiceAuthTokenValidator;
 import uk.gov.hmcts.reform.idam.client.IdamApi;
+import uk.gov.hmcts.reform.refunds.config.security.utils.RefundServiceRoles;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -58,7 +59,31 @@ public class AuthCheckerConfiguration {
 
     @Bean
     public Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor() {
-        return (any) -> Stream.of("payments-refund", "payments-refund-approver", "payments")
+        return (any) -> Stream.of("payments-refund",
+                                  "payments-refund-approver",
+                                  "payments",
+                                  RefundServiceRoles.DIVORCE.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.CIVIL.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.FAMILY_PUBLIC_LAW.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.SPECIFIED_MONEY_CLAIMS.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.ADOPTION.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.IMMIGRATION_AND_ASYLUM_APPEALS.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.CIVIL_MONEY_CLAIMS.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.FINREM.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.FINANCIAL_REMEDY.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.FAMILY_PRIVATE_LAW.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.PROBATE.getPaymentRefundApprovalRole(),
+                                  RefundServiceRoles.DIVORCE.getPaymentRefundRole(),
+                                  RefundServiceRoles.CIVIL.getPaymentRefundRole(),
+                                  RefundServiceRoles.FAMILY_PUBLIC_LAW.getPaymentRefundRole(),
+                                  RefundServiceRoles.SPECIFIED_MONEY_CLAIMS.getPaymentRefundRole(),
+                                  RefundServiceRoles.ADOPTION.getPaymentRefundRole(),
+                                  RefundServiceRoles.IMMIGRATION_AND_ASYLUM_APPEALS.getPaymentRefundRole(),
+                                  RefundServiceRoles.CIVIL_MONEY_CLAIMS.getPaymentRefundRole(),
+                                  RefundServiceRoles.FINREM.getPaymentRefundRole(),
+                                  RefundServiceRoles.FINANCIAL_REMEDY.getPaymentRefundRole(),
+                                  RefundServiceRoles.FAMILY_PRIVATE_LAW.getPaymentRefundRole(),
+                                  RefundServiceRoles.PROBATE.getPaymentRefundRole())
             .collect(Collectors.toList());
     }
 }

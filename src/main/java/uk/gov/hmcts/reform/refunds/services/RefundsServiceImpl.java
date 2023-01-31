@@ -59,6 +59,7 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
+import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
@@ -164,6 +165,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @Autowired
     private RefundFeeMapper refundFeeMapper;
 
+    @Autowired
+    private RefundServiceRoleUtil refundServiceRoleUtil;
+
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
         "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
@@ -180,12 +184,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @Override
-    public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException {
+    public RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers, IdamUserIdResponse idamUserIdResponse)
+        throws CheckDigitException {
+
         validateRefundAmount(refundRequest);
         String reason =  validateRefundReason(refundRequest.getRefundReason());
         refundRequest.setRefundReason(reason);
-        String instructionType = null;
 
+        String instructionType = null;
         if (refundRequest.getPaymentMethod() != null) {
 
             if (BULK_SCAN.equals(refundRequest.getPaymentChannel()) && (CASH.equals(refundRequest.getPaymentMethod())
@@ -195,8 +201,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 instructionType = SEND_REFUND;
             }
         }
-        IdamUserIdResponse uid = idamService.getUserId(headers);
-        Refund refund = initiateRefundEntity(refundRequest, uid.getUid(), instructionType);
+
+        Refund refund = initiateRefundEntity(refundRequest, idamUserIdResponse.getUid(), instructionType);
         refundsRepository.save(refund);
         LOG.info("Refund saved");
         return RefundResponse.buildRefundResponseWith()
@@ -218,12 +224,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
         } else if (StringUtils.isNotBlank(status)) {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status);
+
+            List<String> serviceList = refundServiceRoleUtil.getServiceNameFromUserRoles(idamUserIdResponse.getRoles());
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
-                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNot(
+                excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNotAndServiceTypeIn(
                 refundStatus,
-                idamUserIdResponse.getUid()
-            ) : refundsRepository.findByRefundStatus(refundStatus);
+                idamUserIdResponse.getUid(),
+                serviceList
+            ) : refundsRepository.findByRefundStatusAndServiceTypeIn(refundStatus, serviceList);
         }
 
         return getRefundListDto(headers, refundList, idamUserIdResponse);
@@ -376,8 +385,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
-        RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
+        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
+        refundServiceRoleUtil.validateRefundRoleWithServiceName(idamUserIdResponse.getRoles(), refund.getServiceType());
 
+        RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
 
         if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED)) {
 
@@ -414,7 +425,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             if (payhubRemissionUpdateResponse) {
                 // Update Status History table
-                IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
                 refund.setUpdatedBy(idamUserIdResponse.getUid());
                 List<StatusHistory> statusHistories = new ArrayList<>(refund.getStatusHistories());
                 refund.setUpdatedBy(idamUserIdResponse.getUid());
