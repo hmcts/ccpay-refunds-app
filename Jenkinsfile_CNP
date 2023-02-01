@@ -35,7 +35,7 @@ withPipeline(type, product, app) {
   enableDbMigration('ccpay')
   enableAksStagingDeployment()
 
-  after('test') {
+  afterAlways('test') {
     publishHTML target: [
       allowMissing         : true,
       alwaysLinkToLastBuild: true,
@@ -74,7 +74,7 @@ withPipeline(type, product, app) {
 
   }
 
-  after('smoketest:preview') {
+  afterAlways('smoketest:preview') {
     publishHTML target: [
       allowMissing         : true,
       alwaysLinkToLastBuild: true,
@@ -85,7 +85,7 @@ withPipeline(type, product, app) {
     ]
   }
 
-  after('smoketest:aat') {
+  afterAlways('smoketest:aat') {
     publishHTML target: [
       allowMissing         : true,
       alwaysLinkToLastBuild: true,
@@ -96,7 +96,7 @@ withPipeline(type, product, app) {
     ]
   }
 
-  after('functionalTest:preview') {
+  afterAlways('functionalTest:preview') {
 
     publishHTML target: [
       reportDir            : "build/reports/tests/functional",
@@ -128,7 +128,7 @@ withPipeline(type, product, app) {
                 Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
   }
 
-  after('functionalTest:aat') {
+  afterAlways('functionalTest:aat') {
     publishHTML target: [
       reportDir            : "target/site/serenity/",
       reportFiles          : "index.html",
