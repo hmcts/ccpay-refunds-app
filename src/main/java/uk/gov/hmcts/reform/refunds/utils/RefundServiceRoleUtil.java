@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.refunds.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.refunds.controllers.RefundsController;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 
 import java.util.ArrayList;
