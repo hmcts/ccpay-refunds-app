@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.refunds.config.security.converter.RefundsJwtGrantedAu
 import uk.gov.hmcts.reform.refunds.config.security.exception.RefundsAccessDeniedHandler;
 import uk.gov.hmcts.reform.refunds.config.security.exception.RefundsAuthenticationEntryPoint;
 import uk.gov.hmcts.reform.refunds.config.security.filiters.ServiceAndUserAuthFilter;
+import uk.gov.hmcts.reform.refunds.config.security.utils.RefundServiceRoles;
 import uk.gov.hmcts.reform.refunds.config.security.utils.SecurityUtils;
 import uk.gov.hmcts.reform.refunds.config.security.validator.AudienceValidator;
 
@@ -41,13 +42,12 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 
 @EnableWebSecurity
+@SuppressWarnings("PMD.LawOfDemeter")
 public class SpringSecurityConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
-    private static final String AUTHORISED_REFUNDS_ROLE_REGEX = "payments-refund-*";
-    private static final String AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX = "payments-refund-approver-*";
     private static final String PAYMENTS_ROLE = "payments";
 
     @Configuration
@@ -176,28 +176,19 @@ public class SpringSecurityConfiguration {
                     .formLogin().disable()
                     .logout().disable()
                     .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
-                                                                             AUTHORISED_REFUNDS_ROLE,
-                                                                             AUTHORISED_REFUNDS_ROLE_REGEX,
-                                                                             AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
-                    .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
-                                                                             AUTHORISED_REFUNDS_ROLE,
-                                                                             AUTHORISED_REFUNDS_ROLE_REGEX,
-                                                                             AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
+                    .antMatchers(HttpMethod.POST, "/refund")
+                        .hasAnyAuthority(getAllRoles(false))
+                    .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*")
+                        .hasAnyAuthority(getAllRoles(false))
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
                     .antMatchers(HttpMethod.GET, "/refunds/**").permitAll()
                     .antMatchers(HttpMethod.GET,"/refund/payment-failure-report").permitAll()
-                    .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
-                                                                           AUTHORISED_REFUNDS_ROLE,
-                                                                           PAYMENTS_ROLE,
-                                                                           AUTHORISED_REFUNDS_ROLE_REGEX,
-                                                                           AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
-                    .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
-                                                                              AUTHORISED_REFUNDS_ROLE,
-                                                                              AUTHORISED_REFUNDS_ROLE_REGEX,
-                                                                              AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
-                    .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,
-                                                                                     AUTHORISED_REFUNDS_APPROVER_ROLE_REGEX)
+                    .antMatchers(HttpMethod.GET,"/refund")
+                        .hasAnyAuthority(getAllRoles(true))
+                    .antMatchers(HttpMethod.GET,"/refund/**")
+                        .hasAnyAuthority(getAllRoles(false))
+                    .antMatchers(HttpMethod.PATCH,"/refund/*/action/*")
+                        .hasAnyAuthority(getAllApproverRoles())
                     .antMatchers(HttpMethod.PATCH,"/payment/**").permitAll()
                     .antMatchers("/error").permitAll()
                     .anyRequest().authenticated()
@@ -216,6 +207,38 @@ public class SpringSecurityConfiguration {
             } catch (Exception e) {
                 LOG.info("Error in InternalApiSecurityConfigurationAdapter: {}", e);
             }
+        }
+
+        private String getAllRoles(boolean hasPaymentRole) {
+            StringBuilder roles = new StringBuilder();
+            String commaSaparator = ", ";
+            roles.append(AUTHORISED_REFUNDS_APPROVER_ROLE)
+                .append(commaSaparator)
+                .append(AUTHORISED_REFUNDS_ROLE);
+            if (hasPaymentRole) {
+                roles.append(", ").append(PAYMENTS_ROLE);
+            }
+            for (RefundServiceRoles role : RefundServiceRoles.values()) {
+                roles.append(commaSaparator)
+                    .append(role.getPaymentRefundRole())
+                    .append(commaSaparator)
+                    .append(role.getPaymentRefundApprovalRole());
+            }
+            LOG.info("getAllRoles --> {}", roles.toString());
+            return roles.toString();
+        }
+
+        private String getAllApproverRoles() {
+            StringBuilder approverRoles = new StringBuilder();
+            String commaSaparator = ", ";
+            approverRoles.append(AUTHORISED_REFUNDS_APPROVER_ROLE);
+
+            for (RefundServiceRoles role : RefundServiceRoles.values()) {
+                approverRoles.append(commaSaparator)
+                    .append(role.getPaymentRefundApprovalRole());
+            }
+            LOG.info("getAllApproverRoles --> {}", approverRoles.toString());
+            return approverRoles.toString();
         }
 
         @Bean
