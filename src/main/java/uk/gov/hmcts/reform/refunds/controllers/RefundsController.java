@@ -34,7 +34,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
@@ -126,7 +125,7 @@ public class RefundsController {
         }
 
         if (StringUtils.isBlank(status) && StringUtils.isBlank(ccdCaseNumber)) {
-            throw new RefundListEmptyException(
+            throw new InvalidRefundRequestException(
                 "Please provide criteria to fetch refunds i.e. Refund status or ccd case number");
         }
 
