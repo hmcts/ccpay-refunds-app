@@ -145,7 +145,6 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                     RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                         .getRefundNotificationEmailRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
-                    LOG.info("Notification email headers {}", getHttpHeaders());
                     LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest);
                     responseEntity =  notificationService.postEmailNotificationData(getHttpHeaders(),refundNotificationEmailRequest);
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
@@ -184,7 +183,6 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                     RefundNotificationLetterRequest refundNotificationLetterRequest = refundNotificationMapper
                         .getRefundNotificationLetterRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
-                    LOG.info("Notification letter headers {}", getHttpHeaders());
                     LOG.info("Refund Notification Letter Request {}", refundNotificationLetterRequest);
                     responseEntity =  notificationService.postLetterNotificationData(getHttpHeaders(),refundNotificationLetterRequest);
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
@@ -203,14 +201,12 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         inputHeaders.put("content-type", Arrays.asList("application/json"));
         inputHeaders.put("authorization", Arrays.asList("Bearer " + getAccessToken()));
         inputHeaders.put("ServiceAuthorization", Arrays.asList(getServiceAuthorisationToken()));
-        LOG.info("HttpHeader {}", inputHeaders);
         return inputHeaders;
     }
 
     private String getServiceAuthorisationToken() {
         try {
             String serviceAuthToken = authTokenGenerator.generate();
-            LOG.info("authTokenGenerator.generate() {}",serviceAuthToken);
             return serviceAuthToken;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new RefundIdamNotificationException("S2S", e.getStatusCode(), e);
@@ -221,7 +217,6 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
     private String getAccessToken() {
         IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
-        LOG.info("idamTokenResponse {}",idamTokenResponse.getAccessToken());
         return idamTokenResponse.getAccessToken();
     }
 }

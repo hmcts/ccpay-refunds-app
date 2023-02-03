@@ -77,9 +77,6 @@ public class IdamService {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
 
-        LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
-        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
-
         try {
             TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
                                                                                password,
@@ -99,9 +96,6 @@ public class IdamService {
     public String authenticateUserWithSearchScope(String username, String password) {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
-
-        LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
-        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
 
         try {
             TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
