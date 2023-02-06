@@ -71,3 +71,4 @@ java:
           alias: NOTIFICATION_EMAIL_REFUND_WHEN_CONTACTED_TEMPLATE_ID
   postgresql:
     enabled: true
+

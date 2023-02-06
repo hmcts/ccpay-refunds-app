@@ -99,6 +99,7 @@ public class SpringSecurityConfiguration {
                     .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/refundstest")
                     .antMatchers(HttpMethod.PATCH, "/refund/*")
+                    .antMatchers("/jobs/**")
                     .and()
                     .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
                     .authenticationEntryPoint(refundsAuthenticationEntryPoint);
