@@ -50,8 +50,10 @@ auth:
 test:
   url :
     refunds : ${TEST_URL:http://localhost:8080}
+
     payments : ${TEST_URL_PAYMENT:https://payment-api-pr-1354.service.core-compute-preview.internal}
-  user:
+
+user:
     password: ${TEST_USER_PASSWORD}
 
 idam:
