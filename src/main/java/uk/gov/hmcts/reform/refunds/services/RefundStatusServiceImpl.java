@@ -28,6 +28,10 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     private static final String LIBERATA_NAME = "Middle office provider";
     private static final String ACCEPTED = "Accepted";
+
+    private static final String SYSTEM_USER = "System user";
+
+    private static final String LIBERATA_REJECT_UPDATE = "Refund approved by system";
     private static final Logger LOG = LoggerFactory.getLogger(RefundStatusServiceImpl.class);
 
     @Autowired
@@ -72,6 +76,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     RefundStatus.REJECTED,
                     statusUpdateRequest.getReason())
                 ));
+                refund.setUpdatedBy(LIBERATA_NAME);
 
                 if (null != statusUpdateRequest.getReason()
                     && statusUpdateRequest.getReason().equalsIgnoreCase(
@@ -102,15 +107,16 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     }
 
                     refund.setRefundStatus(RefundStatus.APPROVED);
+                    refund.setUpdatedBy(SYSTEM_USER);
                     refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                        "System user",
+                        SYSTEM_USER,
                         RefundStatus.APPROVED,
-                        "Refund approved by system")
+                        LIBERATA_REJECT_UPDATE)
                     ));
 
                 }
             }
-            refund.setUpdatedBy(LIBERATA_NAME);
+
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
         }
