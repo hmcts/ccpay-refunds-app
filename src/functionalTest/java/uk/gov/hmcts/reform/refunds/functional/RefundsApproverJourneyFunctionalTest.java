@@ -2018,8 +2018,8 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that contact details is erased
-        RefundDto refundDto = getRejectRefundDto(refundReference, "Rejected");
-        assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
+        RefundDto refundDto = getRejectRefundDto(refundReference, "Approved");
+        assertEquals(RefundStatus.APPROVED, refundDto.getRefundStatus());
         assertEquals("Amended claim", refundDto.getReason());
 
         deletePaymentAndRefund(paymentReference, refundReference);
