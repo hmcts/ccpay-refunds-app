@@ -138,8 +138,8 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
             .forEach(refund -> {
 
                 LOG.info("Refund object : {}",  refund.toString());
-                if (null != refund.getContactDetails()) {
-                    if (refund.getContactDetails().getNotificationType().equalsIgnoreCase("email")) {
+                if (null != refund.getContactDetails() && refund.getContactDetails().
+                    getNotificationType().equalsIgnoreCase("email")) {
                         refund.setNotificationSentFlag("EMAIL_NOT_SENT");
                         RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                             .getRefundNotificationEmailRequestApproveJourney(refund);
@@ -154,7 +154,6 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                         }
                         refundsRepository.save(refund);
                         LOG.info("Refund notification email update saved..");
-                    }
                 }
             });
     }
@@ -179,8 +178,8 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                 } catch (JsonProcessingException e) {
                     LOG.error("RJsonProcessingException. {}", e);
                 }
-                if (null != refund.getContactDetails()) {
-                    if (refund.getContactDetails().getNotificationType().equalsIgnoreCase("letter")) {
+                if (null != refund.getContactDetails() && refund.getContactDetails().
+                    getNotificationType().equalsIgnoreCase("letter")) {
                         refund.setNotificationSentFlag("LETTER_NOT_SENT");
                         RefundNotificationLetterRequest refundNotificationLetterRequest = refundNotificationMapper
                             .getRefundNotificationLetterRequestApproveJourney(refund);
@@ -195,9 +194,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                         }
                         refundsRepository.save(refund);
                         LOG.info("Refund notification letter update saved..");
-                    }
                 }
-
             });
     }
 
