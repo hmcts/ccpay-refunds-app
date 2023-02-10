@@ -129,12 +129,11 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         Optional<List<Refund>> refundList;
         LOG.info("process failed notification email fetching refund list ...");
         refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
-        LOG.info("process failed notification email refund list -> {}", refundList);
         List<Refund> refundListAll = new ArrayList<>();
         if (refundList.isPresent()) {
             refundListAll = refundList.get();
         }
-        LOG.info("process failed notification email refund list all -> {}", refundListAll);
+        LOG.info("process failed notification email refund list all -> {}", refundListAll.size());
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
@@ -165,11 +164,10 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         List<Refund> refundListAll = new ArrayList<>();
         LOG.info("process failed notification letter fetching refund list ...");
         refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
-        LOG.info("process failed notification letter refund list -> {}", refundList);
         if (refundList.isPresent()) {
             refundListAll = refundList.get();
         }
-        LOG.info("process failed notification letter refund list all -> {}", refundListAll);
+        LOG.info("process failed notification letter refund list all -> {}", refundListAll.size());
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
