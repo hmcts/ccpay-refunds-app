@@ -144,9 +144,10 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                     RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                         .getRefundNotificationEmailRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
-                    LOG.info("Notification email headers {}", getHttpHeaders());
+                    //LOG.info("Notification email headers {}", getHttpHeaders());
                     LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest);
                     responseEntity =  notificationService.postEmailNotificationData(getHttpHeaders(),refundNotificationEmailRequest);
+                    LOG.info("Response Code from Notification service {}", responseEntity.getStatusCode());
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
                         refund.setContactDetails(null);
