@@ -103,15 +103,18 @@ public class RefundsApproverJourneyFunctionalTest {
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
-                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund")
+                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund",
+                                                      "payments-refund-cmc", "payments-refund-probate")
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE =
-                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver")
+                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver",
+                                                      "payments-refund-approver-cmc", "payments-refund-approver-probate")
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE =
-                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver", "payments")
+                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver",
+                                                      "payments-refund-approver-cmc", "payments-refund-approver-probate", "payments")
                     .getAuthorisationToken();
 
             System.out.println("testConfigProperties.cmcS2SSecret ---> " + testConfigProperties.cmcS2SSecret);
