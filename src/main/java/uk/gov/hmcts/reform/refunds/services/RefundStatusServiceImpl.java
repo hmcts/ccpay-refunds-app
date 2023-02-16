@@ -8,15 +8,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Service
 public class RefundStatusServiceImpl extends StateUtil implements RefundStatusService {
@@ -27,6 +32,15 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     @Autowired
     private RefundsRepository refundsRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private IdamService idamService;
+
+    @Autowired
+    RefundsUtil refundsUtil;
 
     private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
         return StatusHistory.statusHistoryWith()
@@ -39,7 +53,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     @Override
     public ResponseEntity updateRefundStatus(String reference, RefundStatusUpdateRequest statusUpdateRequest, MultiValueMap<String, String> headers) {
         LOG.info("statusUpdateRequest: {}", statusUpdateRequest);
+
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
+
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
         if (currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
             if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
@@ -47,18 +63,44 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                     LIBERATA_NAME,
                     RefundStatus.ACCEPTED,
-                    "Approved by middle office"
-                                                        )
+                    "Approved by middle office")
                 ));
             } else {
                 refund.setRefundStatus(RefundStatus.REJECTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                     LIBERATA_NAME,
                     RefundStatus.REJECTED,
-                    statusUpdateRequest.getReason()
-                                                        )
+                    statusUpdateRequest.getReason())
                 ));
-                refund.setReason(statusUpdateRequest.getReason());
+
+                if (null != statusUpdateRequest.getReason()
+                    && statusUpdateRequest.getReason().equalsIgnoreCase(
+                        RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
+
+                    refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+
+                    IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+                    String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
+                    headers.put("authorization", Collections.singletonList(authorization));
+
+                    Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
+                    if (notificationDetails == null) {
+                        LOG.error("Notification not found. Not able to send notification.");
+                    } else {
+                        ContactDetails newContact = ContactDetails.contactDetailsWith()
+                            .notificationType(notificationDetails.getNotificationType())
+                            .postalCode(notificationDetails.getContactDetails().getPostalCode())
+                            .city(notificationDetails.getContactDetails().getCity())
+                            .country(notificationDetails.getContactDetails().getCountry())
+                            .county(notificationDetails.getContactDetails().getCounty())
+                            .addressLine(notificationDetails.getContactDetails().getAddressLine())
+                            .email(notificationDetails.getContactDetails().getEmail())
+                            .build();
+                        refund.setContactDetails(newContact);
+                        String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
+                        notificationService.updateNotification(headers, refund, null, templateId);
+                    }
+                }
             }
             refund.setUpdatedBy(LIBERATA_NAME);
         } else {
@@ -66,5 +108,4 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         }
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
     }
-
 }

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.refunds.dtos.responses;
+package uk.gov.hmcts.reform.refunds.dtos.requests;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -6,17 +6,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.math.BigDecimal;
-
-@Builder(builderMethodName = "buildReconciliationProviderResponseWith")
+@Builder(builderMethodName = "buildFromTemplateContactWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ReconciliationProviderResponse {
+public class FromTemplateContact {
 
-    private String refundReference;
-
-    private BigDecimal amount;
+    private String fromEmailAddress;
+    private MailAddress fromMailAddress;
 }
