@@ -30,6 +30,7 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaS
 
     Optional<List<Refund>> findByRefundStatus(RefundStatus refundStatus);
 
+    @Query("select rf from Refund rf where rf.refund_status=? and (lower(rf.service_type) in (?))")
     Optional<List<Refund>> findByRefundStatusAndServiceTypeIn(RefundStatus refundStatus, List<String> serviceName);
 
     Optional<List<Refund>> findByCcdCaseNumber(String ccdCaseNumber);
