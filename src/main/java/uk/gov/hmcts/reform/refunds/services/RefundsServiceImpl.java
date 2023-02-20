@@ -226,6 +226,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status);
 
             List<String> serviceList = refundServiceRoleUtil.getServiceNameFromUserRoles(idamUserIdResponse.getRoles());
+            LOG.debug("serviceList", serviceList.toString());
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
                 excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNotAndServiceTypeIn(

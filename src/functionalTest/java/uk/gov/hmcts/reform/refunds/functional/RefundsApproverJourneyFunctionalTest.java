@@ -988,7 +988,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundEvents.size()).isEqualTo(3);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE_WITHOUT_SERVICE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             ReviewerAction.APPROVE.name(),
