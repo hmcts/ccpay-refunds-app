@@ -110,12 +110,12 @@ public class RefundsApproverJourneyFunctionalTest {
 
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
                 idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund",
-                                                      "payments-refund-cmc", "payments-refund-probate")
+                                                      "payments-refund-divorce", "payments-refund-probate")
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE =
                 idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver",
-                                                      "payments-refund-approver-cmc", "payments-refund-approver-probate")
+                                                      "payments-refund-approver-divorce", "payments-refund-approver-probate")
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_ROLE_WITH_PROBATE =
@@ -133,7 +133,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE =
                 idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver",
-                                                      "payments-refund-approver-cmc", "payments-refund-approver-probate", "payments")
+                                                      "payments-refund-approver-divorce", "payments-refund-approver-probate", "payments")
                     .getAuthorisationToken();
 
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE_WITHOUT_SERVICE =
@@ -602,7 +602,7 @@ public class RefundsApproverJourneyFunctionalTest {
         final CreditAccountPaymentRequest accountPaymentRequest1 = RefundsFixture
             .pbaPaymentRequestForProbate(
                 "100.00",
-                "CMC",
+                "Divorce",
                 accountNumber,
                 ccdCaseNumber
             );
@@ -644,7 +644,7 @@ public class RefundsApproverJourneyFunctionalTest {
         final CreditAccountPaymentRequest accountPaymentRequest2 = RefundsFixture
             .pbaPaymentRequestForProbate(
                 "190.00",
-                "CMC",
+                "Divorce",
                 accountNumber,
                 ccdCaseNumber
             );
@@ -988,7 +988,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundEvents.size()).isEqualTo(3);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE_WITHOUT_SERVICE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             ReviewerAction.APPROVE.name(),
