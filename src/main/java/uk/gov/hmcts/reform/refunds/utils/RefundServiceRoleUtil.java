@@ -27,8 +27,8 @@ public class RefundServiceRoleUtil {
 
         LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
         LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
-        String serviceNameRefundRole = SERVICE_NAME_REFUND_ROLE + "-" + serviceName;
-        String serviceNameRefundApprovalRole = SERVICE_NAME_REFUND_APPROVAL_ROLE + "-" + serviceName;
+        String serviceNameRefundRole = SERVICE_NAME_REFUND_ROLE + "-" + serviceName.replace(" ","-");
+        String serviceNameRefundApprovalRole = SERVICE_NAME_REFUND_APPROVAL_ROLE + "-" + serviceName.replace(" ","-");
         LOG.info("Validate Refund Role With Service Name ---> roles {}", roles.toString());
         LOG.info("Validate Refund Role With Service Name ---> serviceName {}", serviceName);
         List<String> refundServiceRoles = roles.stream().filter(role ->
@@ -59,14 +59,19 @@ public class RefundServiceRoleUtil {
             Pattern.CASE_INSENSITIVE
         );
 
+        String tempRole;
         for (String role : roles) {
             if (!role.equalsIgnoreCase(SERVICE_NAME_REFUND_ROLE) && !role.equalsIgnoreCase(SERVICE_NAME_REFUND_APPROVAL_ROLE)) {
                 Matcher matcherApprover = refundApproverRolePattern.matcher(role);
                 if (matcherApprover != null && matcherApprover.find()) {
-                    serviceNameSet.add(role.toLowerCase().split("approver-")[1]);
+                    tempRole = role.toLowerCase().split("approver-")[1];
+                    tempRole = tempRole.replace("-", "");
+                    serviceNameSet.add(tempRole);
                 } else {
                     Matcher matcherRefundRole = refundRolePattern.matcher(role);
                     if (matcherRefundRole != null && matcherRefundRole.find()) {
+                        tempRole = role.toLowerCase().split("refund-")[1];
+                        tempRole = tempRole.replace("-", "");
                         serviceNameSet.add(role.toLowerCase().split("refund-")[1]);
                     }
                 }
@@ -74,6 +79,7 @@ public class RefundServiceRoleUtil {
         }
         List<String> returnList =  new ArrayList<>();
         returnList.addAll(serviceNameSet);
+        LOG.info("service name list from roles returnList---> {} ", returnList);
         return returnList;
     }
 }

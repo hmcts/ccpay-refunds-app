@@ -994,7 +994,7 @@ public class RefundsApproverJourneyFunctionalTest {
             ReviewerAction.APPROVE.name(),
             RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
         );
-        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CONFLICT.value());
 
         // delete payment record
         paymentTestService

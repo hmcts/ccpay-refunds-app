@@ -26,12 +26,12 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaS
             "Refund not found for given reference"));
     }
 
-    Optional<List<Refund>> findByRefundStatusAndUpdatedByIsNotAndServiceTypeIn(RefundStatus refundStatus, String updatedBy, List<String> serviceName);
+    Optional<List<Refund>> findByRefundStatusAndUpdatedByIsNotAndServiceTypeInIgnoreCase(RefundStatus refundStatus,
+                                                                        String updatedBy, List<String> serviceName);
 
     Optional<List<Refund>> findByRefundStatus(RefundStatus refundStatus);
 
-    @Query("select rf from Refund rf where rf.refundStatus = ?1 and (lower(rf.serviceType) in ( ?2 ))")
-    Optional<List<Refund>> findByRefundStatusAndServiceTypeIn(RefundStatus refundStatus, List<String> serviceName);
+    Optional<List<Refund>> findByRefundStatusAndServiceTypeInIgnoreCase(RefundStatus refundStatus, List<String> serviceName);
 
     Optional<List<Refund>> findByCcdCaseNumber(String ccdCaseNumber);
 

@@ -569,7 +569,7 @@ class RefundControllerTest {
 
         //mock repository call
         List<String> list = List.of("cmc");
-        when(refundsRepository.findByRefundStatusAndServiceTypeIn(
+        when(refundsRepository.findByRefundStatusAndServiceTypeInIgnoreCase(
             uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL, list
         )).thenReturn(Optional.ofNullable(List.of(
             Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
@@ -662,7 +662,7 @@ class RefundControllerTest {
         //mock repository call
 
         List<String> list = List.of("cmc");
-        when(refundsRepository.findByRefundStatusAndServiceTypeIn(
+        when(refundsRepository.findByRefundStatusAndServiceTypeInIgnoreCase(
             uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL, list
         )).thenReturn(Optional.ofNullable(List.of(
                 Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
@@ -714,7 +714,7 @@ class RefundControllerTest {
 
         //mock repository call
         List<String> list = List.of("cmc");
-        when(refundsRepository.findByRefundStatusAndServiceTypeIn(
+        when(refundsRepository.findByRefundStatusAndServiceTypeInIgnoreCase(
             RefundStatus.UPDATEREQUIRED, list
         )).thenReturn(Optional.ofNullable(List.of(
             Utility.refundListSupplierForSendBackStatus.get())));

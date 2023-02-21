@@ -313,7 +313,7 @@ class RefundServiceImplTest {
     void testRefundListForRefundSubmittedStatusExcludeCurrentUserTrue() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
-        when(refundsRepository.findByRefundStatusAndUpdatedByIsNotAndServiceTypeIn(
+        when(refundsRepository.findByRefundStatusAndUpdatedByIsNotAndServiceTypeInIgnoreCase(
             any(),
             anyString(),
             any()
@@ -349,7 +349,7 @@ class RefundServiceImplTest {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
 
         List<String> list = List.of("cmc");
-        when(refundsRepository.findByRefundStatusAndServiceTypeIn(RefundStatus.SENTFORAPPROVAL, list))
+        when(refundsRepository.findByRefundStatusAndServiceTypeInIgnoreCase(RefundStatus.SENTFORAPPROVAL, list))
             .thenReturn(Optional.ofNullable(List.of(
                 Utility.refundListSupplierBasedOnCCDCaseNumber1.get(),
                 Utility.refundListSupplierForSubmittedStatus.get()
