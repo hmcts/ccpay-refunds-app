@@ -58,3 +58,20 @@ resource "azurerm_api_management_subscription" "refund_subs" {
   display_name        = "Refund Subscription"
   state               = "active"
 }
+
+data "azurerm_api_management_user" "refund_shravan" {
+  user_id             = "628e5a527aa7530ff80227b2"
+  api_management_name = local.api_mgmt_name
+  resource_group_name = local.api_mgmt_rg
+}
+
+resource "azurerm_api_management_subscription" "refunds_subscription_shravan" {
+  api_management_name = local.api_mgmt_name
+  resource_group_name = local.api_mgmt_rg
+  user_id             = data.azurerm_api_management_user.refund_shravan.id
+  product_id          = module.ccpay-refund-status-product.id
+  display_name        = "refunds"
+  state               = "active"
+}
+
+
