@@ -58,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -351,8 +352,7 @@ public class RefundsApproverJourneyFunctionalTest {
             RefundReviewRequest.buildRefundReviewRequest().code("RE004")
                 .reason("More evidence is required").build()
         );
-        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
-        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund returned to caseworker");
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CONFLICT.value());
 
         // delete payment record
         paymentTestService
@@ -1371,7 +1371,7 @@ public class RefundsApproverJourneyFunctionalTest {
             RefundsFixture.resubmitRefundAllInput(),
             refundReferenceFromRefundList
         );
-        assertThat(resubmitRefundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(resubmitRefundResponse.getStatusCode()).isEqualTo(CONFLICT.value());
 
         // delete payment records
         paymentTestService
