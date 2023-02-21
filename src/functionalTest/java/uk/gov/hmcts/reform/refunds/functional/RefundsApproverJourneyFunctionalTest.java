@@ -282,7 +282,7 @@ public class RefundsApproverJourneyFunctionalTest {
             paymentRefundRequest,
             testConfigProperties.basePaymentsUrl
         );
-        assertThat(refundResponse.getStatusCode()).isEqualTo(CONFLICT.value());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
 
         // delete payment record
         paymentTestService
