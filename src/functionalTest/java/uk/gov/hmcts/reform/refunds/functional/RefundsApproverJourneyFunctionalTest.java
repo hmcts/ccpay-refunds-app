@@ -277,12 +277,12 @@ public class RefundsApproverJourneyFunctionalTest {
         final PaymentRefundRequest paymentRefundRequest
             = RefundsFixture.refundRequest("RR001", paymentReference, "90", "550", paymentId);
         Response refundResponse = paymentTestService.postInitiateRefund(
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE_WITHOUT_SERVICE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             paymentRefundRequest,
             testConfigProperties.basePaymentsUrl
         );
-        assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(CONFLICT.value());
 
         // delete payment record
         paymentTestService
