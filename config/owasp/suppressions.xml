@@ -199,4 +199,12 @@
     </notes>
     <cve>CVE-2021-22053</cve>
   </suppress>
+  <suppress until="2023-03-31">
+    <notes>
+      others
+    </notes>
+    <cve>CVE-2022-25647</cve>
+    <cve>CVE-2022-41854</cve>
+    <cve>CVE-2021-22044</cve>
+  </suppress>
 </suppressions>
