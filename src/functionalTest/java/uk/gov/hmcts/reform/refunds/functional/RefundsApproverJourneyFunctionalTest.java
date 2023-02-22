@@ -4,6 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
@@ -367,8 +368,9 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_get_refund_empty_list_for_an_approver_without_probate_service() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
-        final String ccdCaseNumber = "1111229447822045";
-
+        //final String ccdCaseNumber = "1111229447822045";
+        String ccdCaseNumber = "1111-PC11-" + RandomUtils.nextInt();
+        ccdCaseNumber =  ccdCaseNumber.substring(0,16);
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
             .pbaPaymentRequestForProbate(
@@ -542,7 +544,9 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_get_refund_only_for_probate_service_role() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
-        final String ccdCaseNumber = "1111229447822045";
+        //final String ccdCaseNumber = "1111229447822045";
+        String ccdCaseNumber = "1111-PC12-" + RandomUtils.nextInt();
+        ccdCaseNumber =  ccdCaseNumber.substring(0,16);
 
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
@@ -718,7 +722,9 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_get_refund_list_for_an_approver() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
-        final String ccdCaseNumber = "1111229447822045";
+        //final String ccdCaseNumber = "1111229447822045";
+        String ccdCaseNumber = "1111-PC13-" + RandomUtils.nextInt();
+        ccdCaseNumber =  ccdCaseNumber.substring(0,16);
 
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
@@ -2394,7 +2400,9 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_get_refund_list_for_only_payment_role() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
-        final String ccdCaseNumber = "1111229447822045";
+        //final String ccdCaseNumber = "1111229447822045";
+        String ccdCaseNumber = "1111-PC14-" + RandomUtils.nextInt();
+        ccdCaseNumber =  ccdCaseNumber.substring(0,16);
 
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
@@ -2478,8 +2486,9 @@ public class RefundsApproverJourneyFunctionalTest {
     public void negative_get_refund_list_when_no_sufficient_role_refund() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
-        final String ccdCaseNumber = "1111229447822045";
-
+        //final String ccdCaseNumber = "1111229447822045";
+        String ccdCaseNumber = "1111-PC15-" + RandomUtils.nextInt();
+        ccdCaseNumber =  ccdCaseNumber.substring(0,16);
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
             .pbaPaymentRequestForProbate(
