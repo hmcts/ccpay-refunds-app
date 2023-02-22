@@ -602,7 +602,7 @@ public class RefundsApproverJourneyFunctionalTest {
         final CreditAccountPaymentRequest accountPaymentRequest1 = RefundsFixture
             .pbaPaymentRequestForProbate(
                 "100.00",
-                "Divorce",
+                "DIVORCE",
                 accountNumber,
                 ccdCaseNumber
             );
@@ -644,7 +644,7 @@ public class RefundsApproverJourneyFunctionalTest {
         final CreditAccountPaymentRequest accountPaymentRequest2 = RefundsFixture
             .pbaPaymentRequestForProbate(
                 "190.00",
-                "Divorce",
+                "DIVORCE",
                 accountNumber,
                 ccdCaseNumber
             );
