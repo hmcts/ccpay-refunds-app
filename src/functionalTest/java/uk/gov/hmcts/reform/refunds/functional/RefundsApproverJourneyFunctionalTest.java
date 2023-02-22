@@ -366,7 +366,7 @@ public class RefundsApproverJourneyFunctionalTest {
     }
 
     @Test
-    public void positive_get_refund_empty_list_for_an_approver_without_probate_service() {
+    public void positive_get_refund_with_ccdcasenumber_for_an_approver_without_probate_service() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
         String ccdCaseNumber = generateCcdCaseNumber();
@@ -515,7 +515,7 @@ public class RefundsApproverJourneyFunctionalTest {
             );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
-        assertTrue(refundListDtoResponse.getRefundList().isEmpty());
+        assertEquals(refundListDtoResponse.getRefundList().size(), 3);
         // delete payment record
         paymentTestService
             .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -684,10 +684,10 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference2).matches()).isEqualTo(true);
 
         // Fetch refunds based on CCD Case Number
-        final Response refundListResponse =
-            paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_ROLE_WITH_PROBATE,
-                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber
-            );
+        final Response refundListResponse =paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_ROLE_WITH_PROBATE,
+                                                       SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                                       "Sent for approval", "false");
+
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
         assertEquals(refundListDtoResponse.getRefundList().size(), 1);
