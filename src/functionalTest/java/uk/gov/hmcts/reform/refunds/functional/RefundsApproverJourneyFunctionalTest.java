@@ -690,7 +690,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
         assertEquals(refundListDtoResponse.getRefundList().size(), 1);
-        assertEquals(refundListDtoResponse.getRefundList().get(0).getServiceType(), "PROBATE");
+        assertEquals(refundListDtoResponse.getRefundList().get(0).getServiceType(), "Probate");
         // delete payment record
         paymentTestService
             .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
