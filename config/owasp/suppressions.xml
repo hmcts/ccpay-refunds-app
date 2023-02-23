@@ -202,17 +202,7 @@
     <cve>CVE-2022-45143</cve>
   </suppress>
   <suppress until="2023-03-31">
-    <notes>
-      Applications using both `spring-cloud-netflix-hystrix-dashboard` and `spring-boot-starter-thymeleaf`
-      expose a way to execute code submitted within the request URI path during the resolution of view templates.
-    </notes>
     <cve>CVE-2021-22053</cve>
-  </suppress>
-  <suppress until="2023-03-31">
-    <notes>
-      Spring Security, versions 5.7 prior to 5.7.5 and 5.6 prior to 5.6.9 could be susceptible to authorization
-      rules bypass via forward or include dispatcher types.
-    </notes>
     <cve>CVE-2022-31692</cve>
   </suppress>
 </suppressions>

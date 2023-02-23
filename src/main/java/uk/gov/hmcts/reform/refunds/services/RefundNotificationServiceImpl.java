@@ -127,34 +127,33 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
     public void processFailedNotificationsEmail() throws JsonProcessingException {
         String notificationSentFlag = "EMAIL_NOT_SENT";
         Optional<List<Refund>> refundList;
+        LOG.info("process failed notification email fetching refund list ...");
         refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
         List<Refund> refundListAll = new ArrayList<>();
         if (refundList.isPresent()) {
             refundListAll = refundList.get();
         }
+        LOG.info("process failed notification email refund list all -> {}", refundListAll.size());
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
-                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-                String refundsDto = null;
-                try {
-                    refundsDto = ow.writeValueAsString(refund);
-                } catch (JsonProcessingException e) {
-                    LOG.error("JsonProcessingException : {}",  e);
-                }
-                LOG.info("Refund object : {}",  refundsDto);
-
-                if (refund.getContactDetails().getNotificationType().equalsIgnoreCase("email")) {
+                LOG.info("Refund object : {}",  refund.toString());
+                if (null != refund.getContactDetails() && refund.getContactDetails()
+                        .getNotificationType().equalsIgnoreCase("email")) {
                     refund.setNotificationSentFlag("EMAIL_NOT_SENT");
                     RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                         .getRefundNotificationEmailRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
-                    responseEntity =  notificationService.postEmailNotificationData(getHttpHeaders(),refundNotificationEmailRequest);
+                    LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest);
+                    responseEntity = notificationService.postEmailNotificationData(getHttpHeaders(),
+                        refundNotificationEmailRequest);
+                    LOG.info("Response Code from Notification service Email {}", responseEntity.getStatusCode());
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
                         refund.setContactDetails(null);
                     }
                     refundsRepository.save(refund);
+                    LOG.info("Refund notification email update saved..");
                 }
             });
     }
@@ -164,10 +163,12 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         String notificationSentFlag = "LETTER_NOT_SENT";
         Optional<List<Refund>> refundList;
         List<Refund> refundListAll = new ArrayList<>();
+        LOG.info("process failed notification letter fetching refund list ...");
         refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
         if (refundList.isPresent()) {
             refundListAll = refundList.get();
         }
+        LOG.info("process failed notification letter refund list all -> {}", refundListAll.size());
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
@@ -177,26 +178,30 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                 } catch (JsonProcessingException e) {
                     LOG.error("RJsonProcessingException. {}", e);
                 }
-                if (refund.getContactDetails().getNotificationType().equalsIgnoreCase("letter"))  {
+                if (null != refund.getContactDetails() && refund.getContactDetails()
+                        .getNotificationType().equalsIgnoreCase("letter")) {
                     refund.setNotificationSentFlag("LETTER_NOT_SENT");
                     RefundNotificationLetterRequest refundNotificationLetterRequest = refundNotificationMapper
                         .getRefundNotificationLetterRequestApproveJourney(refund);
                     ResponseEntity<String> responseEntity;
-                    responseEntity =  notificationService.postLetterNotificationData(getHttpHeaders(),refundNotificationLetterRequest);
+                    LOG.info("Refund Notification Letter Request {}", refundNotificationLetterRequest);
+                    responseEntity = notificationService.postLetterNotificationData(getHttpHeaders(),
+                        refundNotificationLetterRequest);
+                    LOG.info("Response Code from Notification service Letter {}", responseEntity.getStatusCode());
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
                         refund.setContactDetails(null);
                     }
                     refundsRepository.save(refund);
+                    LOG.info("Refund notification letter update saved..");
                 }
-
             });
     }
 
     private MultiValueMap<String,String> getHttpHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
-        inputHeaders.put("Content-Type", Arrays.asList("application/json"));
-        inputHeaders.put("Authorization", Arrays.asList("Bearer " + getAccessToken()));
+        inputHeaders.put("content-type", Arrays.asList("application/json"));
+        inputHeaders.put("authorization", Arrays.asList("Bearer " + getAccessToken()));
         inputHeaders.put("ServiceAuthorization", Arrays.asList(getServiceAuthorisationToken()));
         LOG.info("HttpHeader {}", inputHeaders);
         return inputHeaders;

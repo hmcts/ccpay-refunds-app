@@ -2027,7 +2027,7 @@ class RefundControllerTest {
                 new ResponseEntity<>(HttpStatus.OK)
         );
         mockMvc.perform(put(
-            "/resend/notification/{reference}",
+            "/refund/resend/notification/{reference}",
             "RF-1234-1234-1234-1234"
         ).param("notificationType", "EMAIL")
             .content(asJsonString(getMockEmailRequest()))
@@ -2042,7 +2042,7 @@ class RefundControllerTest {
     @Test
     void givenNotificationRequestWithoutNotificationTypeParam_ResendNotificationShouldReturnBadRequestStatus() throws Exception {
         mockMvc.perform(put(
-            "/resend/notification/{reference}",
+            "/refund/resend/notification/{reference}",
             "RF-1234-1234-1234-1234")
             .content(asJsonString(getMockEmailRequest()))
             .header("Authorization", "user")
@@ -2489,7 +2489,6 @@ class RefundControllerTest {
         Assertions.assertEquals("RF-1111-2234-1077-1123", rerfundLiberataResponse.getRefunds().get(0).getReference());
 
     }
-
 
     @Test
     void testRefundSearchCriteria() throws Exception {

@@ -277,6 +277,7 @@ public class RefundsController {
         if (featureToggler.getBooleanValue(REFUNDS_RELEASE,false)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
+        LOG.info("Inside reviewer-action endpoint {}", reference);
         return refundReviewService.reviewRefund(headers, reference, reviewerAction.getEvent(), refundReviewRequest);
     }
 
@@ -303,7 +304,7 @@ public class RefundsController {
         refundsService.deleteRefund(reference);
     }
 
-    @ApiOperation(value = "PUT resend/notification/{reference} ", notes = "Resend Refund Notification")
+    @ApiOperation(value = "PUT /refund/resend/notification/{reference} ", notes = "Resend Refund Notification")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Ok"),
         @ApiResponse(code = 400, message = "Bad Request"),
@@ -313,7 +314,7 @@ public class RefundsController {
         @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
 
     })
-    @PutMapping("resend/notification/{reference}")
+    @PutMapping("/refund/resend/notification/{reference}")
     public ResponseEntity<String> resendNotification(
         @RequestHeader("Authorization") String authorization,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
@@ -321,6 +322,7 @@ public class RefundsController {
         @PathVariable String reference,
         @RequestParam NotificationType notificationType
     ) {
+        LOG.info("Inside /refund/resend/notification/{reference}");
         resendNotificationRequest.setReference(reference);
         resendNotificationRequest.setNotificationType(notificationType);
         return refundNotificationService.resendRefundNotification(resendNotificationRequest,headers);
@@ -334,7 +336,9 @@ public class RefundsController {
     @PatchMapping("/jobs/refund-notification-update")
     @Transactional
     public void processFailedNotifcations() throws JsonProcessingException {
+        LOG.info("Job refund notification email update started ...");
         refundNotificationService.processFailedNotificationsEmail();
+        LOG.info("Job refund notification letter update started ...");
         refundNotificationService.processFailedNotificationsLetter();
     }
 
