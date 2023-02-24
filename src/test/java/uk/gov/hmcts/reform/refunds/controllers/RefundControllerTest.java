@@ -2473,6 +2473,10 @@ class RefundControllerTest {
 
         when(refundsRepository.findAll(any()))
             .thenReturn(getRefundList());
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
+                                                                                   .code("RR035")
+                                                                                   .name("Other - Claim")
+                                                                                   .build());
         List<String> referenceList = new ArrayList<>();
         referenceList.add("RC-1111-2234-1077-1123");
         when(paymentService.fetchPaymentResponse(referenceList)).thenReturn(getPayments());

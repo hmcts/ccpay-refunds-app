@@ -777,7 +777,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     paymentData.stream()
                         .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
                         .findAny().get(),
-                    finalAvlBalance
+                    finalAvlBalance,toRefundReason(refund.getReason())
                 ));
             });
         return refundLiberatas;
@@ -892,5 +892,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             }
         }
         return refundListDto;
+    }
+
+    private String toRefundReason(String reasonCode) {
+
+        RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
+        return  refundReason.getName();
     }
 }
