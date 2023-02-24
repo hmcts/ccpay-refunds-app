@@ -896,7 +896,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private String toRefundReason(String reasonCode) {
 
-        RefundReason refundReason = refundReasonRepository.findByCodeOrThrow(reasonCode);
-        return  refundReason.getName();
+        String reason;
+        Optional<RefundReason> refundReason = refundReasonRepository.findByCode(reasonCode);
+
+        if (refundReason.isPresent()) {
+            reason = refundReason.get().getName();
+        } else {
+            reason = reasonCode;
+        }
+        return  reason;
     }
 }
