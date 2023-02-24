@@ -17,7 +17,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
-import uk.gov.hmcts.reform.refunds.dtos.requests.*;
+import uk.gov.hmcts.reform.refunds.dtos.requests.Notification;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
+import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
+import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
@@ -41,8 +45,13 @@ import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
-import uk.gov.hmcts.reform.refunds.model.*;
+import uk.gov.hmcts.reform.refunds.model.ContactDetails;
+import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundFees;
+import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
+import uk.gov.hmcts.reform.refunds.model.RejectionReason;
+import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -413,10 +422,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             if (payhubRemissionUpdateResponse) {
 
                 request.getRefundFees().stream().filter(rf -> refund.getRefundFees().stream().anyMatch(
-                                         id -> id.getFeeId().equals(rf.getFeeId()))).collect(Collectors.toList())
+                    id -> id.getFeeId().equals(rf.getFeeId()))).collect(Collectors.toList())
                         .forEach(refundFromDb -> {
                             refundFeeDtos.add(refundFeeMapper.toRefundFeeUpdate(refundFromDb,
-                                                                           refund.getRefundFees().stream().filter(rf1 -> refundFromDb.getFeeId().equals(rf1.getFeeId()))
+                                                                                refund.getRefundFees().stream()
+                                                                                    .filter(rf1 -> refundFromDb.getFeeId().equals(rf1.getFeeId()))
                                                                                .findAny().get()));
 
                         });
