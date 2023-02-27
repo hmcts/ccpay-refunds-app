@@ -120,6 +120,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private long daysDifference;
 
+    private static final int REASON_CODE_END = 6;
+
     @Value("${refund.search.days}")
     private Integer numberOfDays;
 
@@ -902,7 +904,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (refundReason.isPresent()) {
             reason = refundReason.get().getName();
         } else {
-            reason = reasonCode;
+            reason = reasonCode.substring(REASON_CODE_END);
         }
         return  reason;
     }
