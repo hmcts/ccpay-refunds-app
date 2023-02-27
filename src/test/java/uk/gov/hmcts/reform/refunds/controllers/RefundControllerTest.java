@@ -279,7 +279,7 @@ class RefundControllerTest {
             .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
             .reference("RF-1111-2234-1077-1123")
             .refundStatus(RefundStatus.APPROVED)
-            .reason("RR001")
+            .reason("RR001-test")
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
