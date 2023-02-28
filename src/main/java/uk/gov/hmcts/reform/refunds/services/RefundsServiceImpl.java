@@ -386,7 +386,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
-        List<RefundFees> refundFeeDtos = new ArrayList<>();
 
         if (currentRefundState.getRefundStatus().equals(UPDATEREQUIRED)) {
 
@@ -422,17 +421,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             LOG.info("PAYHUB REMISSION RESPONSE: {}", payhubRemissionUpdateResponse);
 
             if (payhubRemissionUpdateResponse) {
-
-                request.getRefundFees().stream().filter(rf -> refund.getRefundFees().stream().anyMatch(
-                    id -> id.getFeeId().equals(rf.getFeeId()))).collect(Collectors.toList())
-                        .forEach(refundFromDb -> {
-                            refundFeeDtos.add(refundFeeMapper.toRefundFeeUpdate(refundFromDb,
-                                                                                refund.getRefundFees().stream()
-                                                                                    .filter(rf1 -> refundFromDb.getFeeId().equals(rf1.getFeeId()))
-                                                                               .findAny().get()));
-
-                        });
-
                 // Update Status History table
                 IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
                 refund.setUpdatedBy(idamUserIdResponse.getUid());
@@ -445,7 +433,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
-                refund.setRefundFees(refundFeeDtos);
+                refund.setRefundFees(toRefundFeeMap(refund,request));
                 if (null != request.getContactDetails()) {
                     validateContactDetails(request.getContactDetails());
                     refund.setContactDetails(request.getContactDetails());
@@ -907,5 +895,25 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             reason = reasonCode.substring(REASON_CODE_END);
         }
         return  reason;
+    }
+
+    private List<RefundFees> toRefundFeeMap(Refund refund, ResubmitRefundRequest request) {
+        List<RefundFees> refundFeeDtos = new ArrayList<>();
+
+        request.getRefundFees().stream().filter(rf -> refund.getRefundFees().stream().anyMatch(
+            id -> id.getFeeId().equals(rf.getFeeId()))).collect(Collectors.toList())
+            .forEach(refundFromDb -> {
+                refundFeeDtos.add(refundFeeMapper.toRefundFeeUpdate(refundFromDb,
+                                                                    refund.getRefundFees().stream()
+                                                                        .filter(rf1 -> refundFromDb.getFeeId().equals(rf1.getFeeId()))
+                                                                        .findAny().get()));
+
+            });
+
+        refundFeeDtos.addAll(request.getRefundFees().stream().filter(rf -> refund.getRefundFees().stream()
+            .noneMatch(id -> id.getFeeId().equals(rf.getFeeId()))).map(refundFeeMapper::toRefundFee).collect(Collectors.toList()));
+
+        return refundFeeDtos;
+
     }
 }
