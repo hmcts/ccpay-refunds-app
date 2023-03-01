@@ -52,6 +52,7 @@ import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.repository.RefundFeesRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -166,6 +167,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Autowired
     private RefundFeeMapper refundFeeMapper;
+
+    @Autowired
+    private RefundFeesRepository refundFeesRepository;
 
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
@@ -913,7 +917,28 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         refundFeeDtos.addAll(request.getRefundFees().stream().filter(rf -> refund.getRefundFees().stream()
             .noneMatch(id -> id.getFeeId().equals(rf.getFeeId()))).map(refundFeeMapper::toRefundFee).collect(Collectors.toList()));
 
+
+        List<RefundFees>  refundFeeDtosNotMatched = refund.getRefundFees().stream().filter(rf -> request.getRefundFees().stream()
+            .noneMatch(id -> id.getFeeId().equals(rf.getFeeId()))
+        ).collect(Collectors.toList());
+
+
+        List<Integer> refundFeeIds = new ArrayList<>();
+
+        for (RefundFees id : refundFeeDtosNotMatched) {
+            refundFeeIds.add(id.getId());
+
+        }
+        if (!refundFeeIds.isEmpty()) {
+            deleteRefundFee(refundFeeIds);
+        }
+
+
         return refundFeeDtos;
 
+    }
+
+    public void deleteRefundFee(List<Integer> refundFeesId) {
+        refundFeesRepository.deleteByIdIn(refundFeesId);
     }
 }
