@@ -204,5 +204,6 @@
   <suppress until="2023-03-31">
     <cve>CVE-2021-22053</cve>
     <cve>CVE-2022-31692</cve>
+    <cve>CVE-2022-45688</cve>
   </suppress>
 </suppressions>
