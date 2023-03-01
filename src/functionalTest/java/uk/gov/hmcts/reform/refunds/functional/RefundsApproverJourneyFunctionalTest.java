@@ -1492,7 +1492,7 @@ public class RefundsApproverJourneyFunctionalTest {
         String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
         String paymentDateCreated = getReportDate(refundLiberata.getPayment().getDateReceiptCreated());
         String date = getReportDate(new Date(System.currentTimeMillis()));
-        assertThat("RR001").isEqualTo(refundLiberata.getReason());
+        assertThat("Amended claim").isEqualTo(refundLiberata.getReason());
         assertThat("SendRefund").isEqualTo(refundLiberata.getInstructionType());
         assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getTotalRefundAmount());
         assertThat(date).isEqualTo(refundApproveDate);
@@ -1722,7 +1722,7 @@ public class RefundsApproverJourneyFunctionalTest {
         String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
         String paymentDateCreated = getReportDate(refundLiberata.getPayment().getDateReceiptCreated());
         String date = getReportDate(new Date(System.currentTimeMillis()));
-        assertThat("RR001").isEqualTo(refundLiberata.getReason());
+        assertThat("Amended claim").isEqualTo(refundLiberata.getReason());
         assertThat("SendRefund").isEqualTo(refundLiberata.getInstructionType());
         assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getTotalRefundAmount());
         assertThat(date).isEqualTo(refundApproveDate);
@@ -1787,7 +1787,7 @@ public class RefundsApproverJourneyFunctionalTest {
         String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
         String paymentDateCreated = getReportDate(refundLiberata.getPayment().getDateReceiptCreated());
         String date = getReportDate(new Date(System.currentTimeMillis()));
-        assertThat("RR001").isEqualTo(refundLiberata.getReason());
+        assertThat("Amended claim").isEqualTo(refundLiberata.getReason());
         assertThat("SendRefund").isEqualTo(refundLiberata.getInstructionType());
         assertThat(new BigDecimal("90.00")).isEqualTo(refundLiberata.getTotalRefundAmount());
         assertThat(date).isEqualTo(refundApproveDate);

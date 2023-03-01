@@ -204,6 +204,7 @@
   <suppress until="2023-03-31">
     <cve>CVE-2021-22053</cve>
     <cve>CVE-2022-31692</cve>
+    <cve>CVE-2022-45688</cve>
   </suppress>
   <suppress>
     <notes>A stack overflow in the XML.toJSONObject component of hutool-json v5.8.10
