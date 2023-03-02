@@ -47,10 +47,12 @@ import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.StatusHistoryResponseMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundFees;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
+import uk.gov.hmcts.reform.refunds.repository.RefundFeesRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
@@ -118,7 +120,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     DateUtil dateUtil = new DateUtil();
 
-    private  long daysDifference;
+    private long daysDifference;
+
+    private static final int REASON_CODE_END = 6;
 
     @Value("${refund.search.days}")
     private Integer numberOfDays;
@@ -166,7 +170,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private RefundFeeMapper refundFeeMapper;
 
     @Autowired
-    private RefundServiceRoleUtil refundServiceRoleUtil;
+    private RefundFeesRepository refundFeesRepository;
+
 
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
@@ -188,14 +193,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         throws CheckDigitException {
 
         validateRefundAmount(refundRequest);
-        String reason =  validateRefundReason(refundRequest.getRefundReason());
+        String reason = validateRefundReason(refundRequest.getRefundReason());
         refundRequest.setRefundReason(reason);
 
         String instructionType = null;
         if (refundRequest.getPaymentMethod() != null) {
 
             if (BULK_SCAN.equals(refundRequest.getPaymentChannel()) && (CASH.equals(refundRequest.getPaymentMethod())
-                    || POSTAL_ORDER.equals(refundRequest.getPaymentMethod()))) {
+                || POSTAL_ORDER.equals(refundRequest.getPaymentMethod()))) {
                 instructionType = REFUND_WHEN_CONTACTED;
             } else {
                 instructionType = SEND_REFUND;
@@ -280,16 +285,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
-                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,refund.getCreatedBy());
-                    contextStartListener.addUserToMap(PAYMENT_REFUND,userIdentityDataDto);
+                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
+                                                                                              refund.getCreatedBy());
+                    contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
                     userIdentityDataDtoSet.add(userIdentityDataDto);
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
 
             refundListDto =
-                    populateRefundListDto(refundList, userIdsWithGivenRoles, refundReasonList, userIdentityDataDtoSet,
-                            refundListDto);
+                populateRefundListDto(refundList, userIdsWithGivenRoles, refundReasonList, userIdentityDataDtoSet,
+                                      refundListDto
+                );
         }
         return refundListDto;
     }
@@ -299,13 +306,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Set<UserIdentityDataDto> userIdentityDataDtoSet;
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         if (null != contextStartListener.getUserMap() && null != contextStartListener.getUserMap().get(PAYMENT_REFUND)) {
-            userIdentityDataDtoSet =  contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
-                    Collectors.toSet());
+            userIdentityDataDtoSet = contextStartListener.getUserMap().get(PAYMENT_REFUND).stream().collect(
+                Collectors.toSet());
         } else {
-            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(getAuthenticationHeaders(),
-                    Arrays.asList(PAYMENT_REFUND,
-                            "payments-refund-approver"));
-            userMap.put(PAYMENT_REFUND,userIdentityDataDtoList);
+            List<UserIdentityDataDto> userIdentityDataDtoList = idamService.getUsersForRoles(
+                getAuthenticationHeaders(),
+                Arrays.asList(
+                    PAYMENT_REFUND,
+                    "payments-refund-approver"
+                )
+            );
+            userMap.put(PAYMENT_REFUND, userIdentityDataDtoList);
 
             userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
 
@@ -314,13 +325,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private List<RefundDto> populateRefundListDto(List<Refund> refundList, List<String> userIdsWithGivenRoles,
-                                    List<RefundReason> refundReasonList,
-                                    Set<UserIdentityDataDto> userIdentityDataDtoSet,
-                                    List<RefundDto> refundListDto) {
+                                                  List<RefundReason> refundReasonList,
+                                                  Set<UserIdentityDataDto> userIdentityDataDtoSet,
+                                                  List<RefundDto> refundListDto) {
         for (Refund refund : refundList.stream()
-                .filter(e -> userIdsWithGivenRoles.stream()
-                        .anyMatch(id -> id.equals(e.getCreatedBy())))
-                .collect(Collectors.toList())) {
+            .filter(e -> userIdsWithGivenRoles.stream()
+                .anyMatch(id -> id.equals(e.getCreatedBy())))
+            .collect(Collectors.toList())) {
             String reason = getRefundReason(refund.getReason(), refundReasonList);
             Optional<UserIdentityDataDto> found = Optional.empty();
             for (UserIdentityDataDto dto : userIdentityDataDtoSet) {
@@ -330,9 +341,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 }
             }
             found.ifPresent(userIdentityDataDto -> refundListDto.add(refundResponseMapper.getRefundListDto(
-                    refund,
-                    userIdentityDataDto,
-                    reason
+                refund,
+                userIdentityDataDto,
+                reason
             )));
         }
         return refundListDto;
@@ -395,11 +406,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             // Refund Reason Validation
             String refundReason = RETROSPECTIVE_REMISSION_REASON.equals(refund.getReason()) ? RETROSPECTIVE_REMISSION_REASON :
-                validateRefundReasonForNonRetroRemission(request.getRefundReason(),refund);
-            LOG.info("Refund Reason in resubmitRefund {}",refundReason);
+                validateRefundReasonForNonRetroRemission(request.getRefundReason(), refund);
+            LOG.info("Refund Reason in resubmitRefund {}", refundReason);
             refund.setAmount(request.getAmount());
 
-            if (!(refund.getReason().equals(RETROSPECTIVE_REMISSION_REASON)) && !(RETROSPECTIVE_REMISSION_REASON.equals(refundReason))) {
+            if (!(refund.getReason().equals(RETROSPECTIVE_REMISSION_REASON)) && !(RETROSPECTIVE_REMISSION_REASON.equals(
+                refundReason))) {
                 refund.setReason(refundReason);
             }
 
@@ -423,7 +435,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             LOG.info("PAYHUB REMISSION RESPONSE: {}", payhubRemissionUpdateResponse);
 
-
             if (payhubRemissionUpdateResponse) {
                 // Update Status History table
                 refund.setUpdatedBy(idamUserIdResponse.getUid());
@@ -436,8 +447,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                         .build());
                 refund.setStatusHistories(statusHistories);
                 refund.setRefundStatus(SENTFORAPPROVAL);
-                refund.setRefundFees(request.getRefundFees().stream().map(refundFeeMapper::toRefundFee)
-                    .collect(Collectors.toList()));
+                refund.setRefundFees(toRefundFeeMap(refund,request));
                 if (null != request.getContactDetails()) {
                     validateContactDetails(request.getContactDetails());
                     refund.setContactDetails(request.getContactDetails());
@@ -588,7 +598,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return rawReason;
     }
 
-    private MultiValueMap<String, String>  getAuthenticationHeaders() {
+    private MultiValueMap<String, String> getAuthenticationHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.add("Authorization", getAccessToken());
         return inputHeaders;
@@ -655,7 +665,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (refundsList.isPresent()) {
             List<Refund> refundsListStatus =
                 refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                    RefundStatus.REJECTED))
+                        RefundStatus.REJECTED))
                     .collect(Collectors.toList());
             for (Refund ref : refundsListStatus) {
                 totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
@@ -693,7 +703,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
     }
 
-    private  String  validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
+    private String validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
 
         return validateRefundReason(reason == null ? refund.getReason() : reason);
     }
@@ -702,7 +712,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     @SuppressWarnings({"PMD.ConfusingTernary"})
     public List<RefundLiberata> search(Optional<String> startDateTimeString, Optional<String> endDateTimeString, String refundReference) {
 
-        List<String> referenceList =  new ArrayList<>();
+        List<String> referenceList = new ArrayList<>();
         List<RefundLiberata> refundLiberatas = new ArrayList<>();
         List<Refund> refundListWithAccepted;
         List<Refund> refundListNotInDateRange;
@@ -711,11 +721,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Date fromDateTime = getFromDateTime(startDateTimeString);
 
-        Date  toDateTime = getToDateTime(endDateTimeString, fromDateTime);
+        Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
 
-        validateV2ApiDateRange(fromDateTime,toDateTime);
+        validateV2ApiDateRange(fromDateTime, toDateTime);
 
-        List<Refund> refundList = refundsRepository.findAll(searchByCriteria(getSearchCriteria(fromDateTime, toDateTime, refundReference)));
+        List<Refund> refundList = refundsRepository.findAll(searchByCriteria(getSearchCriteria(
+            fromDateTime,
+            toDateTime,
+            refundReference
+        )));
         if (!refundList.isEmpty()) {
             refundListWithAccepted = refundList.stream().filter(refund -> refund.getRefundStatus().equals(
                     RefundStatus.APPROVED))
@@ -728,26 +742,32 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
 
         if (startDateTimeString.isPresent() && endDateTimeString.isPresent()) {
-            refundListNotInDateRange = refundsRepository.findByDatesBetween(fromDateTime,toDateTime);
+            refundListNotInDateRange = refundsRepository.findByDatesBetween(fromDateTime, toDateTime);
         } else {
 
-            refundListNotInDateRange = refundsRepository.findAllByPaymentReference(refundListWithAccepted.get(0).getPaymentReference(),
-                                                                                   refundListWithAccepted.get(0).getReference());
+            refundListNotInDateRange = refundsRepository.findAllByPaymentReference(
+                refundListWithAccepted.get(0).getPaymentReference(),
+                refundListWithAccepted.get(0).getReference()
+            );
         }
 
-        List<PaymentDto> paymentData =  paymentService.fetchPaymentResponse(referenceList);
+        List<PaymentDto> paymentData = paymentService.fetchPaymentResponse(referenceList);
 
         Map<String, BigDecimal> groupByPaymentReference =
-            refundListWithAccepted.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
-                                                                          Collectors2.summingBigDecimal(Refund::getAmount)));
+            refundListWithAccepted.stream().collect(Collectors.groupingBy(
+                Refund::getPaymentReference,
+                Collectors2.summingBigDecimal(Refund::getAmount)
+            ));
 
         Map<String, BigDecimal> groupByPaymentReferenceForNotInDateRange =
-            refundListNotInDateRange.stream().collect(Collectors.groupingBy(Refund::getPaymentReference,
-                                                                            Collectors2.summingBigDecimal(Refund::getAmount)));
+            refundListNotInDateRange.stream().collect(Collectors.groupingBy(
+                Refund::getPaymentReference,
+                Collectors2.summingBigDecimal(Refund::getAmount)
+            ));
 
         Map<String, BigDecimal> avlBalance;
 
-        avlBalance = calculateAvailableBalance(groupByPaymentReference,groupByPaymentReferenceForNotInDateRange);
+        avlBalance = calculateAvailableBalance(groupByPaymentReference, groupByPaymentReferenceForNotInDateRange);
 
         Map<String, BigDecimal> finalAvlBalance = avlBalance;
         refundListWithAccepted.stream()
@@ -761,14 +781,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     paymentData.stream()
                         .filter(dto -> refund.getPaymentReference().equals(dto.getPaymentReference()))
                         .findAny().get(),
-                    finalAvlBalance
+                    finalAvlBalance,toRefundReason(refund.getReason())
                 ));
             });
         return refundLiberatas;
     }
 
     @SuppressWarnings({"PMD.UselessParentheses"})
-    public  Specification<Refund> searchByCriteria(RefundSearchCriteria searchCriteria) {
+    public Specification<Refund> searchByCriteria(RefundSearchCriteria searchCriteria) {
         return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
     }
 
@@ -822,8 +842,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     @SuppressWarnings({"PMD.ConfusingTernary"})
-    private  Map<String, BigDecimal> calculateAvailableBalance(Map<String, BigDecimal> groupByPaymentReference,
-                                                               Map<String, BigDecimal> groupByPaymentReferenceForNotInDateRange) {
+    private Map<String, BigDecimal> calculateAvailableBalance(Map<String, BigDecimal> groupByPaymentReference,
+                                                              Map<String, BigDecimal> groupByPaymentReferenceForNotInDateRange) {
 
         BigDecimal amountSecond;
         BigDecimal sumAmount;
@@ -837,9 +857,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             } else {
                 sumAmount = amountFirst;
             }
-            avlBalance.put(key,sumAmount);
+            avlBalance.put(key, sumAmount);
         }
-        return  avlBalance;
+        return avlBalance;
     }
 
     @SuppressWarnings({"PMD.LawOfDemeter"})
@@ -860,9 +880,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         //Create Refund response List
         List<RefundDto> refundListDto = new ArrayList<>();
         List<RefundReason> refundReasonList = refundReasonRepository.findAll();
-        for (Refund refund: refundList) {
-            UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                                                                                      refund.getCreatedBy());
+        for (Refund refund : refundList) {
+            UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(
+                headers,
+                refund.getCreatedBy()
+            );
 
             String reason = getRefundReason(refund.getReason(), refundReasonList);
             if (refund.getCreatedBy().equals(userIdentityDataDto.getId())) {
@@ -876,4 +898,57 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return refundListDto;
     }
 
+    private String toRefundReason(String reasonCode) {
+
+        String reason;
+        Optional<RefundReason> refundReason = refundReasonRepository.findByCode(reasonCode);
+
+        if (refundReason.isPresent()) {
+            reason = refundReason.get().getName();
+        } else {
+            reason = reasonCode.substring(REASON_CODE_END);
+        }
+        return  reason;
+    }
+
+    private List<RefundFees> toRefundFeeMap(Refund refund, ResubmitRefundRequest request) {
+        List<RefundFees> refundFeeDtos = new ArrayList<>();
+
+        request.getRefundFees().stream().filter(rf -> refund.getRefundFees().stream().anyMatch(
+            id -> id.getFeeId().equals(rf.getFeeId()))).collect(Collectors.toList())
+            .forEach(refundFromDb -> {
+                refundFeeDtos.add(refundFeeMapper.toRefundFeeUpdate(refundFromDb,
+                                                                    refund.getRefundFees().stream()
+                                                                        .filter(rf1 -> refundFromDb.getFeeId().equals(rf1.getFeeId()))
+                                                                        .findAny().get()));
+
+            });
+
+        refundFeeDtos.addAll(request.getRefundFees().stream().filter(rf -> refund.getRefundFees().stream()
+            .noneMatch(id -> id.getFeeId().equals(rf.getFeeId()))).map(refundFeeMapper::toRefundFee).collect(Collectors.toList()));
+
+
+        List<RefundFees>  refundFeeDtosNotMatched = refund.getRefundFees().stream().filter(rf -> request.getRefundFees().stream()
+            .noneMatch(id -> id.getFeeId().equals(rf.getFeeId()))
+        ).collect(Collectors.toList());
+
+
+        List<Integer> refundFeeIds = new ArrayList<>();
+
+        for (RefundFees id : refundFeeDtosNotMatched) {
+            refundFeeIds.add(id.getId());
+
+        }
+        if (!refundFeeIds.isEmpty()) {
+            deleteRefundFee(refundFeeIds);
+        }
+
+
+        return refundFeeDtos;
+
+    }
+
+    public void deleteRefundFee(List<Integer> refundFeesId) {
+        refundFeesRepository.deleteByIdIn(refundFeesId);
+    }
 }
