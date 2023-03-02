@@ -212,7 +212,7 @@ class RefundServiceImplTest {
             .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
             .reference("RF-1111-2234-1077-1123")
             .refundStatus(RefundStatus.APPROVED)
-            .reason("RR001")
+            .reason("RR001-test")
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
@@ -1244,6 +1244,8 @@ class RefundServiceImplTest {
         List<String> referenceList = new ArrayList<>();
         referenceList.add("RC-1111-2234-1077-1123");
         when(paymentService.fetchPaymentResponse(referenceList)).thenReturn(getPayments());
+        when(refundReasonRepository.findByCodeOrThrow(anyString()))
+            .thenReturn(RefundReason.refundReasonWith().name("Amended claim").build());
         Optional<String> startDate = Optional.ofNullable(LocalDate.now().minusDays(1).toString(DATE_FORMAT));
         Optional<String> endDate = Optional.ofNullable(LocalDate.now().toString(DATE_FORMAT));
         List<RefundLiberata>

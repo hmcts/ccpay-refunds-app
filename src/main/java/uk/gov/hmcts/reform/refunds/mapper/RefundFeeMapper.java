@@ -26,4 +26,15 @@ public class RefundFeeMapper {
             .version(refundFees.getVersion())
             .build();
     }
+
+    public RefundFees toRefundFeeUpdate(RefundFeeDto refund,RefundFees refundFeeDto) {
+        return RefundFees.refundFeesWith()
+            .id(refundFeeDto.getId())
+            .code(refundFeeDto.getCode())
+            .feeId(refundFeeDto.getFeeId())
+            .refundAmount(refund.getRefundAmount())
+            .volume(refundFeeDto.getVolume())
+            .version(refundFeeDto.getVersion())
+            .build();
+    }
 }
