@@ -102,8 +102,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                             .email(notificationDetails.getContactDetails().getEmail())
                             .build();
                         refund.setContactDetails(newContact);
-                        String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
-                        notificationService.updateNotification(headers, refund, null, templateId);
                     }
 
                     refund.setRefundStatus(RefundStatus.APPROVED);
@@ -113,6 +111,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                         RefundStatus.APPROVED,
                         LIBERATA_REJECT_UPDATE)
                     ));
+                    String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
+                    notificationService.updateNotification(headers, refund, null, templateId);
 
                 }
             }
