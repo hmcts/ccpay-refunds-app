@@ -170,6 +170,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private RefundFeeMapper refundFeeMapper;
 
     @Autowired
+    private RefundServiceRoleUtil refundServiceRoleUtil;
+
+    @Autowired
     private RefundFeesRepository refundFeesRepository;
 
 
