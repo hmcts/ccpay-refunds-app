@@ -226,4 +226,10 @@
     </notes>
     <cve>CVE-2022-45688</cve>
   </suppress>
+  <suppress>
+    <notes>Apache Commons FileUpload before 1.5 does not limit the number of request parts to be processed
+      resulting in the possibility of an attacker triggering a DoS with a malicious upload or series of uploads.
+    </notes>
+    <cve>CVE-2023-24998</cve>
+  </suppress>
 </suppressions>
