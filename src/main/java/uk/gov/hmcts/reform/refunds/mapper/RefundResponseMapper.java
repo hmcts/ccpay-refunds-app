@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundFees;
+import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -29,6 +30,9 @@ public class RefundResponseMapper {
 
     @Autowired
     private RefundFeeMapper refundFeeMapper;
+
+    @Autowired
+    RefundReasonRepository refundsReasonRepository;
 
     private static final int REASON_CODE_START = 0;
     private static final int REASON_PREFIX_LENGTH = 5;
@@ -77,13 +81,14 @@ public class RefundResponseMapper {
             .build();
     }
 
-    public RefundLiberata getRefundLibrata(Refund refund, PaymentDto paymentDto, Map<String, BigDecimal> groupByPaymentReference) {
+    public RefundLiberata getRefundLibrata(Refund refund, PaymentDto paymentDto, Map<String, BigDecimal> groupByPaymentReference,
+                                           String reasonCode) {
 
         return RefundLiberata.buildRefundLibarataWith()
             .dateApproved(refund.getDateUpdated())
             .totalRefundAmount(refund.getAmount())
             .instructionType(refund.getRefundInstructionType())
-            .reason(refund.getReason())
+            .reason(reasonCode)
             .reference(refund.getReference())
             .payment(toPayment(paymentDto, groupByPaymentReference))
             .fees(toFeeDtos(paymentDto.getFees(), refund))
@@ -178,5 +183,4 @@ public class RefundResponseMapper {
         }
         return creditAmount;
     }
-
 }
