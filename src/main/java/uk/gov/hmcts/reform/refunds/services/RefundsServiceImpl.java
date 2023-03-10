@@ -694,9 +694,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
-        if(reason == null){
+        if (reason == null) {
             return refund.getReason();
-        }else {
+        } else {
             return validateRefundReason(reason);
         }
     }
