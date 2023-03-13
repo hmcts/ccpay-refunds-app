@@ -724,6 +724,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundListWithAccepted = refundList.stream().filter(refund -> refund.getRefundStatus().equals(
                     RefundStatus.APPROVED))
                 .collect(Collectors.toList());
+        } else {
+            throw new RefundNotFoundException("No refunds available for the given date range");
+        }
+
+        if (!refundListWithAccepted.isEmpty()) {
+
             for (Refund ref : refundListWithAccepted) {
                 referenceList.add(ref.getPaymentReference());
             }
