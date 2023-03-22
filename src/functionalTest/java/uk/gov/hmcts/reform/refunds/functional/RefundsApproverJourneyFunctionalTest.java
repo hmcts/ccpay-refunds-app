@@ -1779,6 +1779,8 @@ public class RefundsApproverJourneyFunctionalTest {
             .when()
             .get("/refunds");
 
+        System.out.println(" ---> response1" + response1.asString());
+        System.out.println(" ---> response1.getBody()" + response1.getBody());
         RerfundLiberataResponse rerfundLiberataResponse =  response1.getBody().as(RerfundLiberataResponse.class);;
         RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
             .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
