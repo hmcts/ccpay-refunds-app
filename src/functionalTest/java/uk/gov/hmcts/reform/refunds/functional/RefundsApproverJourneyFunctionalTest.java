@@ -1775,7 +1775,6 @@ public class RefundsApproverJourneyFunctionalTest {
         params.add("refund_reference", refundReference);
         Response response1 = RestAssured.given()
             .header("ServiceAuthorization", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT)
-            .contentType(ContentType.JSON)
             .params(params)
             .when()
             .get("/refunds");
