@@ -47,20 +47,3 @@ databaseChangeLog:
               INSERT INTO refund_reasons (code, name, description, recently_used)
                 VALUES
               ('RR037', 'Overpayment', 'Refund for Overpayment',FALSE);
-
-  - changeSet:
-      id: 100009-2
-      author: Ranjeet
-      failOnError: true
-      changes:
-        - dropForeignKeyConstraint:
-            baseTableName: refunds
-            constraintName: FK_1000081
-        - addForeignKeyConstraint:
-            baseColumnNames: refund_status
-            baseTableName: refunds
-            constraintName: FK_1000081
-            deferrable: false
-            initiallyDeferred: false
-            referencedColumnNames: name
-            referencedTableName: refund_status
