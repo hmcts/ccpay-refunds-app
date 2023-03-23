@@ -152,6 +152,8 @@
       snakeyaml v1.31 (most recent patch available currently) does not resolve the issue.
     </notes>
     <cve>CVE-2022-25857</cve>
+    <cve>CVE-2022-41854</cve>
+    <cve>CVE-2022-31690</cve>
   </suppress>
   <suppress until="2023-03-31">
     <notes>
@@ -163,6 +165,7 @@
     <cve>CVE-2022-38750</cve>
     <cve>CVE-2022-38751</cve>
     <cve>CVE-2022-38752</cve>
+    <cve>CVE-2022-41854</cve>
   </suppress>
   <suppress until="2023-03-31">
         <notes>
@@ -172,6 +175,8 @@
         </notes>
         <cve>CVE-2022-42003</cve>
         <cve>CVE-2022-42004</cve>
+        <cve>CVE-2021-37533</cve>
+        <cve>CVE-2022-41946</cve>
   </suppress>
   <suppress until="2023-03-31">
     <notes>
@@ -187,11 +192,26 @@
   </suppress>
   <suppress until="2023-03-31">
     <notes>
-      Snake yaml and latencyUtils
+      A vulnerability, which was classified as problematic, has been found in fredsmith utils.
+      This issue affects some unknown processing of the file screenshot_sync of the component Filename Handler.
+      The manipulation leads to predictable from observable state.
     </notes>
-    <cve>CVE-2021-4235</cve>
     <cve>CVE-2021-4277</cve>
+    <cve>CVE-2021-4235</cve>
     <cve>CVE-2022-3064</cve>
+    <cve>CVE-2022-45143</cve>
+  </suppress>
+  <suppress until="2023-03-31">
+    <cve>CVE-2021-22053</cve>
+    <cve>CVE-2022-31692</cve>
+    <cve>CVE-2022-45688</cve>
+  </suppress>
+  <suppress>
+    <notes>A stack overflow in the XML.toJSONObject component of hutool-json v5.8.10
+      allows attackers to cause a Denial of Service (DoS) via crafted JSON or XML data.
+      New version of jackson-core needed to resolve this issue.
+    </notes>
+    <cve>CVE-2022-45688</cve>
   </suppress>
   <suppress until="2023-03-31">
     <notes>
@@ -207,8 +227,7 @@
     <cve>CVE-2022-45688</cve>
   </suppress>
   <suppress>
-    <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
-    </notes>
+    <cve>CVE-2023-24998</cve>
     <cve>CVE-2022-1471</cve>
   </suppress>
 </suppressions>

@@ -171,3 +171,26 @@ user:
 
 
 
+notification:
+  url: ${NOTIFICATION_API_URL:}
+  letter-path: ${NOTIFICATION_LETTER_PATH:/notifications/letter}
+  email-path: ${NOTIFICATION_EMAIL_PATH:/notifications/email}
+  email-to-reply: ${EMAIL_TO_REPLY:}
+  service-mailbox: ${SERVICE_MAIL_BOX:}
+  service-url: ${SERVICE_URL:http://service}
+
+notify:
+  template:
+    cheque-po-cash:
+      letter: ${NOTIFICATIONS_LETTER_CHEQUE_PO_CASH_TEMPLATE_ID:}
+      email: ${NOTIFICATIONS_EMAIL_CHEQUE_PO_CASH_TEMPLATE_ID:}
+    card-pba:
+      letter: ${NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID:}
+      email: ${NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID:}
+    refund-when-contacted:
+      letter: ${NOTIFICATION_LETTER_REFUND_WHEN_CONTACTED_TEMPLATE_ID:}
+      email: ${NOTIFICATION_EMAIL_REFUND_WHEN_CONTACTED_TEMPLATE_ID:}
+
+refund:
+  search:
+    days: 7

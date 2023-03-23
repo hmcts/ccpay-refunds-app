@@ -22,4 +22,5 @@ public class RefundReviewRequest {
 
     private String reason;
 
+    private TemplatePreview templatePreview;
 }
