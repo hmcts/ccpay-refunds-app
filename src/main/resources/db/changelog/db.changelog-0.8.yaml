@@ -84,6 +84,15 @@ databaseChangeLog:
               - column:
                   name: refund_instruction_type
                   type: varchar(255)
+  - changeSet:
+      id: 100008-5-1
+      author: Ranjeet
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              delete from refund_status where name ='Cancelled';
 
   - changeSet:
       id: 100008-6
