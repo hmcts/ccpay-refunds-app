@@ -75,6 +75,16 @@ databaseChangeLog:
                   type: varchar(100)
 
   - changeSet:
+      id: 100008-4-8
+      author: Ranjeet
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              ALTER TABLE refunds DROP CONSTRAINT FK_1000084;
+
+  - changeSet:
       id: 100008-5
       author: Ranjeet
       changes:
@@ -93,6 +103,21 @@ databaseChangeLog:
             splitStatements: true
             sql: >
               delete from refund_status where name ='Cancelled';
+
+  - changeSet:
+      id: 100008-5-5
+      author: Ranjeet
+      failOnError: true
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: refund_status
+            baseTableName: refunds
+            constraintName: FK_1000085
+            deferrable: false
+            onUpdate: CASCADE
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: refund_status
 
   - changeSet:
       id: 100008-6
