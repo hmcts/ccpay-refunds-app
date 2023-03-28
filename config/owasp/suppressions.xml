@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-  <suppress until="2023-03-31">
-    <notes><![CDATA[
-     Suppressing as it's a false positive (see: https://pivotal.io/security/cve-2018-1258)
-   ]]></notes>
-    <gav regex="true">^org\.springframework\.security:spring-security-crypto:5.4.[0-5]</gav>
-    <cpe>cpe:/a:pivotal_software:spring_security</cpe>
-    <cve>CVE-2018-1258</cve>
+  <suppress until="2023-06-30">
+    <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
+    </notes>
+    <cve>CVE-2022-1471</cve>
   </suppress>
 </suppressions>
