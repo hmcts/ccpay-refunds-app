@@ -5,4 +5,59 @@
     </notes>
     <cve>CVE-2022-1471</cve>
   </suppress>
+  <suppress until="2023-06-30">
+    <notes>
+      Jackson core needs major version latest 2.12.7  not resolving current CVE issue. Same applies to json-path version 2.4.0.
+      Same applies to json-smart version 2.4.10
+    </notes>
+    <cve>CVE-2022-45688</cve>
+  </suppress>
+  <suppress until="2023-06-30">
+    <notes>
+      JSON Smart needs major version latest 2.4.10  not resolving current CVE issue.
+    </notes>
+    <cve>CVE-2022-45688</cve>
+  </suppress>
+  <suppress until="2023-06-30">
+    <notes>
+      spring-security-config needs major version latest 5.4.11  not resolving current CVE issue.
+    </notes>
+    <cve>CVE-2022-22978</cve>
+    <cve>CVE-2022-22976</cve>
+  </suppress>
+  <suppress until="2023-06-30">
+    <notes>
+      spring-security-crypto needs major version latest 5.4.11  not resolving current CVE issue.
+    </notes>
+    <cve>CVE-2022-22978</cve>
+    <cve>CVE-2022-22976</cve>
+  </suppress>
+  <suppress until="2023-06-30">
+    <notes>
+      spring-security-oauth2-client needs major version latest 5.4.11  not resolving current CVE issue.
+    </notes>
+    <cve>CVE-2022-22978</cve>
+    <cve>CVE-2022-22976</cve>
+  </suppress>
+  <suppress until="2023-06-30">
+    <notes>
+      spring-security-oauth2-core needs major version latest 5.4.11  not resolving current CVE issue.
+    </notes>
+    <cve>CVE-2022-22978</cve>
+    <cve>CVE-2022-22976</cve>
+  </suppress>
+  <suppress until="2023-06-30">
+    <notes>
+      spring-security-oauth2-resource-server needs major version latest 5.4.11  not resolving current CVE issue.
+    </notes>
+    <cve>CVE-2022-22978</cve>
+    <cve>CVE-2022-22976</cve>
+  </suppress>
+  <suppress until="2023-06-30">
+    <notes>
+      spring-security-web needs major version latest 5.4.11  not resolving current CVE issue.
+    </notes>
+    <cve>CVE-2022-22978</cve>
+    <cve>CVE-2022-22976</cve>
+  </suppress>
 </suppressions>
