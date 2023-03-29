@@ -286,8 +286,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
-            if(null != userIdsWithGivenRoles)
+            if (null != userIdsWithGivenRoles) {
                 LOG.info("userIdsWithGivenRoles size {}", userIdsWithGivenRoles.size());
+            }
             refundListDto =
                 populateRefundListDto(refundList, userIdsWithGivenRoles, refundReasonList, userIdentityDataDtoSet,
                                       refundListDto
