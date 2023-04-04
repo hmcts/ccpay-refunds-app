@@ -106,7 +106,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
                     refund.setRefundStatus(RefundStatus.APPROVED);
                     refund.setUpdatedBy(SYSTEM_USER);
-                    refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+                    Refund refundUpdated = refundsRepository.findByReferenceOrThrow(reference);
+                    refundUpdated.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                         SYSTEM_USER,
                         RefundStatus.APPROVED,
                         LIBERATA_REJECT_UPDATE)
