@@ -135,7 +135,7 @@ public class IdamServiceImpl implements IdamService {
             .queryParam("query", "id:" + uid);
         LOG.info("builder.toUriString() getUserIdentityData : {}", builder.toUriString());
 
-        if ((LIBERATA_NAME.equals(uid)) || (LIBERATA_SYSTEM_USER_NAME.equalsIgnoreCase(uid))) {
+        if (LIBERATA_NAME.equals(uid) || LIBERATA_SYSTEM_USER_NAME.equalsIgnoreCase(uid)) {
             return UserIdentityDataDto.userIdentityDataWith()
                 .fullName(uid)
                 .build();
