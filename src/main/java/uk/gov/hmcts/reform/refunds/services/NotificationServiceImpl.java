@@ -78,7 +78,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(emailUrlPath).toString());
-            log.info("Notification URL in Refunds app {}",builder.toUriString());
+            log.info("Notification URL in Refunds app email {}",builder.toUriString());
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,
                     new HttpEntity<>(refundNotificationEmailRequest, getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
@@ -96,6 +96,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(new StringBuilder(notificationUrl).append(letterUrlPath).toString());
+            log.info("Notification URL in Refunds app for letter {}",builder.toUriString());
             return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST,new HttpEntity<>(refundNotificationLetterRequest,
                     getFormatedHeaders(headers)),String.class);
         } catch (HttpClientErrorException exception) {
@@ -115,8 +116,6 @@ public class NotificationServiceImpl implements NotificationService {
         inputHeaders.put(CONTENT_TYPE, headers.get(CONTENT_TYPE));
         inputHeaders.put("Authorization", authtoken);
         inputHeaders.put("ServiceAuthorization", servauthtoken);
-        //log.info("ServiceAuthorization: {}", servauthtoken);
-        //log.info("inputHeaders: {}", inputHeaders);
         return inputHeaders;
     }
 
@@ -215,6 +214,7 @@ public class NotificationServiceImpl implements NotificationService {
                 new StringBuilder(notificationUrl).append("/notifications/").append(reference)
                     .toString());
 
+            log.info("Notification URL in Refunds app for get notification details {}", builder.toUriString());
             ResponseEntity<NotificationsDtoResponse> responseNotification = restTemplateNotify
                 .exchange(
                     builder.toUriString(),

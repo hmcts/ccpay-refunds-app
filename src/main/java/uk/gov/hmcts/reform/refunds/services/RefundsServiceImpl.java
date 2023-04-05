@@ -707,8 +707,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
-
-        return validateRefundReason(reason == null ? refund.getReason() : reason);
+        if (reason == null) {
+            if (refund.getReason() == null || refund.getReason().isBlank()) {
+                throw new InvalidRefundRequestException("Refund reason is required");
+            }
+            return refund.getReason();
+        } else {
+            return validateRefundReason(reason);
+        }
     }
 
     @Override
@@ -737,6 +743,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundListWithAccepted = refundList.stream().filter(refund -> refund.getRefundStatus().equals(
                     RefundStatus.APPROVED))
                 .collect(Collectors.toList());
+        } else {
+            throw new RefundNotFoundException("No refunds available for the given date range");
+        }
+
+        if (!refundListWithAccepted.isEmpty()) {
+
             for (Refund ref : refundListWithAccepted) {
                 referenceList.add(ref.getPaymentReference());
             }

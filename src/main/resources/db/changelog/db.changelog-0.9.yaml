@@ -37,3 +37,13 @@ databaseChangeLog:
               - column:
                   name: refund_amount
                   type: numeric(19, 2)
+  - changeSet:
+      id: 100009-1
+      author: Ranjeet
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_reasons (code, name, description, recently_used)
+                VALUES
+              ('RR037', 'Overpayment', 'Refund for Overpayment',FALSE);
