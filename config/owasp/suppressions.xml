@@ -219,14 +219,17 @@
     </notes>
     <cve>CVE-2021-22053</cve>
   </suppress>
-  <suppress>
+  <suppress until="2023-06-30">
     <notes>A stack overflow in the XML.toJSONObject component of hutool-json v5.8.10
       allows attackers to cause a Denial of Service (DoS) via crafted JSON or XML data.
       New version of jackson-core needed to resolve this issue.
     </notes>
     <cve>CVE-2022-45688</cve>
   </suppress>
-  <suppress>
+  <suppress until="2023-06-30">
+    <notes>Apache Commons FileUpload before 1.5 does not limit the number of request parts to be processed
+      resulting in the possibility of an attacker triggering a DoS with a malicious upload or series of uploads.
+    </notes>
     <cve>CVE-2023-24998</cve>
     <cve>CVE-2022-1471</cve>
   </suppress>
