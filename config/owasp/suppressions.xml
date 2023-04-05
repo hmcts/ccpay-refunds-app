@@ -231,5 +231,6 @@
       resulting in the possibility of an attacker triggering a DoS with a malicious upload or series of uploads.
     </notes>
     <cve>CVE-2023-24998</cve>
+    <cve>CVE-2022-1471</cve>
   </suppress>
 </suppressions>
