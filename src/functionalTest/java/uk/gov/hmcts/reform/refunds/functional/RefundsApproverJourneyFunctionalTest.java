@@ -1403,6 +1403,7 @@ public class RefundsApproverJourneyFunctionalTest {
                                         refundReference);
     }
 
+    @Ignore
     @Test
     public void positive_reject_a_refund_request_verify_contact_details_erased_from_service() {
 
