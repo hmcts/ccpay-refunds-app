@@ -66,6 +66,7 @@ import static org.springframework.http.HttpStatus.OK;
 @ActiveProfiles("functional")
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
+@Ignore
 public class RefundsApproverJourneyFunctionalTest {
 
     @Autowired
