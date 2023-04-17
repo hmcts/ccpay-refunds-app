@@ -46,6 +46,7 @@ public class SpringSecurityConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
+    private static final String PAYMENTS_ROLE = "payments";
 
     @Configuration
     @Order(1)
@@ -98,6 +99,7 @@ public class SpringSecurityConfiguration {
                     .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/refundstest")
                     .antMatchers(HttpMethod.PATCH, "/refund/*")
+                    .antMatchers("/jobs/**")
                     .and()
                     .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
                     .authenticationEntryPoint(refundsAuthenticationEntryPoint);
@@ -175,9 +177,10 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.GET, "/api/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/refunds/**").permitAll()
                     .antMatchers(HttpMethod.GET,"/refund/payment-failure-report").permitAll()
+                    .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
                     .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                    .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
                     .antMatchers(HttpMethod.PATCH,"/payment/**").permitAll()
                     .antMatchers("/error").permitAll()

@@ -5,7 +5,6 @@ import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +98,6 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void paymentFailureReportRequestForRejectedRefundStatus() {
         final String paymentReference = createPayment();
         final String refundReference = performRefund(paymentReference);
@@ -134,7 +132,6 @@ public class PaymentFailureReportFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void paymentFailureReportRequestForEmptyPaymentReference() {
 
         paymentTestService.getPaymentFailureReport(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
@@ -171,13 +168,28 @@ public class PaymentFailureReportFunctionalTest {
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+
+        // Update Payments for CCDCaseNumber by certain days
+        String ccdCaseNumber = accountPaymentRequest.getCcdCaseNumber();
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE, SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,"5",
+                                                                              testConfigProperties.basePaymentsUrl);
         return paymentsResponse.getReference();
     }
 
     @NotNull
     private String performRefund(String paymentReference) {
+
+        PaymentDto getPaymentsResponse =
+            paymentTestService.getPayments(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+                                           SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference,
+                                           testConfigProperties.basePaymentsUrl).then()
+                .statusCode(OK.value()).extract().as(PaymentDto.class);
+
+        int paymentId = getPaymentsResponse.getFees().get(0).getId();
+
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference);
+            = RefundsFixture.refundRequest("RR001", paymentReference,"90","550", paymentId);
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
