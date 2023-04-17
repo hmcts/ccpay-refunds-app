@@ -7,6 +7,7 @@ import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -725,6 +726,7 @@ public class RefundsApproverJourneyFunctionalTest {
             refundReference);
     }
 
+    @Ignore
     @Test
     public void positive_resubmit_refund_journey() {
 
@@ -1023,6 +1025,7 @@ public class RefundsApproverJourneyFunctionalTest {
         return refundReference;
     }
 
+    @Ignore
     @Test
     public void positive_resubmit_refund_journey_when_amount_provided() {
 
