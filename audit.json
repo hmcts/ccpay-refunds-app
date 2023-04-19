@@ -87,5 +87,8 @@
   "90022_Application Error Disclosure_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore",
   "90022_Application Error Disclosure_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/reference_PATCH":"ignore",
   "90022_Application Error Disclosure_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/resubmit/reference_PATCH":"ignore",
-  "90022_Application Error Disclosure_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore"
+  "90022_Application Error Disclosure_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/payment-failure-report?paymentReferenceList=paymentReferenceList_GET":"ignore",
+  "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refunds?end_date=end_date\u0026refund_reference=refund_reference\u0026start_date=start_date_GET":"ignore",
+  "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/jobs/refund-notification-update_PATCH":"ignore",
+  "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/resend/notification/reference?notificationType=LETTER_PUT":"ignore"
 }
