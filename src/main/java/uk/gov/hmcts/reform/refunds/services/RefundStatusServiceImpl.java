@@ -28,6 +28,10 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     private static final String LIBERATA_NAME = "Middle office provider";
     private static final String ACCEPTED = "Accepted";
+
+    private static final String SYSTEM_USER = "System user";
+
+    private static final String LIBERATA_REJECT_UPDATE = "Refund approved by system";
     private static final Logger LOG = LoggerFactory.getLogger(RefundStatusServiceImpl.class);
 
     @Autowired
@@ -72,6 +76,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     RefundStatus.REJECTED,
                     statusUpdateRequest.getReason())
                 ));
+                refund.setUpdatedBy(LIBERATA_NAME);
 
                 if (null != statusUpdateRequest.getReason()
                     && statusUpdateRequest.getReason().equalsIgnoreCase(
@@ -97,12 +102,22 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                             .email(notificationDetails.getContactDetails().getEmail())
                             .build();
                         refund.setContactDetails(newContact);
-                        String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
-                        notificationService.updateNotification(headers, refund, null, templateId);
                     }
+
+                    refund.setRefundStatus(RefundStatus.APPROVED);
+                    refund.setUpdatedBy(SYSTEM_USER);
+                    Refund refundUpdated = refundsRepository.findByReferenceOrThrow(reference);
+                    refundUpdated.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+                        SYSTEM_USER,
+                        RefundStatus.APPROVED,
+                        LIBERATA_REJECT_UPDATE)
+                    ));
+                    String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
+                    notificationService.updateNotification(headers, refund, null, templateId);
+
                 }
             }
-            refund.setUpdatedBy(LIBERATA_NAME);
+
         } else {
             throw new ActionNotAllowedException("Action not allowed to proceed");
         }
