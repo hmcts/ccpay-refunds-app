@@ -2,6 +2,58 @@ databaseChangeLog:
   - changeSet:
       id: 100009
       author: ranjeet
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE refunds ADD COLUMN refund_approve_flag varchar(255);
+              ALTER TABLE refunds ADD COLUMN notification_sent_flag varchar(255);
+              ALTER TABLE refunds ADD COLUMN contact_details json;
+  - changeSet:
+      id: 100009-1
+      author: Sayali
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE refunds DROP COLUMN refund_approve_flag;
+  - changeSet:
+      id: 100009-2
+      author: Jennings
+      changes:
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO refund_reasons (code, name, description, recently_used)
+                VALUES
+              ('RR037', 'Overpayment', 'Refund for Overpayment',FALSE);
+  - changeSet:
+      id: 100009-3
+      author: Arbab
+      changes:
+        - addColumn:
+            tableName: refunds
+            columns:
+              - column:
+                  name: service_type
+                  type: varchar(100)
+
+  - changeSet:
+      id: 100009-4
+      author: Ranjeet
+      changes:
+        - addColumn:
+            tableName: refunds
+            columns:
+              - column:
+                  name: refund_instruction_type
+                  type: varchar(255)
+
+  - changeSet:
+      id: 100009-5
+      author: ranjeet
       changes:
         - createTable:
             tableName: refund_fees
@@ -37,13 +89,3 @@ databaseChangeLog:
               - column:
                   name: refund_amount
                   type: numeric(19, 2)
-  - changeSet:
-      id: 100009-1
-      author: Ranjeet
-      changes:
-        - sql:
-            splitStatements: true
-            sql: >
-              INSERT INTO refund_reasons (code, name, description, recently_used)
-                VALUES
-              ('RR037', 'Overpayment', 'Refund for Overpayment',FALSE);

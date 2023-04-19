@@ -39,6 +39,7 @@ import static org.springframework.http.HttpStatus.OK;
 @ActiveProfiles({"functional", "liberataMock"})
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
+
 public class PaymentFailureReportFunctionalTest {
 
     @Autowired

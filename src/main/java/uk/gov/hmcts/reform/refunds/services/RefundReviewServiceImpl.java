@@ -71,7 +71,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference, userId.getUid());
         refundServiceRoleUtil.validateRefundRoleWithServiceName(userId.getRoles(), refundForGivenReference.getServiceType());
         LOG.info("Refund validated before further processing, RC -> {}", refundForGivenReference.getPaymentReference());
-
         List<StatusHistory> statusHistories = new ArrayList<>(refundForGivenReference.getStatusHistories());
         refundForGivenReference.setUpdatedBy(userId.getUid());
         statusHistories.add(StatusHistory.statusHistoryWith()

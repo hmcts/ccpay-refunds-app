@@ -684,8 +684,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_ROLE_WITH_PROBATE,
-                                                       SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                       "Sent for approval", "false");
+                                                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                                                             "Sent for approval", "false");
 
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
