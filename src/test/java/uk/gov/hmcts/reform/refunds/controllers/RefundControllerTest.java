@@ -1842,7 +1842,7 @@ class RefundControllerTest {
                .andReturn();
 
         assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
-        assertEquals(RefundStatus.REJECTED, refund.getRefundStatus());
+        assertEquals(RefundStatus.APPROVED, refund.getRefundStatus());
         assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
     }
 

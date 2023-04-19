@@ -519,6 +519,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private Boolean isLastUpdatedByCurrentUser(String uid, Refund refund) {
+        LOG.info("uid in isLastUpdatedByCurrentUser {}",uid);
         return refund.getUpdatedBy().equals(uid);
     }
 
