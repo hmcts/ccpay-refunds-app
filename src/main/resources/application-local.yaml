@@ -42,10 +42,10 @@ auth:
   provider:
     service:
       client:
-        baseUrl: http://localhost:8489
+        baseUrl: http://localhost:8085
   idam:
     client:
-      baseUrl: http://localhost:8082
+      baseUrl: http://localhost:8085
 azure:
   application-insights:
     instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
@@ -55,7 +55,7 @@ idam:
   s2s-authorised:
     services: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp
   s2s-auth:
-    url: http://localhost:8489
+    url: http://localhost:8085
     totp_secret: ${OIDC_S2S_SECRET:}
     microservice: payment_app
 
