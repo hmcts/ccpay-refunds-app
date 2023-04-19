@@ -4,6 +4,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -19,7 +20,8 @@ import java.util.Optional;
 
 public interface RefundsService {
 
-    RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers) throws CheckDigitException;
+    RefundResponse initiateRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers, IdamUserIdResponse idamUserIdResponse)
+        throws CheckDigitException;
 
     RefundEvent[] retrieveActions(String reference);
 

@@ -50,9 +50,6 @@ public class IdamServiceImpl implements IdamService {
     @Value("${user.info.size}")
     private String userInfoSize;
 
-    @Value("${user.lastModifiedTime}")
-    private String lastModifiedTime;
-
     @Autowired()
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
@@ -170,7 +167,7 @@ public class IdamServiceImpl implements IdamService {
     public List<UserIdentityDataDto> getUsersForRoles(MultiValueMap<String, String> headers, List<String> roles) {
         List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
-        String query = getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime;
+        String query = getRoles(roles) + ")";
 
         UriComponents builder = UriComponentsBuilder.newInstance()
             .fromUriString(idamBaseUrl + USER_FULL_NAME_ENDPOINT)
