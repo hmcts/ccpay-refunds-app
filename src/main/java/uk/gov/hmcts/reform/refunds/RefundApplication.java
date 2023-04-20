@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@SuppressWarnings("HideUtilityClassConstructor") // Spring needs a constructor, its not a utility class
+@SuppressWarnings("HideUtilityClassConstructor") // Spring needs a constructor, its not a utility class test
 public class RefundApplication {
 
     public static void main(final String[] args) {
