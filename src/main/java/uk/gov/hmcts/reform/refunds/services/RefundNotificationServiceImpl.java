@@ -209,9 +209,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
     private String getServiceAuthorisationToken() {
         try {
-            String serviceAuthToken = authTokenGenerator.generate();
-            LOG.info("authTokenGenerator.generate() {}",serviceAuthToken);
-            return serviceAuthToken;
+            return authTokenGenerator.generate();
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new RefundIdamNotificationException("S2S", e.getStatusCode(), e);
         } catch (Exception e) {

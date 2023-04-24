@@ -219,7 +219,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         //Get the userId
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
-        LOG.info("idamUserIdResponse: {}", idamUserIdResponse);
+        LOG.info("idamUserIdResponse uid: {}", idamUserIdResponse.getUid());
+        LOG.info("idamUserIdResponse roles: {}", idamUserIdResponse.getRoles());
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
@@ -245,8 +246,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         Optional<String> paymentRole = idamUserIdResponse.getRoles().stream().filter(role -> role.equals(PAYMENTS_ROLE)).findAny();
 
         if (refundList.isPresent() && !refundList.get().isEmpty()) {
-
+            LOG.info("Refund List is finite");
             if (paymentRole.isPresent() && refundRoles.isEmpty()) {
+                LOG.info("Payment role is present but refund roles are absent");
                 return RefundListDtoResponse
                     .buildRefundListWith()
                     .refundList(getRefundResponseDtoListForPaymentRole(headers, refundList.get()))
@@ -270,7 +272,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         if (!roles.isEmpty()) {
             Set<UserIdentityDataDto> userIdentityDataDtoSet = getUserIdentityDataDtoSet();
-
+            LOG.info("Roles are not empty in getRefundResponseDtoList");
             // Filter Refunds List based on Refunds Roles and Update the user full name for created by
             List<String> userIdsWithGivenRoles = userIdentityDataDtoSet.stream().map(UserIdentityDataDto::getId).collect(
                 Collectors.toList());
@@ -284,7 +286,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
-
+            if (null != userIdsWithGivenRoles) {
+                LOG.info("userIdsWithGivenRoles size {}", userIdsWithGivenRoles.size());
+            }
             refundListDto =
                 populateRefundListDto(refundList, userIdsWithGivenRoles, refundReasonList, userIdentityDataDtoSet,
                                       refundListDto
@@ -313,6 +317,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             userIdentityDataDtoSet = userMap.get(PAYMENT_REFUND).stream().collect(Collectors.toSet());
 
         }
+        LOG.info("userIdentityDataDtoSet size in getUserIdentityDataDtoSet {}",userIdentityDataDtoSet.stream().count());
         return userIdentityDataDtoSet;
     }
 
@@ -338,6 +343,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 reason
             )));
         }
+        LOG.info("refundListDto size in populateRefundListDto {}",refundList.size());
         return refundListDto;
     }
 
@@ -694,8 +700,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private String validateRefundReasonForNonRetroRemission(String reason, Refund refund) {
-
-        return validateRefundReason(reason == null ? refund.getReason() : reason);
+        if (reason == null) {
+            if (refund.getReason() == null || refund.getReason().isBlank()) {
+                throw new InvalidRefundRequestException("Refund reason is required");
+            }
+            return refund.getReason();
+        } else {
+            return validateRefundReason(reason);
+        }
     }
 
     @Override
@@ -724,6 +736,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundListWithAccepted = refundList.stream().filter(refund -> refund.getRefundStatus().equals(
                     RefundStatus.APPROVED))
                 .collect(Collectors.toList());
+        } else {
+            throw new RefundNotFoundException("No refunds available for the given date range");
+        }
+
+        if (!refundListWithAccepted.isEmpty()) {
+
             for (Refund ref : refundListWithAccepted) {
                 referenceList.add(ref.getPaymentReference());
             }
@@ -885,6 +903,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 ));
             }
         }
+        LOG.info("refundListDto in getRefundResponseDtoListForPaymentRole {}", refundListDto.size());
         return refundListDto;
     }
 

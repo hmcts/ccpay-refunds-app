@@ -150,7 +150,6 @@ public class RefundsApproverJourneyFunctionalTest {
 
     }
 
-
     @Test
     public void positive_reject_a_refund_request() {
         final String paymentReference = createPayment();
