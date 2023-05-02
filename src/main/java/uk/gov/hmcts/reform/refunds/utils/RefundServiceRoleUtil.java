@@ -65,14 +65,14 @@ public class RefundServiceRoleUtil {
                 Matcher matcherApprover = refundApproverRolePattern.matcher(role);
                 if (matcherApprover != null && matcherApprover.find()) {
                     tempRole = role.toLowerCase().split("approver-")[1];
-                    tempRole = tempRole.replace("-", "");
+                    tempRole = tempRole.replace("-", " ");
                     serviceNameSet.add(tempRole);
                 } else {
                     Matcher matcherRefundRole = refundRolePattern.matcher(role);
                     if (matcherRefundRole != null && matcherRefundRole.find()) {
                         tempRole = role.toLowerCase().split("refund-")[1];
-                        tempRole = tempRole.replace("-", "");
-                        serviceNameSet.add(role.toLowerCase().split("refund-")[1]);
+                        tempRole = tempRole.replace("-", " ");
+                        serviceNameSet.add(tempRole);
                     }
                 }
             }
