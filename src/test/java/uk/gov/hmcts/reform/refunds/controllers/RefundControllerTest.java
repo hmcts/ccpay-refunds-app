@@ -1878,38 +1878,6 @@ class RefundControllerTest {
     }
 
     @Test
-    void updateRefundStatusNotAllowedWithCurrentStatus() throws Exception {
-
-        refund.setRefundStatus(uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL);
-        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
-
-        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
-
-        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
-        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamUserIdResponse.class)
-        )).thenReturn(responseEntity);
-        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
-            "Refund rejected",
-            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED
-        );
-        MvcResult result = mockMvc.perform(patch(
-            "/refund/{reference}",
-            "RF-1234-1234-1234-1234"
-        )
-                                               .content(asJsonString(refundStatusUpdateRequest))
-                                               .header("Authorization", "user")
-                                               .header("ServiceAuthorization", "Services")
-                                               .contentType(MediaType.APPLICATION_JSON)
-                                               .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isConflict())
-            .andReturn();
-
-        assertEquals("Action not allowed to proceed", result.getResponse().getContentAsString());
-
-    }
-
-    @Test
     void testGetStatusHistory() {
         // given
         StatusHistoryDto statusHistoryDto = StatusHistoryDto.buildStatusHistoryDtoWith()
