@@ -60,8 +60,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
-        RefundState currentRefundState = getRefundState(refund.getRefundStatus().getName());
-        if (currentRefundState.getRefundStatus().equals(RefundStatus.APPROVED)) {
             if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
                 refund.setRefundStatus(RefundStatus.ACCEPTED);
                 refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
@@ -117,10 +115,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
                 }
             }
-
-        } else {
-            throw new ActionNotAllowedException("Action not allowed to proceed");
-        }
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
     }
 }
