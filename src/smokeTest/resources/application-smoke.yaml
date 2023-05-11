@@ -91,7 +91,7 @@ payments:
 mock:
   callback:
     url:
-      endpoint : ${TEST_URL:http://payment-api-aat-staging.service.core-compute-aat.internal}/mock-api/serviceCallback
+      endpoint : ${TEST_URL:http://payment-api-aat-staging.aat.platform.hmcts.net}/mock-api/serviceCallback
 
 refunds:
   serviceAccount:

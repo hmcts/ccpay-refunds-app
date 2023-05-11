@@ -50,7 +50,7 @@ auth:
 test:
   url :
     refunds : ${TEST_URL:http://localhost:8080}
-    payments : ${TEST_URL_PAYMENT:https://payment-api-pr-1416.service.core-compute-preview.internal}
+    payments : ${TEST_URL_PAYMENT:http://payment-api-pr-1416.preview.platform.hmcts.net}
   user:
     password: ${TEST_USER_PASSWORD}
 
@@ -103,7 +103,7 @@ payments:
 mock:
   callback:
     url:
-      endpoint : ${TEST_URL:http://payment-api-aat-staging.service.core-compute-aat.internal}/mock-api/serviceCallback
+      endpoint : ${TEST_URL:http://payment-api-aat-staging.aat.platform.hmcts.net}/mock-api/serviceCallback
 refund:
   search:
     days: 7
