@@ -79,14 +79,6 @@ public class PaymentTestService {
             .get("/refund");
     }
 
-    public Response getRefunds(final String serviceToken, MultiValueMap<String, String> params) {
-        return givenWithServiceHeaders(serviceToken)
-            .contentType(ContentType.JSON)
-            .params(params)
-            .when()
-            .get("/refunds");
-    }
-
     public Response getRefundList(final String userToken,
                                   final String serviceToken,
                                   final String ccdCaseNumber) {
@@ -94,6 +86,14 @@ public class PaymentTestService {
             .contentType(ContentType.JSON).when()
             .queryParams("ccdCaseNumber", ccdCaseNumber)
             .get("/refund");
+    }
+
+    public Response getRefunds(final String serviceToken, MultiValueMap<String, String> params) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/refunds");
     }
 
     public Response getStatusHistory(final String userToken,
@@ -136,9 +136,9 @@ public class PaymentTestService {
 
     public Response getPbaPayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
-                .baseUri(baseUri)
-                .when()
-                .get("/credit-account-payments/{reference}", paymentReference);
+            .baseUri(baseUri)
+            .when()
+            .get("/credit-account-payments/{reference}", paymentReference);
     }
 
     public Response getPayments(String userToken, String serviceToken, String paymentReference, final String baseUri) {
@@ -150,15 +150,15 @@ public class PaymentTestService {
 
     public Response deletePayment(String userToken, String serviceToken, String paymentReference, final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
-                .baseUri(baseUri)
-                .when()
-                .delete("/credit-account-payments/{paymentReference}", paymentReference);
+            .baseUri(baseUri)
+            .when()
+            .delete("/credit-account-payments/{paymentReference}", paymentReference);
     }
 
     public Response deleteRefund(final String userToken, final String serviceToken,
                                  final String refundReference) {
         return givenWithAuthHeaders(userToken, serviceToken)
-                .delete("/refund/{reference}", refundReference);
+            .delete("/refund/{reference}", refundReference);
     }
 
     public Response patchCancelRefunds(final String serviceToken, final String paymentReference) {
@@ -173,8 +173,8 @@ public class PaymentTestService {
     }
 
     public Response getPaymentFailureReport(final String userToken,
-                                  final String serviceToken,
-                                  final String paymentReferenceList) {
+                                            final String serviceToken,
+                                            final String paymentReferenceList) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON).when()
             .queryParams("paymentReferenceList", paymentReferenceList)
