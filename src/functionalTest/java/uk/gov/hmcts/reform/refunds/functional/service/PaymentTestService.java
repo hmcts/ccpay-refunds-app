@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.refunds.functional.service;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import net.serenitybdd.rest.SerenityRest;
+import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
@@ -28,16 +28,6 @@ public class PaymentTestService {
             .body(request)
             .when()
             .post("/credit-account-payments");
-    }
-
-    public Response getPbaPaymentsByAccountNumber(final String userToken,
-                                                  final String serviceToken,
-                                                  final String accountNumber,
-                                                  final String baseUri) {
-        return givenWithAuthHeaders(userToken, serviceToken)
-            .when()
-            .baseUri(baseUri)
-            .get("/pba-accounts/{accountNumber}/payments", accountNumber);
     }
 
     public Response postInitiateRefund(final String userToken, final String serviceToken,
@@ -78,13 +68,23 @@ public class PaymentTestService {
 
     public Response getRefundList(final String userToken,
                                   final String serviceToken,
+                                  final String ccdCaseNumber,
                                   final String status,
                                   final String excludeCurrentUser) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON).when()
+            .queryParams("ccdCaseNumber", ccdCaseNumber)
             .queryParams("status", status)
             .queryParam("excludeCurrentUser", excludeCurrentUser)
             .get("/refund");
+    }
+
+    public Response getRefunds(final String serviceToken, MultiValueMap<String, String> params) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .params(params)
+            .when()
+            .get("/refunds");
     }
 
     public Response getRefundList(final String userToken,
@@ -168,7 +168,7 @@ public class PaymentTestService {
     }
 
     public RequestSpecification givenWithServiceHeaders(String serviceToken) {
-        return RestAssured.given()
+        return SerenityRest.given()
             .header("ServiceAuthorization", serviceToken);
     }
 
