@@ -83,6 +83,7 @@
     <cve>CVE-2021-22096</cve>
     <cve>CVE-2023-20861</cve>
     <cve>CVE-2023-20860</cve>
+    <cve>CVE-2023-20863</cve>
   </suppress>
   <suppress>
     <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
@@ -105,5 +106,13 @@
     <notes>The fix for CVE-2023-24998 was incomplete for Apache Tomcat 11.0.0-M2 to 11.0.0-M4, 10.1.5 to 10.1.7, 9.0.71 to 9.0.73 and 8.5.85 to 8.5.87.
     </notes>
     <cve>CVE-2023-28709</cve>
+  </suppress>
+
+
+  <suppress until="2030-01-01">
+    <notes>
+      Spring context requires major update. Currently version 2.3.11 reuires major update to atleast 2.5
+    </notes>
+    <cve>CVE-2023-20883</cve>
   </suppress>
 </suppressions>
