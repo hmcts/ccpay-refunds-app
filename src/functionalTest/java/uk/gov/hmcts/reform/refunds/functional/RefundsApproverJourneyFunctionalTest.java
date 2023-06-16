@@ -153,7 +153,6 @@ public class RefundsApproverJourneyFunctionalTest {
 
     }
 
-
     @Test
     public void positive_reject_a_refund_request() {
         String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
