@@ -53,7 +53,6 @@ test:
     payments : ${TEST_URL_PAYMENT:https://payment-api-pr-1432.preview.platform.hmcts.net}
   user:
     password: ${TEST_USER_PASSWORD}
-
 idam:
   api:
     url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
