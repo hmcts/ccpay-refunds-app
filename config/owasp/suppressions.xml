@@ -107,11 +107,14 @@
     </notes>
     <cve>CVE-2023-28709</cve>
   </suppress>
-
-
   <suppress>
     <notes>CVE-2023-20883: Spring Boot Welcome Page DoS Vulnerability</notes>
     <cve>CVE-2023-20883</cve>
   </suppress>
-
+  <suppress>
+    <notes>
+      CVE-2023-35116:  An issue was discovered jackson-databind thru 2.15.2 allows attackers to cause a denial of service.
+    </notes>
+    <cve>CVE-2023-35116</cve>
+  </suppress>
 </suppressions>
