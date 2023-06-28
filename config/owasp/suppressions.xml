@@ -106,4 +106,18 @@
     </notes>
     <cve>CVE-2023-28709</cve>
   </suppress>
+
+  <suppress>
+    <notes>CVE-2023-35116 An issue was discovered jackson-databind thru 2.15.2 allows attackers to cause a denial of service or other unspecified impacts via crafted object that uses cyclic dependencies. </notes>
+    <cve>CVE-2023-35116</cve>
+  </suppress>
+
+  <suppress>
+    <notes>
+      In Spring Boot versions 3.0.0 - 3.0.6, 2.7.0 - 2.7.11, 2.6.0 - 2.6.14, 2.5.0 - 2.5.14 and older unsupported versions, there is potential for a denial-of-service (DoS) attack if Spring MVC is used together with a reverse proxy cache.</notes>
+    <cve>CVE-2023-20883</cve>
+  </suppress>
+
+
+
 </suppressions>
