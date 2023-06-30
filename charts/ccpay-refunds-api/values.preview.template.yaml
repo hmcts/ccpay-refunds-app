@@ -82,7 +82,7 @@ java:
 ccpay-payment-app:
   enabled: true
   java:
-    image: hmctspublic.azurecr.io/ccpay/payment-app:latest
+    image: hmctspublic.azurecr.io/payment/api:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-payment-app
     ingressHost: ccpay-payment-app-${SERVICE_NAME}.preview.platform.hmcts.net
     environment:
