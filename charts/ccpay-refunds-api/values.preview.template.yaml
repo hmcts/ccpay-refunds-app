@@ -144,8 +144,6 @@ payment-api:
             alias: liberata.oauth2.username
           - name: liberata-keys-oauth2-password
             alias: liberata.oauth2.password
-          - name: api-POSTGRES-PASS
-            alias: POSTGRES_PASSWORD
           - name: core-case-data-api-url
             alias: core_case_data.api.url
           - name: AppInsightsInstrumentationKey
