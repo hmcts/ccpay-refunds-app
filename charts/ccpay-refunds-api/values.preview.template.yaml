@@ -148,8 +148,6 @@ payment-api:
             alias: POSTGRES_PASSWORD
           - name: core-case-data-api-url
             alias: core_case_data.api.url
-          - name: case-payment-orders-api-url
-            alias: case-payment-orders.api.url
           - name: AppInsightsInstrumentationKey
             alias: azure.application-insights.instrumentation-key
           - name: card-payments-email-to
