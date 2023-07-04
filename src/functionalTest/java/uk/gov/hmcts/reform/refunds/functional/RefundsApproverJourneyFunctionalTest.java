@@ -691,7 +691,7 @@ public class RefundsApproverJourneyFunctionalTest {
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_ROLE_WITH_PROBATE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             "Sent for approval", "false");
+                                                                             ccdCaseNumber, "Sent for approval", "false");
 
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
@@ -1327,8 +1327,9 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void nagative_resubmit_refund_journey_without_service_role() {
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
-        final String paymentReference = createPayment();
+        final String paymentReference = createPayment(ccdCaseNumber);
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
         final String refundReference = performRefund(paymentReference);
@@ -1348,7 +1349,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             "Update required", "false"
+                                                                             ccdCaseNumber, "Update required", "false"
         );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
