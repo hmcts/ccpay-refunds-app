@@ -2715,8 +2715,9 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_refund_reject_reason_unable_to_apply_refund_to_card_status_change_to_approve() {
+        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
-        final String paymentReference = createPayment();
+        final String paymentReference = createPayment(ccdCaseNumber);
 
         final String refundReference = performRefund(paymentReference);
 
@@ -2751,7 +2752,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status change to Approved
-        RefundDto refundDto = getRejectRefundDto(refundReference, "Approved");
+        RefundDto refundDto = getRejectRefundDto(ccdCaseNumber, refundReference, "Approved");
         assertEquals(RefundStatus.APPROVED, refundDto.getRefundStatus());
         assertEquals("Amended claim", refundDto.getReason());
 
@@ -2765,7 +2766,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(updateRefundStatusResponse1.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that after Approve change to Accepted
-        RefundDto refundDto1 = getRejectRefundDto(refundReference, "Accepted");
+        RefundDto refundDto1 = getRejectRefundDto(ccdCaseNumber, refundReference, "Accepted");
         assertEquals(RefundStatus.ACCEPTED, refundDto1.getRefundStatus());
         deletePaymentAndRefund(paymentReference, refundReference);
     }
