@@ -103,7 +103,7 @@ payment-api:
       PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
       CCPAY_BULK_SCANNING_API_URL: "http://${SERVICE_NAME}-ccpay-bulkscanning-api"
       PAYMENT_API_URL: "http://${SERVICE_NAME}-payment-api"
-      REFUND_API_URL: "http://${SERVICE_NAME}"
+      REFUND_API_URL: "http://${SERVICE_NAME}-java"
     keyVaults:
       "ccpay":
         resourceGroup: ccpay
