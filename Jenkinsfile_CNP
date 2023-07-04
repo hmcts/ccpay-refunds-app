@@ -129,7 +129,7 @@ withPipeline(type, product, app) {
   }
 
   before('functionalTest:preview') {
-    env.TEST_URL_PAYMENT = 'https://payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net'
+    env.TEST_URL_PAYMENT = "https://payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     println """\
                 Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
   }
