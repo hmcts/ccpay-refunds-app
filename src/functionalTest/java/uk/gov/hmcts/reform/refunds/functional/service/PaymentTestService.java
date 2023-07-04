@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.functional.service;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.rest.SerenityRest;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
@@ -16,6 +17,7 @@ import javax.inject.Named;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Named
+@Slf4j
 public class PaymentTestService {
 
     public Response postPbaPayment(final String userToken,
