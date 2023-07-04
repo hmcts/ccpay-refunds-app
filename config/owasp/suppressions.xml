@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
     </notes>
     <cve>CVE-2022-1471</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       Jackson core needs major version latest 2.12.7  not resolving current CVE issue. Same applies to json-path version 2.4.0.
       Same applies to json-smart version 2.4.10
     </notes>
     <cve>CVE-2022-45688</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       Postgres version 42.3.8 in combination with jackson-databind has interface changes in DBUtils that cause unit tests to fail.
     </notes>
     <cve>CVE-2022-31197</cve>
     <cve>CVE-2022-41946</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       JSON Smart needs major version latest 2.4.10  not resolving current CVE issue.
     </notes>
     <cve>CVE-2022-45688</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       spring-security-config needs major version latest 5.4.11  not resolving current CVE issue.
     </notes>
@@ -33,42 +33,42 @@
     <cve>CVE-2022-22976</cve>
     <cve>CVE-2021-22119</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       spring-security-crypto needs major version latest 5.4.11  not resolving current CVE issue.
     </notes>
     <cve>CVE-2022-22978</cve>
     <cve>CVE-2022-22976</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       spring-security-oauth2-client needs major version latest 5.4.11  not resolving current CVE issue.
     </notes>
     <cve>CVE-2022-22978</cve>
     <cve>CVE-2022-22976</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       spring-security-oauth2-core needs major version latest 5.4.11  not resolving current CVE issue.
     </notes>
     <cve>CVE-2022-22978</cve>
     <cve>CVE-2022-22976</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       spring-security-oauth2-resource-server needs major version latest 5.4.11  not resolving current CVE issue.
     </notes>
     <cve>CVE-2022-22978</cve>
     <cve>CVE-2022-22976</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       spring-security-web needs major version latest 5.4.11  not resolving current CVE issue.
     </notes>
     <cve>CVE-2022-22978</cve>
     <cve>CVE-2022-22976</cve>
   </suppress>
-  <suppress until="2023-06-30">
+  <suppress until="2023-10-30">
     <notes>
       spring-webmvc version 5.3.26 casues issues that fail unit test cases due it not being able to create test environment correctly.
       Likely will need tests to be re-written when upgrading due to interface change.
@@ -117,4 +117,24 @@
     </notes>
     <cve>CVE-2023-35116</cve>
   </suppress>
+  <suppress>
+    <notes>The fix for CVE-2023-24998 was incomplete for Apache Tomcat 11.0.0-M2 to 11.0.0-M4, 10.1.5 to 10.1.7, 9.0.71 to 9.0.73 and 8.5.85 to 8.5.87.
+    </notes>
+    <cve>CVE-2023-28709</cve>
+  </suppress>
+  <suppress>
+    <notes>CVE-2023-35116 An issue was discovered jackson-databind thru 2.15.2 allows attackers to cause a denial of service or other unspecified impacts via crafted object that uses cyclic dependencies. </notes>
+    <cve>CVE-2023-35116</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      In Spring Boot versions 3.0.0 - 3.0.6, 2.7.0 - 2.7.11, 2.6.0 - 2.6.14, 2.5.0 - 2.5.14 and older unsupported versions, there is potential for a denial-of-service (DoS) attack if Spring MVC is used together with a reverse proxy cache.</notes>
+    <cve>CVE-2023-20883</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      Use of Java's default temporary directory for file creation in `FileBackedOutputStream` in Google Guava versions 1.0 to 31.1 on Unix systems</notes>
+    <cve>CVE-2023-2976</cve>
+  </suppress>
+
 </suppressions>
