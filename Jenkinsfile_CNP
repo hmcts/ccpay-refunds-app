@@ -128,6 +128,12 @@ withPipeline(type, product, app) {
                 Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
   }
 
+  before('functionalTest:preview') {
+    env.TEST_URL_PAYMENT = 'https://payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net'
+    println """\
+                Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
+  }
+
   afterAlways('functionalTest:aat') {
     publishHTML target: [
       reportDir            : "target/site/serenity/",
@@ -143,7 +149,6 @@ withPipeline(type, product, app) {
 
   onPR() {
     env.PAYMENT_API_URL = "https://payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
-    env.TEST_URL_PAYMENT = "https://payment-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.NOTIFICATION_API_URL = "https://ccpay-notifications-service-pr-${CHANGE_ID}.preview.platform.hmcts.net"
   }
 }
