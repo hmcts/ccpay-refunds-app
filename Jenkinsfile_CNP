@@ -128,6 +128,12 @@ withPipeline(type, product, app) {
                 Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
   }
 
+  before('functionalTest:preview') {
+    env.TEST_URL_PAYMENT = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    println """\
+                Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
+  }
+
   afterAlways('functionalTest:aat') {
     publishHTML target: [
       reportDir            : "target/site/serenity/",
@@ -140,5 +146,11 @@ withPipeline(type, product, app) {
 
   enableSlackNotifications('#cc-payments-tech')
   disableLegacyDeployment()
+
+  onPR() {
+    env.PAYMENT_API_URL = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    env.NOTIFICATION_API_URL = "https://ccpay-notifications-service-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    env.REFUND_API_URL = "https://ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+  }
 }
 
