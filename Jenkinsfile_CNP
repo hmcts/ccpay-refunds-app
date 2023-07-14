@@ -131,6 +131,7 @@ withPipeline(type, product, app) {
   before('functionalTest:preview') {
     //Is this required, it's included below onPR.
     //env.TEST_URL_PAYMENT = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    env.TEST_URL_PAYMENT = "https://payment-api-pr-1376.preview.platform.hmcts.net"
     println """\
                 Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
   }
