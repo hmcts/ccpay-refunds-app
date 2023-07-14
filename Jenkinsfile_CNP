@@ -148,9 +148,10 @@ withPipeline(type, product, app) {
   disableLegacyDeployment()
 
   onPR() {
-    env.PAYMENT_API_URL = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    // Re-enable these when pointing to preview chart apps instead.
+    //env.PAYMENT_API_URL = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.NOTIFICATION_API_URL = "https://ccpay-notifications-service-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
-    env.REFUND_API_URL = "https://ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    //env.REFUND_API_URL = "https://ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
   }
 }
 
