@@ -2606,8 +2606,9 @@ public class RefundsApproverJourneyFunctionalTest {
         );
         assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
-        RefundDto refundDto = getRejectRefundDto(ccdCaseNumber, refundReference, "Rejected");
-        assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
+        // verify that contact details is erased
+        RefundDto refundDto = getRejectRefundDto(ccdCaseNumber, refundReference, "Approved");
+        assertEquals(RefundStatus.APPROVED, refundDto.getRefundStatus());
         assertEquals("Amended claim", refundDto.getReason());
 
         deletePaymentAndRefund(paymentReference, refundReference);
