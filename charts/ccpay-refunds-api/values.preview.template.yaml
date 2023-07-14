@@ -273,7 +273,7 @@ ccpay-notifications-service:
             alias: POSTCODE_ADDRESS_LOOKUP_ID
 
 ccpay-bulkscanning-api:
-  enabled: true
+  enabled: false
   java:
     image: hmctspublic.azurecr.io/ccpay/bulkscanning-api:latest
     releaseNameOverride: ${SERVICE_NAME}-ccpay-bulkscanning-api
