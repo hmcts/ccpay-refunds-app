@@ -232,7 +232,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         LOG.info("serviceList {}", serviceList.toString());
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
-            refundList = refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(ccdCaseNumber, serviceList);
+            refundList = serviceList.isEmpty() ? refundsRepository.findByCcdCaseNumber(ccdCaseNumber)
+                : refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(ccdCaseNumber, serviceList);
         } else if (StringUtils.isNotBlank(status)) {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status);
 

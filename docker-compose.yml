@@ -36,3 +36,6 @@ services:
       - 5182:5432
     volumes:
       - ccpay-refunds-db-data:/var/lib/postgresql/data
+
+volumes:
+  ccpay-refunds-db-data:
