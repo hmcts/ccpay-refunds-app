@@ -552,11 +552,14 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
-            .pbaPaymentRequestForProbate(
-                "90.00",
+            .pbaPaymentRequest(
                 "PROBATE",
+                "ABA6",
                 accountNumber,
-                ccdCaseNumber
+                ccdCaseNumber,
+                "273",
+                "FEE0219",
+                "5"
             );
         accountPaymentRequest.setAccountNumber(accountNumber);
         PaymentDto paymentDto = paymentTestService.postPbaPayment(
@@ -575,7 +578,7 @@ public class RefundsApproverJourneyFunctionalTest {
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
 
         assertThat(paymentsResponse.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentsResponse.getAmount()).isEqualTo(new BigDecimal("273.00"));
         assertThat(paymentsResponse.getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         final String paymentReference = paymentsResponse.getReference();
         // Update Payments for CCDCaseNumber by certain days
@@ -592,7 +595,7 @@ public class RefundsApproverJourneyFunctionalTest {
         int paymentId = getPaymentsResponse.getFees().get(0).getId();
         // Create Refund 1
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference,"90.00", "550", paymentId);
+            = RefundsFixture.refundRequest("RR001", paymentReference,"90.00", "273", "FEE0219", "5", paymentId);
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -606,11 +609,14 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Create Payment 2
         final CreditAccountPaymentRequest accountPaymentRequest1 = RefundsFixture
-            .pbaPaymentRequestForProbate(
-                "100.00",
+            .pbaPaymentRequest(
                 "DIVORCE",
+                "ABA5",
                 accountNumber,
-                ccdCaseNumber
+                ccdCaseNumber,
+                "550",
+                "FEE0002",
+                "6"
             );
         accountPaymentRequest1.setAccountNumber(accountNumber);
         PaymentDto paymentDto1 = paymentTestService.postPbaPayment(
@@ -634,7 +640,7 @@ public class RefundsApproverJourneyFunctionalTest {
         int paymentId1 = getPaymentsResponse1.getFees().get(0).getId();
         // Create Refund 2
         final PaymentRefundRequest paymentRefundRequest1
-            = RefundsFixture.refundRequest("RR001", paymentDto1.getReference(),"90", "550", paymentId1);
+            = RefundsFixture.refundRequest("RR001", paymentDto1.getReference(),"90.00", "550", "FEE0002", "6", paymentId1);
         Response refundResponse1 = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -648,11 +654,14 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Create Payment 3
         final CreditAccountPaymentRequest accountPaymentRequest2 = RefundsFixture
-            .pbaPaymentRequestForProbate(
-                "190.00",
+            .pbaPaymentRequest(
                 "DIVORCE",
+                "ABA5",
                 accountNumber,
-                ccdCaseNumber
+                ccdCaseNumber,
+                "43",
+                "FEE0002",
+                "6"
             );
         accountPaymentRequest2.setAccountNumber(accountNumber);
         PaymentDto paymentDto2 = paymentTestService.postPbaPayment(
@@ -676,7 +685,7 @@ public class RefundsApproverJourneyFunctionalTest {
         int paymentId2 = getPaymentsResponse2.getFees().get(0).getId();
         // Create Refund 3
         final PaymentRefundRequest paymentRefundRequest2
-            = RefundsFixture.refundRequest("RR001", paymentDto2.getReference(),"90", "550", paymentId2);
+            = RefundsFixture.refundRequest("RR001", paymentDto2.getReference(),"10.00", "43", "FEE0002", "6", paymentId2);
         Response refundResponse2 = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -691,12 +700,12 @@ public class RefundsApproverJourneyFunctionalTest {
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_ROLE_WITH_PROBATE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             ccdCaseNumber, "Sent for approval", "false");
+                                                                             "Sent for approval", "false");
 
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
         for (RefundDto refundDto : refundListDtoResponse.getRefundList()) {
-            assertEquals(refundDto.getServiceType(), "Probate");
+            assertEquals("Probate", refundDto.getServiceType());
         }
 
         // delete payment record
