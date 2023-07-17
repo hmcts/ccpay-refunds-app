@@ -51,6 +51,7 @@ public class Utility {
             .refundStatus(RefundStatus.SENTFORAPPROVAL)
             .reason("RR001")
             .paymentReference("RC-1111-2234-1077-1123")
+            .serviceType("cmc")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
             .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID1)
@@ -142,6 +143,7 @@ public class Utility {
             .reference("RF-2222-2234-1077-1123")
             .refundStatus(RefundStatus.SENTFORAPPROVAL)
             .reason("Other")
+            .serviceType("cmc")
             .paymentReference("RC-2222-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
@@ -164,6 +166,7 @@ public class Utility {
             .refundStatus(RefundStatus.UPDATEREQUIRED)
             .reason("Other")
             .paymentReference("RC-3333-2234-1077-1123")
+            .serviceType("cmc")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
             .statusHistories(Collections.singletonList(STATUS_HISTORY_SUPPLIER.get()))
@@ -183,6 +186,7 @@ public class Utility {
             .refundStatus(RefundStatus.UPDATEREQUIRED)
             .reason(null)
             .paymentReference("RC-3333-2234-1077-1123")
+            .serviceType("cmc")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
             .statusHistories(Collections.singletonList(STATUS_HISTORY_SUPPLIER.get()))
@@ -201,7 +205,8 @@ public class Utility {
             .build();
     public static final IdamUserIdResponse IDAM_USER_ID_RESPONSE =
             IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
-                    .roles(Arrays.asList("payments-refund-approver", "payments-refund")).sub("ZZ")
+                    .roles(Arrays.asList("payments-refund-approver", "payments-refund",
+                                         "payments-refund-approver-cmc", "payments-refund-cmc")).sub("ZZ")
                     .build();
 
     public static final IdamUserIdResponse IDAM_USER_ID_RESPONSE_PAYMENT_ROLE =

@@ -40,6 +40,7 @@ public class IdamServiceImpl implements IdamService {
     private static final String TOKEN_ENDPOINT = "/o/token";
     private static final Logger LOG = LoggerFactory.getLogger(IdamServiceImpl.class);
     private static final String LIBERATA_NAME = "Middle office provider";
+    private static final String LIBERATA_SYSTEM_USER_NAME = "System user";
     private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Please, try again later";
     private static final String USER_DETAILS_NOT_FOUND_ERROR_MSG = "User details not found for these roles in IDAM";
 
@@ -48,9 +49,6 @@ public class IdamServiceImpl implements IdamService {
 
     @Value("${user.info.size}")
     private String userInfoSize;
-
-    @Value("${user.lastModifiedTime}")
-    private String lastModifiedTime;
 
     @Autowired()
     @Qualifier("restTemplateIdam")
@@ -101,7 +99,7 @@ public class IdamServiceImpl implements IdamService {
 
     private ResponseEntity<IdamUserIdResponse> getResponseEntity(MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseUrl + USERID_ENDPOINT);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() in getResponseEntity : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
                 builder.toUriString(),
@@ -132,9 +130,9 @@ public class IdamServiceImpl implements IdamService {
     public UserIdentityDataDto getUserIdentityData(MultiValueMap<String, String> headers, String uid) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseUrl + USER_FULL_NAME_ENDPOINT)
             .queryParam("query", "id:" + uid);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() getUserIdentityData : {}", builder.toUriString());
 
-        if (LIBERATA_NAME.equals(uid)) {
+        if (LIBERATA_NAME.equals(uid) || LIBERATA_SYSTEM_USER_NAME.equalsIgnoreCase(uid)) {
             return UserIdentityDataDto.userIdentityDataWith()
                 .fullName(uid)
                 .build();
@@ -169,7 +167,7 @@ public class IdamServiceImpl implements IdamService {
     public List<UserIdentityDataDto> getUsersForRoles(MultiValueMap<String, String> headers, List<String> roles) {
         List<UserIdentityDataDto> userIdentityDataDtoList = new ArrayList<>();
 
-        String query = getRoles(roles) + ") AND lastModified:>now-" + lastModifiedTime;
+        String query = getRoles(roles) + ")";
 
         UriComponents builder = UriComponentsBuilder.newInstance()
             .fromUriString(idamBaseUrl + USER_FULL_NAME_ENDPOINT)

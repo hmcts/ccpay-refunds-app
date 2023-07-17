@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
+import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
@@ -51,6 +52,9 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
     private NotificationService notificationService;
 
     @Autowired
+    private RefundServiceRoleUtil refundServiceRoleUtil;
+
+    @Autowired
     private RefundsUtil refundsUtil;
     private static final String NOTES = "Refund cancelled due to payment failure";
     private static final String REFUND_CANCELLED = "Refund cancelled";
@@ -65,6 +69,7 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
         IdamUserIdResponse userId = idamService.getUserId(headers);
 
         Refund refundForGivenReference = validatedAndGetRefundForGivenReference(reference, userId.getUid());
+        refundServiceRoleUtil.validateRefundRoleWithServiceName(userId.getRoles(), refundForGivenReference.getServiceType());
         LOG.info("Refund validated before further processing, RC -> {}", refundForGivenReference.getPaymentReference());
         List<StatusHistory> statusHistories = new ArrayList<>(refundForGivenReference.getStatusHistories());
         refundForGivenReference.setUpdatedBy(userId.getUid());
