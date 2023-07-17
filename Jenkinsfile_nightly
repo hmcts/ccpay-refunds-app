@@ -74,5 +74,5 @@ withNightlyPipeline(type, product, component) {
 
   }
 
-  enableSlackNotifications('#cc-payments-tech')
+  enableSlackNotifications('#fee-pay-nightly-pipeline')
 }
