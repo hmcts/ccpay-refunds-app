@@ -11,7 +11,7 @@ dependencies:
     version: 4.0.13
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
   - name: payment-api
-    version: 2.1.6
+    version: 2.3.0
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: payment-api.enabled
   - name: ccpay-bulkscanning-api

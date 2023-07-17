@@ -50,7 +50,7 @@ auth:
 test:
   url :
     refunds : ${TEST_URL:http://localhost:8080}
-    payments : ${TEST_URL_PAYMENT:https://payment-api-pr-1376.preview.platform.hmcts.net}
+    payments : ${TEST_URL_PAYMENT:http://payment-api-aat.service.core-compute-aat.internal}
   user:
     password: ${TEST_USER_PASSWORD}
 
