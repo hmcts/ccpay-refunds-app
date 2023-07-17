@@ -291,7 +291,7 @@ dependencies {
 
   testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
   testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.3.0'
-  testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.15.1'
+  testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
   testCompile group: 'org.springframework.security', name: 'spring-security-test', version: '5.2.1.RELEASE'
   testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.20.2'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {

@@ -86,7 +86,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -279,7 +281,7 @@ class RefundServiceImplTest {
     @Test
     void testRefundListForGivenCcdCaseNumber() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
-        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
+        when(refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(anyString(), anyList())).thenReturn(Optional.ofNullable(List.of(
             Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         when(refundReasonRepository.findAll()).thenReturn(
@@ -784,7 +786,7 @@ class RefundServiceImplTest {
     @Test
     void givenValidRole_whenGetRefundList_thenFilteredRefundsListIsReceived() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
-        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(
+        when(refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(anyString(),anyList())).thenReturn(Optional.ofNullable(List.of(
             Utility.refundListSupplierBasedOnCCDCaseNumber1.get(), Utility.refundListSupplierBasedOnCCDCaseNumber2.get())));
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         when(idamService.getUserIdentityData(any(),anyString()))

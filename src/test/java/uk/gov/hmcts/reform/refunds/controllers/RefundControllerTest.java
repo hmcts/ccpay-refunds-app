@@ -288,6 +288,7 @@ class RefundControllerTest {
             .reference("RF-1111-2234-1077-1123")
             .refundStatus(RefundStatus.APPROVED)
             .reason("RR001-test")
+            .serviceType("cmc")
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
@@ -317,7 +318,6 @@ class RefundControllerTest {
             .method("cheque")
             .id("1")
             .paymentReference("RC-1111-2234-1077-1123")
-            .serviceName("Service")
             .fees(Arrays.asList(FeeDto.feeDtoWith()
                                     .code("1")
                                     .jurisdiction1("test1")
@@ -501,7 +501,8 @@ class RefundControllerTest {
         );
 
         //mock repository call
-        when(refundsRepository.findByCcdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1))
+        List<String> list = List.of("cmc");
+        when(refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1, list))
             .thenReturn(Optional.ofNullable(List.of(
                 Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
 
@@ -522,6 +523,7 @@ class RefundControllerTest {
                                                                                    .build());
         when(refundReasonRepository.findAll()).thenReturn(
                 Collections.singletonList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
+
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")

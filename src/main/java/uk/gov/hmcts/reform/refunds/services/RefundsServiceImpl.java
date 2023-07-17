@@ -228,14 +228,15 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
         LOG.info("idamUserIdResponse uid: {}", idamUserIdResponse.getUid());
         LOG.info("idamUserIdResponse roles: {}", idamUserIdResponse.getRoles());
+        List<String> serviceList = refundServiceRoleUtil.getServiceNameFromUserRoles(idamUserIdResponse.getRoles());
+        LOG.info("serviceList {}", serviceList.toString());
         //Return Refund list based on ccdCaseNumber if its not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
-            refundList = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
+            refundList = serviceList.isEmpty() ? refundsRepository.findByCcdCaseNumber(ccdCaseNumber)
+                : refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(ccdCaseNumber, serviceList);
         } else if (StringUtils.isNotBlank(status)) {
             RefundStatus refundStatus = RefundStatus.getRefundStatus(status);
 
-            List<String> serviceList = refundServiceRoleUtil.getServiceNameFromUserRoles(idamUserIdResponse.getRoles());
-            LOG.info("serviceList {}", serviceList.toString());
             //get the refund list except the self uid
             refundList = SENTFORAPPROVAL.getName().equalsIgnoreCase(status) && "true".equalsIgnoreCase(
                 excludeCurrentUser) ? refundsRepository.findByRefundStatusAndUpdatedByIsNotAndServiceTypeInIgnoreCase(
