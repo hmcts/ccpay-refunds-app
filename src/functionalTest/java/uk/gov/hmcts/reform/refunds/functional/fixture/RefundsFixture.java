@@ -73,6 +73,34 @@ public final class RefundsFixture {
                 .build();
     }
 
+    public static CreditAccountPaymentRequest pbaPaymentRequest(final String service,
+                                                                final String siteId,
+                                                                final String pbaAccountNumber,
+                                                                final String ccdCaseNumber,
+                                                                final String feeAmount,
+                                                                final String feeCode,
+                                                                final String feeVersion) {
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(feeAmount))
+            .description("FT PBA payment")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId(siteId)
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber(pbaAccountNumber)
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .code(feeCode)
+                    .version(feeVersion)
+                    .build())
+            )
+            .build();
+    }
+
     public static PaymentRefundRequest refundRequest(final String refundReason,
                                                      final String paymentReference, final String refundAmount,
                                                      final String feeAmount, final int paymentId) {
@@ -102,6 +130,39 @@ public final class RefundsFixture {
                                                            .email("test@HMCTS.NET")
                                                            .notificationType("EMAIL")
                                                            .build())
+            .build();
+
+    }
+
+    public static PaymentRefundRequest refundRequest(final String refundReason,
+                                                     final String paymentReference, final String refundAmount,
+                                                     final String feeAmount, final String feeCode,
+                                                     final String feeVersion, final int feeId) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .isOverPayment(false)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .apportionAmount(new BigDecimal(feeAmount))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .code(feeCode)
+                    .id(feeId)
+                    .version(feeVersion)
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal(refundAmount))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
+                .addressLine("High Street 112")
+                .country("UK")
+                .county("Londonshire")
+                .city("London")
+                .postalCode("P1 1PO")
+                .email("test@HMCTS.NET")
+                .notificationType("EMAIL")
+                .build())
             .build();
 
     }
