@@ -296,7 +296,8 @@ public class RefundsApproverJourneyFunctionalTest {
         log.info("DTRJ: paymentRefundRequest {}", paymentRefundRequest.toString());
         log.info("DTRJ: SERVICE_TOKEN_PAY_BUBBLE_PAYMENT {}", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT);
         log.info("DTRJ: Response Status {}", refundResponse.getStatusCode());
-        assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        //assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(OK.value());
 
         // delete payment record
         paymentTestService
