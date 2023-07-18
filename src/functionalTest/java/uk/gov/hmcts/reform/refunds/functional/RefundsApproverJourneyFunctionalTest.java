@@ -65,7 +65,6 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
-@Slf4j
 @ActiveProfiles("functional")
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
