@@ -289,8 +289,7 @@ public class RefundsApproverJourneyFunctionalTest {
             testConfigProperties.basePaymentsUrl
         );
 
-        // This needs resolving as it's not producing the correct value. As it's a negative test, we can pickup in a bug.
-        //assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
 
         // delete payment record
         paymentTestService
