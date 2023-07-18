@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.functional;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
+@Slf4j
 @ActiveProfiles("functional")
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -238,6 +240,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void nagative_create_refund_without_service_role() {
+        log.info("DTRJ: Started - nagative_create_refund_without_service_role");
         final String accountNumber = testConfigProperties.existingAccountNumber;
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
             .pbaPaymentRequestForProbate(
@@ -290,12 +293,17 @@ public class RefundsApproverJourneyFunctionalTest {
         );
 
         // This needs resolving as it's not producing the correct value. As it's a negative test, we can pickup in a bug.
-        //assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
+        log.info("DTRJ: paymentRefundRequest {}", paymentRefundRequest.toString());
+        log.info("DTRJ: SERVICE_TOKEN_PAY_BUBBLE_PAYMENT {}", SERVICE_TOKEN_PAY_BUBBLE_PAYMENT);
+        log.info("DTRJ: Response Status {}", refundResponse.getStatusCode());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
 
         // delete payment record
         paymentTestService
             .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                            paymentReference, testConfigProperties.basePaymentsUrl).then().statusCode(NO_CONTENT.value());
+
+        log.info("DTRJ: Ended - nagative_create_refund_without_service_role");
     }
 
     @Test
