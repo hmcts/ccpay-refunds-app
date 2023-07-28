@@ -29,8 +29,11 @@ apply from: 'liquibase.gradle'
 group = 'uk.gov.hmcts.reform'
 version = '0.0.1'
 
-  sourceCompatibility = 11
-  targetCompatibility = 11
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
 
 sourceSets {
   functionalTest {
@@ -40,6 +43,9 @@ sourceSets {
       srcDir file('src/functionalTest/java')
     }
     resources.srcDir file('src/functionalTest/resources')
+    jar {
+      duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+    }
   }
 
   integrationTest {
@@ -49,6 +55,9 @@ sourceSets {
       srcDir file('src/integrationTest/java')
     }
     resources.srcDir file('src/integrationTest/resources')
+    jar {
+      duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+    }
   }
 
   smokeTest {
@@ -58,6 +67,19 @@ sourceSets {
       srcDir file('src/smokeTest/java')
     }
     resources.srcDir file('src/smokeTest/resources')
+    jar {
+      duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+    }
+  }
+
+  tasks.withType(Copy) {
+    filesMatching("**/*.yaml") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+  }
+
+  jar {
+    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
   }
 }
 
@@ -229,10 +251,10 @@ apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
 dependencies {
 
-  compile ('com.sun.xml.bind:jaxb-osgi:2.3.1')
-  compile group: 'org.pitest', name: 'pitest', version: versions.pitest
-  compile 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.4.6'
-  compile 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
+  implementation ('com.sun.xml.bind:jaxb-osgi:2.3.1')
+  implementation group: 'org.pitest', name: 'pitest', version: versions.pitest
+  implementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.4.6'
+  implementation 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
@@ -286,26 +308,26 @@ dependencies {
     exclude(module: 'commons-logging')
     exclude(module: 'slf4j-simple')
   }
-  compileOnly 'org.projectlombok:lombok'
-  annotationProcessor 'org.projectlombok:lombok'
+  compileOnly 'org.projectlombok:lombok:1.18.28'
+  annotationProcessor 'org.projectlombok:lombok:1.18.28'
 
-  testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
-  testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.3.0'
-  testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
-  testCompile group: 'org.springframework.security', name: 'spring-security-test', version: '5.2.1.RELEASE'
+  testImplementation 'com.github.hmcts:fortify-client:1.2.1:all'
+  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '3.3.0'
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
+  testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.2.1.RELEASE'
   testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.20.2'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
-  testAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
+  testCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.28'
+  testAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.28'
   testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
   testImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
   testImplementation group: 'uk.gov.hmcts.reform', name: 'logging-spring', version: versions.reformLogging
 
-  smokeTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.12'
-  smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
+  smokeTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.28'
+  smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.28'
   smokeTestImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   smokeTestImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
   smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
@@ -314,10 +336,10 @@ dependencies {
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
-  functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-  functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.12'
-  functionalTestCompile("junit:junit:4.12")
-  functionalTestRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
+  functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
+  functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.28'
+  functionalTestImplementation("junit:junit:4.12")
+  functionalTestImplementation("org.junit.vintage:junit-vintage-engine:5.2.0")
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
