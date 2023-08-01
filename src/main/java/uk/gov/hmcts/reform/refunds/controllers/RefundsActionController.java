@@ -1,9 +1,10 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 
 @RestController
-@Api(tags = {"Refund Actions"})
+@Tag(name = "Refund Actions")
 public class RefundsActionController {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsActionController.class);
@@ -25,12 +26,12 @@ public class RefundsActionController {
     @Autowired
     private RefundReviewService refundReviewService;
 
-    @ApiOperation(value = "PATCH payment/{paymentReference}/action/cancel ", notes = "Cancel Refund Request")
+    @Operation(summary = "PATCH payment/{paymentReference}/action/cancel Cancel Refund Request")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 400, message = "Bad Request"),
-            @ApiResponse(code = 404, message = "Refund Not found"),
-            @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request"),
+            @ApiResponse(responseCode = "404", description = "Refund Not found"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error. please try again later")
 
     })
     @PatchMapping("/payment/{paymentReference}/action/cancel")
