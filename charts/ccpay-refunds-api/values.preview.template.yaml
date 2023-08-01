@@ -298,6 +298,5 @@ ccpay-bulkscanning-api:
           - paybubble-s2s-secret
           - paybubble-idam-client-secret
           - app-insights-connection-string
-          - OIDC_CLIENT_SECRET
 
 
