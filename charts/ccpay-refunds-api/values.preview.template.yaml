@@ -297,4 +297,8 @@ ccpay-bulkscanning-api:
           - AppInsightsInstrumentationKey
           - paybubble-s2s-secret
           - paybubble-idam-client-secret
+          - app-insights-connection-string
+          - OIDC_S2S_SECRET
+          - OIDC_CLIENT_SECRET
+
 
