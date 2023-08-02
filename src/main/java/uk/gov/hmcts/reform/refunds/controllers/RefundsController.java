@@ -1,14 +1,17 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -61,7 +65,7 @@ import javax.validation.Valid;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
-@Api(tags = {"Refund Journey group"})
+@Tag(name = "Refund Journey group")
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
 
@@ -101,13 +105,13 @@ public class RefundsController {
         return ok().body(refundReasonsService.findAll());
     }
 
-    @ApiOperation(value = "POST /refund ", notes = "Submit Refund Request")
+    @Operation(summary = "POST /refund Submit Refund Request")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "retrieved"),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 404, message = "Not found"),
-        @ApiResponse(code = 500, message = "Internal Server Error")
+        @ApiResponse(responseCode = "200", description = "retrieved"),
+        @ApiResponse(responseCode = "400", description = "Bad Request"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Not found"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
 
     })
     @PostMapping("/refund")
@@ -125,13 +129,13 @@ public class RefundsController {
         return new ResponseEntity<>(refundsService.initiateRefund(refundRequest, headers, idamUserIdResponse), HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "GET /refund ", notes = "Get refund list based on status")
+    @Operation(summary = "GET /refund Get refund list based on status")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Success"),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 401, message = "UnAuthorised"),
-        @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 504, message = "Unable to retrieve service information")
+        @ApiResponse(responseCode = "200", description = "Success"),
+        @ApiResponse(responseCode = "400", description = "Bad Request"),
+        @ApiResponse(responseCode = "401", description = "UnAuthorised"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "504", description = "Unable to retrieve service information")
 
     })
     @GetMapping("/refund")
@@ -163,14 +167,14 @@ public class RefundsController {
         );
     }
 
-    @ApiOperation(value = "GET /refund/payment-failure-report", notes = "Get payment failure report based on list of payment reference")
+    @Operation(summary = "GET /refund/payment-failure-report Get payment failure report based on list of payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Success"),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 401, message = "UnAuthorised"),
-        @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 404, message = "Not found"),
-        @ApiResponse(code = 503, message = "Service Unavailable"),
+        @ApiResponse(responseCode = "200", description = "Success"),
+        @ApiResponse(responseCode = "400", description = "Bad Request"),
+        @ApiResponse(responseCode = "401", description = "UnAuthorised"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Not found"),
+        @ApiResponse(responseCode = "503", description = "Service Unavailable"),
     })
     @GetMapping("/refund/payment-failure-report")
     public ResponseEntity getPaymentFailureReport(
@@ -201,10 +205,10 @@ public class RefundsController {
 
     }
 
-    @ApiOperation(value = "Update refund status by refund reference", notes = "Update refund status by refund reference")
+    @Operation(summary = "Update refund status by refund reference Update refund status by refund reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 204, message = "No content"),
-        @ApiResponse(code = 404, message = "Refund details not found")
+        @ApiResponse(responseCode = "204", description = "No content"),
+        @ApiResponse(responseCode = "404", description = "Refund details not found")
     })
     @PatchMapping("/refund/{reference}")
     @Transactional(rollbackFor = Exception.class)
@@ -217,10 +221,10 @@ public class RefundsController {
         return refundStatusService.updateRefundStatus(reference, request, headers);
     }
 
-    @ApiOperation(value = "Update refund reason and amount by refund reference", notes = "Update refund reason and amount by refund reference")
+    @Operation(summary = "Update refund reason and amount by refund reference notes Update refund reason and amount by refund reference")
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "No content"),
-            @ApiResponse(code = 404, message = "Refund details not found")
+            @ApiResponse(responseCode = "204", description = "No content"),
+            @ApiResponse(responseCode = "404", description = "Refund details not found")
     })
     @PatchMapping("/refund/resubmit/{reference}")
     @Transactional(rollbackFor = Exception.class)
@@ -255,15 +259,15 @@ public class RefundsController {
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "PATCH refund/{reference}/action/{reviewer-action} ", notes = "Review Refund Request")
+    @Operation(summary = "PATCH refund/{reference}/action/{reviewer-action} Review Refund Request")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Ok"),
-        @ApiResponse(code = 201, message = "Refund request reviewed successfully"),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 401, message = "IDAM User Authorization Failed"),
-        @ApiResponse(code = 403, message = "RPE Service Authentication Failed"),
-        @ApiResponse(code = 404, message = "Refund Not found"),
-        @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
+        @ApiResponse(responseCode = "200", description = "Ok"),
+        @ApiResponse(responseCode = "201", description = "Refund request reviewed successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad Request"),
+        @ApiResponse(responseCode = "401", description = "IDAM User Authorization Failed"),
+        @ApiResponse(responseCode = "403", description = "RPE Service Authentication Failed"),
+        @ApiResponse(responseCode = "404", description = "Refund Not found"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error. please try again later")
 
     })
     @PatchMapping("/refund/{reference}/action/{reviewer-action}")
@@ -293,10 +297,10 @@ public class RefundsController {
 
     }
 
-    @ApiOperation(value = "Delete Refund details by refund reference", notes = "Delete refund details for supplied refund reference")
+    @Operation(summary = "Delete Refund details by refund reference notes Delete refund details for supplied refund reference")
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "Refund deleted successfully"),
-            @ApiResponse(code = 404, message = "Refund not found for the given reference")
+            @ApiResponse(responseCode = "204", description = "Refund deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Refund not found for the given reference")
     })
     @DeleteMapping("/refund/{reference}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -304,14 +308,14 @@ public class RefundsController {
         refundsService.deleteRefund(reference);
     }
 
-    @ApiOperation(value = "PUT /refund/resend/notification/{reference} ", notes = "Resend Refund Notification")
+    @Operation(summary = "PUT /refund/resend/notification/{reference} Resend Refund Notification")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Ok"),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 401, message = "IDAM User Authorization Failed"),
-        @ApiResponse(code = 403, message = "RPE Service Authentication Failed"),
-        @ApiResponse(code = 404, message = "Refund Not found"),
-        @ApiResponse(code = 500, message = "Internal Server Error. please try again later")
+        @ApiResponse(responseCode = "200", description = "Ok"),
+        @ApiResponse(responseCode = "400", description = "Bad Request"),
+        @ApiResponse(responseCode = "401", description = "IDAM User Authorization Failed"),
+        @ApiResponse(responseCode = "403", description = "RPE Service Authentication Failed"),
+        @ApiResponse(responseCode = "404", description = "Refund Not found"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error. please try again later")
 
     })
     @PutMapping("/refund/resend/notification/{reference}")
@@ -328,10 +332,9 @@ public class RefundsController {
         return refundNotificationService.resendRefundNotification(resendNotificationRequest,headers);
     }
 
-    @ApiOperation(value = "Re-process failed notifications of type email and letter",
-        notes = "Re-process failed notifications of type email and letter")
+    @Operation(summary = "Re-process failed notifications of type email and letter Re-process failed notifications of type email and letter")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Re-processed the failed email and letter notifications")
+        @ApiResponse(responseCode = "200", description = "Re-processed the failed email and letter notifications")
     })
     @PatchMapping("/jobs/refund-notification-update")
     @Transactional
@@ -342,16 +345,16 @@ public class RefundsController {
         refundNotificationService.processFailedNotificationsLetter();
     }
 
-    @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments."
+    @Operation(summary = "Get payments for Reconciliation for between dates Get list of payments."
         + "You can provide start date and end dates which can include times as well."
         + "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy,"
         + "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "successful operation"),
-        @ApiResponse(code = 404, message = "No refunds available for the given date range"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 413, message = "Date range exceeds the maximum supported by the system"),
-        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
+        @ApiResponse(responseCode = "200", description = "successful operation"),
+        @ApiResponse(responseCode = "404", description = "No refunds available for the given date range"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "413", description = "Date range exceeds the maximum supported by the system"),
+        @ApiResponse(responseCode = "206", description = "Supplementary details partially retrieved"),
     })
 
     @GetMapping("/refunds")

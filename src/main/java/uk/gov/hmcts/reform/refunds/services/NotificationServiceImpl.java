@@ -43,9 +43,6 @@ public class NotificationServiceImpl implements NotificationService {
     private RestTemplate restTemplateNotify;
 
     @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
     private RefundNotificationMapper refundNotificationMapper;
 
     @Autowired
@@ -184,7 +181,7 @@ public class NotificationServiceImpl implements NotificationService {
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                 .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview, templateId);
             log.info("send notification  -> " + refundNotificationEmailRequest);
-            responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
+            responseEntity = postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .templateId(templateId)
@@ -199,7 +196,7 @@ public class NotificationServiceImpl implements NotificationService {
             refund.setNotificationSentFlag("letter_not_sent");
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
                 .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview, templateId);
-            responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
+            responseEntity = postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }
         return responseEntity;
