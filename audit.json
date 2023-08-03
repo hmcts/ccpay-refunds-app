@@ -92,5 +92,6 @@
   "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/jobs/refund-notification-update_PATCH":"ignore",
   "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refund/resend/notification/reference?notificationType=LETTER_PUT":"ignore",
   "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/refunds?end_date=end_date\u0026refund_reference=refund_reference\u0026start_date=start_date_GET":"ignore",
-  "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/jobs/refund-notification-update_PATCH":"ignore"
+  "10096_Timestamp Disclosure - Unix_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/jobs/refund-notification-update_PATCH":"ignore",
+  "100000_A Client Error response code was returned by the server_http://ccpay-refunds-api-aat.service.core-compute-aat.internal/v2/api-docs_GET":"ignore"
 }
