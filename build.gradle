@@ -115,7 +115,7 @@ task functional(type: Test) {
 }
 
 // Serenity Reporting
-//functional.finalizedBy(aggregate)
+functional.finalizedBy(aggregate)
 
 task integration(type: Test) {
   description = "Runs integration tests"
