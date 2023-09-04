@@ -180,4 +180,11 @@
     <cve>CVE-2021-27568</cve>
   </suppress>
 
+  <suppress>
+    <notes>
+      URL Redirection to Untrusted Site ('Open Redirect') vulnerability in FORM authentication feature Apache Tomcat.
+    </notes>
+    <cve>CVE-2023-41080</cve>
+  </suppress>
+
 </suppressions>
