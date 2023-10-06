@@ -313,8 +313,8 @@ dependencies {
     exclude(module: 'commons-logging')
     exclude(module: 'slf4j-simple')
   }
-  compileOnly 'org.projectlombok:lombok:1.18.28'
-  annotationProcessor 'org.projectlombok:lombok:1.18.28'
+  compileOnly 'org.projectlombok:lombok:1.18.30'
+  annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
   implementation group: "com.vladmihalcea", name: "hibernate-types-55", version: "2.14.0"
 
@@ -327,8 +327,8 @@ dependencies {
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.28'
-  testAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.28'
+  testCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.30'
+  testAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.30'
   testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
   testImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
@@ -336,8 +336,8 @@ dependencies {
 
   testImplementation group: 'org.apiguardian', name: 'apiguardian-api', version: '1.1.2'
 
-  smokeTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.28'
-  smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.28'
+  smokeTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.30'
+  smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.30'
   smokeTestImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   smokeTestImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
   smokeTestImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
@@ -347,8 +347,8 @@ dependencies {
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
 
-  functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
-  functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.28'
+  functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+  functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.30'
   functionalTestImplementation("junit:junit:4.12")
   functionalTestImplementation("org.junit.vintage:junit-vintage-engine:5.2.0")
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
