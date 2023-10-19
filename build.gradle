@@ -295,7 +295,7 @@ dependencies {
   implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'4.4.0'
   implementation group: 'org.springframework.security', name: 'spring-security-web'
   implementation group: 'org.springframework.security', name: 'spring-security-config'
-  implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.36'
+  implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.37'
   implementation group: 'io.github.openfeign', name: 'feign-httpclient', version: '11.2'
   implementation group: 'commons-io', name: 'commons-io', version: '2.14.0'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
