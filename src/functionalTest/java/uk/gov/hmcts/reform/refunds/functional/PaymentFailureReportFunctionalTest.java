@@ -38,7 +38,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 
@@ -206,7 +205,8 @@ public class PaymentFailureReportFunctionalTest {
         }
         if (StringUtils.isBlank(paymentReference)) {
             // delete payment record
-            paymentTestService.deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference, testConfigProperties.basePaymentsUrl);
+            paymentTestService.deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                             paymentReference, testConfigProperties.basePaymentsUrl);
         }
     }
 

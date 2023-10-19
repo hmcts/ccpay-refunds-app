@@ -130,8 +130,7 @@ public class IdamService {
         return String.format(testConfig.getGeneratedUserEmailPattern(), UUID.randomUUID());
     }
 
-    public static void deleteUser(String emailAddress)
-    {
+    public static void deleteUser(String emailAddress) {
         idamApi.deleteUser(emailAddress);
     }
 }
