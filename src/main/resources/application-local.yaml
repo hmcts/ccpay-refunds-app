@@ -8,9 +8,9 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/refunds
-    username: ${POSTGRES_USERNAME}
-    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://localhost:5053/postgres
+    username: postgres
+    password: payments123
     properties:
       charSet: UTF-8
   jpa:
