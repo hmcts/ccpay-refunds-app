@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.idam.client.models.TokenExchangeResponse;
 import uk.gov.hmcts.reform.idam.client.models.test.CreateUserRequest;
-import uk.gov.hmcts.reform.idam.client.models.test.UserGroup;
 import uk.gov.hmcts.reform.idam.client.models.test.UserRole;
 
 import java.util.Base64;
@@ -20,15 +19,13 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 public class IdamService {
-    public static final String CMC_CITIZEN_GROUP = "cmc-private-beta";
-    public static final String CMC_CASE_WORKER_GROUP = "caseworker";
 
     public static final String BEARER = "Bearer ";
     public static final String GRANT_TYPE = "password";
     public static final String SCOPES = "openid profile roles";
     public static final String SCOPES_SEARCH_USER = "openid profile roles search-user";
     private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
-    private final IdamApi idamApi;
+    private static IdamApi idamApi;
     private final TestConfigProperties testConfig;
 
     @Autowired
@@ -41,9 +38,9 @@ public class IdamService {
     }
 
 
-    public ValidUser createUserWith(String userGroup, String... roles) {
+    public ValidUser createUserWith(String... roles) {
         String email = nextUserEmail();
-        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        CreateUserRequest userRequest = userRequest(email, roles);
         LOG.info("idamApi : " + idamApi.toString());
         LOG.info("userRequest : " + userRequest);
         try {
@@ -57,9 +54,9 @@ public class IdamService {
         return new ValidUser(email, accessToken);
     }
 
-    public ValidUser createUserWithSearchScope(String userGroup, String... roles) {
+    public ValidUser createUserWithSearchScope(String... roles) {
         String email = nextUserEmail();
-        CreateUserRequest userRequest = userRequest(email, userGroup, roles);
+        CreateUserRequest userRequest = userRequest(email, roles);
         LOG.info("idamApi : " + idamApi.toString());
         LOG.info("userRequest : " + userRequest);
         try {
@@ -119,18 +116,21 @@ public class IdamService {
         return null;
     }
 
-    private CreateUserRequest userRequest(String email, String userGroup, String... roles) {
+    private CreateUserRequest userRequest(String email, String... roles) {
         return CreateUserRequest.builder()
             .email(email)
             .password(testConfig.getTestUserPassword())
             .roles(Stream.of(roles)
                        .map(UserRole::new)
                        .collect(toList()))
-            .userGroup(new UserGroup(userGroup))
             .build();
     }
 
     private String nextUserEmail() {
         return String.format(testConfig.getGeneratedUserEmailPattern(), UUID.randomUUID());
+    }
+
+    public static void deleteUser(String emailAddress) {
+        idamApi.deleteUser(emailAddress);
     }
 }

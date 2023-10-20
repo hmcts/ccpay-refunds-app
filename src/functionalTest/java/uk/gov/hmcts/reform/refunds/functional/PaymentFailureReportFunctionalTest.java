@@ -3,7 +3,10 @@ package uk.gov.hmcts.reform.refunds.functional;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +18,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
 import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
+import uk.gov.hmcts.reform.refunds.functional.config.ValidUser;
 import uk.gov.hmcts.reform.refunds.functional.fixture.RefundsFixture;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
@@ -24,6 +28,8 @@ import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 
@@ -32,7 +38,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 
@@ -59,6 +64,9 @@ public class PaymentFailureReportFunctionalTest {
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
     private static String SERVICE_TOKEN_CMC;
+    private String paymentReference;
+    private String refundReference;
+    private static List<String> userEmails = new ArrayList<>();
     private static boolean TOKENS_INITIALIZED;
     private static final Pattern
         REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
@@ -68,27 +76,21 @@ public class PaymentFailureReportFunctionalTest {
 
         RestAssured.baseURI = testConfigProperties.baseTestUrl;
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE =
-                idamService.createUserWith(IdamService.CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor")
-                    .getAuthorisationToken();
+            ValidUser user1 = idamService.createUserWith("caseworker-cmc-solicitor");
+            USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE = user1.getAuthorisationToken();
+            userEmails.add(user1.getEmail());
 
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
-                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund",
-                                                      "payments-refund-probate")
-                    .getAuthorisationToken();
+            ValidUser user2 = idamService.createUserWithSearchScope("payments-refund", "payments-refund-probate");
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE = user2.getAuthorisationToken();
+            userEmails.add(user2.getEmail());
 
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE =
-                idamService.createUserWithSearchScope(IdamService.CMC_CASE_WORKER_GROUP, "payments-refund-approver",
-                                                      "payments-refund-approver-probate")
-                    .getAuthorisationToken();
+            ValidUser user3 = idamService.createUserWithSearchScope("payments-refund-approver", "payments-refund-approver-probate");
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE = user3.getAuthorisationToken();
+            userEmails.add(user3.getEmail());
 
-            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE =
-                idamService.createUserWithSearchScope(
-                        IdamService.CMC_CASE_WORKER_GROUP,
-                        "payments-refund-approver",
-                        "payments"
-                    )
-                    .getAuthorisationToken();
+            ValidUser user4 = idamService.createUserWithSearchScope("payments-refund-approver", "payments");
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE = user4.getAuthorisationToken();
+            userEmails.add(user4.getEmail());
 
             SERVICE_TOKEN_CMC =
                 s2sTokenService.getS2sToken(testConfigProperties.cmcS2SName, testConfigProperties.cmcS2SSecret);
@@ -101,8 +103,8 @@ public class PaymentFailureReportFunctionalTest {
 
     @Test
     public void paymentFailureReportRequestForRejectedRefundStatus() {
-        final String paymentReference = createPayment();
-        final String refundReference = performRefund(paymentReference);
+        paymentReference = createPayment();
+        refundReference = performRefund(paymentReference);
 
         Response responseReviewRefund
             = paymentTestService.patchReviewRefund(
@@ -120,17 +122,6 @@ public class PaymentFailureReportFunctionalTest {
                                                    SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, paymentReference
             ).then()
             .statusCode(NOT_FOUND.value());
-
-        // delete payment record
-        paymentTestService
-            .deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                           paymentReference, testConfigProperties.basePaymentsUrl
-            ).then()
-            .statusCode(NO_CONTENT.value());
-        // delete refund record
-        paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                        refundReference
-        );
     }
 
     @Test
@@ -188,10 +179,10 @@ public class PaymentFailureReportFunctionalTest {
                                            testConfigProperties.basePaymentsUrl).then()
                 .statusCode(OK.value()).extract().as(PaymentDto.class);
 
-        int paymentId = getPaymentsResponse.getFees().get(0).getId();
+        int feeId = getPaymentsResponse.getFees().get(0).getId();
 
         final PaymentRefundRequest paymentRefundRequest
-            = RefundsFixture.refundRequest("RR001", paymentReference,"90","550", paymentId);
+            = RefundsFixture.refundRequest("RR001", paymentReference,"90","550", feeId);
         Response refundResponse = paymentTestService.postInitiateRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
@@ -203,6 +194,27 @@ public class PaymentFailureReportFunctionalTest {
         final String refundReference = refundResponseFromPost.getRefundReference();
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundReference).matches()).isEqualTo(true);
         return refundReference;
+    }
+
+    @After
+    public void deletePayment() {
+        if (!StringUtils.isBlank(refundReference)) {
+            //delete refund record
+            paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference);
+        }
+        if (!StringUtils.isBlank(paymentReference)) {
+            // delete payment record
+            paymentTestService.deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                             paymentReference, testConfigProperties.basePaymentsUrl);
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        }
     }
 
 }
