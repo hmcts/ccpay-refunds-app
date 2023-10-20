@@ -65,7 +65,6 @@ public class PaymentFailureReportFunctionalTest {
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
     private static String SERVICE_TOKEN_CMC;
     private String paymentReference;
-    private String paymentFailureReference;
     private String refundReference;
     private static List<String> userEmails = new ArrayList<>();
     private static boolean TOKENS_INITIALIZED;
@@ -199,11 +198,11 @@ public class PaymentFailureReportFunctionalTest {
 
     @After
     public void deletePayment() {
-        if (StringUtils.isBlank(refundReference)) {
+        if (!StringUtils.isBlank(refundReference)) {
             //delete refund record
             paymentTestService.deleteRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference);
         }
-        if (StringUtils.isBlank(paymentReference)) {
+        if (!StringUtils.isBlank(paymentReference)) {
             // delete payment record
             paymentTestService.deletePayment(USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE, SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                              paymentReference, testConfigProperties.basePaymentsUrl);
