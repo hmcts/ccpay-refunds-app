@@ -88,7 +88,8 @@ public class RefundsApproverJourneyFunctionalTest {
     @Autowired
     private RefundsRepository refundsRepository;
 
-    private static String USER_TOKEN_WITH_PAYMENTS_ROLE;
+    private static String USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE;
+    private static String USER_TOKEN_WITH_NO_SEARCH_SCOPE_PAYMENTS_ROLE;
     private static String SERVICE_TOKEN_PAY_BUBBLE_PAYMENT;
     private static String USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
@@ -155,9 +156,13 @@ public class RefundsApproverJourneyFunctionalTest {
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE = user7.getAuthorisationToken();
             userEmails.add(user7.getEmail());
 
-            ValidUser user8 = idamService.createUserWith("payments");
-            USER_TOKEN_WITH_PAYMENTS_ROLE = user8.getAuthorisationToken();
+            ValidUser user8 = idamService.createUserWithSearchScope("payments");
+            USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE = user8.getAuthorisationToken();
             userEmails.add(user8.getEmail());
+
+            ValidUser user9 = idamService.createUserWith("payments");
+            USER_TOKEN_WITH_NO_SEARCH_SCOPE_PAYMENTS_ROLE = user9.getAuthorisationToken();
+            userEmails.add(user9.getEmail());
 
             SERVICE_TOKEN_CMC =
                 s2sTokenService.getS2sToken(testConfigProperties.cmcS2SName, testConfigProperties.cmcS2SSecret);
@@ -1178,7 +1183,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundEvents.size()).isEqualTo(3);
 
         Response responseReviewRefund = paymentTestService.patchReviewRefund(
-            USER_TOKEN_WITH_PAYMENTS_ROLE,
+            USER_TOKEN_WITH_NO_SEARCH_SCOPE_PAYMENTS_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
             "NO DEFINED STATUS",
@@ -2371,7 +2376,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse =
-            paymentTestService.getRefundList(USER_TOKEN_WITH_PAYMENTS_ROLE,
+            paymentTestService.getRefundList(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber
             );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
