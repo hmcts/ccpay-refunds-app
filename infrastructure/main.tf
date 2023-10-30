@@ -51,7 +51,7 @@ module "ccpay-refunds-database-v15" {
   product = var.product
   component = var.component
   business_area = "cft"
-  name = join("-", [var.product, "postgres-db-v15"])
+  name = join("-", [var.product, var.component, "postgres-db-v15"])
   location = var.location
   env = var.env
   pgsql_admin_username = var.postgresql_user
