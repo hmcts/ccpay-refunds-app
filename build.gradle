@@ -306,7 +306,7 @@ implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-n
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.15.3'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
   implementation group: 'joda-time', name: 'joda-time', version: '2.12.5'
-  implementation group: 'org.eclipse.collections', name: 'eclipse-collections-api', version: '11.0.0'
+  implementation group: 'org.eclipse.collections', name: 'eclipse-collections-api', version: '11.1.0'
   implementation group: 'org.eclipse.collections', name: 'eclipse-collections', version: '11.1.0'
   implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.8.0'
   implementation(group: 'org.postgresql', name: 'postgresql', version: '42.3.4') {
