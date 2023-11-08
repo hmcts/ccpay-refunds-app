@@ -2,15 +2,4 @@
 java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
-  keyVaults:
-    "ccpay":
-      resourceGroup: ccpay
-      secrets:
-        - name: refunds-api-POSTGRES-PASS-V15
-          alias: POSTGRES_PASSWORD
-        - name: refunds-api-POSTGRES-PORT-V15
-          alias: POSTGRES_PORT
-        - name: refunds-api-POSTGRES-HOST-V15
-          alias: POSTGRES_HOST
-        - name: refunds-api-POSTGRES-USER-V15
-          alias: POSTGRES_USERNAME
+
