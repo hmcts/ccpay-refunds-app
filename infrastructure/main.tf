@@ -83,7 +83,7 @@ resource "azurerm_key_vault_secret" "POSTGRES-USER" {
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name      = join("-", [var.component, "POSTGRES-PASS"])
 #   value     = module.ccpay-refunds-database-v11.postgresql_password
-  value     = 'password'
+  value     = "password"
   key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
 
