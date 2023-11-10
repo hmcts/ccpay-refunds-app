@@ -235,7 +235,7 @@ def versions = [
   springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '3.0.0',
   jacocoVersion: '0.8.5',
-  restAssured : '4.2.0',
+  restAssured : '4.5.1',
   serenity                : '2.2.12',
   serenityreporter        : '2.1.4',
   serenityCucumber        : '1.9.51',
