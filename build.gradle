@@ -303,7 +303,7 @@ implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-n
   implementation group: 'commons-validator', name: 'commons-validator', version: '1.7'
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.15.3'
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.15.3'
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.15.3'
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.16.0'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
   implementation group: 'joda-time', name: 'joda-time', version: '2.12.5'
   implementation group: 'org.eclipse.collections', name: 'eclipse-collections-api', version: '11.1.0'
