@@ -293,6 +293,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     try {
+                        LOG.info("Fetching user {} from IdAM", refund.getCreatedBy());
                         UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
                                                                                                   refund.getCreatedBy());
                         contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
