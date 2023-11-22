@@ -4,9 +4,11 @@ import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -35,11 +37,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.*;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
@@ -165,6 +163,9 @@ class RefundServiceImplTest {
 
     @Value("${refund.search.days}")
     private Integer numberOfDays;
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
@@ -344,6 +345,36 @@ class RefundServiceImplTest {
             "ccd-full-name-for-submitted-status", refundListDtoResponse.getRefundList().get(0).getUserFullName()
         );
 
+    }
+
+    @Test
+    void testRefundListForRefundSubmittedStatusSkipIfCreatedByRemoved() {
+        refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
+        when(refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(anyString(),anyList())).thenReturn(Optional.ofNullable(List.of(
+            Utility.refundListSupplierBasedOnCCDCaseNumber1.get(), Utility.refundListSupplierBasedOnCCDCaseNumber2.get())));
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
+        when(idamService.getUserIdentityData(any(),anyString()))
+            .thenThrow(new UserNotFoundException("User details not found for these roles in IDAM"));
+        UserIdentityDataDto dto = UserIdentityDataDto.userIdentityDataWith()
+            .fullName("ccd-full-name")
+            .emailId("j@mail.com")
+            .id(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+            .build();
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put("payments-refund", Collections.singletonList(dto));
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
+        exception.expect(UserNotFoundException.class);
+        RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
+            null,
+            map,
+            Utility.GET_REFUND_LIST_CCD_CASE_NUMBER,
+            "true"
+        );
+
+        assertNotNull(refundListDtoResponse);
+        assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals("ccd-full-name", refundListDtoResponse.getRefundList().get(0).getUserFullName());
+        assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
     }
 
     @Test
