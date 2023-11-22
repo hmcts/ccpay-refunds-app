@@ -36,7 +36,12 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.exceptions.*;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
@@ -296,7 +301,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
                     } catch (UserNotFoundException userNotFoundException) {
                         // Skip this refund as the user is no longer available
-                        LOG.warn("Unable to process refund: {} for case {} as the user {} can not be found, skipping.", refund.getId(), refund.getCcdCaseNumber(), refund.getCreatedBy());
+                        LOG.warn("Unable to process refund: {} for case {} as the user {} can not be found, skipping.",
+                                 refund.getId(), refund.getCcdCaseNumber(), refund.getCreatedBy());
                     }
                 }
             });
