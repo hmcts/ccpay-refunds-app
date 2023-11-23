@@ -444,6 +444,44 @@ class RefundServiceImplTest {
     }
 
     @Test
+    void givenStatusHistoryIsFound_whenGetStatusHistory_thenStatusHistoryDtoListIsReceived_withUserNotFound() {
+
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith()
+            .id(1)
+            .refund(
+                Utility.refundListSupplierBasedOnCCDCaseNumber1.get())
+            .status("AAA")
+            .notes("BBB")
+            .dateCreated(Timestamp.valueOf("2021-10-10 10:10:10"))
+            .createdBy("CCC")
+            .build();
+        List<StatusHistory> statusHistories = new ArrayList<>();
+        statusHistories.add(statusHistory);
+        UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto();
+        userIdentityDataDto.setFullName("Forename Surname");
+
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(Utility.refundListSupplierBasedOnCCDCaseNumber1.get());
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(any())).thenReturn(statusHistories);
+        when(idamService.getUserId(map)).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
+        when(idamService.getUserIdentityData(any(),anyString()))
+            .thenThrow(new UserNotFoundException("User details not found for these roles in IDAM"));
+
+        StatusHistoryResponseDto statusHistoryResponseDto = refundsService.getStatusHistory(map, "123");
+
+        assertEquals(false, statusHistoryResponseDto.getLastUpdatedByCurrentUser());
+        assertEquals(1, statusHistoryResponseDto.getStatusHistoryDtoList().size());
+        assertEquals(1, statusHistoryResponseDto.getStatusHistoryDtoList().get(0).getId());
+        assertEquals(1, statusHistoryResponseDto.getStatusHistoryDtoList().get(0).getRefundsId());
+        assertEquals("AAA", statusHistoryResponseDto.getStatusHistoryDtoList().get(0).getStatus());
+        assertEquals("BBB", statusHistoryResponseDto.getStatusHistoryDtoList().get(0).getNotes());
+        assertEquals(
+            Timestamp.valueOf("2021-10-10 10:10:10.0"),
+            statusHistoryResponseDto.getStatusHistoryDtoList().get(0).getDateCreated()
+        );
+        assertEquals("User not found", statusHistoryResponseDto.getStatusHistoryDtoList().get(0).getCreatedBy());
+    }
+
+    @Test
     void givenStatusHistoryIsFound_whenGetStatusHistory_thenStatusHistoryDtoListIsReceived() {
 
         StatusHistory statusHistory = StatusHistory.statusHistoryWith()
