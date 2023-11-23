@@ -68,14 +68,7 @@ import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -178,6 +171,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
 
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
+
+    private static final String REFUND_CREATED_BY_USER_NOT_FOUND_MSG = "User not found";
+
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
         "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
         Pattern.CASE_INSENSITIVE
@@ -294,16 +290,25 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
                     try {
                         LOG.info("Fetching user {} from IdAM", refund.getCreatedBy());
-                        UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                                                                                                  refund.getCreatedBy());
+                        UserIdentityDataDto userIdentityDataDto =
+                            idamService.getUserIdentityData(headers, refund.getCreatedBy());
                         contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
                         userIdentityDataDtoSet.add(userIdentityDataDto);
                         userIdsWithGivenRoles.add(userIdentityDataDto.getId());
 
                     } catch (UserNotFoundException userNotFoundException) {
-                        // Skip this refund as the user is no longer available
-                        LOG.warn("Unable to process refund: {} for case {} as the user {} can not be found, skipping.",
-                                 refund.getId(), refund.getCcdCaseNumber(), refund.getCreatedBy());
+                        // User not available, so provide user not found details.
+                        LOG.warn("Refund {} created by UID {} not available for case {}",
+                                 refund.getId(), refund.getCreatedBy(), refund.getCcdCaseNumber());
+                        UserIdentityDataDto userIdentityDataDto = new UserIdentityDataDto(
+                            REFUND_CREATED_BY_USER_NOT_FOUND_MSG,
+                            REFUND_CREATED_BY_USER_NOT_FOUND_MSG,
+                            refund.getCreatedBy(),
+                            Collections.<String>emptyList()
+                        );
+                        contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
+                        userIdentityDataDtoSet.add(userIdentityDataDto);
+                        userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                     }
                 }
             });

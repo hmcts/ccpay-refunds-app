@@ -353,7 +353,7 @@ class RefundServiceImplTest {
     }
 
     @Test
-    void testRefundListForRefundSubmittedStatusSkipIfCreatedByRemoved() {
+    void testRefundListForRefundSubmittedStatusWithUserNotFound() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
         when(refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(anyString(),anyList())).thenReturn(Optional.ofNullable(List.of(
             Utility.refundListSupplierBasedOnCCDCaseNumber1.get(), Utility.refundListSupplierBasedOnCCDCaseNumber2.get())));
@@ -377,9 +377,11 @@ class RefundServiceImplTest {
         );
 
         assertNotNull(refundListDtoResponse);
-        assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals(2, refundListDtoResponse.getRefundList().size());
         assertEquals("ccd-full-name", refundListDtoResponse.getRefundList().get(0).getUserFullName());
         assertEquals("j@mail.com", refundListDtoResponse.getRefundList().get(0).getEmailId());
+        assertEquals("User not found", refundListDtoResponse.getRefundList().get(1).getUserFullName());
+        assertEquals("User not found", refundListDtoResponse.getRefundList().get(1).getEmailId());
     }
 
     @Test
