@@ -70,6 +70,7 @@ import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -178,6 +179,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
 
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
+
+    private static final String IDAM_USER_NOT_FOUND_MSG = "User not found";
+
     private static final Pattern EMAIL_ID_REGEX = Pattern.compile(
         "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
         Pattern.CASE_INSENSITIVE
@@ -292,19 +296,24 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
+                    UserIdentityDataDto userIdentityDataDto;
                     try {
-                        LOG.info("Fetching user {} from IdAM", refund.getCreatedBy());
-                        UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                                                                                                  refund.getCreatedBy());
-                        contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
-                        userIdentityDataDtoSet.add(userIdentityDataDto);
-                        userIdsWithGivenRoles.add(userIdentityDataDto.getId());
+                        userIdentityDataDto =
+                            idamService.getUserIdentityData(headers, refund.getCreatedBy());
 
                     } catch (UserNotFoundException userNotFoundException) {
-                        // Skip this refund as the user is no longer available
-                        LOG.warn("Unable to process refund: {} for case {} as the user {} can not be found, skipping.",
-                                 refund.getId(), refund.getCcdCaseNumber(), refund.getCreatedBy());
+                        LOG.warn("Refund {} created by UID {} not available for case {}",
+                                 refund.getId(), refund.getCreatedBy(), refund.getCcdCaseNumber());
+                        userIdentityDataDto = new UserIdentityDataDto(
+                            IDAM_USER_NOT_FOUND_MSG,
+                            IDAM_USER_NOT_FOUND_MSG,
+                            refund.getCreatedBy(),
+                            Collections.<String>emptyList()
+                        );
                     }
+                    contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
+                    userIdentityDataDtoSet.add(userIdentityDataDto);
+                    userIdsWithGivenRoles.add(userIdentityDataDto.getId());
                 }
             });
             if (null != userIdsWithGivenRoles) {
@@ -546,9 +555,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 distintUidSet.add(createdBy);
             }
 
-            //Map UID -> User full name
+            // Map UID -> User full name
             Map<String, UserIdentityDataDto> userFullNameMap = getIdamUserDetails(headers, distintUidSet);
-
             for (StatusHistory statusHistory : statusHistories) {
                 statusHistoryDtos.add(statusHistoryResponseMapper.getStatusHistoryDto(
                     statusHistory,
@@ -562,12 +570,28 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
     }
 
+    // DTRJ
     private Map<String, UserIdentityDataDto> getIdamUserDetails(MultiValueMap<String, String> headers, Set<String> distintUidSet) {
         Map<String, UserIdentityDataDto> userFullNameMap = new ConcurrentHashMap<>();
         for (String userId : distintUidSet) {
+            UserIdentityDataDto userIdentityDataDto;
+            try {
+                userIdentityDataDto =
+                    idamService.getUserIdentityData(headers, userId);
+
+            } catch (UserNotFoundException userNotFoundException) {
+                LOG.warn("User with UID {} not available in IdAM", userId);
+                userIdentityDataDto = new UserIdentityDataDto(
+                    IDAM_USER_NOT_FOUND_MSG,
+                    IDAM_USER_NOT_FOUND_MSG,
+                    userId,
+                    Collections.<String>emptyList()
+                );
+            }
+
             userFullNameMap.put(
                 userId,
-                idamService.getUserIdentityData(headers, userId)
+                userIdentityDataDto
             );
         }
         return userFullNameMap;
