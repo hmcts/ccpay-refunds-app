@@ -41,6 +41,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundResponseMapper;
@@ -291,11 +292,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
             refundList.forEach(refund -> {
                 if (!userIdsWithGivenRoles.contains(refund.getCreatedBy())) {
-                    UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
-                                                                                              refund.getCreatedBy());
-                    contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
-                    userIdentityDataDtoSet.add(userIdentityDataDto);
-                    userIdsWithGivenRoles.add(userIdentityDataDto.getId());
+                    try {
+                        LOG.info("Fetching user {} from IdAM", refund.getCreatedBy());
+                        UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers,
+                                                                                                  refund.getCreatedBy());
+                        contextStartListener.addUserToMap(PAYMENT_REFUND, userIdentityDataDto);
+                        userIdentityDataDtoSet.add(userIdentityDataDto);
+                        userIdsWithGivenRoles.add(userIdentityDataDto.getId());
+
+                    } catch (UserNotFoundException userNotFoundException) {
+                        // Skip this refund as the user is no longer available
+                        LOG.warn("Unable to process refund: {} for case {} as the user {} can not be found, skipping.",
+                                 refund.getId(), refund.getCcdCaseNumber(), refund.getCreatedBy());
+                    }
                 }
             });
             if (null != userIdsWithGivenRoles) {
