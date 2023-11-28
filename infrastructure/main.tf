@@ -41,9 +41,6 @@ module "ccpay-refunds-database-v11" {
   subscription = var.subscription
   postgresql_version = var.postgresql_version
   additional_databases = var.additional_databases
-
-  # Setup Access Reader db user
-  force_user_permissions_trigger = "1"
 }
 
 module "ccpay-refunds-database-v15" {
