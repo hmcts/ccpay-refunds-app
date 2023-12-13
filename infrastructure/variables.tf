@@ -47,18 +47,6 @@ variable "database_name" {
   default = "refunds"
 }
 
-variable sku_name {
-  default = "GP_Gen5_2"
-}
-
-variable "sku_capacity" {
-  default = "2"
-}
-
-variable "postgresql_version" {
-  default = "11"
-}
-
 variable "postgresql_flexible_sql_version" {
   default = "15"
 }
