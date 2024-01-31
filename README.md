@@ -1,7 +1,7 @@
 # ccpay-refunds-app template
 
 [![Build Status](https://travis-ci.org/hmcts/ccpay-refunds-app.svg?branch=master)](https://travis-ci.org/hmcts/ccpay-refunds-app)
- 
+
 ## Notes
 
 Since Spring Boot 2.1 bean overriding is disabled. If you want to enable it you will need to set `spring.main.allow-bean-definition-overriding` to `true`.
@@ -15,7 +15,7 @@ JUnit 5 is now enabled by default in the project. Please refrain from using JUni
 The project uses [Gradle](https://gradle.org) as a build tool. It already contains
 `./gradlew` wrapper script, so there's no need to install gradle.
 
-To build the project execute the following command:
+To build the   project execute the following command:
 
 ```bash
   ./gradlew build
