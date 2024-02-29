@@ -119,9 +119,6 @@ public class RefundsUtil {
         if (remissionsAppliedForRefund.isEmpty()) {
             throw new RetrospectiveRemissionNotFoundException("Remission not found");
         }
-        if (!remissionsAppliedForRefund.isEmpty() && !remissionsAppliedForRefund.get(0).getHwfAmount().equals(refund.getAmount())) {
-            throw new UnequalRemissionAmountWithRefundRaisedException("Remission amount not equal to refund amount");
-        }
     }
 
     private List<PaymentFeeResponse> getRetrospectiveRemissionAppliedFee(PaymentGroupResponse paymentGroupResponse, List<Integer> refundFeeIds) {
