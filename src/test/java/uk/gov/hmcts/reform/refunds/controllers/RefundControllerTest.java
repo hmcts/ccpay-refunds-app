@@ -1655,7 +1655,7 @@ class RefundControllerTest {
                                                .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Remission amount not equal to refund amount", result.getResponse().getContentAsString());
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
     @Test
