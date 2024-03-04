@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentException;
 import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 
 import java.util.Arrays;
@@ -118,9 +117,6 @@ public class RefundsUtil {
     private void validateRetrospectiveRemissions(List<RemissionResponse> remissionsAppliedForRefund, Refund refund) {
         if (remissionsAppliedForRefund.isEmpty()) {
             throw new RetrospectiveRemissionNotFoundException("Remission not found");
-        }
-        if (!remissionsAppliedForRefund.isEmpty() && !remissionsAppliedForRefund.get(0).getHwfAmount().equals(refund.getAmount())) {
-            throw new UnequalRemissionAmountWithRefundRaisedException("Remission amount not equal to refund amount");
         }
     }
 
