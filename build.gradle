@@ -383,7 +383,7 @@ bootJar {
 }
 
 checkstyle {
-  toolVersion "7.8.2"
+  toolVersion "10.14.2"
 }
 pmdTest.enabled(false)
 pmdFunctionalTest.enabled(false)
