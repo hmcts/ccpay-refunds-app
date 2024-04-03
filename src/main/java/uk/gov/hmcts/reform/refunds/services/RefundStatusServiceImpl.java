@@ -27,6 +27,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     private static final String LIBERATA_NAME = "Middle office provider";
     private static final String ACCEPTED = "Accepted";
 
+    private static final String LIBERATA_REASON = "Sent to Middle Office for Processing";
+
     private static final String SYSTEM_USER = "System user";
 
     private static final String LIBERATA_REJECT_UPDATE = "Refund approved by system";
@@ -63,7 +65,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
                 RefundStatus.ACCEPTED,
-                "Approved by middle office")
+                LIBERATA_REASON)
             ));
         } else {
             refund.setRefundStatus(RefundStatus.REJECTED);
