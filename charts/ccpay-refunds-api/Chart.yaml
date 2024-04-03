@@ -11,14 +11,14 @@ dependencies:
     version: 5.2.0
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
   - name: payment-api
-    version: 2.3.18
+    version: 2.3.21
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: payment-api.enabled
   - name: ccpay-bulkscanning-api
-    version: 1.0.24
+    version: 1.0.26
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: ccpay-bulkscanning-api.enabled
   - name: ccpay-notifications-service
-    version: 1.0.8
+    version: 1.0.13
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
     condition: ccpay-notifications-service.enabled
