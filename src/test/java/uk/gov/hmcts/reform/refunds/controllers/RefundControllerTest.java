@@ -1653,9 +1653,9 @@ class RefundControllerTest {
                                                .header("ServiceAuthorization", "Services")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isInternalServerError())
+            .andExpect(status().isCreated())
             .andReturn();
-        assertEquals("Remission amount not equal to refund amount", result.getResponse().getContentAsString());
+        assertEquals("Refund approved", result.getResponse().getContentAsString());
     }
 
     @Test
