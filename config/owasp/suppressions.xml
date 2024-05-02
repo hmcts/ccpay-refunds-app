@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
   <suppress until="2023-10-30">
-    <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
-    </notes>
-    <cve>CVE-2022-1471</cve>
-  </suppress>
-  <suppress until="2023-10-30">
     <notes>
       Jackson core needs major version latest 2.12.7  not resolving current CVE issue. Same applies to json-path version 2.4.0.
       Same applies to json-smart version 2.4.10
@@ -83,11 +78,6 @@
     <cve>CVE-2021-22096</cve>
     <cve>CVE-2023-20861</cve>
     <cve>CVE-2023-20860</cve>
-  </suppress>
-  <suppress>
-    <notes>SnakeYaml's Constructor() class does not restrict types which can be instantiated during deserialization.
-    </notes>
-    <cve>CVE-2022-1471</cve>
   </suppress>
   <suppress>
     <notes>In spring framework versions prior to 5.2.24 release+ ,5.3.27+ and 6.0.8+ , it is possible for a user to provide a specially crafted SpEL expression that may cause a denial-of-service (DoS) condition.
