@@ -13,128 +13,48 @@
     </notes>
     <cve>CVE-2022-45688</cve>
   </suppress>
-  <suppress until="2023-10-30">
-    <notes>
-      spring-security-config needs major version latest 5.4.11  not resolving current CVE issue.
-    </notes>
-    <cve>CVE-2022-22978</cve>
-    <cve>CVE-2022-22976</cve>
-    <cve>CVE-2021-22119</cve>
-  </suppress>
-  <suppress until="2023-10-30">
-    <notes>
-      spring-security-crypto needs major version latest 5.4.11  not resolving current CVE issue.
-    </notes>
-    <cve>CVE-2022-22978</cve>
-    <cve>CVE-2022-22976</cve>
-  </suppress>
-  <suppress until="2023-10-30">
-    <notes>
-      spring-security-oauth2-client needs major version latest 5.4.11  not resolving current CVE issue.
-    </notes>
-    <cve>CVE-2022-22978</cve>
-    <cve>CVE-2022-22976</cve>
-  </suppress>
-  <suppress until="2023-10-30">
-    <notes>
-      spring-security-oauth2-core needs major version latest 5.4.11  not resolving current CVE issue.
-    </notes>
-    <cve>CVE-2022-22978</cve>
-    <cve>CVE-2022-22976</cve>
-  </suppress>
-  <suppress until="2023-10-30">
-    <notes>
-      spring-security-oauth2-resource-server needs major version latest 5.4.11  not resolving current CVE issue.
-    </notes>
-    <cve>CVE-2022-22978</cve>
-    <cve>CVE-2022-22976</cve>
-  </suppress>
-  <suppress until="2023-10-30">
-    <notes>
-      spring-security-web needs major version latest 5.4.11  not resolving current CVE issue.
-    </notes>
-    <cve>CVE-2022-22978</cve>
-    <cve>CVE-2022-22976</cve>
-  </suppress>
-  <suppress until="2023-10-30">
-    <notes>
-      spring-webmvc version 5.3.26 casues issues that fail unit test cases due it not being able to create test environment correctly.
-      Likely will need tests to be re-written when upgrading due to interface change.
-    </notes>
-    <cve>CVE-2022-22965</cve>
-    <cve>CVE-2021-22118</cve>
-    <cve>CVE-2022-22950</cve>
-    <cve>CVE-2022-22971</cve>
-    <cve>CVE-2022-22968</cve>
-    <cve>CVE-2022-22970</cve>
-    <cve>CVE-2021-22060</cve>
-    <cve>CVE-2021-22096</cve>
-    <cve>CVE-2023-20861</cve>
-    <cve>CVE-2023-20860</cve>
-  </suppress>
-  <suppress>
-    <notes>In spring framework versions prior to 5.2.24 release+ ,5.3.27+ and 6.0.8+ , it is possible for a user to provide a specially crafted SpEL expression that may cause a denial-of-service (DoS) condition.
-    </notes>
-    <cve>CVE-2023-20863</cve>
-  </suppress>
-  <suppress>
-    <notes>CVE-2023-20883: Spring Boot Welcome Page DoS Vulnerability</notes>
-    <cve>CVE-2023-20883</cve>
-  </suppress>
-  <suppress>
-    <notes>
-      In Spring Boot versions 3.0.0 - 3.0.6, 2.7.0 - 2.7.11, 2.6.0 - 2.6.14, 2.5.0 - 2.5.14 and older unsupported versions, there is potential for a denial-of-service (DoS) attack if Spring MVC is used together with a reverse proxy cache.</notes>
-    <cve>CVE-2023-20883</cve>
-  </suppress>
   <suppress>
     <notes>
       Use of Java's default temporary directory for file creation in `FileBackedOutputStream` in Google Guava versions 1.0 to 31.1 on Unix systems</notes>
     <cve>CVE-2023-2976</cve>
     <cve>CVE-2020-8908</cve>
   </suppress>
-
   <suppress>
     <notes>
       Thymeleaf through 3.1.1.RELEASE, as used in spring-boot-admin (aka Spring Boot Admin) through 3.1.1 and other products
     </notes>
     <cve>CVE-2023-38286</cve>
   </suppress>
-
   <suppress>
     <notes>
       Using "**" as a pattern in Spring Security configuration for WebFlux creates a mismatch in pattern matching between Spring Security and Spring WebFlux, and the potential for a security bypass.
     </notes>
     <cve>CVE-2023-34034</cve>
   </suppress>
-
   <suppress>
     <notes>
       Spring Cloud Netflix, versions 2.2.x prior to 2.2.4, versions 2.1.x prior to 2.1.6, and older unsupported versions allow applications to use the Hystrix Dashboard proxy.stream endpoint to make requests to any server reachable by the server hosting the dashboard.
     </notes>
     <cve>CVE-2020-5412</cve>
   </suppress>
-
   <suppress>
     <notes>
       Spring Security OAuth versions 2.5.x prior to 2.5.2 and older unsupported versions are susceptible to a Denial-of-Service (DoS) attack via the initiation of the Authorization Request in an OAuth 2.0 Client application. A malicious user or attacker can send multiple requests initiating the Authorization Request for the Authorization Code Grant, which has the potential of exhausting system resources using a single session.
     </notes>
     <cve>CVE-2022-22969</cve>
   </suppress>
-
   <suppress>
     <notes>
       A vulnerability was discovered in the indexOf function of JSONParserByteArray in JSON Smart versions 1.3 and 2.4 which causes a denial of service (DOS) via a crafted web request.
     </notes>
     <cve>CVE-2021-31684</cve>
   </suppress>
-
   <suppress>
     <notes>
       An issue was discovered in netplex json-smart-v1 through 2015-10-23 and json-smart-v2 through 2.4.
     </notes>
     <cve>CVE-2021-27568</cve>
   </suppress>
-
   <suppress>
     <notes>
       URL Redirection to Untrusted Site ('Open Redirect') vulnerability in FORM authentication feature Apache Tomcat.
@@ -165,7 +85,6 @@
     </notes>
     <cve>CVE-2023-44487</cve>
   </suppress>
-
   <suppress>
     <notes>
       Improper Input Validation vulnerability in Apache Tomcat.Tomcat from 11.0.0-M1 through 11.0.0-M10, from 10.1.0-M1 through 10.1.15, from 9.0.0-M1 through 9.0.82 and from 8.5.0 through 8.5.95 did not correctly parse HTTP trailer headers.
