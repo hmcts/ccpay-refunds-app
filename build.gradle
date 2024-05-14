@@ -259,6 +259,7 @@ apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
 ext['tomcat.version'] = '9.0.88'
 ext['netty.version'] = '4.1.100.Final'
+ext['log4j2.version'] = '2.17.1'
 
 dependencies {
 
@@ -282,8 +283,6 @@ implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-n
 
   compileOnly group: 'net.sourceforge.findbugs', name: 'annotations', version: '1.3.2'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.22.0'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.22.0'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
   implementation group: 'io.github.openfeign', name: 'feign-jackson', version: '10.12'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
