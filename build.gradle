@@ -258,6 +258,7 @@ configurations {
 apply from: "${rootDir}/cve-resolution-strategy.gradle"
 
 ext['tomcat.version'] = '9.0.88'
+ext['netty.version'] = '4.1.100.Final'
 
 dependencies {
 
