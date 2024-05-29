@@ -238,7 +238,7 @@ def versions = [
   serenity                : '2.2.12',
   serenityreporter        : '2.1.4',
   serenityCucumber        : '1.9.51',
-  pitest         : '1.15.3',
+  pitest         : '1.16.1',
   gradlePitest   : '1.3.0',
   sonarPitest    : '0.5'
 ]
