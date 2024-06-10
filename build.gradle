@@ -296,7 +296,7 @@ implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-n
   implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'4.4.0'
   implementation group: 'org.springframework.security', name: 'spring-security-web'
   implementation group: 'org.springframework.security', name: 'spring-security-config'
-  implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.39.3'
+  implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.40'
   implementation group: 'io.github.openfeign', name: 'feign-httpclient', version: '11.10'
   implementation group: 'commons-io', name: 'commons-io', version: '2.16.1'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
