@@ -263,7 +263,7 @@ ext['log4j2.version'] = '2.17.1'
 
 dependencies {
 
-  implementation ('com.sun.xml.bind:jaxb-osgi:2.3.9')
+  implementation ('com.sun.xml.bind:jaxb-osgi:4.0.5')
   implementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   implementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.15.0'
   implementation 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
