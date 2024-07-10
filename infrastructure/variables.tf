@@ -79,3 +79,7 @@ variable "product_name" {
 variable "additional_databases" {
   default = []
 }
+
+variable "apim_suffix" {
+  default = ""
+}
