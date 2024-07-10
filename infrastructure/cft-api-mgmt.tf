@@ -4,12 +4,6 @@ locals {
   cft_api_mgmt_rg     = join("-", ["cft", var.env, "network-rg"])
 }
 
-provider "azurerm" {
-  alias           = "aks-cftapps"
-  subscription_id = var.aks_subscription_id
-  features {}
-}
-
 module "cft_api_mgmt_product" {
   source        = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
   name          = var.product_name
