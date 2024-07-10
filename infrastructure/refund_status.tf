@@ -1,9 +1,9 @@
 module "ccpay-refund-status-product" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
 
-  api_mgmt_name = local.api_mgmt_name
-  api_mgmt_rg   = local.api_mgmt_rg
-  name = var.product_name
+  api_mgmt_name                 = local.api_mgmt_name
+  api_mgmt_rg                   = local.api_mgmt_rg
+  name                          = var.product_name
   product_access_control_groups = ["developers"]
 }
 
