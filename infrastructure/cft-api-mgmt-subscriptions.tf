@@ -13,7 +13,7 @@ resource "azurerm_api_management_subscription" "fee_pay_team_refund_subscription
 resource "azurerm_key_vault_secret" "fee_pay_team_payment_subscription_key" {
   name         = "fee-pay-team-refund-cft-apim-subscription-key"
   value        = azurerm_api_management_subscription.fee_pay_team_refund_subscription.primary_key
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+  key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
 
 # Supplier subscription - Liberata
@@ -29,5 +29,5 @@ resource "azurerm_api_management_subscription" "liberata_supplier_subscription" 
 
 resource "azurerm_key_vault_secret" "liberata_supplier_subscription_key" {
   name         = "liberata-cft-apim-subscription-key"
-  key_vault_id = data.azurerm_key_vault.payment_key_vault.id
+  key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
