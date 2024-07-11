@@ -26,7 +26,7 @@ resource "azurerm_api_management_subscription" "liberata_supplier_subscription" 
   provider            = azurerm.aks-cftapps
   primary_key         = data.azurerm_key_vault_secret.liberata_supplier_subscription_key.value
 
-  depends_on = [liberata_supplier_subscription_key]
+  depends_on = [data.azurerm_key_vault_secret.liberata_supplier_subscription_key]
 }
 
 data "azurerm_key_vault_secret" "liberata_supplier_subscription_key" {
