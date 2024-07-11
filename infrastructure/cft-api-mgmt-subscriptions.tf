@@ -24,10 +24,12 @@ resource "azurerm_api_management_subscription" "liberata_supplier_subscription" 
   display_name        = "Refund Status API - Liberata Subscription"
   state               = "active"
   provider            = azurerm.aks-cftapps
-  primary_key         = liberata_supplier_subscription_key.value
+  primary_key         = data.azurerm_key_vault_secret.liberata_supplier_subscription_key.value
+
+  depends_on = [liberata_supplier_subscription_key]
 }
 
-resource "azurerm_key_vault_secret" "liberata_supplier_subscription_key" {
+data "azurerm_key_vault_secret" "liberata_supplier_subscription_key" {
   name         = "liberata-cft-apim-subscription-key"
   key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
