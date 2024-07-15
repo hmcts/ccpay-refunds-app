@@ -10,7 +10,7 @@ resource "azurerm_api_management_subscription" "fee_pay_team_refund_subscription
   provider            = azurerm.aks-cftapps
 }
 
-resource "azurerm_key_vault_secret" "fee_pay_team_payment_subscription_key" {
+resource "azurerm_key_vault_secret" "fee_pay_team_refund_subscription_key" {
   name         = "fee-pay-team-refund-cft-apim-subscription-key"
   value        = azurerm_api_management_subscription.fee_pay_team_refund_subscription.primary_key
   key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
@@ -26,10 +26,10 @@ resource "azurerm_api_management_subscription" "liberata_supplier_subscription" 
   provider            = azurerm.aks-cftapps
   primary_key         = data.azurerm_key_vault_secret.liberata_supplier_subscription_key.value
 
-  depends_on = [data.azurerm_key_vault_secret.liberata_supplier_subscription_key]
+  depends_on = [data.azurerm_key_vault_secret.liberata_supplier_refund_subscription_key]
 }
 
-data "azurerm_key_vault_secret" "liberata_supplier_subscription_key" {
-  name         = "liberata-cft-apim-subscription-key"
+data "azurerm_key_vault_secret" "liberata_supplier_refund_subscription_key" {
+  name         = "liberata-cft-apim-refund-subscription-key"
   key_vault_id = data.azurerm_key_vault.refunds_key_vault.id
 }
