@@ -1,3 +1,5 @@
+# Note for API docs see - https://github.com/hmcts/cnp-api-docs/tree/master/docs/specs
+
 locals {
   cft_api_mgmt_suffix = var.apim_suffix == "" ? var.env : var.apim_suffix
   cft_api_mgmt_name   = join("-", ["cft-api-mgmt", local.cft_api_mgmt_suffix])
