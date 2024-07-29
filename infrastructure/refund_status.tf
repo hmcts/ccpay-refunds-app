@@ -1,9 +1,9 @@
 module "ccpay-refund-status-product" {
   source = "git@github.com:hmcts/cnp-module-api-mgmt-product?ref=master"
 
-  api_mgmt_name = local.api_mgmt_name
-  api_mgmt_rg   = local.api_mgmt_rg
-  name = var.product_name
+  api_mgmt_name                 = local.api_mgmt_name
+  api_mgmt_rg                   = local.api_mgmt_rg
+  name                          = var.product_name
   product_access_control_groups = ["developers"]
 }
 
@@ -17,7 +17,7 @@ module "ccpay-refund-status-api" {
   product_id    = module.ccpay-refund-status-product.product_id
   name          = join("-", [var.product_name, "api"])
   display_name  = "Refund Status API"
-  path          = "refunds-api"
+  path          = local.api_base_path
   swagger_url   = "https://raw.githubusercontent.com/hmcts/reform-api-docs/master/docs/specs/ccpay-payment-app.refunds-status-v1.json"
 }
 
