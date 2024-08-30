@@ -259,7 +259,6 @@ apply from: "${rootDir}/cve-resolution-strategy.gradle"
 ext['tomcat.version'] = '9.0.88'
 ext['netty.version'] = '4.1.100.Final'
 ext['log4j2.version'] = '2.17.1'
-ext['logbackVersion'] = '1.5.7'
 
 dependencies {
 
@@ -272,14 +271,11 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-log4j2'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
   implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.8.0'
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
-  implementation group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion
-  implementation group: 'ch.qos.logback', name: 'logback-core', version: logbackVersion
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '6.6'
   implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.1.0'
 
