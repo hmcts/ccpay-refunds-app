@@ -227,8 +227,8 @@ repositories {
 }
 
 def versions = [
-  junit           : '5.10.0',
-  junitPlatform   : '1.9.3',
+  junit           : '5.11.2',
+  junitPlatform   : '1.11.2',
   reformLogging   : '5.1.7',
   springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '3.0.0',
@@ -348,7 +348,7 @@ dependencies {
   functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
   functionalTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.32'
   functionalTestImplementation("junit:junit:4.13.2")
-  functionalTestImplementation("org.junit.vintage:junit-vintage-engine:5.2.0")
+  functionalTestImplementation("org.junit.vintage:junit-vintage-engine:5.11.2")
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
