@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -14,9 +15,9 @@ import java.util.Date;
 @JsonNaming(SnakeCaseStrategy.class)
 @Builder(builderMethodName = "paymentRefundDtoWith")
 @AllArgsConstructor
-@Getter
 @NoArgsConstructor
-
+@Getter
+@Setter
 public class PaymentRefundDto {
 
     private String reference;

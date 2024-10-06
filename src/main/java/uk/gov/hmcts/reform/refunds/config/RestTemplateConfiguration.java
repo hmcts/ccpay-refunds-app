@@ -31,4 +31,9 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplateNotify() {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
+
+    @Bean("restTemplateIacSupplementaryInfo")
+    public RestTemplate restTemplateIacSupplementaryInfo() {
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 }
