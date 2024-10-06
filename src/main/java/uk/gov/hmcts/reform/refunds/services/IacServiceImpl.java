@@ -1,12 +1,15 @@
 package uk.gov.hmcts.reform.refunds.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -15,8 +18,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetails;
-import uk.gov.hmcts.reform.refunds.dtos.SupplementaryInfo;
 import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetailsResponse;
+import uk.gov.hmcts.reform.refunds.dtos.SupplementaryInfo;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentRefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.model.IacSupplementaryRequest;
@@ -68,7 +71,8 @@ public class IacServiceImpl implements IacService {
         return new ResponseEntity<>(supplementaryDetailsResponse, iacResponseHttpStatus);
     }
 
-    public List<RefundLiberata> updateIacSupplementaryDetails(List<RefundLiberata> refundDtos, SupplementaryDetailsResponse supplementaryDetailsResponse) {
+    public List<RefundLiberata> updateIacSupplementaryDetails(List<RefundLiberata> refundDtos,
+                                                              SupplementaryDetailsResponse supplementaryDetailsResponse) {
         Map<String, SupplementaryDetails> supplementaryDetailsMap = supplementaryDetailsResponse.getSupplementaryInfo().stream()
             .collect(Collectors.toMap(SupplementaryInfo::getCcdCaseNumber, SupplementaryInfo::getSupplementaryDetails));
 
@@ -78,7 +82,8 @@ public class IacServiceImpl implements IacService {
                 PaymentRefundDto paymentRefundDto = refundDto.getPayment();
                 if (supplementaryDetails.getCaseReferenceNumber() != null) {
                     refundDto.getPayment().setCaseReference(supplementaryDetails.getCaseReferenceNumber());
-                    LOG.info("IAC Supplementary info updated for ccdCaseNumber refund : {} with caseReference : {}", paymentRefundDto.getCcdCaseNumber(), paymentRefundDto.getCaseReference());
+                    LOG.info("IAC Supplementary info updated for ccdCaseNumber refund : {} with caseReference : {}",
+                             paymentRefundDto.getCcdCaseNumber(), paymentRefundDto.getCaseReference());
                 }
             }
         }
@@ -86,14 +91,11 @@ public class IacServiceImpl implements IacService {
     }
 
     private List<RefundLiberata> getIacRefunds(String serviceName, List<RefundLiberata> refundDtos) {
-        return refundDtos.stream().filter(refund -> (refund.getPayment().getServiceName().equalsIgnoreCase(serviceName))).
-            collect(Collectors.toList());
+        return refundDtos.stream().filter(refund -> (refund.getPayment().getServiceName().equalsIgnoreCase(serviceName)))
+                .collect(Collectors.toList());
     }
 
     private ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryInfoResponse(List<String> iacCcdCaseNos) throws RestClientException {
-
-        IacSupplementaryRequest iacSupplementaryRequest = IacSupplementaryRequest.createIacSupplementaryRequestWith()
-            .ccdCaseNumbers(iacCcdCaseNos).build();
 
         MultiValueMap<String, String> headerMultiValueMapForIacSuppInfo = new LinkedMultiValueMap<String, String>();
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
@@ -104,17 +106,12 @@ public class IacServiceImpl implements IacService {
         headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         LOG.info("IAC Supplementary info URL: {}", iacSupplementaryInfoUrl + "/supplementary-details");
 
+        IacSupplementaryRequest iacSupplementaryRequest = IacSupplementaryRequest.createIacSupplementaryRequestWith()
+            .ccdCaseNumbers(iacCcdCaseNos).build();
+
         HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
         final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
-        return this.restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl + "/supplementary-details", HttpMethod.POST, entity, SupplementaryDetailsResponse.class);
+        return this.restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl + "/supplementary-details", HttpMethod.POST, entity,
+                                                              SupplementaryDetailsResponse.class);
     }
-
 }
-
-
-
-
-
-
-
-

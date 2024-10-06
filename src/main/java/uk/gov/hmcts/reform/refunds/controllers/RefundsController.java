@@ -39,17 +39,23 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
-import uk.gov.hmcts.reform.refunds.services.*;
+import uk.gov.hmcts.reform.refunds.services.IacService;
+import uk.gov.hmcts.reform.refunds.services.IdamService;
+import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
+import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
+import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
+import uk.gov.hmcts.reform.refunds.services.RefundStatusService;
+import uk.gov.hmcts.reform.refunds.services.RefundsService;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
@@ -372,10 +378,11 @@ public class RefundsController {
             .findAny();
 
         LOG.info("Is any IAC refund present: {}", iacRefundAny.isPresent());
-        if(iacRefundAny.isPresent()){
-            ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryDetails = iacService.getIacSupplementaryDetails(refunds, IAC_SERVICE_NAME);
+        if (iacRefundAny.isPresent()) {
+            ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryDetails =
+                iacService.getIacSupplementaryDetails(refunds, IAC_SERVICE_NAME);
 
-            if(responseEntitySupplementaryDetails.getStatusCode().equals(HttpStatus.OK)){
+            if (responseEntitySupplementaryDetails.getStatusCode().equals(HttpStatus.OK)) {
                 SupplementaryDetailsResponse supplementaryDetailsResponse = responseEntitySupplementaryDetails.getBody();
                 LOG.info("Supplementary details response: {}", supplementaryDetailsResponse);
                 refunds = iacService.updateIacSupplementaryDetails(refunds, supplementaryDetailsResponse);

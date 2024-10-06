@@ -21,8 +21,13 @@ import uk.gov.hmcts.reform.refunds.services.IacServiceImpl;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 public class IacServiceTest {
 
@@ -32,14 +37,13 @@ public class IacServiceTest {
     @Mock
     private AuthTokenGenerator authTokenGenerator;
 
-    private final String IAC_SERVICE_NAME = "Immigration and Asylum Chamber";
-
     private List<RefundLiberata> refundsDtos = null;
-
     private SupplementaryDetailsResponse supplementaryDetailsResponse = null;
 
-    private RefundLiberata refundLiberata1, refundLiberata2 = null;
+    private RefundLiberata refundLiberata1 = null;
+    private RefundLiberata refundLiberata2 = null;
 
+    static final String IAC_SERVICE_NAME = "Immigration and Asylum Chamber";
 
     @InjectMocks
     private IacServiceImpl iacService;
