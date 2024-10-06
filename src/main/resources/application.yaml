@@ -169,7 +169,10 @@ user:
     size: ${USER_INFO_SIZE:300}
   lastModifiedTime: ${USER_LAST_MODIFIED_TIME:720d}
 
-
+iac:
+  supplementary:
+    info:
+      url: ${IAC_SERVICE_API_URL:}
 
 notification:
   url: ${NOTIFICATION_API_URL:}

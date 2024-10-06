@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -41,6 +42,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.dtos.MissingSupplementaryInfo;
+import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetails;
+import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetailsResponse;
+import uk.gov.hmcts.reform.refunds.dtos.SupplementaryInfo;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.FromTemplateContact;
 import uk.gov.hmcts.reform.refunds.dtos.requests.MailAddress;
@@ -52,30 +57,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ContactDetailsDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ErrorResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.FeeDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
-import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFailureReportDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
-import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.*;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -88,11 +70,7 @@ import uk.gov.hmcts.reform.refunds.repository.RefundReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
-import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
-import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
-import uk.gov.hmcts.reform.refunds.services.PaymentService;
-import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
-import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
+import uk.gov.hmcts.reform.refunds.services.*;
 import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
@@ -112,6 +90,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -311,6 +290,7 @@ class RefundControllerTest {
             .caseReference("test")
             .ccdCaseNumber("1111221383640739")
             .channel("bulk scan")
+            .serviceName("Immigration and Asylum Appeals")
             .customerReference("123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .externalReference("test123")
@@ -442,6 +422,9 @@ class RefundControllerTest {
 
     @Mock
     private NotificationServiceImpl notificationService;
+
+    @MockBean
+    private IacService iacService;
 
     @MockBean
     private Specification<Refund> mockSpecification;
@@ -2425,28 +2408,26 @@ class RefundControllerTest {
 
     }
 
-
     @Test
     void validateSuccessResponseWhenValidSearchDateProvided() throws Exception {
+        // Mocking the dependencies and their behavior
+        List<Refund> refunds = getRefundList();
+        when(refundsRepository.findAll(any())).thenReturn(refunds);
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(
+            RefundReason.refundReasonWith().code("RR035").name("Other - Claim").build()
+        );
 
-        RefundsServiceImpl mock = org.mockito.Mockito.mock(RefundsServiceImpl.class);
-        when(mock.searchByCriteria(getSearchCriteria())).thenReturn(mockSpecification);
-
-        when(refundsRepository.findAll(any()))
-            .thenReturn(getRefundList());
-        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
-                                                                                   .code("RR035")
-                                                                                   .name("Other - Claim")
-                                                                                   .build());
-        List<String> referenceList = new ArrayList<>();
-        referenceList.add("RC-1111-2234-1077-1123");
+        List<String> referenceList = List.of("RC-1111-2234-1077-1123");
         when(paymentService.fetchPaymentResponse(referenceList)).thenReturn(getPayments());
 
-        ResponseEntity<List<PaymentDto>> responseEntity = new ResponseEntity<>(getPayments(), HttpStatus.OK);
+        SupplementaryDetailsResponse supplementaryDetailsResponse = SupplementaryDetailsResponse.supplementaryDetailsResponseWith().build();
+        when(iacService.getIacSupplementaryDetails(any(), any())).thenReturn(
+            new ResponseEntity<>(supplementaryDetailsResponse, HttpStatus.PARTIAL_CONTENT)
+        );
 
         when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                          eq(new ParameterizedTypeReference<List<PaymentDto>>() {
-                                          }))).thenReturn(responseEntity);
+                                          eq(new ParameterizedTypeReference<List<PaymentDto>>() {})))
+            .thenReturn(new ResponseEntity<>(getPayments(), HttpStatus.OK));
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -2454,14 +2435,14 @@ class RefundControllerTest {
         MvcResult mvcResult = mockMvc.perform(get("/refunds?end_date=" + endDate + "&start_date=" + startDate)
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk()).andReturn();
+            .andExpect(status().isOk())
+            .andReturn();
 
-        RerfundLiberataResponse rerfundLiberataResponse = mapper.readValue(
-            mvcResult.getResponse().getContentAsString(), RerfundLiberataResponse.class
+        RefundLiberataResponse refundLiberataResponse = mapper.readValue(
+            mvcResult.getResponse().getContentAsString(), RefundLiberataResponse.class
         );
 
-        Assertions.assertEquals("RF-1111-2234-1077-1123", rerfundLiberataResponse.getRefunds().get(0).getReference());
-
+        Assertions.assertEquals("RF-1111-2234-1077-1123", refundLiberataResponse.getRefunds().get(0).getReference());
     }
 
     @Test

@@ -3,10 +3,7 @@ package uk.gov.hmcts.reform.refunds.dtos.responses;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -14,9 +11,9 @@ import java.util.Date;
 @JsonNaming(SnakeCaseStrategy.class)
 @Builder(builderMethodName = "paymentRefundDtoWith")
 @AllArgsConstructor
-@Getter
 @NoArgsConstructor
-
+@Getter
+@Setter
 public class PaymentRefundDto {
 
     private String reference;
