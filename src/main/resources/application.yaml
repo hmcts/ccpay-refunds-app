@@ -94,10 +94,10 @@ auth:
   idam:
     client:
       baseUrl: ${AUTH_IDAM_CLIENT_BASEURL}
-#  provider:
-#    service:
-#      client:
-#        baseUrl: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL}
+  provider:
+    service:
+      client:
+        baseUrl: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL}
 oidc:
   audience-list: ${OIDC_AUDIENCE_LIST}
   issuer: ${OIDC_ISSUER}
@@ -116,7 +116,7 @@ idam:
   s2s-authorised:
     services: ${S2S_AUTHORISED_SERVICES}
   s2s-auth:
-#    url: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL}
+    url: ${AUTH_PROVIDER_SERVICE_CLIENT_BASEURL}
     totp_secret: ${OIDC_S2S_SECRET}
     microservice: ${OIDC_S2S_MICROSERVICE_NAME}
 
