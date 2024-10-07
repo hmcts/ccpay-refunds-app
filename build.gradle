@@ -295,7 +295,7 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'auth-checker-lib', version: '3.0.3'
   implementation group: 'io.jsonwebtoken', name: 'jjwt', version:'0.12.5'
   implementation group: 'jakarta.inject', name: 'jakarta.inject-api', version: '2.0.1'
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.0.0'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.2.0'
   implementation group: 'org.springframework.boot', name:'spring-boot-starter-oauth2-client'
   implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '3.0.3'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
