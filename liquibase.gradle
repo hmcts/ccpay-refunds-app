@@ -2,9 +2,9 @@ configurations {
   liquibase
 }
 
-dependencies {
-  liquibase group: 'org.liquibase.ext', name: 'liquibase-hibernate6', version: '4.29.2'
-}
+//dependencies {
+//  liquibase group: 'org.liquibase.ext', name: 'liquibase-hibernate6', version: '4.29.2'
+//}
 
 //loading properties file.
 Properties liquibaseProps = new Properties()

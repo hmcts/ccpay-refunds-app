@@ -16,10 +16,10 @@ plugins {
   id 'org.springframework.boot' version '3.0.13'
   id 'org.owasp.dependencycheck' version '9.2.0'
   id 'com.github.ben-manes.versions' version '0.51.0'
-  id 'org.sonarqube' version '3.5.0.2730'
+  id 'org.sonarqube' version '5.1.0.4882'
   id 'uk.gov.hmcts.java' version '0.12.63'
   id "info.solidsoft.pitest" version '1.15.0'
-  id 'io.freefair.lombok' version '8.10'
+  id 'io.freefair.lombok' version '8.10.2'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.0.46'
 }
 
@@ -232,19 +232,18 @@ repositories {
 }
 
 def versions = [
-  junit           : '5.10.0',
-  junitPlatform   : '1.9.3',
   lombok          : '1.18.34',
   reformLogging   : '5.1.7',
   springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '3.0.0',
-  jacocoVersion: '0.8.5',
-  restAssured : '5.5.0',
-  serenity                : '4.0.48',
-  serenityCucumber        : '4.0.48',
-  pitest         : '1.16.1',
-  gradlePitest   : '1.3.0',
-  sonarPitest    : '0.5'
+  jackson         : '2.18.0',
+  jacocoVersion   : '0.8.5',
+  restAssured     : '5.5.0',
+  serenity        : '4.0.48',
+  serenityCucumber: '4.0.48',
+  pitest          : '1.16.1',
+  gradlePitest    : '1.3.0',
+  sonarPitest     : '0.5'
 ]
 
 task fortifyScan(type: JavaExec)  {
@@ -256,6 +255,9 @@ task fortifyScan(type: JavaExec)  {
 configurations {
   compileOnly {
     extendsFrom annotationProcessor
+  }
+  configureEach {
+    exclude group: 'commons-logging', module: 'commons-logging'
   }
 }
 
@@ -273,12 +275,12 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
-
+  implementation 'org.liquibase:liquibase-core'
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
   implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.8.0'
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: javaLoggingVersion
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: javaLoggingVersion
-  implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '6.6'
+  implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
   implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.1.0'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.10.RELEASE'
@@ -297,25 +299,23 @@ dependencies {
   implementation group: 'org.springframework.boot', name:'spring-boot-starter-oauth2-client'
   implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '3.0.3'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
-  implementation group: 'com.querydsl', name: 'querydsl-jpa', version:'4.4.0'
+  implementation group: 'io.github.openfeign.querydsl', name: 'querydsl-jpa', version:'6.8'
   implementation group: 'org.springframework.security', name: 'spring-security-web'
   implementation group: 'org.springframework.security', name: 'spring-security-config'
   implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.40'
-  implementation group: 'io.github.openfeign', name: 'feign-httpclient', version: '11.10'
-  implementation group: 'commons-io', name: 'commons-io', version: '2.16.1'
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.10.9'
+  implementation group: 'io.github.openfeign', name: 'feign-httpclient', version: '13.4'
+  implementation group: 'commons-io', name: 'commons-io', version: '2.17.0'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.5.0'
   implementation group: 'commons-validator', name: 'commons-validator', version: '1.9.0'
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.17.1'
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.1'
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.17.1'
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: versions.jackson
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: versions.jackson
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: versions.jackson
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
   implementation group: 'joda-time', name: 'joda-time', version: '2.12.7'
   implementation group: 'org.eclipse.collections', name: 'eclipse-collections-api', version: '11.1.0'
   implementation group: 'org.eclipse.collections', name: 'eclipse-collections', version: '11.1.0'
   implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '8.0.1.Final'
-  implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.29.2'
   implementation(group: 'org.postgresql', name: 'postgresql', version: '42.7.3') {
-    exclude(module: 'commons-logging')
     exclude(module: 'slf4j-simple')
   }
 
@@ -325,25 +325,23 @@ dependencies {
   implementation group: "io.hypersistence", name: "hypersistence-utils-hibernate-60", version: "3.8.3"
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.3'
 
-  testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   testImplementation 'com.github.hmcts:fortify-client:1.4.2:all'
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: versions.restAssured
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.8'
-  testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.8.12'
   testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.26.0'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
   testCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-  testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
-  testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
+
+
   testImplementation group: 'org.apiguardian', name: 'apiguardian-api', version: '1.1.2'
 
   smokeTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.32'
   smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.32'
-  smokeTestImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
-  smokeTestImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
+
+
   smokeTestImplementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
