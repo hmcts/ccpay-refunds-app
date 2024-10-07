@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.refunds.filters;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,9 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpServletResponse;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;

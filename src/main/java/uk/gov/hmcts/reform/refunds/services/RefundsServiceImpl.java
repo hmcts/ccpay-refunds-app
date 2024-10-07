@@ -1,7 +1,11 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.EnumUtils;
-
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.eclipse.collections.impl.collector.Collectors2;
@@ -81,12 +85,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;

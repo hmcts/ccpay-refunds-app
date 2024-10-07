@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.refunds.config.security;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -10,9 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -22,6 +21,7 @@ import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
+import org.springframework.security.web.SecurityFilterChain;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.refunds.config.security.converter.RefundsJwtGrantedAuthoritiesConverter;
 import uk.gov.hmcts.reform.refunds.config.security.exception.RefundsAccessDeniedHandler;
@@ -34,8 +34,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -43,14 +41,13 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity
 public class SpringSecurityConfiguration {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final String PAYMENTS_ROLE = "payments";
 
     @Configuration
     @Order(1)
-    public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public static class ExternalApiSecurityConfigurationAdapter {
 
         private final ServiceAuthFilter serviceAuthFilter;
         private final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint;
@@ -67,56 +64,48 @@ public class SpringSecurityConfiguration {
         }
 
 
-        @Override
-        public void configure(WebSecurity web) {
-            web.ignoring().antMatchers(
-                "/swagger-ui.html",
-                "/webjars/springfox-swagger-ui/**",
-                "/swagger-resources",
-                "/swagger-resources/**",
-                "/swagger-ui/**",
-                "/v3/**",
-                "/refdata/**",
+        public WebSecurityCustomizer webSecurityCustomizer() {
+            return web -> web.ignoring().requestMatchers(
+                "/favicon.ico",
                 "/health",
                 "/health/liveness",
                 "/health/readiness",
                 "/info",
-                "/favicon.ico",
                 "/mock-api/**",
+                "/refdata/**",
+                "/swagger-resources",
+                "/swagger-resources/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/v3/**",
+                "/webjars/springfox-swagger-ui/**",
                 "/"
             );
         }
 
-        @Override
-        protected void configure(HttpSecurity http) {
-            try {
-
-                http
-                    .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
-                    .sessionManagement().sessionCreationPolicy(STATELESS).and().anonymous().disable()
-                    .csrf().disable()
-                    .formLogin().disable()
-                    .logout().disable()
-                    .requestMatchers()
-                    .antMatchers(HttpMethod.GET, "/refundstest")
-                    .antMatchers(HttpMethod.PATCH, "/refund/*")
-                    .antMatchers("/jobs/**")
-                    .and()
-                    .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
-                    .authenticationEntryPoint(refundsAuthenticationEntryPoint);
-
-            } catch (Exception e) {
-                LOG.info("Error in ExternalApiSecurityConfigurationAdapter: {}", e);
-            }
+        protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+            http
+                .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
+                .sessionManagement().sessionCreationPolicy(STATELESS).and().anonymous().disable()
+                .csrf().disable()
+                .formLogin().disable()
+                .logout().disable()
+                .authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers(HttpMethod.GET, "/refundstest").permitAll()
+                    .requestMatchers(HttpMethod.PATCH, "/refund/*").permitAll()
+                    .requestMatchers("/jobs/**").permitAll()
+                )
+                .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
+                .authenticationEntryPoint(refundsAuthenticationEntryPoint);
+            return http.build();
         }
 
     }
 
     @Configuration
     @Order(2)
-    public static class InternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public static class InternalApiSecurityConfigurationAdapter {
 
-        private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
         private final ServiceAuthFilter serviceAuthFilter;
         private final ServiceAndUserAuthFilter serviceAndUserAuthFilter;
         private final JwtAuthenticationConverter jwtAuthenticationConverter;
@@ -145,9 +134,9 @@ public class SpringSecurityConfiguration {
             this.refundsAccessDeniedHandler = refundsAccessDeniedHandler;
         }
 
-        @Override
-        public void configure(WebSecurity web) {
-            web.ignoring().antMatchers(
+        @Bean
+        public WebSecurityCustomizer webSecurityCustomizer() {
+            return web -> web.ignoring().requestMatchers(
                 "/swagger-ui.html",
                 "/webjars/springfox-swagger-ui/**",
                 "/swagger-resources/**",
@@ -162,45 +151,40 @@ public class SpringSecurityConfiguration {
             );
         }
 
-        @Override
         @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED",
             justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
-        protected void configure(HttpSecurity http) {
-            try {
-                http
-                    .addFilterAfter(serviceAndUserAuthFilter, BearerTokenAuthenticationFilter.class)
-                    .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
-                    .sessionManagement().sessionCreationPolicy(STATELESS).and()
-                    .csrf().disable()
-                    .formLogin().disable()
-                    .logout().disable()
-                    .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                    .antMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                    .antMatchers(HttpMethod.GET, "/api/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/refunds/**").permitAll()
-                    .antMatchers(HttpMethod.GET,"/refund/payment-failure-report").permitAll()
-                    .antMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
-                    .antMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
-                    .antMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
-                    .antMatchers(HttpMethod.PATCH,"/payment/**").permitAll()
-                    .antMatchers("/error").permitAll()
-                    .anyRequest().authenticated()
-                    .and()
-                    .oauth2ResourceServer()
-                    .jwt()
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter)
-                    .and()
-                    .and()
-                    .oauth2Client()
-                    .and()
-                    .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
-                    .authenticationEntryPoint(refundsAuthenticationEntryPoint)
-                ;
+        protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-            } catch (Exception e) {
-                LOG.info("Error in InternalApiSecurityConfigurationAdapter: {}", e);
-            }
+            http
+                .addFilterAfter(serviceAndUserAuthFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
+                .sessionManagement().sessionCreationPolicy(STATELESS).and()
+                .csrf().disable()
+                .formLogin().disable()
+                .logout().disable()
+                .authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .requestMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/refunds/**").permitAll()
+                    .requestMatchers(HttpMethod.GET,"/refund/payment-failure-report").permitAll()
+                    .requestMatchers(HttpMethod.GET,"/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
+                    .requestMatchers(HttpMethod.GET,"/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
+                    .requestMatchers(HttpMethod.PATCH,"/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
+                    .requestMatchers(HttpMethod.PATCH,"/payment/**").permitAll()
+                    .requestMatchers("/error").permitAll()
+                    .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer()
+                .jwt()
+                .jwtAuthenticationConverter(jwtAuthenticationConverter)
+                .and()
+                .and()
+                .oauth2Client()
+                .and()
+                .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
+                .authenticationEntryPoint(refundsAuthenticationEntryPoint);
+            return http.build();
         }
 
         @Bean

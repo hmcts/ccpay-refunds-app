@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.refunds.repository;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @SuppressWarnings({"PMD.TooManyMethods"})
 @Repository
-public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaSpecificationExecutor<Refund> {
+public interface RefundsRepository extends ListCrudRepository<Refund, Integer>, JpaSpecificationExecutor<Refund> {
     Optional<List<Refund>> findByPaymentReference(String paymentReference);
 
     Optional<List<Refund>> findByPaymentReferenceInAndRefundStatusNotIn(List<String> paymentReference, List<RefundStatus> refundStatus);

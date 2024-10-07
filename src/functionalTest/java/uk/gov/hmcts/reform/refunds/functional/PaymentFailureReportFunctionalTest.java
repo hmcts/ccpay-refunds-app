@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.functional;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import jakarta.inject.Inject;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;

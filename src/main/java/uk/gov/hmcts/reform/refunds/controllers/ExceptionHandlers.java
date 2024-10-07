@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jmx.export.notification.UnableToSendNotificationException;
 import org.springframework.validation.ObjectError;
@@ -47,7 +48,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers, HttpStatus status, WebRequest request) {
+                                                                  HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
         List<String> details = new LinkedList<>();
         for (ObjectError error : ex.getBindingResult().getAllErrors()) {
             details.add(error.getDefaultMessage());

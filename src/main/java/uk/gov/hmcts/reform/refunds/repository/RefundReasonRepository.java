@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.refunds.repository;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 @Transactional(readOnly = true)
-public interface RefundReasonRepository extends CrudRepository<RefundReason, String> {
+public interface RefundReasonRepository extends ListCrudRepository<RefundReason, String> {
 
     @Override
     List<RefundReason> findAll();
