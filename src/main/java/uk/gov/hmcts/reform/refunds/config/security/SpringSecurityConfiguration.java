@@ -9,9 +9,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -20,7 +22,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.refunds.config.security.converter.RefundsJwtGrantedAuthoritiesConverter;
@@ -64,6 +66,7 @@ public class SpringSecurityConfiguration {
         }
 
 
+        @Bean
         public WebSecurityCustomizer webSecurityCustomizer() {
             return web -> web.ignoring().requestMatchers(
                 "/favicon.ico",
@@ -83,20 +86,24 @@ public class SpringSecurityConfiguration {
             );
         }
 
+        @Bean
         protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             http
                 .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
-                .sessionManagement().sessionCreationPolicy(STATELESS).and().anonymous().disable()
-                .csrf().disable()
-                .formLogin().disable()
-                .logout().disable()
+                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+                .anonymous(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers(HttpMethod.GET, "/refundstest").permitAll()
                     .requestMatchers(HttpMethod.PATCH, "/refund/*").permitAll()
                     .requestMatchers("/jobs/**").permitAll()
                 )
-                .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
-                .authenticationEntryPoint(refundsAuthenticationEntryPoint);
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                    .accessDeniedHandler(refundsAccessDeniedHandler)
+                    .authenticationEntryPoint(refundsAuthenticationEntryPoint)
+                );
             return http.build();
         }
 
@@ -153,15 +160,16 @@ public class SpringSecurityConfiguration {
 
         @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED",
             justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
+        @Bean
         protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
             http
                 .addFilterAfter(serviceAndUserAuthFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
-                .sessionManagement().sessionCreationPolicy(STATELESS).and()
-                .csrf().disable()
-                .formLogin().disable()
-                .logout().disable()
+                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .requestMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
@@ -175,15 +183,13 @@ public class SpringSecurityConfiguration {
                     .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer()
-                .jwt()
-                .jwtAuthenticationConverter(jwtAuthenticationConverter)
-                .and()
-                .and()
-                .oauth2Client()
-                .and()
-                .exceptionHandling().accessDeniedHandler(refundsAccessDeniedHandler)
-                .authenticationEntryPoint(refundsAuthenticationEntryPoint);
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
+                .oauth2Client(Customizer.withDefaults())
+
+                .exceptionHandling(exception -> exception
+                    .accessDeniedHandler(refundsAccessDeniedHandler)
+                    .authenticationEntryPoint(refundsAuthenticationEntryPoint)
+                );
             return http.build();
         }
 

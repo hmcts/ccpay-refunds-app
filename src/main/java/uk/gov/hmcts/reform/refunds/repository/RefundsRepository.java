@@ -42,11 +42,11 @@ public interface RefundsRepository extends ListCrudRepository<Refund, Integer>, 
     Optional<List<Refund>> findByNotificationSentFlag(String notificationSentFlag);
 
     @Query("select rf from Refund rf "
-        + "where rf.dateUpdated NOT between ?1 and ?2 AND (rf.refundStatus = 'Approved' or rf.refundStatus = 'Accepted')")
+        + "where rf.dateUpdated NOT between ?1 and ?2 AND (rf.refundStatus.name = 'Approved' or rf.refundStatus.name = 'Accepted')")
     List<Refund> findByDatesBetween(Date fromDate, Date toDate);
 
     @Query("select rf from Refund rf "
-        + "where rf.paymentReference = ?1  AND (rf.refundStatus = 'Approved' or rf.refundStatus = 'Accepted')"
+        + "where rf.paymentReference = ?1  AND (rf.refundStatus.name = 'Approved' or rf.refundStatus.name = 'Accepted')"
         + "AND rf.reference NOT IN(?2)")
     List<Refund> findAllByPaymentReference(String paymentReference,String reference);
 
