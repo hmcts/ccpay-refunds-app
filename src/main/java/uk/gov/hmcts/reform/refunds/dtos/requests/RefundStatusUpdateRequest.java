@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED;

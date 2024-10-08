@@ -6,7 +6,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.eclipse.collections.impl.collector.Collectors2;
 import org.joda.time.format.DateTimeFormatter;
