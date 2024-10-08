@@ -7,7 +7,6 @@ import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 
 @Component
-
 public class IdamRepository {
 
     private final IdamClient idamClient;
