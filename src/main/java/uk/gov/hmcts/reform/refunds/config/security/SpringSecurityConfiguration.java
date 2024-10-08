@@ -12,7 +12,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -65,27 +64,6 @@ public class SpringSecurityConfiguration {
             this.refundsAccessDeniedHandler = refundsAccessDeniedHandler;
         }
 
-
-        @Bean
-        public WebSecurityCustomizer webSecurityCustomizer() {
-            return web -> web.ignoring().requestMatchers(
-                "/favicon.ico",
-                "/health",
-                "/health/liveness",
-                "/health/readiness",
-                "/info",
-                "/mock-api/**",
-                "/refdata/**",
-                "/swagger-resources",
-                "/swagger-resources/**",
-                "/swagger-ui.html",
-                "/swagger-ui/**",
-                "/v3/**",
-                "/webjars/springfox-swagger-ui/**",
-                "/"
-            );
-        }
-
         @Bean
         protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             http
@@ -96,6 +74,22 @@ public class SpringSecurityConfiguration {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers(
+                        "/favicon.ico",
+                        "/health",
+                        "/health/liveness",
+                        "/health/readiness",
+                        "/info",
+                        "/mock-api/**",
+                        "/refdata/**",
+                        "/swagger-resources",
+                        "/swagger-resources/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/**",
+                        "/webjars/springfox-swagger-ui/**",
+                        "/"
+                    ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/refundstest").permitAll()
                     .requestMatchers(HttpMethod.PATCH, "/refund/*").permitAll()
                     .requestMatchers("/jobs/**").permitAll()
@@ -141,23 +135,6 @@ public class SpringSecurityConfiguration {
             this.refundsAccessDeniedHandler = refundsAccessDeniedHandler;
         }
 
-        @Bean
-        public WebSecurityCustomizer webSecurityCustomizer() {
-            return web -> web.ignoring().requestMatchers(
-                "/swagger-ui.html",
-                "/webjars/springfox-swagger-ui/**",
-                "/swagger-resources/**",
-                "/v2/**",
-                "/refdata/**",
-                "/health",
-                "/health/liveness",
-                "/health/readiness",
-                "/info",
-                "/favicon.ico",
-                "/mock-api/**"
-            );
-        }
-
         @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED",
             justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         @Bean
@@ -171,6 +148,19 @@ public class SpringSecurityConfiguration {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers(
+                        "/swagger-ui.html",
+                        "/v2/**",
+                        "/refdata/**",
+                        "/health",
+                        "/health/liveness",
+                        "/health/readiness",
+                        "/info",
+                        "/favicon.ico",
+                        "/mock-api/**",
+                        "/webjars/springfox-swagger-ui/**",
+                        "/swagger-resources/**"
+                    ).permitAll()
                     .requestMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .requestMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                     .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
@@ -185,7 +175,6 @@ public class SpringSecurityConfiguration {
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 .oauth2Client(Customizer.withDefaults())
-
                 .exceptionHandling(exception -> exception
                     .accessDeniedHandler(refundsAccessDeniedHandler)
                     .authenticationEntryPoint(refundsAuthenticationEntryPoint)
