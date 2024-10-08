@@ -27,7 +27,7 @@ services:
 
   ccpay-refunds-db:
     container_name: ccpay-refunds-db
-    image: postgres:11-alpine
+    image: postgres:15-alpine
     environment:
       - POSTGRES_USER=refunds
       - POSTGRES_PASSWORD=refunds
