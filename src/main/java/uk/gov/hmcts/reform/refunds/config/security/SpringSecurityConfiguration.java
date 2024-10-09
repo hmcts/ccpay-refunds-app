@@ -76,12 +76,9 @@ public class SpringSecurityConfiguration {
                 "/info",
                 "/mock-api/**",
                 "/refdata/**",
-                "/swagger-resources",
-                "/swagger-resources/**",
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/v3/**",
-                "/webjars/springfox-swagger-ui/**",
                 "/"
             );
         }
@@ -145,9 +142,8 @@ public class SpringSecurityConfiguration {
         public WebSecurityCustomizer webSecurityCustomizer() {
             return web -> web.ignoring().requestMatchers(
                 "/swagger-ui.html",
-                "/webjars/springfox-swagger-ui/**",
-                "/swagger-resources/**",
-                "/v2/**",
+                "/swagger-ui/**",
+                "/v3/**",
                 "/refdata/**",
                 "/health",
                 "/health/liveness",
