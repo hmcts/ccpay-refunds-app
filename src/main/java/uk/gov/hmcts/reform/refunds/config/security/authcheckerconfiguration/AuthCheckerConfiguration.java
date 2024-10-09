@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.refunds.config.security.authcheckerconfiguration;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGeneratorFactory;
 import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
 import uk.gov.hmcts.reform.authorisation.validators.ServiceAuthTokenValidator;
-import uk.gov.hmcts.reform.idam.client.IdamApi;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -19,14 +18,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.servlet.http.HttpServletRequest;
 
 
 @Configuration
 @Lazy
-@EnableFeignClients(basePackageClasses = {IdamApi.class, ServiceAuthorisationApi.class})
 public class AuthCheckerConfiguration {
-
 
     @Bean
     public AuthTokenGenerator authTokenGenerator(

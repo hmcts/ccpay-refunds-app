@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.refunds.services;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -118,7 +119,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private void handleHttpClientErrorException(HttpClientErrorException exception) {
         String exceptionMessage = "Invalid Refund notification request.";
-        HttpStatus status = exception.getStatusCode();
+        HttpStatusCode status = exception.getStatusCode();
         log.info("Notifications Response code {}", status);
         log.info("Notifications Response message {}", exception.getMessage());
 

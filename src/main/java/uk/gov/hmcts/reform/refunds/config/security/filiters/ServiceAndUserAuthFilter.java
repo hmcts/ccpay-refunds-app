@@ -1,5 +1,9 @@
 package uk.gov.hmcts.reform.refunds.config.security.filiters;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -13,11 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 
@@ -44,7 +43,6 @@ public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
 
         Collection<String> authorizedRoles = authorizedRolesExtractor.apply(request);
         Optional<String> userIdOptional = userIdExtractor.apply(request);
-
         if (securityUtils.isAuthenticated() && (!authorizedRoles.isEmpty() || userIdOptional.isPresent())) {
             try {
                 verifyRoleAndUserId(authorizedRoles, userIdOptional);
@@ -55,7 +53,6 @@ public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
                 return;
             }
         }
-
         filterChain.doFilter(request, response);
     }
 

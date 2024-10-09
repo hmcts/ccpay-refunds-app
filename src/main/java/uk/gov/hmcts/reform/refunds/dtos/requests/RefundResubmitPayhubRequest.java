@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.refunds.dtos.requests;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,10 +12,6 @@ import lombok.Setter;
 import lombok.With;
 
 import java.math.BigDecimal;
-
-import javax.validation.constraints.Digits;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 

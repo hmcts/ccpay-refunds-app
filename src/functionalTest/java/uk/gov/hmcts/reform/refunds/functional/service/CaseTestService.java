@@ -5,7 +5,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 

@@ -1,6 +1,16 @@
 package uk.gov.hmcts.reform.refunds.model;
 
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,25 +20,11 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-
 import java.sql.Timestamp;
-
 import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 @Entity
 @Builder(builderMethodName = "refundsWith")
@@ -38,7 +34,6 @@ import javax.persistence.Table;
 @Setter
 @Data
 @Table(name = "refunds")
-@TypeDef(name = "json", typeClass = JsonType.class)
 @ToString
 public class Refund {
 
@@ -88,7 +83,7 @@ public class Refund {
     @Column(name = "notification_sent_flag")
     private String notificationSentFlag;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     @Column(columnDefinition = "json", name = "contact_details")
     private ContactDetails contactDetails;
 
