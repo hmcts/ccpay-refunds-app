@@ -43,10 +43,6 @@ public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
 
         Collection<String> authorizedRoles = authorizedRolesExtractor.apply(request);
         Optional<String> userIdOptional = userIdExtractor.apply(request);
-        LOG.info("Checking if user is authenticated");
-        LOG.info("securityUtils.isAuthenticated() - {}", SecurityUtils.isAuthenticated());
-        LOG.info("authorizedRoles.isEmpty() - {}", authorizedRoles.isEmpty());
-        LOG.info("userIdOptional.isPresent() - {}", userIdOptional.isPresent());
         if (securityUtils.isAuthenticated() && (!authorizedRoles.isEmpty() || userIdOptional.isPresent())) {
             try {
                 verifyRoleAndUserId(authorizedRoles, userIdOptional);
@@ -57,7 +53,6 @@ public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
                 return;
             }
         }
-        LOG.info("SKIPPED ServiceAndUserAuthFilter");
         filterChain.doFilter(request, response);
     }
 
