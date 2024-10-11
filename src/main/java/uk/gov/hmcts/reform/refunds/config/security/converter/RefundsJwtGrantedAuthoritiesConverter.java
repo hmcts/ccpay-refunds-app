@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -34,15 +33,15 @@ public class RefundsJwtGrantedAuthoritiesConverter implements Converter<Jwt, Col
 
     @Override
     public Collection<GrantedAuthority> convert(Jwt jwt) {
-        if (jwt.containsClaim(TOKEN_NAME) && jwt.getClaim(TOKEN_NAME).equals(ACCESS_TOKEN)) {
+        if (jwt.hasClaim(TOKEN_NAME) && jwt.getClaim(TOKEN_NAME).equals(ACCESS_TOKEN)) {
             UserInfo userInfo = idamRepository.getUserInfo(jwt.getTokenValue());
             return extractAuthorityFromClaims(userInfo.getRoles());
         }
-        return Arrays.asList();
+        return List.of();
     }
 
     private List<GrantedAuthority> extractAuthorityFromClaims(List<String> roles) {
-        if (!Optional.ofNullable(roles).isPresent()) {
+        if (Optional.ofNullable(roles).isEmpty()) {
             throw new InsufficientAuthenticationException("No roles can be extracted from user "
                                                               + "most probably due to insufficient scopes provided");
         }

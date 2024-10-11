@@ -64,28 +64,6 @@ spring:
             # silence the 'wall-of-text' - unnecessary exception throw about blob types
             non_contextual_creation: true
 
-
-security:
-  anonymousPaths:
-    - "/health"
-    - "/health/liveness"
-    - "/health/readiness"
-    - "/actuator/**"
-    - "/loggers/**"
-    - "/swagger-ui.html"
-    - "/swagger-resources/**"
-    - "/v2/api-docs"
-    - "/webjars/springfox-swagger-ui/**"
-    - "/search/**"
-#    hikari:
-#      minimumIdle: 2
-#      maximumPoolSize: 10
-#      idleTimeout: 10000
-#      poolName: {to-be-defined}HikariCP
-#      maxLifetime: 7200000
-#      connectionTimeout: 30000
-
-
 trusted:
   s2s:
     service:
