@@ -25,8 +25,8 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
 import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
@@ -2002,9 +2002,9 @@ public class RefundsApproverJourneyFunctionalTest {
         Response response = paymentTestService.getRefunds(SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, params);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
-        RerfundLiberataResponse rerfundLiberataResponse = response.getBody().as(RerfundLiberataResponse.class);
+        RefundLiberataResponse refundLiberataResponse = response.getBody().as(RefundLiberataResponse.class);
         ;
-        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
+        RefundLiberata refundLiberata = refundLiberataResponse.getRefunds().stream()
             .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
 
         String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
@@ -2214,9 +2214,9 @@ public class RefundsApproverJourneyFunctionalTest {
         Response response = paymentTestService.getRefunds(SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, params);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
-        RerfundLiberataResponse rerfundLiberataResponse = response.getBody().as(RerfundLiberataResponse.class);
+        RefundLiberataResponse refundLiberataResponse = response.getBody().as(RefundLiberataResponse.class);
         ;
-        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
+        RefundLiberata refundLiberata = refundLiberataResponse.getRefunds().stream()
             .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
 
         String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
@@ -2276,9 +2276,9 @@ public class RefundsApproverJourneyFunctionalTest {
         Response response = paymentTestService.getRefunds(SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, params);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
-        RerfundLiberataResponse rerfundLiberataResponse = response.getBody().as(RerfundLiberataResponse.class);
+        RefundLiberataResponse refundLiberataResponse = response.getBody().as(RefundLiberataResponse.class);
 
-        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
+        RefundLiberata refundLiberata = refundLiberataResponse.getRefunds().stream()
             .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
 
         String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
