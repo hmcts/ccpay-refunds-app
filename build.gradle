@@ -323,7 +323,7 @@ dependencies {
 
   testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
   testImplementation 'com.github.hmcts:fortify-client:1.4.2:all'
-  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '3.3.0'
+  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.0'
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.8'
   testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.8.12'
   testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.26.0'
