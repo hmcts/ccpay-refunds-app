@@ -22,10 +22,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @Getter
 @NoArgsConstructor
-
 public class RefundLiberata {
-
-
     private String reference;
     private String reason;
     private String instructionType;
