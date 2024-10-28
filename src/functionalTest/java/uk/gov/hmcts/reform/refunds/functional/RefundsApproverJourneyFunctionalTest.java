@@ -2002,15 +2002,8 @@ public class RefundsApproverJourneyFunctionalTest {
         Response response = paymentTestService.getRefunds(SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, params);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
-<<<<<<< HEAD
-        RerfundLiberataResponse rerfundLiberataResponse = response.getBody().as(RerfundLiberataResponse.class);
-
-        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
-=======
         RefundLiberataResponse refundLiberataResponse = response.getBody().as(RefundLiberataResponse.class);
-        ;
         RefundLiberata refundLiberata = refundLiberataResponse.getRefunds().stream()
->>>>>>> 4c88b9eeff7d689ab342c4234e2644a51baf4326
             .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
 
         String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
@@ -2220,15 +2213,8 @@ public class RefundsApproverJourneyFunctionalTest {
         Response response = paymentTestService.getRefunds(SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, params);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
-<<<<<<< HEAD
-        RerfundLiberataResponse rerfundLiberataResponse = response.getBody().as(RerfundLiberataResponse.class);
-
-        RefundLiberata refundLiberata = rerfundLiberataResponse.getRefunds().stream()
-=======
         RefundLiberataResponse refundLiberataResponse = response.getBody().as(RefundLiberataResponse.class);
-        ;
         RefundLiberata refundLiberata = refundLiberataResponse.getRefunds().stream()
->>>>>>> 4c88b9eeff7d689ab342c4234e2644a51baf4326
             .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
 
         String refundApproveDate = getReportDate(refundLiberata.getDateApproved());
