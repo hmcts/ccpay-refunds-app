@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetailsResponse;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
@@ -35,16 +36,17 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RejectionReasonResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.RerfundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
+import uk.gov.hmcts.reform.refunds.services.IacService;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
@@ -69,6 +71,8 @@ public class RefundsController {
 
     private static final String REFUNDS_RELEASE = "refunds-release";
 
+    private static final String IAC_SERVICE_NAME = "Immigration and Asylum Appeals";
+
     @Autowired
     private RefundReasonsService refundReasonsService;
 
@@ -92,6 +96,9 @@ public class RefundsController {
 
     @Autowired
     private RefundServiceRoleUtil refundServiceRoleUtil;
+
+    @Autowired
+    private IacService iacService;
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -354,15 +361,31 @@ public class RefundsController {
     })
 
     @GetMapping("/refunds")
-    public ResponseEntity<RerfundLiberataResponse> searchRefundReconciliation(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
-                                                                              @RequestParam(name = "end_date") Optional<String> endDateTimeString,
-                                                                              @RequestParam(name = "refund_reference", required = false)
+    public ResponseEntity<RefundLiberataResponse> searchRefundReconciliation(@RequestParam(name = "start_date") Optional<String> startDateTimeString,
+                                                                             @RequestParam(name = "end_date") Optional<String> endDateTimeString,
+                                                                             @RequestParam(name = "refund_reference", required = false)
                                                                                       String refundReference) {
 
         List<RefundLiberata> refunds = refundsService
             .search(startDateTimeString, endDateTimeString,refundReference);
 
-        return new ResponseEntity<>(new RerfundLiberataResponse(refunds),HttpStatus.OK);
+        Optional<RefundLiberata> iacRefundAny = refunds.stream()
+            .filter(r -> r.getPayment().getServiceName().equalsIgnoreCase(IAC_SERVICE_NAME))
+            .findAny();
+
+        LOG.info("Is any IAC refund present: {}", iacRefundAny.isPresent());
+        if (iacRefundAny.isPresent()) {
+            ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryDetails =
+                iacService.getIacSupplementaryDetails(refunds, IAC_SERVICE_NAME);
+
+            if (responseEntitySupplementaryDetails.getStatusCode().equals(HttpStatus.OK)) {
+                SupplementaryDetailsResponse supplementaryDetailsResponse = responseEntitySupplementaryDetails.getBody();
+                LOG.info("Supplementary details response: {}", supplementaryDetailsResponse);
+                refunds = iacService.updateIacSupplementaryDetails(refunds, supplementaryDetailsResponse);
+            }
+        }
+
+        return new ResponseEntity<>(new RefundLiberataResponse(refunds), HttpStatus.OK);
     }
 
 }
