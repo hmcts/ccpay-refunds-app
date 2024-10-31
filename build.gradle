@@ -223,7 +223,7 @@ def versions = [
   reformLogging   : '5.1.7',
   springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '3.0.0',
-  jackson         : '2.18.0',
+  jackson         : '2.18.1',
   jacocoVersion   : '0.8.5',
   restAssured     : '5.5.0',
   serenity        : '4.2.3',
