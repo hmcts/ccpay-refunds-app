@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.refunds.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +13,6 @@ import lombok.With;
 import lombok.experimental.Wither;
 
 import java.util.List;
-import javax.validation.Valid;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 

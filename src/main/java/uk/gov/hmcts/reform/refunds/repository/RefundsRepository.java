@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.refunds.repository;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @SuppressWarnings({"PMD.TooManyMethods"})
 @Repository
-public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaSpecificationExecutor<Refund> {
+public interface RefundsRepository extends ListCrudRepository<Refund, Integer>, JpaSpecificationExecutor<Refund> {
     Optional<List<Refund>> findByPaymentReference(String paymentReference);
 
     Optional<List<Refund>> findByPaymentReferenceInAndRefundStatusNotIn(List<String> paymentReference, List<RefundStatus> refundStatus);
@@ -42,11 +42,11 @@ public interface RefundsRepository extends CrudRepository<Refund, Integer>, JpaS
     Optional<List<Refund>> findByNotificationSentFlag(String notificationSentFlag);
 
     @Query("select rf from Refund rf "
-        + "where rf.dateUpdated NOT between ?1 and ?2 AND (rf.refundStatus = 'Approved' or rf.refundStatus = 'Accepted')")
+        + "where rf.dateUpdated NOT between ?1 and ?2 AND (rf.refundStatus.name = 'Approved' or rf.refundStatus.name = 'Accepted')")
     List<Refund> findByDatesBetween(Date fromDate, Date toDate);
 
     @Query("select rf from Refund rf "
-        + "where rf.paymentReference = ?1  AND (rf.refundStatus = 'Approved' or rf.refundStatus = 'Accepted')"
+        + "where rf.paymentReference = ?1  AND (rf.refundStatus.name = 'Approved' or rf.refundStatus.name = 'Accepted')"
         + "AND rf.reference NOT IN(?2)")
     List<Refund> findAllByPaymentReference(String paymentReference,String reference);
 

@@ -3,15 +3,14 @@ package uk.gov.hmcts.reform.refunds.dtos.requests;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import jakarta.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang.StringUtils;
-
-import javax.validation.constraints.AssertFalse;
-import javax.validation.constraints.NotNull;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED;

@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.functional;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import jakarta.inject.Inject;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +57,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Pattern;
-import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -194,7 +194,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_reject_a_refund_request() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -305,7 +305,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_sendback_a_refund_request() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -723,7 +723,7 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_get_refund_list_for_an_approver() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
@@ -915,7 +915,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_approve_a_refund_request() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -992,7 +992,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_approve_a_refund_request_with_template_preview_for_email() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1058,7 +1058,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_approve_a_refund_request_with_template_preview_for_letter() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1132,7 +1132,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void negative_unknown_action_refund_request() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1165,7 +1165,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void negative_unauthorized_user_refund_request() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1197,7 +1197,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_resubmit_refund_journey() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         final String accountNumber = testConfigProperties.existingAccountNumber;
@@ -1269,7 +1269,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void nagative_resubmit_refund_journey_without_service_role() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1558,7 +1558,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_resubmit_refund_journey_when_amount_provided() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1630,7 +1630,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_resubmit_refund_journey_when_reason_provided() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1702,7 +1702,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_resubmit_refund_journey_when_contactDetails_provided() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1776,7 +1776,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void negative_not_change_reason_when_retro_remission_input_provided() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1849,7 +1849,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void negative_when_refund_cancelled_then_not_allow_refund_approve() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1884,7 +1884,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void negative_when_refund_cancelled_then_not_allow_refund_reject() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -1919,7 +1919,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_reject_a_refund_request_verify_contact_details_erased_from_service() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -2003,7 +2003,6 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         RefundLiberataResponse refundLiberataResponse = response.getBody().as(RefundLiberataResponse.class);
-        ;
         RefundLiberata refundLiberata = refundLiberataResponse.getRefunds().stream()
             .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
 
@@ -2215,7 +2214,6 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
         RefundLiberataResponse refundLiberataResponse = response.getBody().as(RefundLiberataResponse.class);
-        ;
         RefundLiberata refundLiberata = refundLiberataResponse.getRefunds().stream()
             .filter(rf -> rf.getReference().equals(refundReference)).findFirst().get();
 
@@ -2311,7 +2309,7 @@ public class RefundsApproverJourneyFunctionalTest {
     public void positive_get_refund_list_for_only_payment_role() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
-        final String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        final String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
@@ -2391,7 +2389,7 @@ public class RefundsApproverJourneyFunctionalTest {
     public void negative_get_refund_list_when_no_sufficient_role_refund() {
 
         final String accountNumber = testConfigProperties.existingAccountNumber;
-        final String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        final String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         // Create Payment 1
         final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
@@ -2465,7 +2463,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_refund_reject_reason_unable_to_apply_refund_to_card_and_email() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -2510,7 +2508,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_refund_reject_reason_with_different_reason_and_email() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -2559,7 +2557,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_refund_reject_reason_with_different_reason_and_letter() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -2609,7 +2607,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
     @Test
     public void positive_refund_reject_reason_unable_to_apply_refund_to_card_status_change_to_approve() {
-        String ccdCaseNumber = "11111234" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
 
         final String paymentReference = createPayment(ccdCaseNumber);
         paymentReferences.add(paymentReference);
@@ -2673,16 +2671,14 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
 
-        RefundDto refundDto = refundsListDto.getRefundList().stream()
+        return refundsListDto.getRefundList().stream()
             .filter(rf -> rf.getRefundReference().equals(refundReference)).findFirst().get();
-
-        return refundDto;
     }
 
     private String generateCcdCaseNumber() {
 
         Random rand = new Random();
-        String ccdCaseNumber = String.format(
+        return String.format(
             (Locale) null, //don't want any thousand separators
             "%04d22%04d%04d%02d",
             rand.nextInt(10000),
@@ -2690,15 +2686,13 @@ public class RefundsApproverJourneyFunctionalTest {
             rand.nextInt(10000),
             rand.nextInt(99)
         );
-
-        return ccdCaseNumber;
     }
 
     @After
     public void deletePayment() {
         if (!refundReferences.isEmpty()) {
             //delete refund record
-            refundReferences.forEach((refundReference) -> paymentTestService.deleteRefund(
+            refundReferences.forEach(refundReference -> paymentTestService.deleteRefund(
                 USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                 refundReference
@@ -2706,7 +2700,7 @@ public class RefundsApproverJourneyFunctionalTest {
         }
         if (!paymentReferences.isEmpty()) {
             // delete payment record
-            paymentReferences.forEach((paymentReference) -> paymentTestService.deletePayment(
+            paymentReferences.forEach(paymentReference -> paymentTestService.deletePayment(
                 USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                 paymentReference,

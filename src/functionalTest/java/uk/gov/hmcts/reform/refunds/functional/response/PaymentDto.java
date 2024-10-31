@@ -3,8 +3,10 @@ package uk.gov.hmcts.reform.refunds.functional.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,12 +17,10 @@ import uk.gov.hmcts.reform.refunds.functional.request.FeeDto;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-@JsonNaming(SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 @Builder(builderMethodName = "payment2DtoWith")
 @AllArgsConstructor
@@ -103,7 +103,7 @@ public class PaymentDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @JsonNaming(SnakeCaseStrategy.class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     @JsonInclude(NON_NULL)
     public static class LinksDto {
         private LinkDto nextUrl;
