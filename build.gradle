@@ -219,7 +219,7 @@ repositories {
 }
 
 def versions = [
-  lombok          : '1.18.34',
+  lombok          : '1.18.36',
   reformLogging   : '5.1.7',
   springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '3.0.0',
