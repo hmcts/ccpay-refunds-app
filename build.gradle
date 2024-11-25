@@ -194,7 +194,7 @@ apply from: "${rootDir}/cve-resolution-strategy.gradle"
 dependencyManagement {
   imports {
     mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    mavenBom 'org.apache.logging.log4j:log4j-bom:2.24.1'
+    mavenBom 'org.apache.logging.log4j:log4j-bom:2.24.2'
   }
 
   dependencies {
