@@ -23,7 +23,7 @@ public class RefundNotificationMapper {
     @Autowired
     RefundsUtil refundsUtil;
 
-    public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
+    public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund, ResendNotificationRequest resendNotificationRequest, String customerReference) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
                 .templateId(refundsUtil.getTemplate(refund))
                 .recipientEmailAddress(resendNotificationRequest.getRecipientEmailAddress())
@@ -35,12 +35,13 @@ public class RefundNotificationMapper {
                                      .refundReference(refund.getReference())
                                      .refundAmount(refund.getAmount())
                                      .refundReason(refund.getReason())
+                                     .customerReference(customerReference)
                                      .build())
             .serviceName(refund.getServiceType())
             .build();
     }
 
-    public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest) {
+    public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest, String customerReference) {
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
             .templateId(refundsUtil.getTemplate(refund))
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())
@@ -51,15 +52,16 @@ public class RefundNotificationMapper {
                                  .refundReference(refund.getReference())
                                  .refundAmount(refund.getAmount())
                                  .refundReason(refund.getReason())
+                                 .customerReference(customerReference)
                                  .build())
             .serviceName(refund.getServiceType())
             .build();
     }
 
     public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(
-        Refund refund, TemplatePreview templatePreview, String templateId) {
+        Refund refund, TemplatePreview templatePreview, String templateId, String customerReference) {
 
-        RefundNotificationEmailRequest request = getRefundNotificationEmailRequestApproveJourney(refund);
+        RefundNotificationEmailRequest request = getRefundNotificationEmailRequestApproveJourney(refund, customerReference);
 
         if (!StringUtils.isEmpty(templateId)) {
             request.setTemplateId(templateId);
@@ -79,7 +81,7 @@ public class RefundNotificationMapper {
         return request;
     }
 
-    public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(Refund refund) {
+    public RefundNotificationEmailRequest getRefundNotificationEmailRequestApproveJourney(Refund refund, String customerReference) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
             .templateId(refundsUtil.getTemplate(refund))
             .recipientEmailAddress(refund.getContactDetails().getEmail())
@@ -91,15 +93,16 @@ public class RefundNotificationMapper {
                                  .refundReference(refund.getReference())
                                  .refundAmount(refund.getAmount())
                                  .refundReason(refund.getReason())
+                                 .customerReference(customerReference)
                                  .build())
             .serviceName(refund.getServiceType())
             .build();
     }
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(
-        Refund refund, TemplatePreview templatePreview, String templateId) {
+        Refund refund, TemplatePreview templatePreview, String templateId, String customerReference) {
 
-        RefundNotificationLetterRequest request = getRefundNotificationLetterRequestApproveJourney(refund);
+        RefundNotificationLetterRequest request = getRefundNotificationLetterRequestApproveJourney(refund, customerReference);
 
         if (!StringUtils.isEmpty(templateId)) {
             request.setTemplateId(templateId);
@@ -120,7 +123,7 @@ public class RefundNotificationMapper {
         return request;
     }
 
-    public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(Refund refund) {
+    public RefundNotificationLetterRequest getRefundNotificationLetterRequestApproveJourney(Refund refund, String customerReference) {
         RecipientPostalAddress recipientPostalAddress = new RecipientPostalAddress();
         recipientPostalAddress.setAddressLine(refund.getContactDetails().getAddressLine());
         recipientPostalAddress.setPostalCode(refund.getContactDetails().getPostalCode());
@@ -137,6 +140,7 @@ public class RefundNotificationMapper {
                                  .refundReference(refund.getReference())
                                  .refundAmount(refund.getAmount())
                                  .refundReason(refund.getReason())
+                                 .customerReference(customerReference)
                                  .build())
             .serviceName(refund.getServiceType())
             .build();

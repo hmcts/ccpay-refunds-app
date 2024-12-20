@@ -1,7 +1,11 @@
 package uk.gov.hmcts.reform.refunds.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +29,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -32,6 +37,8 @@ import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.NotificationService;
+import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
+import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.math.BigDecimal;
@@ -40,14 +47,19 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-import static org.testng.Assert.assertEquals;
+//import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = MOCK)
 @ActiveProfiles({"local", "test"})
@@ -55,6 +67,12 @@ class NotificationServiceImplTest {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Mock
+    private PaymentService paymentService;
+
+    @InjectMocks
+    private NotificationServiceImpl notificationServiceImpl;
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -65,6 +83,11 @@ class NotificationServiceImplTest {
     @MockBean
     @Qualifier("restTemplateNotify")
     private RestTemplate restTemplateNotify;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     void postEmailNotificationDataShouldReturnSuccessfulStatus_WhenNotificationServiceIsAvailable() {
@@ -399,5 +422,44 @@ class NotificationServiceImplTest {
             .templateId("TEMP-123")
             .serviceName("Probate")
             .build();
+    }
+
+    @Test
+    public void testRetrieveCustomerReference() throws Exception {
+        // Arrange
+        String paymentReference = "testReference";
+        String expectedCustomerReference = "customer123";
+        PaymentDto paymentDto = new PaymentDto();
+        paymentDto.setCustomerReference(expectedCustomerReference);
+        List<PaymentDto> paymentDtoList = Collections.singletonList(paymentDto);
+
+        when(paymentService.fetchPaymentResponse(Collections.singletonList(paymentReference)))
+            .thenReturn(paymentDtoList);
+
+        // Act
+        Method method = NotificationServiceImpl.class.getDeclaredMethod("retrieveCustomerReference", String.class);
+        method.setAccessible(true);
+        String actualCustomerReference = (String) method.invoke(notificationServiceImpl, paymentReference);
+
+        // Assert
+        assertEquals(expectedCustomerReference, actualCustomerReference);
+    }
+
+    @Test
+    public void testRetrieveCustomerReference_NoCustomerReference() throws Exception {
+        // Arrange
+        String paymentReference = "testReference";
+        List<PaymentDto> paymentDtoList = Collections.singletonList(new PaymentDto());
+
+        when(paymentService.fetchPaymentResponse(Collections.singletonList(paymentReference)))
+            .thenReturn(paymentDtoList);
+
+        // Act
+        Method method = NotificationServiceImpl.class.getDeclaredMethod("retrieveCustomerReference", String.class);
+        method.setAccessible(true);
+        String actualCustomerReference = (String) method.invoke(notificationServiceImpl, paymentReference);
+
+        // Assert
+        assertEquals("", actualCustomerReference);
     }
 }

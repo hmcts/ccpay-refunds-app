@@ -23,12 +23,14 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -45,6 +47,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Autowired
     private RefundNotificationMapper refundNotificationMapper;
+
+    @Autowired
+    private PaymentService paymentService;
 
     @Autowired
     RefundsUtil refundsUtil;
@@ -169,6 +174,8 @@ public class NotificationServiceImpl implements NotificationService {
 
         String templateId = StringUtils.isEmpty(notificationTemplateId) ? refundsUtil.getTemplate(refund) : notificationTemplateId;
 
+        String customerReference = retrieveCustomerReference(refund.getPaymentReference());
+
         log.info("Send notification template id final {}", templateId);
 
         if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
@@ -180,7 +187,7 @@ public class NotificationServiceImpl implements NotificationService {
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag("email_not_sent");
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
-                .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview, templateId);
+                .getRefundNotificationEmailRequestApproveJourney(refund, templatePreview, templateId, customerReference);
             log.info("send notification  -> " + refundNotificationEmailRequest);
             responseEntity = postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
@@ -196,7 +203,7 @@ public class NotificationServiceImpl implements NotificationService {
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag("letter_not_sent");
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
-                .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview, templateId);
+                .getRefundNotificationLetterRequestApproveJourney(refund, templatePreview, templateId, customerReference);
             responseEntity = postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }
@@ -241,6 +248,25 @@ public class NotificationServiceImpl implements NotificationService {
             log.error("Last exception {}", e);
         }
         return notificationDetails;
+    }
+
+
+    private String retrieveCustomerReference(String paymentReference){
+        String customerReference = "";
+        List<String> paymentReferenceList = new ArrayList<>();
+        paymentReferenceList.add(paymentReference);
+
+        // Fetch payment DTO responses
+        List<PaymentDto> paymentDtoResponses = paymentService.fetchPaymentResponse(paymentReferenceList);
+
+        // Loop through the payment responses to get the customer reference
+        for (PaymentDto paymentDtoResponse : paymentDtoResponses) {
+            if (paymentDtoResponse.getCustomerReference() != null) {
+                customerReference = paymentDtoResponse.getCustomerReference();
+                break;
+            }
+        }
+        return customerReference;
     }
 
 }

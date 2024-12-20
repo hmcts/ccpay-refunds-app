@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundIdamNotificationException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
@@ -26,6 +27,9 @@ import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
+
+import uk.gov.hmcts.reform.refunds.services.PaymentService;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +42,7 @@ import static uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.LETTER;
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.EMAILNOTSENT;
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.LETTERNOTSENT;
 import static uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationFlag.SENT;
+
 
 @Service
 public class RefundNotificationServiceImpl extends StateUtil implements RefundNotificationService {
@@ -63,11 +68,16 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
+    @Autowired
+    private PaymentService paymentService;
+
     @Override
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
                                                            MultiValueMap<String, String> headers) {
 
         Refund refund = refundsService.getRefundForReference(resendNotificationRequest.getReference());
+
+        String customerReference = retrieveCustomerReference(refund.getPaymentReference());
 
         validateResendNotificationRequest(resendNotificationRequest);
 
@@ -82,7 +92,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag(EMAILNOTSENT.getFlag());
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
-                .getRefundNotificationEmailRequest(refund, resendNotificationRequest);
+                .getRefundNotificationEmailRequest(refund, resendNotificationRequest, customerReference);
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
@@ -96,7 +106,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag(LETTERNOTSENT.getFlag());
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
-                .getRefundNotificationLetterRequest(refund, resendNotificationRequest);
+                .getRefundNotificationLetterRequest(refund, resendNotificationRequest, customerReference);
             responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }
@@ -141,8 +151,11 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                 if (null != refund.getContactDetails() && refund.getContactDetails()
                         .getNotificationType().equalsIgnoreCase("email")) {
                     refund.setNotificationSentFlag("EMAIL_NOT_SENT");
+
+                    String customerReference = retrieveCustomerReference(refund.getPaymentReference());
+
                     RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
-                        .getRefundNotificationEmailRequestApproveJourney(refund);
+                        .getRefundNotificationEmailRequestApproveJourney(refund, customerReference);
                     ResponseEntity<String> responseEntity;
                     LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest);
                     responseEntity = notificationService.postEmailNotificationData(getHttpHeaders(),
@@ -181,8 +194,9 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                 if (null != refund.getContactDetails() && refund.getContactDetails()
                         .getNotificationType().equalsIgnoreCase("letter")) {
                     refund.setNotificationSentFlag("LETTER_NOT_SENT");
+                    String customerReference = retrieveCustomerReference(refund.getPaymentReference());
                     RefundNotificationLetterRequest refundNotificationLetterRequest = refundNotificationMapper
-                        .getRefundNotificationLetterRequestApproveJourney(refund);
+                        .getRefundNotificationLetterRequestApproveJourney(refund, customerReference);
                     ResponseEntity<String> responseEntity;
                     LOG.info("Refund Notification Letter Request {}", refundNotificationLetterRequest);
                     responseEntity = notificationService.postLetterNotificationData(getHttpHeaders(),
@@ -221,5 +235,25 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
         LOG.info("idamTokenResponse {}",idamTokenResponse.getAccessToken());
         return idamTokenResponse.getAccessToken();
+    }
+
+
+
+    private String retrieveCustomerReference(String paymentReference){
+        String customerReference = "";
+        List<String> paymentReferenceList = new ArrayList<>();
+        paymentReferenceList.add(paymentReference);
+
+        // Fetch payment DTO responses
+        List<PaymentDto> paymentDtoResponses = paymentService.fetchPaymentResponse(paymentReferenceList);
+
+        // Loop through the payment responses to get the customer reference
+        for (PaymentDto paymentDtoResponse : paymentDtoResponses) {
+            if (paymentDtoResponse.getCustomerReference() != null) {
+                customerReference = paymentDtoResponse.getCustomerReference();
+                break;
+            }
+        }
+        return customerReference;
     }
 }

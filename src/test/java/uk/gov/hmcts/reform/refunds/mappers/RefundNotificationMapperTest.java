@@ -79,6 +79,7 @@ class RefundNotificationMapperTest {
                     .build())
             .build();
 
+    private static final String CUSTOMER_REFERENCE = "1234567890";
     @Autowired
     private RefundNotificationMapper refundNotificationMapper;
 
@@ -86,39 +87,42 @@ class RefundNotificationMapperTest {
     void givenResendNotificationEmailRequest_whenGetRefundNotificationEmailRequest_thenRefundNotificationEmailRequestIsReceived() {
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
-                refundNotificationMapper.getRefundNotificationEmailRequest(REFUND, RESEND_NOTIFICATION_EMAIL_REQUEST);
+                refundNotificationMapper.getRefundNotificationEmailRequest(REFUND, RESEND_NOTIFICATION_EMAIL_REQUEST, CUSTOMER_REFERENCE);
 
         assertNotNull(refundNotificationEmailRequest);
         assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
         assertEquals("abc@abc.com", refundNotificationEmailRequest.getRecipientEmailAddress());
         assertEquals("1234567812345678", refundNotificationEmailRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationEmailRequest.getPersonalisation().getRefundReference());
+        assertEquals("1234567890", refundNotificationEmailRequest.getPersonalisation().getCustomerReference());
     }
 
     @Test
     void givenResendNotificationLetterRequest_whenGetRefundNotificationLetterRequest_thenRefundNotificationLetterRequestIsReceived() {
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
-                refundNotificationMapper.getRefundNotificationLetterRequest(REFUND, RESEND_NOTIFICATION_LETTER_REQUEST);
+                refundNotificationMapper.getRefundNotificationLetterRequest(REFUND, RESEND_NOTIFICATION_LETTER_REQUEST, CUSTOMER_REFERENCE);
 
         assertNotNull(refundNotificationLetterRequest);
         assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());
         assertEquals("ED11 1ED", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
         assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
+        assertEquals("1234567890", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
     }
 
     @Test
     void givenResendNotificationEmailRequest_whenGetRefundNotificationEmailRequest_thenRefundNotificationEmailRequestIsReceived_approvalJourney() {
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
-            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email);
+            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, CUSTOMER_REFERENCE);
 
         assertNotNull(refundNotificationEmailRequest);
         assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
         assertEquals("abc@abc.com", refundNotificationEmailRequest.getRecipientEmailAddress());
         assertEquals("1234567812345678", refundNotificationEmailRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationEmailRequest.getPersonalisation().getRefundReference());
+        assertEquals("1234567890", refundNotificationEmailRequest.getPersonalisation().getCustomerReference());
     }
 
     @Test
@@ -138,13 +142,14 @@ class RefundNotificationMapperTest {
             .build();
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
-            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, templatePreview, "Template-1");
+            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, templatePreview, "Template-1", CUSTOMER_REFERENCE);
 
         assertNotNull(refundNotificationEmailRequest);
         assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
         assertEquals("abc@abc.com", refundNotificationEmailRequest.getRecipientEmailAddress());
         assertEquals("1234567812345678", refundNotificationEmailRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationEmailRequest.getPersonalisation().getRefundReference());
+        assertEquals("1234567890", refundNotificationEmailRequest.getPersonalisation().getCustomerReference());
         assertNotNull(refundNotificationEmailRequest.getTemplatePreview());
         assertEquals("email", refundNotificationEmailRequest.getTemplatePreview().getTemplateType());
         assertEquals("11", "" + refundNotificationEmailRequest.getTemplatePreview().getVersion());
@@ -158,13 +163,14 @@ class RefundNotificationMapperTest {
 
 
         RefundNotificationEmailRequest refundNotificationEmailRequest =
-            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, null, null);
+            refundNotificationMapper.getRefundNotificationEmailRequestApproveJourney(REFUND_Email, null, null, CUSTOMER_REFERENCE);
 
         assertNotNull(refundNotificationEmailRequest);
         assertEquals(NotificationType.EMAIL, refundNotificationEmailRequest.getNotificationType());
         assertEquals("abc@abc.com", refundNotificationEmailRequest.getRecipientEmailAddress());
         assertEquals("1234567812345678", refundNotificationEmailRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationEmailRequest.getPersonalisation().getRefundReference());
+        assertEquals("1234567890", refundNotificationEmailRequest.getPersonalisation().getCustomerReference());
         assertNull(refundNotificationEmailRequest.getTemplatePreview());
     }
 
@@ -172,13 +178,14 @@ class RefundNotificationMapperTest {
     void givenResendNotificationLetterRequest_whenGetRefundNotificationLetterRequest_thenRefundNotificationLetterRequestIsReceived_approvalJourney() {
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
-            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter);
+            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, CUSTOMER_REFERENCE);
 
         assertNotNull(refundNotificationLetterRequest);
         assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());
         assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
         assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
+        assertEquals("123456789", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
     }
 
     @Test
@@ -206,13 +213,14 @@ class RefundNotificationMapperTest {
             .build();
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
-            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, templatePreview, null);
+            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, templatePreview, null, CUSTOMER_REFERENCE);
 
         assertNotNull(refundNotificationLetterRequest);
         assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());
         assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
         assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
+        assertEquals("123456789", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
         assertNotNull(refundNotificationLetterRequest.getTemplatePreview());
         assertEquals("email", refundNotificationLetterRequest.getTemplatePreview().getTemplateType());
         assertEquals("11", "" + refundNotificationLetterRequest.getTemplatePreview().getVersion());
@@ -225,13 +233,14 @@ class RefundNotificationMapperTest {
     void tesGetRefundNotificationLetterRequestApproveJourneyWithTemplatePreviewIsNull() {
 
         RefundNotificationLetterRequest refundNotificationLetterRequest =
-            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, null, null);
+            refundNotificationMapper.getRefundNotificationLetterRequestApproveJourney(REFUND_letter, null, null, CUSTOMER_REFERENCE);
 
         assertNotNull(refundNotificationLetterRequest);
         assertEquals(NotificationType.LETTER, refundNotificationLetterRequest.getNotificationType());
         assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
         assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
+        assertEquals("123456789", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
         assertNull(refundNotificationLetterRequest.getTemplatePreview());
     }
 }
