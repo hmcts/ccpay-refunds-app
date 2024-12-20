@@ -185,7 +185,7 @@ class RefundNotificationMapperTest {
         assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
         assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
-        assertEquals("123456789", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
+        assertEquals("1234567890", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
     }
 
     @Test
@@ -220,7 +220,7 @@ class RefundNotificationMapperTest {
         assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
         assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
-        assertEquals("123456789", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
+        assertEquals("1234567890", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
         assertNotNull(refundNotificationLetterRequest.getTemplatePreview());
         assertEquals("email", refundNotificationLetterRequest.getTemplatePreview().getTemplateType());
         assertEquals("11", "" + refundNotificationLetterRequest.getTemplatePreview().getVersion());
@@ -240,7 +240,7 @@ class RefundNotificationMapperTest {
         assertEquals("E1 6AN", refundNotificationLetterRequest.getRecipientPostalAddress().getPostalCode());
         assertEquals("1234567812345678", refundNotificationLetterRequest.getPersonalisation().getCcdCaseNumber());
         assertEquals("RF-1642-6117-6119-7355", refundNotificationLetterRequest.getPersonalisation().getRefundReference());
-        assertEquals("123456789", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
+        assertEquals("1234567890", refundNotificationLetterRequest.getPersonalisation().getCustomerReference());
         assertNull(refundNotificationLetterRequest.getTemplatePreview());
     }
 }
