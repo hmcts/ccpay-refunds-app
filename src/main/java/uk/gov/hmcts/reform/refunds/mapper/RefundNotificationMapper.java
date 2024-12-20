@@ -23,7 +23,8 @@ public class RefundNotificationMapper {
     @Autowired
     RefundsUtil refundsUtil;
 
-    public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund, ResendNotificationRequest resendNotificationRequest, String customerReference) {
+    public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund,
+                                                                            ResendNotificationRequest resendNotificationRequest, String customerReference) {
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
                 .templateId(refundsUtil.getTemplate(refund))
                 .recipientEmailAddress(resendNotificationRequest.getRecipientEmailAddress())
@@ -41,7 +42,8 @@ public class RefundNotificationMapper {
             .build();
     }
 
-    public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest, String customerReference) {
+    public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund,
+                                                                              ResendNotificationRequest resendNotificationRequest, String customerReference) {
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
             .templateId(refundsUtil.getTemplate(refund))
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())

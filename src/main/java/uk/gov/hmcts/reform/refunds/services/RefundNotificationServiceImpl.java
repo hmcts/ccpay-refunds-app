@@ -28,9 +28,6 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
-import uk.gov.hmcts.reform.refunds.services.PaymentService;
-
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -239,7 +236,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
 
 
-    private String retrieveCustomerReference(String paymentReference){
+    private String retrieveCustomerReference(String paymentReference) {
         String customerReference = "";
         List<String> paymentReferenceList = new ArrayList<>();
         paymentReferenceList.add(paymentReference);
