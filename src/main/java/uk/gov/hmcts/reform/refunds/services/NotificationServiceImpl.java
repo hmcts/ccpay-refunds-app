@@ -251,7 +251,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
 
-    private String retrieveCustomerReference(String paymentReference) {
+    public String retrieveCustomerReference(String paymentReference) {
         String customerReference = "";
         List<String> paymentReferenceList = new ArrayList<>();
         paymentReferenceList.add(paymentReference);

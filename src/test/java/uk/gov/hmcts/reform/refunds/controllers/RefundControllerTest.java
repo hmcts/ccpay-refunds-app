@@ -452,7 +452,7 @@ class RefundControllerTest {
     @MockBean
     private Specification<Refund> mockSpecification;
 
-    @Mock
+    @MockBean
     private PaymentService paymentService;
 
     @Mock
@@ -1179,6 +1179,7 @@ class RefundControllerTest {
 
     @Test
     void approveRefundRequestReturnsSuccessResponseWithLetterNotificationAndTemplatePreview() throws Exception {
+
         when(restTemplateNotify.exchange(anyString(),
                                          Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(String.class))).thenReturn(
             new ResponseEntity<>("Success", HttpStatus.OK)
@@ -1199,6 +1200,17 @@ class RefundControllerTest {
             Optional.of(getPaymentGroupDto())
 
         ));
+
+
+        String paymentReference = "testReference";
+        String expectedCustomerReference = "customer123";
+        PaymentDto paymentDto = new PaymentDto();
+        paymentDto.setCustomerReference(expectedCustomerReference);
+        List<PaymentDto> paymentDtoList = Collections.singletonList(paymentDto);
+
+        when(paymentService.fetchPaymentResponse(Collections.singletonList(paymentReference)))
+            .thenReturn(paymentDtoList);
+
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefundWithLetterDetails());
 
@@ -2103,6 +2115,7 @@ class RefundControllerTest {
                             .amount(BigDecimal.valueOf(100))
                             .description("description")
                             .reference("RC-1628-5241-9956-2315")
+                            .customerReference("ABCDE/123456")
                             .dateCreated(Date.from(Instant.now()))
                             .dateUpdated(Date.from(Instant.now()))
                             .currency(CurrencyCode.GBP)
@@ -2188,6 +2201,7 @@ class RefundControllerTest {
                                 .amount(BigDecimal.valueOf(100))
                                 .description("description")
                                 .reference("RC-1628-5241-9956-2315")
+                                .customerReference("ABCDE/123456")
                                 .dateCreated(Date.from(Instant.now()))
                                 .dateUpdated(Date.from(Instant.now()))
                                 .currency(CurrencyCode.GBP)
