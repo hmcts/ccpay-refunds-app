@@ -23,7 +23,8 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
@@ -174,7 +175,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         String templateId = StringUtils.isEmpty(notificationTemplateId) ? refundsUtil.getTemplate(refund) : notificationTemplateId;
 
-        String customerReference = retrieveCustomerReference(refund.getPaymentReference());
+        String customerReference = retrieveCustomerReference(headers, refund.getPaymentReference());
 
         log.info("Send notification template id final {}", templateId);
 
@@ -251,16 +252,15 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
 
-    public String retrieveCustomerReference(String paymentReference) {
+    public String retrieveCustomerReference(MultiValueMap<String, String> headers, String paymentReference) {
         String customerReference = "";
         List<String> paymentReferenceList = new ArrayList<>();
         paymentReferenceList.add(paymentReference);
 
-        // Fetch payment DTO responses
-        List<PaymentDto> paymentDtoResponses = paymentService.fetchPaymentResponse(paymentReferenceList);
+        PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(headers, paymentReference);
 
         // Loop through the payment responses to get the customer reference
-        for (PaymentDto paymentDtoResponse : paymentDtoResponses) {
+        for (PaymentResponse paymentDtoResponse : paymentData.getPayments()) {
             if (paymentDtoResponse.getCustomerReference() != null) {
                 customerReference = paymentDtoResponse.getCustomerReference();
                 break;

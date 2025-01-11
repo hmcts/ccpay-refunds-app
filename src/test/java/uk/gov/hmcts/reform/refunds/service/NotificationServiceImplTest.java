@@ -29,7 +29,12 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
-import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RemissionResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -43,23 +48,22 @@ import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
-//import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = MOCK)
 @ActiveProfiles({"local", "test"})
@@ -84,9 +88,13 @@ class NotificationServiceImplTest {
     @Qualifier("restTemplateNotify")
     private RestTemplate restTemplateNotify;
 
+    @MockBean
+    @Qualifier("restTemplatePayment")
+    private RestTemplate restTemplatePayment;
+
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+     //   MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -260,6 +268,12 @@ class NotificationServiceImplTest {
                                          Mockito.any(HttpEntity.class), eq(String.class)))
             .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
         notificationService.updateNotification(getHeaders(),refund,  null,"template-1");
@@ -276,6 +290,12 @@ class NotificationServiceImplTest {
                                          Mockito.any(HttpMethod.class),
                                          Mockito.any(HttpEntity.class), eq(String.class)))
             .thenReturn(new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
@@ -304,6 +324,12 @@ class NotificationServiceImplTest {
                                          Mockito.any(HttpEntity.class), eq(String.class)))
             .thenReturn(new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
 
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
         notificationService.updateNotification(getHeaders(), refund, null,"template-1");
@@ -320,6 +346,12 @@ class NotificationServiceImplTest {
                                          Mockito.any(HttpMethod.class),
                                          Mockito.any(HttpEntity.class), eq(String.class)))
             .thenReturn(new ResponseEntity<>("Bed request", HttpStatus.BAD_REQUEST));
+
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
@@ -339,6 +371,12 @@ class NotificationServiceImplTest {
                                          Mockito.any(HttpEntity.class), eq(String.class)))
             .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
         notificationService.updateNotification(getHeaders(),refund, getTemplatePreviewForEmail());
@@ -357,6 +395,12 @@ class NotificationServiceImplTest {
                                          Mockito.any(HttpEntity.class), eq(String.class)))
             .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
         notificationService.updateNotification(getHeaders(),refund, getTemplatePreviewForLetter());
@@ -374,6 +418,12 @@ class NotificationServiceImplTest {
                                          Mockito.any(HttpMethod.class),
                                          Mockito.any(HttpEntity.class), eq(String.class)))
             .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
 
@@ -424,42 +474,69 @@ class NotificationServiceImplTest {
             .build();
     }
 
-    @Test
-    public void testRetrieveCustomerReference() throws Exception {
-        // Arrange
-        String paymentReference = "testReference";
-        String expectedCustomerReference = "customer123";
-        PaymentDto paymentDto = new PaymentDto();
-        paymentDto.setCustomerReference(expectedCustomerReference);
-        List<PaymentDto> paymentDtoList = Collections.singletonList(paymentDto);
 
-        when(paymentService.fetchPaymentResponse(Collections.singletonList(paymentReference)))
-            .thenReturn(paymentDtoList);
 
-        // Act
-        Method method = NotificationServiceImpl.class.getDeclaredMethod("retrieveCustomerReference", String.class);
-        method.setAccessible(true);
-        String actualCustomerReference = (String) method.invoke(notificationServiceImpl, paymentReference);
-
-        // Assert
-        assertEquals(expectedCustomerReference, actualCustomerReference);
-    }
-
-    @Test
-    public void testRetrieveCustomerReference_NoCustomerReference() throws Exception {
-        // Arrange
-        String paymentReference = "testReference";
-        List<PaymentDto> paymentDtoList = Collections.singletonList(new PaymentDto());
-
-        when(paymentService.fetchPaymentResponse(Collections.singletonList(paymentReference)))
-            .thenReturn(paymentDtoList);
-
-        // Act
-        Method method = NotificationServiceImpl.class.getDeclaredMethod("retrieveCustomerReference", String.class);
-        method.setAccessible(true);
-        String actualCustomerReference = (String) method.invoke(notificationServiceImpl, paymentReference);
-
-        // Assert
-        assertEquals("", actualCustomerReference);
+    private PaymentGroupResponse getPaymentGroupDto() {
+        return PaymentGroupResponse.paymentGroupDtoWith()
+            .paymentGroupReference("payment-group-reference")
+            .dateCreated(Date.from(Instant.now()))
+            .dateUpdated(Date.from(Instant.now()))
+            .payments(Collections.singletonList(
+                PaymentResponse.paymentResponseWith()
+                    .amount(BigDecimal.valueOf(100))
+                    .description("description")
+                    .reference("RC-1628-5241-9956-2315")
+                    .customerReference("ABCDE/123456")
+                    .dateCreated(Date.from(Instant.now()))
+                    .dateUpdated(Date.from(Instant.now()))
+                    .currency(CurrencyCode.GBP)
+                    .caseReference("case-reference")
+                    .ccdCaseNumber("ccd-case-number")
+                    .channel("solicitors portal")
+                    .method("payment by account")
+                    .externalProvider("provider")
+                    .accountNumber("PBAFUNC1234")
+                    .paymentAllocation(Collections.singletonList(
+                        PaymentAllocationResponse.paymentAllocationDtoWith()
+                            .allocationStatus("allocationStatus")
+                            .build()
+                    ))
+                    .build()
+            ))
+            .remissions(Collections.singletonList(
+                RemissionResponse.remissionDtoWith()
+                    .remissionReference("remission-reference")
+                    .beneficiaryName("ben-ten")
+                    .ccdCaseNumber("ccd-case-number")
+                    .caseReference("case-reference")
+                    .hwfReference("hwf-reference")
+                    .hwfAmount(BigDecimal.valueOf(100))
+                    .dateCreated(Date.from(Instant.now()))
+                    .feeId(50)
+                    .build()
+            ))
+            .fees(Collections.singletonList(
+                PaymentFeeResponse.feeDtoWith()
+                    .id(50)
+                    .code("FEE012")
+                    .feeAmount(BigDecimal.valueOf(100))
+                    .calculatedAmount(BigDecimal.valueOf(100))
+                    .netAmount(BigDecimal.valueOf(100))
+                    .version("1")
+                    .volume(1)
+                    .feeAmount(BigDecimal.valueOf(100))
+                    .ccdCaseNumber("ccd-case-number")
+                    .reference("reference")
+                    .memoLine("memo-line")
+                    .naturalAccountCode("natural-account-code")
+                    .description("description")
+                    .allocatedAmount(BigDecimal.valueOf(100))
+                    .apportionAmount(BigDecimal.valueOf(100))
+                    .dateCreated(Date.from(Instant.now()))
+                    .dateUpdated(Date.from(Instant.now()))
+                    .dateApportioned(Date.from(Instant.now()))
+                    .amountDue(BigDecimal.valueOf(0))
+                    .build()
+            )).build();
     }
 }

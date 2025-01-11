@@ -20,6 +20,8 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundIdamNotificationException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
@@ -74,7 +76,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
         Refund refund = refundsService.getRefundForReference(resendNotificationRequest.getReference());
 
-        String customerReference = retrieveCustomerReference(refund.getPaymentReference());
+        String customerReference = retrieveCustomerReference(headers, refund.getPaymentReference());
 
         validateResendNotificationRequest(resendNotificationRequest);
 
@@ -83,14 +85,14 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         ResponseEntity<String> responseEntity;
         if (notificationType.equals(EMAIL)) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
-                                         .email(resendNotificationRequest.getRecipientEmailAddress())
-                                         .notificationType(EMAIL.name())
-                                         .build();
+                .email(resendNotificationRequest.getRecipientEmailAddress())
+                .notificationType(EMAIL.name())
+                .build();
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag(EMAILNOTSENT.getFlag());
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                 .getRefundNotificationEmailRequest(refund, resendNotificationRequest, customerReference);
-            responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
+            responseEntity = notificationService.postEmailNotificationData(headers, refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
                 .addressLine(resendNotificationRequest.getRecipientPostalAddress().getAddressLine())
@@ -104,7 +106,10 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
             refund.setNotificationSentFlag(LETTERNOTSENT.getFlag());
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
                 .getRefundNotificationLetterRequest(refund, resendNotificationRequest, customerReference);
-            responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
+            responseEntity = notificationService.postLetterNotificationData(
+                headers,
+                refundNotificationLetterRequestRequest
+            );
 
         }
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
@@ -121,12 +126,14 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
         if (resendNotificationRequest.getNotificationType().equals(EMAIL)
             && resendNotificationRequest.getRecipientEmailAddress() == null) {
-            throw new InvalidRefundNotificationResendRequestException("Please enter recipient email for Email notification.");
+            throw new InvalidRefundNotificationResendRequestException(
+                "Please enter recipient email for Email notification.");
         }
 
         if (resendNotificationRequest.getNotificationType().equals(LETTER)
             && resendNotificationRequest.getRecipientPostalAddress() == null) {
-            throw new InvalidRefundNotificationResendRequestException("Please enter recipient postal address for Postal notification.");
+            throw new InvalidRefundNotificationResendRequestException(
+                "Please enter recipient postal address for Postal notification.");
         }
     }
 
@@ -135,7 +142,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         String notificationSentFlag = "EMAIL_NOT_SENT";
         Optional<List<Refund>> refundList;
         LOG.info("process failed notification email fetching refund list ...");
-        refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
+        refundList = refundsRepository.findByNotificationSentFlag(notificationSentFlag);
         List<Refund> refundListAll = new ArrayList<>();
         if (refundList.isPresent()) {
             refundListAll = refundList.get();
@@ -144,19 +151,21 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         refundListAll.stream().collect(Collectors.toList())
             .forEach(refund -> {
 
-                LOG.info("Refund object : {}",  refund.toString());
+                LOG.info("Refund object : {}", refund.toString());
                 if (null != refund.getContactDetails() && refund.getContactDetails()
-                        .getNotificationType().equalsIgnoreCase("email")) {
+                    .getNotificationType().equalsIgnoreCase("email")) {
                     refund.setNotificationSentFlag("EMAIL_NOT_SENT");
 
-                    String customerReference = retrieveCustomerReference(refund.getPaymentReference());
+                    String customerReference = retrieveCustomerReference(getHttpHeaders(), refund.getPaymentReference());
 
                     RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
                         .getRefundNotificationEmailRequestApproveJourney(refund, customerReference);
                     ResponseEntity<String> responseEntity;
                     LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest);
-                    responseEntity = notificationService.postEmailNotificationData(getHttpHeaders(),
-                        refundNotificationEmailRequest);
+                    responseEntity = notificationService.postEmailNotificationData(
+                        getHttpHeaders(),
+                        refundNotificationEmailRequest
+                    );
                     LOG.info("Response Code from Notification service Email {}", responseEntity.getStatusCode());
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
@@ -174,7 +183,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         Optional<List<Refund>> refundList;
         List<Refund> refundListAll = new ArrayList<>();
         LOG.info("process failed notification letter fetching refund list ...");
-        refundList =  refundsRepository.findByNotificationSentFlag(notificationSentFlag);
+        refundList = refundsRepository.findByNotificationSentFlag(notificationSentFlag);
         if (refundList.isPresent()) {
             refundListAll = refundList.get();
         }
@@ -189,15 +198,17 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                     LOG.error("RJsonProcessingException. {}", e);
                 }
                 if (null != refund.getContactDetails() && refund.getContactDetails()
-                        .getNotificationType().equalsIgnoreCase("letter")) {
+                    .getNotificationType().equalsIgnoreCase("letter")) {
                     refund.setNotificationSentFlag("LETTER_NOT_SENT");
-                    String customerReference = retrieveCustomerReference(refund.getPaymentReference());
+                    String customerReference = retrieveCustomerReference(getHttpHeaders(),refund.getPaymentReference());
                     RefundNotificationLetterRequest refundNotificationLetterRequest = refundNotificationMapper
                         .getRefundNotificationLetterRequestApproveJourney(refund, customerReference);
                     ResponseEntity<String> responseEntity;
                     LOG.info("Refund Notification Letter Request {}", refundNotificationLetterRequest);
-                    responseEntity = notificationService.postLetterNotificationData(getHttpHeaders(),
-                        refundNotificationLetterRequest);
+                    responseEntity = notificationService.postLetterNotificationData(
+                        getHttpHeaders(),
+                        refundNotificationLetterRequest
+                    );
                     LOG.info("Response Code from Notification service Letter {}", responseEntity.getStatusCode());
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         refund.setNotificationSentFlag("SENT");
@@ -209,7 +220,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
             });
     }
 
-    private MultiValueMap<String,String> getHttpHeaders() {
+    private MultiValueMap<String, String> getHttpHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
         inputHeaders.put("content-type", Arrays.asList("application/json"));
         inputHeaders.put("authorization", Arrays.asList("Bearer " + getAccessToken()));
@@ -230,22 +241,19 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
     private String getAccessToken() {
         IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
-        LOG.info("idamTokenResponse {}",idamTokenResponse.getAccessToken());
+        LOG.info("idamTokenResponse {}", idamTokenResponse.getAccessToken());
         return idamTokenResponse.getAccessToken();
     }
 
-
-
-    private String retrieveCustomerReference(String paymentReference) {
+    public String retrieveCustomerReference(MultiValueMap<String, String> headers, String paymentReference) {
         String customerReference = "";
         List<String> paymentReferenceList = new ArrayList<>();
         paymentReferenceList.add(paymentReference);
 
-        // Fetch payment DTO responses
-        List<PaymentDto> paymentDtoResponses = paymentService.fetchPaymentResponse(paymentReferenceList);
+        PaymentGroupResponse paymentData = paymentService.fetchPaymentGroupResponse(headers, paymentReference);
 
         // Loop through the payment responses to get the customer reference
-        for (PaymentDto paymentDtoResponse : paymentDtoResponses) {
+        for (PaymentResponse paymentDtoResponse : paymentData.getPayments()) {
             if (paymentDtoResponse.getCustomerReference() != null) {
                 customerReference = paymentDtoResponse.getCustomerReference();
                 break;
@@ -253,4 +261,5 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
         }
         return customerReference;
     }
+
 }

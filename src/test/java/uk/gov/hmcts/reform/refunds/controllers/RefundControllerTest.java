@@ -452,7 +452,7 @@ class RefundControllerTest {
     @MockBean
     private Specification<Refund> mockSpecification;
 
-    @MockBean
+    @Mock
     private PaymentService paymentService;
 
     @Mock
@@ -1202,14 +1202,14 @@ class RefundControllerTest {
         ));
 
 
-        String paymentReference = "testReference";
-        String expectedCustomerReference = "customer123";
-        PaymentDto paymentDto = new PaymentDto();
-        paymentDto.setCustomerReference(expectedCustomerReference);
-        List<PaymentDto> paymentDtoList = Collections.singletonList(paymentDto);
+        //String paymentReference = "testReference";
+        //String expectedCustomerReference = "customer123";
+       // PaymentDto paymentDto = new PaymentDto();
+       // paymentDto.setCustomerReference(expectedCustomerReference);
+      //  List<PaymentDto> paymentDtoList = Collections.singletonList(paymentDto);
 
-        when(paymentService.fetchPaymentResponse(Collections.singletonList(paymentReference)))
-            .thenReturn(paymentDtoList);
+        //when(paymentService.fetchPaymentResponse(Collections.singletonList(paymentReference)))
+       //     .thenReturn(paymentDtoList);
 
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefundWithLetterDetails());
@@ -1822,8 +1822,8 @@ class RefundControllerTest {
                                    .build());
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
         when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class),
-                                         Mockito.any(HttpEntity.class), eq(String.class)))
+                                         any(HttpMethod.class),
+                                         any(HttpEntity.class), eq(String.class)))
             .thenReturn(new ResponseEntity<>("Ok", HttpStatus.OK));
 
         when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
@@ -1834,6 +1834,12 @@ class RefundControllerTest {
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
+
+        when(restTemplatePayment.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
 
         when(restTemplateIdam.exchange(anyString(),
                                        Mockito.any(HttpMethod.class),
@@ -2413,7 +2419,7 @@ class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
-        Assertions.assertEquals("Start date cannot be greater than end date", mvcResult.getResolvedException().getMessage());
+        assertEquals("Start date cannot be greater than end date", mvcResult.getResolvedException().getMessage());
 
     }
 
@@ -2427,7 +2433,7 @@ class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
-        Assertions.assertEquals("Date cannot be in the future", mvcResult.getResolvedException().getMessage());
+        assertEquals("Date cannot be in the future", mvcResult.getResolvedException().getMessage());
 
     }
 
@@ -2441,7 +2447,7 @@ class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().is4xxClientError()).andReturn();
-        Assertions.assertEquals("Invalid date format received, required data format is ISO", mvcResult.getResolvedException().getMessage());
+        assertEquals("Invalid date format received, required data format is ISO", mvcResult.getResolvedException().getMessage());
 
     }
 
@@ -2479,7 +2485,7 @@ class RefundControllerTest {
             mvcResult.getResponse().getContentAsString(), RefundLiberataResponse.class
         );
 
-        Assertions.assertEquals("RF-1111-2234-1077-1123", refundLiberataResponse.getRefunds().get(0).getReference());
+        assertEquals("RF-1111-2234-1077-1123", refundLiberataResponse.getRefunds().get(0).getReference());
     }
 
     @Test
@@ -2492,9 +2498,9 @@ class RefundControllerTest {
         Date toDate = date.getIsoDateTimeFormatter().parseDateTime("2021-11-03")
             .toDate();
 
-        Assertions.assertEquals(fromDate,getSearchCriteria().getStartDate());
-        Assertions.assertEquals(toDate,getSearchCriteria().getEndDate());
-        Assertions.assertEquals("RF-1111-2234-1077-1123",getSearchCriteria().getRefundReference());
+        assertEquals(fromDate,getSearchCriteria().getStartDate());
+        assertEquals(toDate,getSearchCriteria().getEndDate());
+        assertEquals("RF-1111-2234-1077-1123",getSearchCriteria().getRefundReference());
 
     }
 
