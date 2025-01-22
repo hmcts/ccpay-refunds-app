@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.refunds.service;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +22,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RecipientPostalAddress;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.CurrencyCode;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentAllocationResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentFeeResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
@@ -54,6 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
@@ -101,17 +105,35 @@ class RefundNotificationServiceImplTest {
     @Qualifier("restTemplatePayment")
     private RestTemplate restTemplatePayment;
 
+    private final IdamUserIdResponse mockIdamUserIdResponseWithRole = IdamUserIdResponse.idamUserIdResponseWith()
+        .familyName("VP")
+        .givenName("VP")
+        .name("VP")
+        .sub("V_P@gmail.com")
+        .roles(List.of("vp","payments-refund", "payments-refund-approver", "payments-refund-approver-cmc", "payments-refund-cmc"))
+        .uid("986-erfg-kjhg-123")
+        .build();
+
     @Test
     void resendEmailRefundNotificationShouldReturnSuccessResponse_AfterSuccessfulRestcallWithNotificationService() {
         ResendNotificationRequest mockRequest = getMockEmailRequest();
+
         when(refundsService.getRefundForReference(anyString())).thenReturn(getMockRefund());
         when(restTemplateNotify.exchange(anyString(),any(HttpMethod.class),any(HttpEntity.class),eq(String.class))).thenReturn(
             new ResponseEntity<>("Success", HttpStatus.OK)
         );
+
         when(authTokenGenerator.generate()).thenReturn("Service.Auth.Token");
         when(refundsRepository.save(any(Refund.class))).thenReturn(getMockRefund());
         when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
         ResponseEntity<String> responseEntity = refundNotificationService.resendRefundNotification(mockRequest,getHeaders());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -127,6 +149,13 @@ class RefundNotificationServiceImplTest {
         when(refundsRepository.save(any(Refund.class))).thenReturn(getMockRefund());
         when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
         ResponseEntity<String> responseEntity = refundNotificationService.resendRefundNotification(mockRequest,getHeaders());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -221,7 +250,15 @@ class RefundNotificationServiceImplTest {
         when(idamService.getSecurityTokens()).thenReturn(tokenres);
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
 
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
         refundNotificationService.processFailedNotificationsEmail();
+
+        verify(refundsRepository, Mockito.times(1)).save(any(Refund.class));
+        verify(notificationService, Mockito.times(1)).postEmailNotificationData(any(), any());
 
     }
 
@@ -256,7 +293,7 @@ class RefundNotificationServiceImplTest {
     @Test
     void processFailedNotificationsLetterTest() throws Exception {
 
-        IdamTokenResponse tokenres =  IdamTokenResponse
+        IdamTokenResponse tokenres = IdamTokenResponse
             .idamFullNameRetrivalResponseWith()
             .accessToken("test token")
             .refreshToken("mock token")
@@ -269,15 +306,30 @@ class RefundNotificationServiceImplTest {
         when(refundsRepository.findByNotificationSentFlag(anyString())).thenReturn(Optional.ofNullable(List.of(
             RefundServiceImplTest.refundListContactDetailsLetter.get())));
 
-        when(notificationService.postEmailNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        when(notificationService.postLetterNotificationData(any(), any())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(notificationService.postEmailNotificationData(
+            any(),
+            any()
+        )).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(notificationService.postLetterNotificationData(
+            any(),
+            any()
+        )).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(authTokenGenerator.generate()).thenReturn("service auth token");
         when(idamService.getSecurityTokens()).thenReturn(tokenres);
         when(refundsRepository.save(any(Refund.class))).thenReturn(getRefund());
+        when(restTemplatePayment.exchange(
+            anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+                PaymentGroupResponse.class)
+        )).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
         refundNotificationService.processFailedNotificationsLetter();
+
+        verify(refundsRepository, Mockito.times(1)).save(any(Refund.class));
+        verify(notificationService, Mockito.times(1)).postLetterNotificationData(any(), any());
+
     }
-
-
 
 
     private PaymentGroupResponse getPaymentGroupDto() {
@@ -295,6 +347,7 @@ class RefundNotificationServiceImplTest {
                     .currency(CurrencyCode.GBP)
                     .caseReference("case-reference")
                     .ccdCaseNumber("ccd-case-number")
+                    .customerReference("cusotmer-1234")
                     .channel("solicitors portal")
                     .method("payment by account")
                     .externalProvider("provider")
@@ -343,6 +396,8 @@ class RefundNotificationServiceImplTest {
             )).build();
     }
 
-
+    private static <T> ArgumentCaptor<T> createArgumentCaptor(Class<T> clazz) {
+        return ArgumentCaptor.forClass(clazz);
+    }
 
 }

@@ -25,4 +25,6 @@ public class Personalisation {
     private BigDecimal refundAmount;
 
     private String  refundReason;
+
+    private String customerReference;
 }

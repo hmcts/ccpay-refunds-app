@@ -21,4 +21,6 @@ public interface NotificationService {
     void updateNotification(MultiValueMap<String, String> headers, Refund refund, TemplatePreview templatePreview, String templateId);
 
     Notification getNotificationDetails(MultiValueMap<String, String> headers, String reference);
+
+    String retrieveCustomerReference(MultiValueMap<String, String> headers, String paymentReference);
 }
