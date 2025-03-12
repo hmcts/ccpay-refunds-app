@@ -152,6 +152,8 @@ withPipeline(type, product, app) {
     env.PAYMENT_API_URL = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.NOTIFICATION_API_URL = "https://ccpay-notifications-service-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.REFUND_API_URL = "https://ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    env.NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID = "c0efdc71-5485-4d4c-b02d-9307e7b4bafa"
+    env.NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID = "10b9a460-9bca-45bf-ae2f-4eeabf26a095"
   }
 }
 
