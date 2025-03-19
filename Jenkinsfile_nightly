@@ -37,11 +37,6 @@ def secrets = [
   ]
 ]
 
-onPR {
-  env.NOTIFICATION_LETTER_CARD_PBA_TEMPLATE_ID = "c0efdc71-5485-4d4c-b02d-9307e7b4bafa"
-  env.NOTIFICATION_EMAIL_CARD_PBA_TEMPLATE_ID = "10b9a460-9bca-45bf-ae2f-4eeabf26a095"
-}
-
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   [ $class: 'AzureKeyVaultSecret',
     secretType: 'Secret',
