@@ -1832,6 +1832,12 @@ class RefundControllerTest {
             NotificationsDtoResponse.class))).thenReturn(ResponseEntity.of(
             Optional.of(getNotificationDtoResponse())));
 
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
         RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
             RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON,
             uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED
