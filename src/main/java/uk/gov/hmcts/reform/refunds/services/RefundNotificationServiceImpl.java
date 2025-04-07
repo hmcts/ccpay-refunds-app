@@ -63,6 +63,9 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
+    @Autowired
+    PaymentService paymentService;
+
     @Override
     public ResponseEntity<String> resendRefundNotification(ResendNotificationRequest resendNotificationRequest,
                                                            MultiValueMap<String, String> headers) {
@@ -73,6 +76,8 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
 
         NotificationType notificationType = resendNotificationRequest.getNotificationType();
 
+        String customerReference = notificationService.retrieveCustomerReference(headers, refund.getPaymentReference());
+
         ResponseEntity<String> responseEntity;
         if (notificationType.equals(EMAIL)) {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
@@ -82,7 +87,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag(EMAILNOTSENT.getFlag());
             RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
-                .getRefundNotificationEmailRequest(refund, resendNotificationRequest);
+                .getRefundNotificationEmailRequest(refund, resendNotificationRequest, customerReference);
             responseEntity = notificationService.postEmailNotificationData(headers,refundNotificationEmailRequest);
         } else {
             ContactDetails newContact = ContactDetails.contactDetailsWith()
@@ -96,7 +101,7 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
             refund.setContactDetails(newContact);
             refund.setNotificationSentFlag(LETTERNOTSENT.getFlag());
             RefundNotificationLetterRequest refundNotificationLetterRequestRequest = refundNotificationMapper
-                .getRefundNotificationLetterRequest(refund, resendNotificationRequest);
+                .getRefundNotificationLetterRequest(refund, resendNotificationRequest, customerReference);
             responseEntity = notificationService.postLetterNotificationData(headers,refundNotificationLetterRequestRequest);
 
         }
@@ -141,8 +146,11 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                 if (null != refund.getContactDetails() && refund.getContactDetails()
                         .getNotificationType().equalsIgnoreCase("email")) {
                     refund.setNotificationSentFlag("EMAIL_NOT_SENT");
+
+                    String customerReference = notificationService.retrieveCustomerReference(getHttpHeaders(), refund.getPaymentReference());
+
                     RefundNotificationEmailRequest refundNotificationEmailRequest = refundNotificationMapper
-                        .getRefundNotificationEmailRequestApproveJourney(refund);
+                        .getRefundNotificationEmailRequestApproveJourney(refund, customerReference);
                     ResponseEntity<String> responseEntity;
                     LOG.info("Refund Notification Email Request {}", refundNotificationEmailRequest);
                     responseEntity = notificationService.postEmailNotificationData(getHttpHeaders(),
@@ -181,8 +189,11 @@ public class RefundNotificationServiceImpl extends StateUtil implements RefundNo
                 if (null != refund.getContactDetails() && refund.getContactDetails()
                         .getNotificationType().equalsIgnoreCase("letter")) {
                     refund.setNotificationSentFlag("LETTER_NOT_SENT");
+
+                    String customerReference = notificationService.retrieveCustomerReference(getHttpHeaders(), refund.getPaymentReference());
+
                     RefundNotificationLetterRequest refundNotificationLetterRequest = refundNotificationMapper
-                        .getRefundNotificationLetterRequestApproveJourney(refund);
+                        .getRefundNotificationLetterRequestApproveJourney(refund, customerReference);
                     ResponseEntity<String> responseEntity;
                     LOG.info("Refund Notification Letter Request {}", refundNotificationLetterRequest);
                     responseEntity = notificationService.postLetterNotificationData(getHttpHeaders(),
