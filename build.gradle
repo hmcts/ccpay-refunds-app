@@ -199,7 +199,7 @@ dependencyManagement {
 
   dependencies {
     // CVE-2018-10237, CVE-2020-8908
-    dependencySet(group: 'com.google.guava', version: '33.4.7-jre') {
+    dependencySet(group: 'com.google.guava', version: '33.4.8-jre') {
       entry 'guava'
     }
     dependencySet(group: 'org.springframework.cloud', version: '4.2.1') {
