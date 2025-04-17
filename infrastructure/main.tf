@@ -21,6 +21,7 @@ locals {
   # list of the thumbprints of the SSL certificates that should be accepted by the refund status API (gateway)
   refund_status_thumbprints_in_quotes     = formatlist("&quot;%s&quot;", var.refunds_api_gateway_certificate_thumbprints)
   refund_status_thumbprints_in_quotes_str = join(",", local.refund_status_thumbprints_in_quotes)
+  db_server_name                          = join("-", [var.product, var.component, "postgres-db-v15"])
 }
 
 data "azurerm_key_vault" "refunds_key_vault" {
@@ -37,7 +38,7 @@ module "ccpay-refunds-database-v15" {
   product              = var.product
   component            = var.component
   business_area        = "cft"
-  name                 = join("-", [var.product, var.component, "postgres-db-v15"])
+  name                 = local.db_server_name
   location             = var.location
   env                  = var.env
   pgsql_admin_username = var.postgresql_user
@@ -60,6 +61,9 @@ module "ccpay-refunds-database-v15" {
   admin_user_object_id = var.jenkins_AAD_objectId
   common_tags          = var.common_tags
   pgsql_version        = var.postgresql_flexible_sql_version
+  action_group_name           = join("-", [var.db_monitor_action_group_name, local.db_server_name, var.env])
+  email_address_key           = var.db_alert_email_address_key
+  email_address_key_vault_id  = data.azurerm_key_vault.refunds_key_vault.id
 }
 
 # Populate Vault with DB info
