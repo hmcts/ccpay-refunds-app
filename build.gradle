@@ -310,8 +310,8 @@ dependencies {
   testCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 
-  smokeTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.36'
-  smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.36'
+  smokeTestCompileOnly group :'org.projectlombok', name:'lombok', version:'1.18.38'
+  smokeTestAnnotationProcessor group :'org.projectlombok', name:'lombok', version:'1.18.38'
 
   smokeTestImplementation group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
   smokeTestImplementation sourceSets.main.runtimeClasspath
