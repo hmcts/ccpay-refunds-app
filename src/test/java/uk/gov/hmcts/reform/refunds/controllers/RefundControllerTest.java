@@ -555,7 +555,7 @@ class RefundControllerTest {
     }
 
     @Test
-    void givenCcdCaseNumber_whenGetRefundList_thenRefundListIsReceived() throws Exception {
+    void givenCcdCaseNumber_whenGetRefundList_thenRefundEmptyList() throws Exception {
 
         mockUserinfoCall(idamUserIDResponseSupplier.get());
 
