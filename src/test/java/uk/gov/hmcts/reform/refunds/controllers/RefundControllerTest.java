@@ -496,21 +496,58 @@ class RefundControllerTest {
             "Please provide criteria to fetch refunds i.e. Refund status or ccd case number"));
     }
 
+
+
     @SuppressWarnings("unchecked")
     @Test
     void givenEmptyRefundList_whenGetRefundList_thenReturnsNoContent() throws Exception {
-        when(refundsService.getRefundList(
-            anyString(),
-            (MultiValueMap<String, String>) any(),  // Cast here to suppress unchecked warning
-            anyString(),
-            anyString()
-        )).thenReturn(RefundListDtoResponse.buildRefundListWith().refundList(Collections.emptyList()).build());
+        //mock repository call
+        List<String> list = List.of("cmc");
+        when(refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1, list))
+            .thenReturn(Optional.ofNullable(List.of(
+                Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
 
-        mockMvc.perform(get("/refund")
-                            .header("Authorization", "user")
-                            .param("ccdCaseNumber", "someCaseNumber")  // Provide valid criteria
-                            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent());
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put(
+            "payments-refund",
+            Collections
+                .singletonList(UserIdentityDataDto.userIdentityDataWith().id(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                   .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
+        );
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+            "refund reason").build()));
+
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
+                                                                                   .code("RR002")
+                                                                                   .name("Amended court")
+                                                                                   .build());
+        when(refundReasonRepository.findAll()).thenReturn(
+            Collections.singletonList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
+
+        MvcResult mvcResult = mockMvc.perform(get("/refund")
+                                                  .header("Authorization", "user")
+                                                  .header("ServiceAuthorization", "Services")
+                                                  .queryParam("status", "submitted")
+                                                  .queryParam("ccdCaseNumber", Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                                  .queryParam("excludeCurrentUser", " ")
+                                                  .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk()).andReturn();
+
+
+        RefundListDtoResponse refundListDtoResponse = mapper.readValue(
+            mvcResult.getResponse().getContentAsString(),
+            new TypeReference<>() {
+            }
+        );
+
+        assertNotNull(refundListDtoResponse);
+        assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals("mock-Forename mock-Surname", refundListDtoResponse.getRefundList().get(0).getUserFullName());
+        assertEquals(
+            uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL,
+            refundListDtoResponse.getRefundList().get(0).getRefundStatus()
+        );
     }
 
     @Test
@@ -525,9 +562,6 @@ class RefundControllerTest {
 
         //mock repository call
         List<String> list = List.of("cmc");
-        when(refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1, list))
-            .thenReturn(Optional.ofNullable(List.of(
-                Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
 
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put(
@@ -544,31 +578,14 @@ class RefundControllerTest {
                                                                                    .code("RR002")
                                                                                    .name("Amended court")
                                                                                    .build());
-        when(refundReasonRepository.findAll()).thenReturn(
-                Collections.singletonList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
-
-        MvcResult mvcResult = mockMvc.perform(get("/refund")
+         mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "submitted")
                                                   .queryParam("ccdCaseNumber", Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
                                                   .queryParam("excludeCurrentUser", " ")
                                                   .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk()).andReturn();
-
-        RefundListDtoResponse refundListDtoResponse = mapper.readValue(
-            mvcResult.getResponse().getContentAsString(),
-            new TypeReference<>() {
-            }
-        );
-
-        assertNotNull(refundListDtoResponse);
-        assertEquals(1, refundListDtoResponse.getRefundList().size());
-        assertEquals("mock-Forename mock-Surname", refundListDtoResponse.getRefundList().get(0).getUserFullName());
-        assertEquals(
-            uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL,
-            refundListDtoResponse.getRefundList().get(0).getRefundStatus()
-        );
+            .andExpect(status().isNoContent());
     }
 
     @Test
