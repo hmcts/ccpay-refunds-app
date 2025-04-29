@@ -496,13 +496,12 @@ class RefundControllerTest {
             "Please provide criteria to fetch refunds i.e. Refund status or ccd case number"));
     }
 
-
+    @SuppressWarnings("unchecked")
     @Test
     void givenEmptyRefundList_whenGetRefundList_thenReturnsNoContent() throws Exception {
-        // Mock the service to return an empty refund list response
         when(refundsService.getRefundList(
             anyString(),
-            any(MultiValueMap.class),
+            (MultiValueMap<String, String>) any(),  // Cast here to suppress unchecked warning
             anyString(),
             anyString()
         )).thenReturn(RefundListDtoResponse.buildRefundListWith().refundList(Collections.emptyList()).build());
@@ -513,7 +512,6 @@ class RefundControllerTest {
                             .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
     }
-
 
     @Test
     void givenCcdCaseNumber_whenGetRefundList_thenRefundListIsReceived() throws Exception {
