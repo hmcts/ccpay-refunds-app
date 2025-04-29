@@ -360,7 +360,9 @@ class RefundServiceImplTest {
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put(
             "payments-refund", Arrays.asList(
-                UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId("h@mail.com").id(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1).build(),
+                UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name").emailId("h@mail.com")
+                    .id(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1).build(),
+
                 UserIdentityDataDto.userIdentityDataWith().fullName("ccd-full-name-for-submitted-status").emailId(
                     "h@mail.com").id(Utility.GET_REFUND_LIST_SUBMITTED_REFUND_CCD_CASE_USER_ID).build()
             )

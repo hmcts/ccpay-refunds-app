@@ -582,13 +582,13 @@ class RefundControllerTest {
                                                                                    .code("RR002")
                                                                                    .name("Amended court")
                                                                                    .build());
-         mockMvc.perform(get("/refund")
-                                                  .header("Authorization", "user")
-                                                  .header("ServiceAuthorization", "Services")
-                                                  .queryParam("status", "submitted")
-                                                  .queryParam("ccdCaseNumber", Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
-                                                  .queryParam("excludeCurrentUser", " ")
-                                                  .accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/refund")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "Services")
+                            .queryParam("status", "submitted")
+                            .queryParam("ccdCaseNumber", Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                            .queryParam("excludeCurrentUser", " ")
+                            .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
     }
 
