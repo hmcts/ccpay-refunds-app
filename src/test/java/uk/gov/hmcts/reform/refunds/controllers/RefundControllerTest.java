@@ -496,11 +496,16 @@ class RefundControllerTest {
             "Please provide criteria to fetch refunds i.e. Refund status or ccd case number"));
     }
 
-
-
-    @SuppressWarnings("unchecked")
     @Test
-    void givenEmptyRefundList_whenGetRefundList_thenReturnsNoContent() throws Exception {
+    void givenCcdCaseNumber_whenGetRefundList_thenRefundListIsReceived() throws Exception {
+
+        mockUserinfoCall(idamUserIDResponseSupplier.get());
+
+        mockGetUsersForRolesCall(
+            Arrays.asList("refund-approver", "refund-admin"),
+            idamFullNameCCDSearchRefundListSupplier.get()
+        );
+
         //mock repository call
         List<String> list = List.of("cmc");
         when(refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1, list))
@@ -510,9 +515,9 @@ class RefundControllerTest {
         Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
         userMap.put(
             "payments-refund",
-            Collections
-                .singletonList(UserIdentityDataDto.userIdentityDataWith().id(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
-                                   .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
+                 Collections
+                        .singletonList(UserIdentityDataDto.userIdentityDataWith().id(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
         );
         when(contextStartListener.getUserMap()).thenReturn(userMap);
         when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
@@ -523,7 +528,7 @@ class RefundControllerTest {
                                                                                    .name("Amended court")
                                                                                    .build());
         when(refundReasonRepository.findAll()).thenReturn(
-            Collections.singletonList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
+                Collections.singletonList(RefundReason.refundReasonWith().code("RR001").name("Amended court").build()));
 
         MvcResult mvcResult = mockMvc.perform(get("/refund")
                                                   .header("Authorization", "user")
@@ -533,7 +538,6 @@ class RefundControllerTest {
                                                   .queryParam("excludeCurrentUser", " ")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
-
 
         RefundListDtoResponse refundListDtoResponse = mapper.readValue(
             mvcResult.getResponse().getContentAsString(),
