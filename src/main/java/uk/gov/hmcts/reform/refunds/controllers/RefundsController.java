@@ -158,16 +158,17 @@ public class RefundsController {
             throw new RefundListEmptyException(
                 "Please provide criteria to fetch refunds i.e. Refund status or ccd case number");
         }
-
-        return new ResponseEntity<>(
-            refundsService.getRefundList(
-                status,
-                headers,
-                ccdCaseNumber,
-                excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser
-            ),
-            HttpStatus.OK
+        final RefundListDtoResponse response = refundsService.getRefundList(
+            status,
+            headers,
+            ccdCaseNumber,
+            excludeCurrentUser == null || excludeCurrentUser.isBlank() ? "false" : excludeCurrentUser
         );
+        if (response.getRefundList().isEmpty()) {
+            return ResponseEntity.noContent().build();  // HTTP 204 No Content
+        } else {
+            return ResponseEntity.ok(response);  // HTTP 200 OK with body
+        }
     }
 
     @Operation(summary = "GET /refund/payment-failure-report Get payment failure report based on list of payment reference")

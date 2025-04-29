@@ -274,13 +274,18 @@ class RefundServiceImplTest {
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
         when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(RefundListEmptyException.class, () -> refundsService.getRefundList(
+        RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             null,
             map,
             Utility.GET_REFUND_LIST_CCD_CASE_NUMBER,
             "true"
-        ));
+        );
+
+        assertNotNull(refundListDtoResponse);
+        assertNotNull(refundListDtoResponse.getRefundList());
+        assertTrue(refundListDtoResponse.getRefundList().isEmpty(), "Refund list should be empty");
     }
+
 
     @Test
     void testRefundListForGivenCcdCaseNumber() {
@@ -892,22 +897,21 @@ class RefundServiceImplTest {
     }
 
     @Test
-    void givenEmptyRefundList_whenGetRefundList_thenRefundListEmptyExceptionIsReceived() {
-
+    void givenEmptyRefundList_whenGetRefundList_thenReturnsEmptyList() {
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
-        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
+        // Return Optional.of(empty list) to simulate no refunds found
+        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
-        Exception exception = assertThrows(
-            RefundListEmptyException.class,
-            () -> refundsService.getRefundList(
-                null,
-                map,
-                Utility.GET_REFUND_LIST_CCD_CASE_NUMBER,
-                ""
-            )
+        RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
+            null,
+            map,
+            Utility.GET_REFUND_LIST_CCD_CASE_NUMBER,
+            ""
         );
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains("Refund list is empty for given criteria"));
+
+        assertNotNull(refundListDtoResponse);
+        assertNotNull(refundListDtoResponse.getRefundList());
+        assertTrue(refundListDtoResponse.getRefundList().isEmpty(), "Refund list should be empty");
     }
 
     @Test
