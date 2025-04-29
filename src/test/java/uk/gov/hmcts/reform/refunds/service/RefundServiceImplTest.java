@@ -210,16 +210,21 @@ class RefundServiceImplTest {
     }
 
     public static final Supplier<Refund> refundListSupplierBasedOnCCDCaseNumber1 = () -> Refund.refundsWith().id(1).amount(
-        BigDecimal.valueOf(100)).ccdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_NUMBER).createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1).reference(
+        BigDecimal.valueOf(100)).ccdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_NUMBER)
+        .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1).reference(
         "RF-1111-2234-1077-1123").refundStatus(RefundStatus.SENTFORAPPROVAL).reason("RR001").paymentReference(
         "RC-1111-2234-1077-1123").dateCreated(Timestamp.valueOf(LocalDateTime.now())).dateUpdated(Timestamp.valueOf(
         LocalDateTime.now())).updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1).build();
 
-    public static final Supplier<Refund> refundListSupplierForSendBackStatus = () -> Refund.refundsWith().id(3).amount(
-        BigDecimal.valueOf(300)).ccdCaseNumber(Utility.GET_REFUND_LIST_SENDBACK_REFUND_STATUS).createdBy(Utility.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID).updatedBy(
-        Utility.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID).reference("RF-3333-2234-1077-1123").refundStatus(
-        RefundStatus.UPDATEREQUIRED).reason("Other").paymentReference("RC-3333-2234-1077-1123").dateCreated(Timestamp.valueOf(
-        LocalDateTime.now())).dateUpdated(Timestamp.valueOf(LocalDateTime.now())).statusHistories(Arrays.asList(Utility.STATUS_HISTORY_SUPPLIER.get())).build();
+    public static final Supplier<Refund> refundListSupplierForSendBackStatus = () ->
+        Refund.refundsWith().id(3).amount(
+                BigDecimal.valueOf(300)).ccdCaseNumber(Utility.GET_REFUND_LIST_SENDBACK_REFUND_STATUS)
+            .createdBy(Utility.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID).updatedBy(
+                Utility.GET_REFUND_LIST_SENDBACK_REFUND_CCD_CASE_USER_ID).reference("RF-3333-2234-1077-1123").refundStatus(
+                RefundStatus.UPDATEREQUIRED).reason("Other").paymentReference("RC-3333-2234-1077-1123")
+            .dateCreated(Timestamp.valueOf(
+                LocalDateTime.now())).dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .statusHistories(Arrays.asList(Utility.STATUS_HISTORY_SUPPLIER.get())).build();
 
     @Test
     void testRefundListEmptyForCriteria() {
@@ -579,6 +584,7 @@ class RefundServiceImplTest {
             any(),
             anyString()
         )).thenReturn(Utility.PAYMENT_GROUP_RESPONSE.get());
+
         when(paymentService.updateRemissionAmountInPayhub(any(), anyString(), any())).thenReturn(false);
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name(
             "RR001").build());
@@ -1226,15 +1232,21 @@ class RefundServiceImplTest {
         assertEquals(predicate, actualPredicate);
     }
 
-    public static final Supplier<Refund> refundListContactDetailsEmail = () -> Refund.refundsWith().id(1).ccdCaseNumber(
-        "1234567890123456").refundStatus(RefundStatus.APPROVED).contactDetails(ContactDetails.contactDetailsWith().addressLine(
-        "ABC Street").email("mock@test.com").city("London").county("Greater London").country("UK").postalCode("E1 6AN").notificationType(
-        "EMAIL").build()).build();
+    public static final Supplier<Refund> refundListContactDetailsEmail =
+        () -> Refund.refundsWith().id(1).ccdCaseNumber(
+            "1234567890123456").refundStatus(RefundStatus.APPROVED)
+            .contactDetails(ContactDetails.contactDetailsWith().addressLine(
+            "ABC Street").email("mock@test.com").city("London").county("Greater London").country("UK").postalCode(
+            "E1 6AN").notificationType(
+            "EMAIL").build()).build();
 
-    public static final Supplier<Refund> refundListContactDetailsLetter = () -> Refund.refundsWith().id(1).ccdCaseNumber(
-        "1234567890123456").refundStatus(RefundStatus.APPROVED).contactDetails(ContactDetails.contactDetailsWith().addressLine(
-        "ABC Street").email("mock@test.com").city("London").county("Greater London").country("UK").postalCode("E1 6AN").notificationType(
-        "Letter").build()).build();
+    public static final Supplier<Refund> refundListContactDetailsLetter =
+        () -> Refund.refundsWith().id(1).ccdCaseNumber(
+            "1234567890123456").refundStatus(RefundStatus.APPROVED)
+            .contactDetails(ContactDetails.contactDetailsWith().addressLine(
+            "ABC Street").email("mock@test.com").city("London").county("Greater London").country("UK").postalCode(
+            "E1 6AN").notificationType(
+            "Letter").build()).build();
 
     @Test
     void testGetRefundResponseDtoList() {
@@ -1261,7 +1273,8 @@ class RefundServiceImplTest {
 
     @Test
     void testPaymentFailureForEmptyCriteria() {
-        when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(), any())).thenReturn(Optional.empty());
+        when(refundsRepository.findByPaymentReferenceInAndRefundStatusNotIn(any(), any()))
+            .thenReturn(Optional.empty());
         assertEquals(Optional.empty(), refundsService.getPaymentFailureReport(paymentReferenceList));
     }
 
@@ -1296,7 +1309,8 @@ class RefundServiceImplTest {
     @Test
     void testRefundListForGivenCcdCaseNumberWhenRoleIsPayment() {
         refundResponseMapper.setRefundFeeMapper(refundFeeMapper);
-        when(refundsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.ofNullable(List.of(Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
+        when(refundsRepository.findByCcdCaseNumber(anyString()))
+            .thenReturn(Optional.ofNullable(List.of(Utility.refundListSupplierBasedOnCCDCaseNumber1.get())));
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE_PAYMENT_ROLE);
         when(refundReasonRepository.findAll()).thenReturn(Collections.singletonList(RefundReason.refundReasonWith().code(
             "RR001").name("Amended court").build()));
