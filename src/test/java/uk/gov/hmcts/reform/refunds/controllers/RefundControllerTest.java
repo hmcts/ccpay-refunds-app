@@ -496,6 +496,25 @@ class RefundControllerTest {
             "Please provide criteria to fetch refunds i.e. Refund status or ccd case number"));
     }
 
+
+    @Test
+    void givenEmptyRefundList_whenGetRefundList_thenReturnsNoContent() throws Exception {
+        // Mock the service to return an empty refund list response
+        when(refundsService.getRefundList(
+            anyString(),
+            any(MultiValueMap.class),
+            anyString(),
+            anyString()
+        )).thenReturn(RefundListDtoResponse.buildRefundListWith().refundList(Collections.emptyList()).build());
+
+        mockMvc.perform(get("/refund")
+                            .header("Authorization", "user")
+                            .param("ccdCaseNumber", "someCaseNumber")  // Provide valid criteria
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+    }
+
+
     @Test
     void givenCcdCaseNumber_whenGetRefundList_thenRefundListIsReceived() throws Exception {
 
