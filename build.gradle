@@ -29,7 +29,7 @@ group = 'uk.gov.hmcts.reform'
 version = '0.0.1'
 
 def springCloudVersion = '2023.0.5'
-def javaLoggingVersion = '6.1.8'
+def javaLoggingVersion = '6.1.9'
 
 java {
   toolchain {
