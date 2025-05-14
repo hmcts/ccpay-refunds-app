@@ -135,6 +135,7 @@ public class RefundsController {
     @Operation(summary = "GET /refund Get refund list based on status")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Success"),
+        @ApiResponse(responseCode = "204", description = "Success, no Content"),
         @ApiResponse(responseCode = "400", description = "Bad Request"),
         @ApiResponse(responseCode = "401", description = "UnAuthorised"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
