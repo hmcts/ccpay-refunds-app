@@ -226,7 +226,7 @@ def versions = [
   jacocoVersion   : '0.8.5',
   restAssured     : '5.5.1',
   serenity        : '4.2.22',
-  serenityCucumber: '4.2.22',
+  serenityCucumber: '4.2.23',
   pitest          : '1.16.1',
   gradlePitest    : '1.3.0',
   sonarPitest     : '0.5'
