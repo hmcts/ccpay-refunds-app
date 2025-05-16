@@ -43,7 +43,6 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
-import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
@@ -233,7 +232,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         LOG.info("idamUserIdResponse roles: {}", idamUserIdResponse.getRoles());
         List<String> serviceList = refundServiceRoleUtil.getServiceNameFromUserRoles(idamUserIdResponse.getRoles());
         LOG.info("serviceList {}", serviceList.toString());
-        //Return Refund list based on ccdCaseNumber if its not blank
+
+        //Return Refund list based on ccdCaseNumber if it is not blank
         if (StringUtils.isNotBlank(ccdCaseNumber)) {
             refundList = serviceList.isEmpty() ? refundsRepository.findByCcdCaseNumber(ccdCaseNumber)
                 : refundsRepository.findByCcdCaseNumberAndServiceTypeInIgnoreCase(ccdCaseNumber, serviceList);
@@ -251,6 +251,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         return getRefundListDto(headers, refundList, idamUserIdResponse);
     }
+
 
     public RefundListDtoResponse getRefundListDto(MultiValueMap<String, String> headers,
                                                   Optional<List<Refund>> refundList, IdamUserIdResponse idamUserIdResponse) {
@@ -275,9 +276,12 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     .build();
             }
         } else {
-            throw new RefundListEmptyException("Refund list is empty for given criteria");
+            LOG.info("Refund list is empty for given criteria");
+            // Return empty list instead of throwing exception
+            return RefundListDtoResponse.buildRefundListWith().refundList(Collections.emptyList()).build();
         }
     }
+
 
     public List<RefundDto> getRefundResponseDtoList(MultiValueMap<String, String> headers, List<Refund> refundList, List<String> roles) {
 

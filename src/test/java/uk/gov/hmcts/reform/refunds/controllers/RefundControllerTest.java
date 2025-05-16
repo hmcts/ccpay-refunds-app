@@ -555,6 +555,44 @@ class RefundControllerTest {
     }
 
     @Test
+    void givenCcdCaseNumber_whenGetRefundList_thenRefundEmptyList() throws Exception {
+
+        mockUserinfoCall(idamUserIDResponseSupplier.get());
+
+        mockGetUsersForRolesCall(
+            Arrays.asList("refund-approver", "refund-admin"),
+            idamFullNameCCDSearchRefundListSupplier.get()
+        );
+
+        //mock repository call
+        List<String> list = List.of("cmc");
+
+        Map<String, List<UserIdentityDataDto>> userMap = new ConcurrentHashMap<>();
+        userMap.put(
+            "payments-refund",
+                 Collections
+                        .singletonList(UserIdentityDataDto.userIdentityDataWith().id(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                                .fullName("mock-Forename mock-Surname").emailId("mockfullname@gmail.com").build())
+        );
+        when(contextStartListener.getUserMap()).thenReturn(userMap);
+        when(refundReasonRepository.findByCode(anyString())).thenReturn(Optional.of(RefundReason.refundReasonWith().name(
+            "refund reason").build()));
+
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith()
+                                                                                   .code("RR002")
+                                                                                   .name("Amended court")
+                                                                                   .build());
+        mockMvc.perform(get("/refund")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "Services")
+                            .queryParam("status", "submitted")
+                            .queryParam("ccdCaseNumber", Utility.GET_REFUND_LIST_CCD_CASE_USER_ID1)
+                            .queryParam("excludeCurrentUser", " ")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
     void testRefundListForSubmittedStatus() throws Exception {
 
         //mock userinfo call
