@@ -191,6 +191,44 @@ public class RefundsApproverJourneyFunctionalTest {
 
     }
 
+    @Test
+    public void negative_get_refund_list_for_case_with_no_refunds() {
+
+        final String accountNumber = testConfigProperties.existingAccountNumber;
+        final String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
+        // Create Payment 1
+        final CreditAccountPaymentRequest accountPaymentRequest = RefundsFixture
+            .pbaPaymentRequestForProbate(
+                "90.00",
+                "PROBATE",
+                accountNumber,
+                ccdCaseNumber
+            );
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(
+                USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                SERVICE_TOKEN_CMC,
+                testConfigProperties.basePaymentsUrl,
+                accountPaymentRequest
+            ).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success")).extract().as(PaymentDto.class);
+
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                                                                              SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,
+                                                                              "5",
+                                                                              testConfigProperties.basePaymentsUrl
+        );
+
+        // Fetch refunds based on CCD Case Number
+        final Response refundListResponse =
+            paymentTestService.getRefundList(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber
+            );
+        assertThat(refundListResponse.getStatusCode()).isEqualTo(NO_CONTENT.value());
+    }
 
     @Test
     public void positive_reject_a_refund_request() {
