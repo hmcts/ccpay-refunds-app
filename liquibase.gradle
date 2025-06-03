@@ -3,7 +3,7 @@ configurations {
 }
 
 dependencies {
-  liquibase group: 'org.liquibase.ext', name: 'liquibase-hibernate6', version: '4.31.1'
+  liquibase group: 'org.liquibase.ext', name: 'liquibase-hibernate6', version: '4.32.0'
 }
 
 //loading properties file.
