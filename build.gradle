@@ -202,7 +202,7 @@ dependencyManagement {
     dependencySet(group: 'com.google.guava', version: '33.4.8-jre') {
       entry 'guava'
     }
-    dependencySet(group: 'org.springframework.cloud', version: '4.2.1') {
+    dependencySet(group: 'org.springframework.cloud', version: '4.3.0') {
       entry 'spring-cloud-starter-openfeign'
       entry 'spring-cloud-openfeign-core'
     }
