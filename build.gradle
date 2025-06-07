@@ -320,7 +320,7 @@ dependencies {
   functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
   functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
   functionalTestImplementation("junit:junit:4.13.2")
-  functionalTestImplementation("org.junit.vintage:junit-vintage-engine:5.11.4")
+  functionalTestImplementation("org.junit.vintage:junit-vintage-engine:5.13.1")
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
   functionalTestImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
