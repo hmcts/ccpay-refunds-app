@@ -76,7 +76,7 @@ sourceSets {
 repositories {
   mavenLocal()
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven { url = 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1' }
 }
 
 tasks.withType(JavaCompile) {
@@ -210,14 +210,6 @@ dependencyManagement {
   }
 }
 
-repositories {
-  mavenLocal()
-  mavenCentral()
-  maven {
-    url 'https://jitpack.io'
-  }
-}
-
 def versions = [
   lombok          : '1.18.38',
   reformLogging   : '5.1.7',
@@ -299,7 +291,7 @@ dependencies {
   compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 
-  testImplementation 'com.github.hmcts:fortify-client:1.4.8:all'
+  testImplementation 'com.github.hmcts:fortify-client:1.4.9:all'
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: versions.restAssured
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.21.2'
   testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.27.3'
@@ -353,10 +345,10 @@ bootJar {
 }
 
 checkstyle {
-  toolVersion "7.8.2"
+  toolVersion = "7.8.2"
 }
-pmdTest.enabled(false)
-pmdFunctionalTest.enabled(false)
+pmdTest.enabled = false
+pmdFunctionalTest.enabled = false
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
