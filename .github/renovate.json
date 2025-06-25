@@ -5,6 +5,9 @@
     "local>hmcts/.github:renovate-config",
     "local>hmcts/.github//renovate/automerge-all"
   ],
+  "ignoreDeps": [
+    "io.github.openfeign.querydsl:querydsl-jpa"
+  ],
   "labels": ["dependencies"],
   "helmv3": {
     "bumpVersion": "patch"
