@@ -8,9 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
-import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
@@ -19,7 +16,6 @@ import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 @Service
 public class RefundStatusServiceImpl extends StateUtil implements RefundStatusService {
@@ -36,15 +32,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     @Autowired
     private RefundsRepository refundsRepository;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private IdamService idamService;
-
-    @Autowired
-    RefundsUtil refundsUtil;
 
     private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
         return StatusHistory.statusHistoryWith()
