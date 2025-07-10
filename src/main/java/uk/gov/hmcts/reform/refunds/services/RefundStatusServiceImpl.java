@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.Arrays;
@@ -25,9 +24,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     private static final String LIBERATA_REASON = "Sent to Middle Office for Processing";
 
-    private static final String SYSTEM_USER = "System user";
-
-    private static final String LIBERATA_REJECT_UPDATE = "Refund approved by system";
     private static final Logger LOG = LoggerFactory.getLogger(RefundStatusServiceImpl.class);
 
     @Autowired
