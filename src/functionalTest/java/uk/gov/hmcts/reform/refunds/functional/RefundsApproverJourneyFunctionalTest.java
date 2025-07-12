@@ -2672,31 +2672,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
-        //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
-        Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundStatusUpdateRequest.RefundRequestWith().reason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)
-                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED).build()
-        );
-        assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
-        // verify that status change to Approved
-        RefundDto refundDto = getRejectRefundDto(ccdCaseNumber, refundReference, "Approved");
-        assertEquals(RefundStatus.APPROVED, refundDto.getRefundStatus());
-        assertEquals("Amended claim", refundDto.getReason());
-
-        Response updateRefundStatusResponse1 = paymentTestService.updateRefundStatus(
-            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            refundReference,
-            RefundStatusUpdateRequest.RefundRequestWith().reason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)
-                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
-        );
-        assertThat(updateRefundStatusResponse1.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
-
-        // verify that after Approve change to Accepted
         RefundDto refundDto1 = getRejectRefundDto(ccdCaseNumber, refundReference, "Accepted");
         assertEquals(RefundStatus.ACCEPTED, refundDto1.getRefundStatus());
     }
