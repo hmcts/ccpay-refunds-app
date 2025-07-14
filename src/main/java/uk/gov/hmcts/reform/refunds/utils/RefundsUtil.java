@@ -40,6 +40,9 @@ public class RefundsUtil {
     @Value("${notify.template.refund-when-contacted.letter}")
     private String refundWhenContactedLetterTemplateId;
 
+    public static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
+
+    public static final String REFUND_WHEN_CONTACTED_REJECT_REASON = "Unable to apply refund to Card";
 
     public String getTemplate(Refund refund) {
         return getTemplate(refund, refund.getReason());
@@ -50,12 +53,32 @@ public class RefundsUtil {
         if (null != refund.getRefundInstructionType()) {
             LOG.info("getTemplate --> type {}", refund.getContactDetails().getNotificationType());
             LOG.info("getTemplate --> getRefundInstructionType {}", refund.getRefundInstructionType());
-            if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
-                templateId = cardPbaEmailTemplateId;
-                LOG.info("getTemplate --> 5 {}", templateId);
+            if (REFUND_WHEN_CONTACTED.equals(refund.getRefundInstructionType())) {
+                LOG.info("getTemplate --> reason 1 {}", reason);
+                if (REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(reason)) {
+                    LOG.info("getTemplate --> reason 2 {}", reason);
+                    if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+                        templateId = refundWhenContactedEmailTemplateId;
+                        LOG.info("getTemplate --> 1 {}", templateId);
+                    } else {
+                        templateId = refundWhenContactedLetterTemplateId;
+                        LOG.info("getTemplate --> 2 {}", templateId);
+                    }
+                } else if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+                    templateId = chequePoCashEmailTemplateId;
+                    LOG.info("getTemplate --> 3 {}", templateId);
+                } else {
+                    templateId = chequePoCashLetterTemplateId;
+                    LOG.info("getTemplate --> 4 {}", templateId);
+                }
             } else {
-                templateId = cardPbaLetterTemplateId;
-                LOG.info("getTemplate --> 6 {}", templateId);
+                if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
+                    templateId = cardPbaEmailTemplateId;
+                    LOG.info("getTemplate --> 5 {}", templateId);
+                } else {
+                    templateId = cardPbaLetterTemplateId;
+                    LOG.info("getTemplate --> 6 {}", templateId);
+                }
             }
         }
         return templateId;
@@ -65,7 +88,7 @@ public class RefundsUtil {
         if (paymentDto != null) {
             LOG.info("paymentDto.getPayments(): {}", paymentDto.getPayments());
             if (paymentDto.getPayments() != null
-                && !paymentDto.getPayments().isEmpty()) {
+                    && !paymentDto.getPayments().isEmpty()) {
                 LOG.info("paymentDto.getPayments().get(0): {}", paymentDto.getPayments().get(0));
             }
         }
@@ -76,11 +99,11 @@ public class RefundsUtil {
         List<Integer> refundFeeIds = getRefundFeeIds(feeIds);
         if (!refundFeeIds.isEmpty()) {
             List<RemissionResponse> remissionsAppliedForRefund = paymentGroupResponse.getRemissions().stream()
-                .filter(remissionResponse -> refundFeeIds.contains(remissionResponse.getFeeId())).collect(
-                    Collectors.toList());
+                    .filter(remissionResponse -> refundFeeIds.contains(remissionResponse.getFeeId())).collect(
+                            Collectors.toList());
             if (refund.getReason().equals("RR036")) {
                 // create a constant and add the code
-                validateRetrospectiveRemissions(remissionsAppliedForRefund, refund);
+                validateRetrospectiveRemissions(remissionsAppliedForRefund,refund);
                 getRetrospectiveRemissionAppliedFee(paymentGroupResponse, refundFeeIds);
             }
 
@@ -88,7 +111,7 @@ public class RefundsUtil {
     }
 
     private List<Integer> getRefundFeeIds(String refundIds) {
-        return Arrays.stream(refundIds.split(",")).map(Integer::parseInt).collect(Collectors.toList());
+        return  Arrays.stream(refundIds.split(",")).map(Integer::parseInt).collect(Collectors.toList());
     }
 
     private void validateRetrospectiveRemissions(List<RemissionResponse> remissionsAppliedForRefund, Refund refund) {
@@ -99,8 +122,8 @@ public class RefundsUtil {
 
     private List<PaymentFeeResponse> getRetrospectiveRemissionAppliedFee(PaymentGroupResponse paymentGroupResponse, List<Integer> refundFeeIds) {
         List<PaymentFeeResponse> feeResponses = paymentGroupResponse.getFees().stream()
-            .filter(feeResponse -> feeResponse.getId().equals(refundFeeIds.get(0))).collect(
-                Collectors.toList());
+                .filter(feeResponse -> feeResponse.getId().equals(refundFeeIds.get(0))).collect(
+                        Collectors.toList());
         if (feeResponses.isEmpty()) {
             throw new RefundFeeNotFoundInPaymentException("Refund not found in payment");
         }
