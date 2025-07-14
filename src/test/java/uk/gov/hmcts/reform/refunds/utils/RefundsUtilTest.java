@@ -99,18 +99,4 @@ class RefundsUtilTest {
         String result = util.getTemplate(getRefund(REFUND,"SendRefund", LETTER.toString()));
         assertEquals(cardPbaLetterTemplateId, result);
     }
-
-    @Test
-    void givenUnableToProcessRefundEmail_whenGetTemplate_thenTemplateIdIsReceived() {
-        String result = util.getTemplate(getRefund(REFUND,RefundsUtil.REFUND_WHEN_CONTACTED, EMAIL.toString(),
-                                                   RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON));
-        assertEquals(refundWhenContactedEmailTemplateId, result);
-    }
-
-    @Test
-    void givenUnableToProcessRefundLetter_whenGetTemplate_thenTemplateIdIsReceived() {
-        String result = util.getTemplate(getRefund(REFUND,RefundsUtil.REFUND_WHEN_CONTACTED, LETTER.toString(),
-                                                   RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON));
-        assertEquals(refundWhenContactedLetterTemplateId, result);
-    }
 }

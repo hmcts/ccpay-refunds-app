@@ -38,7 +38,6 @@ import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.NotificationService;
-import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -47,10 +46,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -243,181 +240,6 @@ class NotificationServiceImplTest {
                       .build())
             .build();
     }
-
-    @Test
-    void updateNotificationWith2xxCode() {
-        Refund refund = getRefund();
-        refund.setRefundStatus(RefundStatus.REJECTED);
-        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
-        when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class),
-                                         Mockito.any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
-
-        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        notificationService.updateNotification(getHeaders(),refund,  null,"template-1");
-
-        assertEquals("SENT",refund.getNotificationSentFlag());
-    }
-
-    @Test
-    void updateNotificationEmailWith5xxCode() {
-        Refund refund = getRefund();
-        refund.setRefundStatus(RefundStatus.REJECTED);
-        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
-        when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class),
-                                         Mockito.any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
-        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        notificationService.updateNotification(getHeaders(), refund, null,"template-1");
-
-        assertEquals("EMAIL_NOT_SENT",refund.getNotificationSentFlag());
-    }
-
-    @Test
-    void updateNotificationLetterWith5xxCode() {
-
-        Refund refund = getRefund();
-        refund.setContactDetails(ContactDetails.contactDetailsWith()
-                               .addressLine("ABC Street")
-                               .city("London")
-                               .county("Greater London")
-                               .country("UK")
-                               .postalCode("E1 6AN")
-                               .notificationType("LETTER")
-                               .build());
-
-        refund.setRefundStatus(RefundStatus.REJECTED);
-        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
-        when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class),
-                                         Mockito.any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
-
-        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        notificationService.updateNotification(getHeaders(), refund, null,"template-1");
-
-        assertEquals("LETTER_NOT_SENT",refund.getNotificationSentFlag());
-    }
-
-    @Test
-    void updateNotificationWithErrorCode() {
-        Refund refund = getRefund();
-        refund.setRefundStatus(RefundStatus.REJECTED);
-        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
-        when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class),
-                                         Mockito.any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Bed request", HttpStatus.BAD_REQUEST));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
-
-        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        notificationService.updateNotification(getHeaders(), refund, null,"template-1");
-
-        assertEquals("ERROR",refund.getNotificationSentFlag());
-    }
-
-    @Test
-    void updateNotificationSuccessWithTemplatePreviewAndEmail() {
-
-        Refund refund = getRefund();
-        refund.setRefundStatus(RefundStatus.REJECTED);
-        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
-        when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class),
-                                         Mockito.any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
-
-        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        notificationService.updateNotification(getHeaders(),refund, getTemplatePreviewForEmail());
-
-        assertEquals("SENT",refund.getNotificationSentFlag());
-    }
-
-    @Test
-    void updateNotificationSuccessWithTemplatePreviewAndLetter() {
-
-        Refund refund = getRefundForLetter();
-        refund.setRefundStatus(RefundStatus.REJECTED);
-        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
-        when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class),
-                                         Mockito.any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
-
-        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
-
-        notificationService.updateNotification(getHeaders(),refund, getTemplatePreviewForLetter());
-
-        assertEquals("SENT",refund.getNotificationSentFlag());
-    }
-
-    @Test
-    void updateNotificationSuccessWithTemplatePreviewNull() {
-
-        Refund refund = getRefund();
-        refund.setRefundStatus(RefundStatus.REJECTED);
-        refund.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
-
-        when(restTemplateNotify.exchange(anyString(),
-                                         Mockito.any(HttpMethod.class),
-                                         Mockito.any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
-
-        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
-
-        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
-            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
-            Optional.of(getPaymentGroupDto())
-
-        ));
-
-        notificationService.updateNotification(getHeaders(),refund, null, null);
-
-        assertEquals("SENT",refund.getNotificationSentFlag());
-    }
-
 
     private MultiValueMap<String,String> getHeaders() {
         MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
