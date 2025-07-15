@@ -1895,7 +1895,9 @@ class RefundControllerTest {
 
         assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
         assertEquals(RefundStatus.APPROVED, refund.getRefundStatus());
-        assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
+        /* PAY-7934 removes the status REFUND_WHEN_CONTACTED from the database because it triggers Liberata's PayIt functionality
+        When PayIt goes live, the line below can go back in*/
+        // assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
     }
 
 

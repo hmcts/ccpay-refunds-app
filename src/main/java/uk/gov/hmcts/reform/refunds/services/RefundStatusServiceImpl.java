@@ -80,7 +80,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 && statusUpdateRequest.getReason().equalsIgnoreCase(
                     RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
 
-                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+                /* PAY-7934 removes the status REFUND_WHEN_CONTACTED from the database because it triggers Liberata's PayIt functionality
+                When PayIt goes live, the line below can go back in*/
+                //refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
 
                 IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
                 String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
