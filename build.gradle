@@ -20,7 +20,7 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.66'
   id "info.solidsoft.pitest" version '1.15.0'
   id 'io.freefair.lombok' version '8.14'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.33'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
 }
 
 apply from: 'liquibase.gradle'
