@@ -214,7 +214,7 @@ def versions = [
   lombok          : '1.18.38',
   reformLogging   : '5.1.7',
   springBoot      : springBoot.class.package.implementationVersion,
-  jackson         : '2.19.1',
+  jackson         : '2.19.2',
   jacocoVersion   : '0.8.5',
   restAssured     : '5.5.5',
   serenity        : '4.2.34',
@@ -254,8 +254,8 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '3.0.4'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.10.1'
-  implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '10.3.1'
-  implementation group: 'commons-io', name: 'commons-io', version: '2.19.0'
+  implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '10.4'
+  implementation group: 'commons-io', name: 'commons-io', version: '2.20.0'
   implementation group: 'commons-validator', name: 'commons-validator', version: '1.10.0'
   implementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: '1.15.0'
   implementation group: 'io.github.openfeign.querydsl', name: 'querydsl-jpa', version:'6.12'
@@ -265,9 +265,9 @@ dependencies {
   implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.1.0'
   implementation group: 'joda-time', name: 'joda-time', version: '2.14.0'
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.1'
-  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.18.0'
   implementation group: 'org.codehaus.sonar-plugins', name: 'sonar-pitest-plugin', version: '0.5'
-  implementation group: 'org.eclipse.collections', name: 'eclipse-collections-api', version: '11.1.0'
+  implementation group: 'org.eclipse.collections', name: 'eclipse-collections-api', version: '13.0.0'
   implementation group: 'org.eclipse.collections', name: 'eclipse-collections', version: '13.0.0'
   implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '8.0.2.Final'
   implementation group: 'org.liquibase', name: 'liquibase-core'
