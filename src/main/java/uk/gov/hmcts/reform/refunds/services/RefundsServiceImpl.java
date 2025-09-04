@@ -203,7 +203,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         String instructionType = null;
         if (refundRequest.getPaymentMethod() != null) {
-                instructionType = SEND_REFUND;
+            instructionType = SEND_REFUND;
         }
 
         Refund refund = initiateRefundEntity(refundRequest, idamUserIdResponse.getUid(), instructionType);
