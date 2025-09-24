@@ -211,7 +211,7 @@ dependencyManagement {
 }
 
 def versions = [
-  lombok          : '1.18.38',
+  lombok          : '1.18.42',
   reformLogging   : '5.1.7',
   springBoot      : springBoot.class.package.implementationVersion,
   jackson         : '2.19.2',
