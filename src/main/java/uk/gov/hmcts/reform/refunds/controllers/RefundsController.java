@@ -394,7 +394,8 @@ public class RefundsController {
     @PostMapping(" /refund/reissue-expired/{reference}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> reissueExpired(@RequestHeader("Authorization") String authorization,
-                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers, @PathVariable String reference) throws CheckDigitException,
+                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                         @PathVariable String reference) throws CheckDigitException,
         InvalidRefundRequestException {
 
         //  0 - Validate the reference format.
