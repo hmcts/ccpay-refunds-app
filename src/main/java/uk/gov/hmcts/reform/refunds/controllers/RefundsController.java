@@ -405,9 +405,15 @@ public class RefundsController {
         RefundRequest refundRequest = RefundRequest.refundRequestWith().serviceType("Damages").build();
 
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
-        refundServiceRoleUtil.validateRefundRoleWithServiceName(idamUserIdResponse.getRoles(), refundRequest.getServiceType());
+        refundServiceRoleUtil.validateRefundRoleWithServiceName(
+            idamUserIdResponse.getRoles(),
+            refundRequest.getServiceType()
+        );
         RefundResponse.buildRefundResponseWith().refundReference(reference).build();
-        return new ResponseEntity<>( RefundResponse.buildRefundResponseWith().refundReference(reference).build(), HttpStatus.CREATED);
+        return new ResponseEntity<>(
+            RefundResponse.buildRefundResponseWith().refundReference(reference).build(),
+            HttpStatus.CREATED
+        );
     }
 
 }
