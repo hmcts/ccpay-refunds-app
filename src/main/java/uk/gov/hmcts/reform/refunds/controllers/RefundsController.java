@@ -391,7 +391,7 @@ public class RefundsController {
     }
 
 
-    @PostMapping(" /refund/reissue-expired/{reference}")
+    @PostMapping("/refund/reissue-expired/{reference}")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> reissueExpired(@RequestHeader("Authorization") String authorization,
                                                          @RequestHeader(required = false) MultiValueMap<String, String> headers,
