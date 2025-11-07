@@ -405,9 +405,13 @@ public class RefundsController {
 
         RefundRequest refundRequest = RefundRequest.refundRequestWith().serviceType("Damages").build();
 
+
+        Refund refund = refundsService.getRefundForReference(reference);
         RefundResponse.buildRefundResponseWith().refundReference(reference).build();
         return new ResponseEntity<>(
-            RefundResponse.buildRefundResponseWith().refundReference(reference).build(),
+            RefundResponse.buildRefundResponseWith()
+                .refundReference(refund.getReference())
+                .build(),
             HttpStatus.CREATED
         );
     }
