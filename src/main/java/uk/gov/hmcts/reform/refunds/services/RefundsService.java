@@ -45,4 +45,7 @@ public interface RefundsService {
     List<Refund> getRefundsForPaymentReference(String paymentReference);
 
     List<RefundLiberata> search(Optional<String> startDateTimeString, Optional<String>  endDateTimeString, String refundReference);
+
+    RefundResponse initiateReissueRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers, IdamUserIdResponse idamUserIdResponse)
+        throws CheckDigitException;
 }
