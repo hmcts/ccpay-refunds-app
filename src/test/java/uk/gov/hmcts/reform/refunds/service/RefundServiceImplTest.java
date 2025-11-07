@@ -95,7 +95,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
 @ActiveProfiles({"local", "test"})
