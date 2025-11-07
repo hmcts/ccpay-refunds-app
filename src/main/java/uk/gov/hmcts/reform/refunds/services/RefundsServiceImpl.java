@@ -1058,10 +1058,10 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             LOG.info("Refund closed for reissue with reference: {}", expiredRefund.getReference());
             refundsRepository.save(expiredRefund);
         }
-        return initiateRefund(refundRequest, idamUserIdResponse);
+        return initiateRefundProcess(refundRequest, idamUserIdResponse);
     }
 
-    public RefundResponse initiateRefund(RefundRequest refundRequest, IdamUserIdResponse idamUserIdResponse)
+    public RefundResponse initiateRefundProcess(RefundRequest refundRequest, IdamUserIdResponse idamUserIdResponse)
         throws CheckDigitException {
         // Create and save the new refund object
         String instructionType = null;
