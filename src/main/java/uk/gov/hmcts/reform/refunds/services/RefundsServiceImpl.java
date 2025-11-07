@@ -1037,8 +1037,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
 
     @Override
-    public RefundResponse initiateReissueRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers, IdamUserIdResponse idamUserIdResponse)
-        throws CheckDigitException {
+    public RefundResponse initiateReissueRefund(RefundRequest refundRequest, MultiValueMap<String, String> headers,
+                                                IdamUserIdResponse idamUserIdResponse) throws CheckDigitException {
+
         List<Refund> refundList = refundsRepository.findByPaymentReferenceAndRefundStatus(
             refundRequest.getPaymentReference(),
             EXPIRED.getName());
@@ -1060,29 +1061,28 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return initiateRefund(refundRequest, idamUserIdResponse);
     }
 
-
-    public RefundResponse initiateRefund(RefundRequest refundRequest,IdamUserIdResponse idamUserIdResponse)
+    public RefundResponse initiateRefund(RefundRequest refundRequest, IdamUserIdResponse idamUserIdResponse)
         throws CheckDigitException {
-            // Create and save the new refund object
-            String instructionType = null;
-            if (refundRequest.getPaymentMethod() != null) {
-                instructionType = REISSUED.getName();
-            }
-            Refund refund = initiateRefundEntity(refundRequest, idamUserIdResponse.getUid(), instructionType);
-            refund.setRefundStatus(REISSUED);
-            refund.setStatusHistories(
-                Arrays.asList(StatusHistory.statusHistoryWith()
-                                  .createdBy(idamUserIdResponse.getUid())
-                                  .notes(REFUND_REISSUED_BY + " " + idamUserIdResponse.getName())
-                                  .status(REISSUED.getName())
-                                  .build()
-                )
-            );
-            refundsRepository.save(refund);
-            LOG.info("Reissued Refund saved");
-            return RefundResponse.buildRefundResponseWith()
-                .refundReference(refund.getReference())
-                .build();
+        // Create and save the new refund object
+        String instructionType = null;
+        if (refundRequest.getPaymentMethod() != null) {
+            instructionType = REISSUED.getName();
         }
-
+        Refund refund = initiateRefundEntity(refundRequest, idamUserIdResponse.getUid(), instructionType);
+        refund.setRefundStatus(REISSUED);
+        refund.setStatusHistories(
+            Arrays.asList(StatusHistory.statusHistoryWith()
+                              .createdBy(idamUserIdResponse.getUid())
+                              .notes(REFUND_REISSUED_BY + " " + idamUserIdResponse.getName())
+                              .status(REISSUED.getName())
+                              .build()
+            )
+        );
+        refundsRepository.save(refund);
+        LOG.info("Reissued Refund saved");
+        return RefundResponse.buildRefundResponseWith()
+            .refundReference(refund.getReference())
+            .build();
+    }
 }
+
