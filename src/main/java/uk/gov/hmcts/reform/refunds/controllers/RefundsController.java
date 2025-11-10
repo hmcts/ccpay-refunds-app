@@ -401,9 +401,7 @@ public class RefundsController {
         //  1 - get the refund using the reference from the DB
         //  2 - build RefundRequest
 
-
         RefundRequest refundRequest = RefundRequest.refundRequestWith().serviceType("Damages").build();
-
         if (refundRequest.getServiceType().equals("Damages")) {
             throw new InvalidRefundRequestException("Validation error");
         }
