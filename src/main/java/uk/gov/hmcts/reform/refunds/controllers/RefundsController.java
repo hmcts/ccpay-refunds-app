@@ -390,4 +390,30 @@ public class RefundsController {
         return new ResponseEntity<>(new RefundLiberataResponse(refunds), HttpStatus.OK);
     }
 
+
+    @PostMapping("/refund/reissue-expired/{reference}")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity<RefundResponse> reissueExpired(@RequestHeader("Authorization") String authorization,
+                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                         @PathVariable String reference) throws CheckDigitException,
+        InvalidRefundRequestException {
+
+        //  0 - Validate the reference format.
+        //  1 - get the refund using the reference from the DB
+        //  2 - build RefundRequest
+        //  3 -  refundRequest.getServiceType();
+
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().serviceType("Damages").build();
+
+
+        Refund refund = refundsService.getRefundForReference(reference);
+        RefundResponse.buildRefundResponseWith().refundReference(reference).build();
+        return new ResponseEntity<>(
+            RefundResponse.buildRefundResponseWith()
+                .refundReference(refund.getReference())
+                .build(),
+            HttpStatus.CREATED
+        );
+    }
+
 }
