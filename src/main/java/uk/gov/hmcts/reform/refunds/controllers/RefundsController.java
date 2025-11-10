@@ -401,13 +401,13 @@ public class RefundsController {
         //  0 - Validate the reference format.
         //  1 - get the refund using the reference from the DB
         //  2 - build RefundRequest
-        //  3 -  refundRequest.getServiceType();
+
 
         RefundRequest refundRequest = RefundRequest.refundRequestWith().serviceType("Damages").build();
 
 
         Refund refund = refundsService.getRefundForReference(reference);
-        RefundResponse.buildRefundResponseWith().refundReference(reference).build();
+        RefundResponse.buildRefundResponseWith().refundReference(refundRequest.getPaymentReference()).build();
         return new ResponseEntity<>(
             RefundResponse.buildRefundResponseWith()
                 .refundReference(refund.getReference())
