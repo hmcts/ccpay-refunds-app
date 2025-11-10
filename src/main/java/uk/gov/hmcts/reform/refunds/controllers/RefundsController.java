@@ -395,8 +395,7 @@ public class RefundsController {
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> reissueExpired(@RequestHeader("Authorization") String authorization,
                                                          @RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                                         @PathVariable String reference) throws CheckDigitException,
-        InvalidRefundRequestException {
+                                                         @PathVariable String reference) throws InvalidRefundRequestException {
 
         //  0 - Validate the reference format.
         //  1 - get the refund using the reference from the DB
