@@ -405,6 +405,10 @@ public class RefundsController {
         RefundRequest refundRequest = RefundRequest.refundRequestWith().serviceType("Damages").build();
 
 
+        if (refundRequest.getServiceType().equals("Damages")){
+            throw new InvalidRefundRequestException("Validation error");
+        }
+
         Refund refund = refundsService.getRefundForReference(reference + "11");
         RefundResponse.buildRefundResponseWith().refundReference(refundRequest.getPaymentReference()).build();
         return new ResponseEntity<>(
