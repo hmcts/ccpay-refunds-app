@@ -397,20 +397,21 @@ public class RefundsController {
                                                          @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                          @PathVariable String reference) throws CheckDigitException,
         InvalidRefundRequestException {
-
+        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
         //  0 - Validate the reference format.
         //  1 - get the refund using the reference from the DB
         //  2 - build RefundRequest
         //  3 -  refundRequest.getServiceType();
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith().serviceType("Damages").build();
+        //RefundRequest refundRequest = RefundRequest.refundRequestWith().serviceType("Damages").build();
 
 
-        Refund refund = refundsService.getRefundForReference(reference);
-        RefundResponse.buildRefundResponseWith().refundReference(reference).build();
+        //Refund refund = refundsService.getRefundForReference(reference);
+        //RefundResponse refund = refundsService.initiateReissueRefund(reference, headers, idamUserIdResponse);
+        RefundResponse refund = refundsService.initiateReissueRefund(reference, headers, idamUserIdResponse);
         return new ResponseEntity<>(
             RefundResponse.buildRefundResponseWith()
-                .refundReference(refund.getReference())
+                .refundReference(refund.getRefundReference())
                 .build(),
             HttpStatus.CREATED
         );
