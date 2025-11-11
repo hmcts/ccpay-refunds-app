@@ -1053,7 +1053,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .amount(expiredRefund.getAmount())
             .ccdCaseNumber(expiredRefund.getCcdCaseNumber())
             .paymentReference(expiredRefund.getPaymentReference())
-            .reason(expiredRefund.getReason())
+            .reason(null)
             .refundStatus(REISSUED)
             .reference(referenceUtil.getNext("RF"))
             .feeIds(copiedFees.stream()
