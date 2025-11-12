@@ -1370,7 +1370,8 @@ class RefundServiceImplTest {
             "payments-refund-AAA"
         )).sub("ZZ").build();
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").reference("RF-1111-2222-3333").refundReason("RR005").ccdCaseNumber(
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").reference(
+            "RF-1111-2222-3333").refundReason("RR005").ccdCaseNumber(
             "2").refundAmount(BigDecimal.valueOf(777)).paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
             ContactDetails.contactDetailsWith().addressLine("ABC Street").email("mock@test.com").city("London").county(
                 "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
