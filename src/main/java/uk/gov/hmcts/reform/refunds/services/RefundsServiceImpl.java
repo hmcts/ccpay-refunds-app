@@ -1036,7 +1036,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         } catch (RefundNotFoundException | CheckDigitException exception) {
             throw new ReissueExpiredRefundException(exception.getMessage());
         } catch (RuntimeException runtimeException) {
-            throw new ReissueExpiredRefundException("Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.");
+            throw new ReissueExpiredRefundException(
+                "Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.");
         }
     }
 

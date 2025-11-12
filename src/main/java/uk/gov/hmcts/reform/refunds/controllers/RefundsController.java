@@ -397,9 +397,9 @@ public class RefundsController {
     public ResponseEntity<RefundResponse> reissueExpired(@RequestHeader("Authorization") String authorization,
                                                          @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                          @PathVariable
-                                                         @Pattern(regexp = "^RF-\\d{4}-\\d{4}-\\d{4}-\\d{4}$", message = "Invalid refund reference format")
-                                                             String reference) throws CheckDigitException,
-        InvalidRefundRequestException {
+                                                         @Pattern(regexp = "^RF-\\d{4}-\\d{4}-\\d{4}-\\d{4}$",
+                                                             message = "Invalid refund reference format")
+                                                         String reference) {
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
 
         RefundResponse refund = refundsService.initiateReissueRefund(reference, headers, idamUserIdResponse);
