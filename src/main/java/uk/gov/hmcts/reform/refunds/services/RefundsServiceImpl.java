@@ -1044,7 +1044,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 newFee.setCode(fee.getCode());
                 newFee.setVersion(fee.getVersion());
                 newFee.setVolume(fee.getVolume());
-                return newFee; } )
+                return newFee; })
             .collect(Collectors.toList());
 
         Refund refund = Refund.refundsWith()
