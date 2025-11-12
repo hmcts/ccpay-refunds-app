@@ -85,7 +85,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.EXPIRED;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.REISSUED;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
@@ -1019,17 +1018,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         Refund expiredRefund = refundsRepository.findByReferenceOrThrow(refundReference);
 
-            expiredRefund.setRefundStatus(RefundStatus.CLOSED);
-            expiredRefund.setUpdatedBy(idamUserIdResponse.getUid());
-            List<StatusHistory> statusHistories = new ArrayList<>(expiredRefund.getStatusHistories());
-            statusHistories.add(StatusHistory.statusHistoryWith()
-                                    .createdBy(idamUserIdResponse.getUid())
-                                    .status(RefundStatus.CLOSED.getName())
-                                    .notes(REFUND_CLOSED_BY + " " + idamUserIdResponse.getName())
-                                    .build());
-            expiredRefund.setStatusHistories(statusHistories);
-            LOG.info("Refund closed for reissue with reference: {}", expiredRefund.getReference());
-            refundsRepository.save(expiredRefund);
+        expiredRefund.setRefundStatus(RefundStatus.CLOSED);
+        expiredRefund.setUpdatedBy(idamUserIdResponse.getUid());
+        List<StatusHistory> statusHistories = new ArrayList<>(expiredRefund.getStatusHistories());
+        statusHistories.add(StatusHistory.statusHistoryWith()
+                                .createdBy(idamUserIdResponse.getUid())
+                                .status(RefundStatus.CLOSED.getName())
+                                .notes(REFUND_CLOSED_BY + " " + idamUserIdResponse.getName())
+                                .build());
+        expiredRefund.setStatusHistories(statusHistories);
+        LOG.info("Refund closed for reissue with reference: {}", expiredRefund.getReference());
+        refundsRepository.save(expiredRefund);
 
         return initiateRefundProcess(expiredRefund, idamUserIdResponse);
     }
@@ -1045,8 +1044,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 newFee.setCode(fee.getCode());
                 newFee.setVersion(fee.getVersion());
                 newFee.setVolume(fee.getVolume());
-              return newFee;
-            })
+              return newFee;})
             .collect(Collectors.toList());
 
         Refund refund = Refund.refundsWith()
