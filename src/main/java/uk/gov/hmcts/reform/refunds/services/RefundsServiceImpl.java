@@ -1019,7 +1019,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         try {
             Refund expiredRefund = refundsRepository.findByReferenceOrThrow(refundReference);
-
+            validateCurrentRefund(expiredRefund);
             expiredRefund.setRefundStatus(RefundStatus.CLOSED);
             expiredRefund.setUpdatedBy(idamUserIdResponse.getUid());
             List<StatusHistory> statusHistories = new ArrayList<>(expiredRefund.getStatusHistories());
@@ -1036,8 +1036,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         } catch (RefundNotFoundException | CheckDigitException exception) {
             throw new ReissueExpiredRefundException(exception.getMessage());
         } catch (RuntimeException runtimeException) {
-            throw new ReissueExpiredRefundException(
-                "Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.");
+            throw getReissueExpiredRefundException();
+        }
+    }
+
+    private static ReissueExpiredRefundException getReissueExpiredRefundException() {
+        return new ReissueExpiredRefundException(
+            "Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.");
+    }
+
+    private void validateCurrentRefund(Refund expiredRefund) {
+        if (!expiredRefund.getRefundStatus().equals(RefundStatus.EXPIRED)) {
+            throw getReissueExpiredRefundException();
         }
     }
 
