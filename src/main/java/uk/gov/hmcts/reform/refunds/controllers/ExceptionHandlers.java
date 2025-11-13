@@ -60,7 +60,8 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
-        InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class, ReissueExpiredRefundException.class})
+        InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class,
+        ReissueExpiredRefundException.class})
     public ResponseEntity return400(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
