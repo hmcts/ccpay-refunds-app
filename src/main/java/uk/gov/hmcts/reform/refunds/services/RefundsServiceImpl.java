@@ -1046,7 +1046,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private void validateCurrentRefund(Refund expiredRefund) {
-        if (!expiredRefund.getRefundStatus().equals(RefundStatus.EXPIRED)) {
+        if (!expiredRefund.getRefundStatus().getName().equals(RefundStatus.EXPIRED.getName())) {
             throw getReissueExpiredRefundException();
         }
     }
