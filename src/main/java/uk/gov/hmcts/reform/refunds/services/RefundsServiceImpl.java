@@ -44,7 +44,6 @@ import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReissueExpiredRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
@@ -86,6 +85,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.reform.refunds.model.RefundStatus.APPROVED;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.REISSUED;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
@@ -117,8 +117,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String SEND_REFUND = "SendRefund";
 
-    private static final String REFUND_CLOSED_BY = "Refund closed by";
+    private static final String REFUND_CLOSED_BY_CASE_WORKER = "Refund closed by case worker";
     private static final String REFUND_REISSUED_BY = "Refund reissued by";
+    private static final String REFUND_APPROVED_BY_SYSTEM = "Refund approved by system";
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -182,7 +183,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
 
-    private static final String REFUND_REISSUED = "Refund reissued";
 
     private static final String IDAM_USER_NOT_FOUND_MSG = "User not found";
 
@@ -1015,40 +1015,23 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Override
     public RefundResponse initiateReissueRefund(String refundReference, MultiValueMap<String, String> headers,
-                                                IdamUserIdResponse idamUserIdResponse) {
+                                                IdamUserIdResponse idamUserIdResponse) throws CheckDigitException {
 
-        try {
-            Refund expiredRefund = refundsRepository.findByReferenceOrThrow(refundReference);
-            validateCurrentRefund(expiredRefund);
-            expiredRefund.setRefundStatus(RefundStatus.CLOSED);
-            expiredRefund.setUpdatedBy(idamUserIdResponse.getUid());
-            List<StatusHistory> statusHistories = new ArrayList<>(expiredRefund.getStatusHistories());
-            statusHistories.add(StatusHistory.statusHistoryWith()
-                                    .createdBy(idamUserIdResponse.getUid())
-                                    .status(RefundStatus.CLOSED.getName())
-                                    .notes(REFUND_CLOSED_BY + " " + idamUserIdResponse.getName())
-                                    .build());
-            expiredRefund.setStatusHistories(statusHistories);
-            LOG.info("Refund closed for reissue with reference: {}", expiredRefund.getReference());
-            refundsRepository.save(expiredRefund);
-            return initiateRefundProcess(expiredRefund, idamUserIdResponse);
+        Refund expiredRefund = refundsRepository.findByReferenceOrThrow(refundReference);
 
-        } catch (RefundNotFoundException | CheckDigitException exception) {
-            throw new ReissueExpiredRefundException(exception.getMessage());
-        } catch (RuntimeException runtimeException) {
-            throw getReissueExpiredRefundException();
-        }
-    }
+        expiredRefund.setRefundStatus(RefundStatus.CLOSED);
+        expiredRefund.setUpdatedBy(idamUserIdResponse.getUid());
+        List<StatusHistory> statusHistories = new ArrayList<>(expiredRefund.getStatusHistories());
+        statusHistories.add(StatusHistory.statusHistoryWith()
+                                .createdBy(idamUserIdResponse.getUid())
+                                .status(RefundStatus.CLOSED.getName())
+                                .notes(REFUND_CLOSED_BY_CASE_WORKER)
+                                .build());
+        expiredRefund.setStatusHistories(statusHistories);
+        LOG.info("Refund closed for reissue with reference: {}", expiredRefund.getReference());
+        refundsRepository.save(expiredRefund);
 
-    private static ReissueExpiredRefundException getReissueExpiredRefundException() {
-        return new ReissueExpiredRefundException(
-            "Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.");
-    }
-
-    private void validateCurrentRefund(Refund expiredRefund) {
-        if (!expiredRefund.getRefundStatus().equals(RefundStatus.EXPIRED)) {
-            throw getReissueExpiredRefundException();
-        }
+        return initiateRefundProcess(expiredRefund, idamUserIdResponse);
     }
 
     public RefundResponse initiateRefundProcess(Refund expiredRefund, IdamUserIdResponse idamUserIdResponse)
@@ -1069,8 +1052,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .amount(expiredRefund.getAmount())
             .ccdCaseNumber(expiredRefund.getCcdCaseNumber())
             .paymentReference(expiredRefund.getPaymentReference())
-            .reason(null)
-            .refundStatus(REISSUED)
+            .reason(expiredRefund.getReason())
+            .refundStatus(APPROVED)
             .reference(referenceUtil.getNext("RF"))
             .feeIds(copiedFees.stream()
                         .map(fee -> String.valueOf(fee.getFeeId()))
@@ -1080,12 +1063,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .updatedBy(idamUserIdResponse.getUid())
             .contactDetails(expiredRefund.getContactDetails())
             .refundFees(copiedFees)
-            .refundInstructionType(REISSUED.getName())
-            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                              .createdBy(idamUserIdResponse.getUid())
-                              .notes(REFUND_REISSUED_BY + " " + idamUserIdResponse.getName())
-                              .status(REISSUED.getName())
-                              .build()))
+            .refundInstructionType(APPROVED.getName())
+            .statusHistories(Arrays.asList(
+                StatusHistory.statusHistoryWith()
+                    .createdBy(idamUserIdResponse.getUid())
+                    .notes(REFUND_APPROVED_BY_SYSTEM)
+                    .status(APPROVED.getName())
+                    .build(),
+                StatusHistory.statusHistoryWith()
+                    .createdBy(idamUserIdResponse.getUid())
+                    .notes(REFUND_REISSUED_BY + " " + idamUserIdResponse.getName())
+                    .status(REISSUED.getName())
+                    .build()))
             .build();
 
         refundsRepository.save(refund);
