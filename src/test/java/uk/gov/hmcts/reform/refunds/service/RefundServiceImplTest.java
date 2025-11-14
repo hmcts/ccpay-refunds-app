@@ -208,9 +208,8 @@ class RefundServiceImplTest {
         return refunds;
     }
 
-    private List<Refund> getExpiredRefundList() {
-        List<Refund> refunds = new ArrayList<>();
-        Refund ref = Refund.refundsWith().id(1)
+    private Refund getExpiredRefund() {
+        Refund refund = Refund.refundsWith().id(1)
             .amount(BigDecimal.valueOf(100))
             .ccdCaseNumber(Utility.GET_REFUND_LIST_CCD_CASE_NUMBER)
             .createdBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2).reference("RF-1111-2234-1077-1123")
@@ -222,9 +221,7 @@ class RefundServiceImplTest {
             .statusHistories(Arrays.asList(Utility.STATUS_HISTORY_SUPPLIER.get()))
             .refundFees(Arrays.asList(RefundFees.refundFeesWith().refundAmount(BigDecimal.valueOf(100)).code("1").build()))
             .build();
-
-        refunds.add(ref);
-        return refunds;
+        return refund;
     }
 
     @BeforeEach
@@ -1373,17 +1370,18 @@ class RefundServiceImplTest {
             "payments-refund-AAA"
         )).sub("ZZ").build();
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").refundReason("RR005").ccdCaseNumber(
-            "2").refundAmount(BigDecimal.valueOf(777)).paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").reference("RF-1111-2222-3333")
+            .refundReason("RR005").ccdCaseNumber("2").refundAmount(BigDecimal.valueOf(777))
+            .paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
             ContactDetails.contactDetailsWith().addressLine("ABC Street").email("mock@test.com").city("London").county(
                 "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
             Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
                 new BigDecimal(100)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
 
-        when(refundsRepository.findByPaymentReferenceAndRefundStatus(anyString(), anyString()))
-            .thenReturn(getExpiredRefundList());
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(getExpiredRefund());
 
-        RefundResponse response = refundsService.initiateReissueRefund(refundRequest, map, idamUserIdResponse);
+        RefundResponse response = refundsService.initiateReissueRefund(refundRequest.getReference(), map, idamUserIdResponse);
 
         assertNotNull(response);
         verify(refundsRepository, times(2)).save(any(Refund.class));
@@ -1400,8 +1398,9 @@ class RefundServiceImplTest {
             "payments-refund-AAA"
         )).sub("ZZ").build();
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").refundReason("RR001").ccdCaseNumber(
-            "2").refundAmount(BigDecimal.valueOf(666)).paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").reference("RF-1111-2222-3333")
+            .refundReason("RR001").ccdCaseNumber("2").refundAmount(BigDecimal.valueOf(666))
+            .paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
             ContactDetails.contactDetailsWith().addressLine("ABC Street").email("mock@test.com").city("London").county(
                 "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
             Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(

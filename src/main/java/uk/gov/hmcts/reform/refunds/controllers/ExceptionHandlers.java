@@ -31,6 +31,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentExceptio
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.ReissueExpiredRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
@@ -59,7 +60,8 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
-        InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class})
+        InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class,
+        ReissueExpiredRefundException.class})
     public ResponseEntity return400(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
