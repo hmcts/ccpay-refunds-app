@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -388,6 +389,26 @@ public class RefundsController {
         }
 
         return new ResponseEntity<>(new RefundLiberataResponse(refunds), HttpStatus.OK);
+    }
+
+
+    @PostMapping("/refund/reissue-expired/{reference}")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity<RefundResponse> reissueExpired(@RequestHeader("Authorization") String authorization,
+                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                         @PathVariable
+                                                         @Pattern(regexp = "^RF-\\d{4}-\\d{4}-\\d{4}-\\d{4}$",
+                                                             message = "Invalid refund reference format")
+                                                         String reference) {
+        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
+
+        RefundResponse refund = refundsService.initiateReissueRefund(reference, headers, idamUserIdResponse);
+        return new ResponseEntity<>(
+            RefundResponse.buildRefundResponseWith()
+                .refundReference(refund.getRefundReference())
+                .build(),
+            HttpStatus.CREATED
+        );
     }
 
 }
