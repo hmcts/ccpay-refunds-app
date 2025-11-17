@@ -1115,11 +1115,18 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .count();
 
         String suffix;
-        if (expiredCount == 1) suffix = "st";
-        else if (expiredCount == 2) suffix = "nd";
-        else if (expiredCount == 3) suffix = "rd";
-        else suffix = "th";
-
+        if (expiredCount == 1) {
+            suffix = "st";
+        }
+        else if (expiredCount == 2) {
+            suffix = "nd";
+        }
+        else if (expiredCount == 3) {
+            suffix = "rd";
+        }
+        else {
+            suffix = "th";
+        }
         return expiredCount + suffix;
     }
 
