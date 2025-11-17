@@ -1054,6 +1054,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .paymentReference(expiredRefund.getPaymentReference())
             .reason(expiredRefund.getReason())
             .refundStatus(APPROVED)
+            .refundInstructionType(expiredRefund.getRefundInstructionType())
+            .notificationSentFlag(expiredRefund.getNotificationSentFlag())
+            .contactDetails(expiredRefund.getContactDetails())
             .reference(referenceUtil.getNext("RF"))
             .feeIds(copiedFees.stream()
                         .map(fee -> String.valueOf(fee.getFeeId()))
@@ -1072,7 +1075,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                     .build(),
                 StatusHistory.statusHistoryWith()
                     .createdBy(idamUserIdResponse.getUid())
-                    .notes(REFUND_REISSUED_BY + " " + idamUserIdResponse.getName())
+                    .notes(getReissueLabel(expiredRefund.getPaymentReference())
+                               + " re-issue of original refund " + expiredRefund.getReference())
                     .status(REISSUED.getName())
                     .build()))
             .build();
@@ -1083,5 +1087,24 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .refundReference(refund.getReference())
             .build();
     }
+
+
+    private String getReissueLabel(String paymentReference) {
+        List<Refund> refunds = refundsRepository.findByPaymentReference(paymentReference)
+            .orElse(Collections.emptyList());
+        long expiredCount = refunds.stream()
+            .flatMap(r -> r.getStatusHistories().stream())
+            .filter(h -> RefundStatus.EXPIRED.getName().equals(h.getStatus()))
+            .count();
+
+        String suffix;
+        if (expiredCount == 1) suffix = "st";
+        else if (expiredCount == 2) suffix = "nd";
+        else if (expiredCount == 3) suffix = "rd";
+        else suffix = "th";
+
+        return expiredCount + suffix;
+    }
+
 }
 
