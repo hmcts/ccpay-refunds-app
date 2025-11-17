@@ -1452,8 +1452,8 @@ class RefundServiceImplTest {
         )).sub("ZZ").build();
 
         Refund refund = getExpiredRefund();
-        when (refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getRefundExpiredList()));
-        when (referenceUtil.getNext(anyString())).thenReturn("RF-1111-2222-3333-4444");
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getRefundExpiredList()));
+        when(referenceUtil.getNext(anyString())).thenReturn("RF-1111-2222-3333-4444");
 
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name(
             "RR001").build());
@@ -1464,7 +1464,6 @@ class RefundServiceImplTest {
         assertNotNull(response.getRefundReference());
         verify(refundsRepository, atLeastOnce()).save(any(Refund.class));
         verify(refundsRepository, atLeastOnce()).findByPaymentReference(anyString());
-
     }
 
 }
