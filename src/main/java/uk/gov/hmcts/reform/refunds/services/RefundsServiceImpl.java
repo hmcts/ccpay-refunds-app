@@ -1117,14 +1117,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         String suffix;
         if (expiredCount == 1) {
             suffix = "st";
-        }
-        else if (expiredCount == 2) {
+        } else if (expiredCount == 2) {
             suffix = "nd";
-        }
-        else if (expiredCount == 3) {
+        } else if (expiredCount == 3) {
             suffix = "rd";
-        }
-        else {
+        } else {
             suffix = "th";
         }
         return expiredCount + suffix;
