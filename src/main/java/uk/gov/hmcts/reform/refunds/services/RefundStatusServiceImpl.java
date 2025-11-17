@@ -21,7 +21,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     private static final String LIBERATA_NAME = "Middle office provider";
     private static final String ACCEPTED = "Accepted";
-
+    private static final String EXPIRED = "Expired";
     private static final String LIBERATA_REASON = "Sent to Middle Office for Processing";
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundStatusServiceImpl.class);
@@ -50,6 +50,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 RefundStatus.ACCEPTED,
                 LIBERATA_REASON)
             ));
+        } else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
+            refund.setRefundStatus(RefundStatus.EXPIRED);
+            refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+                LIBERATA_NAME,
+                RefundStatus.EXPIRED,
+                statusUpdateRequest.getReason())
+            ));
+            refund.setUpdatedBy(LIBERATA_NAME);
         } else {
             refund.setRefundStatus(RefundStatus.REJECTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(

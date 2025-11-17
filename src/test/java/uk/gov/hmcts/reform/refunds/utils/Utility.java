@@ -213,4 +213,10 @@ public class Utility {
         IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
             .roles(Arrays.asList("payments")).sub("ZZ")
             .build();
+
+    public static final Supplier<StatusHistory> STATUS_HISTORY_SUPPLIER_WITH_EXPIRED = () -> StatusHistory.statusHistoryWith()
+        .id(1)
+        .status(RefundStatus.EXPIRED.getName())
+        .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+        .build();
 }
