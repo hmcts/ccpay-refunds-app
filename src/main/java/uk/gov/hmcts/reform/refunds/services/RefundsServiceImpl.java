@@ -71,6 +71,8 @@ import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1087,16 +1089,17 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .statusHistories(Arrays.asList(
                 StatusHistory.statusHistoryWith()
                     .createdBy(idamUserIdResponse.getUid())
-                    .notes(REFUND_APPROVED_BY_SYSTEM)
-                    .status(APPROVED.getName())
-                    .build(),
-                StatusHistory.statusHistoryWith()
-                    .createdBy(idamUserIdResponse.getUid())
                     .notes(getReissueLabel(expiredRefund.getPaymentReference())
                                + " re-issue of original refund " + expiredRefund.getReference())
-                    .status(REISSUED.getName())
-                    .build()))
-            .build();
+                    .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                    .status(REISSUED.getName()).build(),
+                StatusHistory.statusHistoryWith()
+                    .createdBy(idamUserIdResponse.getUid())
+                    .notes(REFUND_APPROVED_BY_SYSTEM)
+                    .status(APPROVED.getName())
+                    .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
+                    .build())
+            ).build();
 
         refundsRepository.save(refund);
         LOG.info("Reissued Refund saved");
