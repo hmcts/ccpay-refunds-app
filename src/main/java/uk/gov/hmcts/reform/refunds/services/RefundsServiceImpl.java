@@ -81,6 +81,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -715,20 +716,16 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private BigDecimal getTotalRefundedAmountIssueRefund(String paymentReference) {
-        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(paymentReference);
-        BigDecimal totalRefundedAmount = BigDecimal.ZERO;
-
-        if (refundsList.isPresent()) {
-            List<Refund> refundsListStatus =
-                refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                        RefundStatus.REJECTED))
-                    .collect(Collectors.toList());
-            for (Refund ref : refundsListStatus) {
-                totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
-            }
-        }
-        return totalRefundedAmount;
+        return refundsRepository.findByPaymentReference(paymentReference)
+            .orElse(Collections.emptyList())
+            .stream()
+            .filter(refund -> refund.getRefundStatus() != RefundStatus.REJECTED
+                && refund.getRefundStatus() != RefundStatus.CLOSED)
+            .map(Refund::getAmount)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
 
     @SuppressWarnings({"PMD"})
     private void validateContactDetails(ContactDetails contactDetails) {
