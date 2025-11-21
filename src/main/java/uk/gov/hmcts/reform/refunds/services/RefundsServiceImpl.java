@@ -719,9 +719,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         return refundsRepository.findByPaymentReference(paymentReference)
             .orElse(Collections.emptyList())
             .stream()
-            .filter(refund -> refund.getRefundStatus() != RefundStatus.REJECTED
-                && refund.getRefundStatus() != RefundStatus.CLOSED)
-            .map(Refund::getAmount)
+            .filter(refund -> !refund.getRefundStatus().getName().equals(RefundStatus.CLOSED.getName()) &&
+                !refund.getRefundStatus().getName().equals( RefundStatus.REJECTED.getName())
+            ).map(Refund::getAmount)
             .filter(Objects::nonNull)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
