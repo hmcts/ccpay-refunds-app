@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import jakarta.validation.ConstraintViolationException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +37,10 @@ import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundExce
 import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.Map;
 
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked", "rawtypes"})
@@ -65,6 +67,19 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     public ResponseEntity return400(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(
+            violation -> {
+                String msg = "The value " + violation.getInvalidValue().toString() + " not correctly formatted.";
+            errors.put(violation.getPropertyPath().toString(), msg);
+        });
+        return ResponseEntity.badRequest().body(errors);
     }
 
     @ExceptionHandler({ForbiddenToApproveRefundException.class})

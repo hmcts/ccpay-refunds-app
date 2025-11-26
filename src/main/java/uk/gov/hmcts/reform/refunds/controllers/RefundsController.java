@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -64,6 +65,7 @@ import java.util.Optional;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
+@Validated
 @Tag(name = "Refund Journey group")
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
@@ -398,7 +400,7 @@ public class RefundsController {
                                                          @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                          @PathVariable
                                                          @Pattern(regexp = "^RF-\\d{4}-\\d{4}-\\d{4}-\\d{4}$",
-                                                             message = "Invalid refund reference format")
+                                                             message = "Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.")
                                                          String reference) {
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
 
