@@ -62,7 +62,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)
                 && (refund.getRefundStatus() == RefundStatus.APPROVED) && refund.getUpdatedBy() == SYSTEM_USER) {
-                //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
+            //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
             refund.setRefundStatus(RefundStatus.ACCEPTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
