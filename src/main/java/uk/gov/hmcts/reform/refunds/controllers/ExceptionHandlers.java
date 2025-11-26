@@ -70,15 +70,14 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     }
 
 
-
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getConstraintViolations().forEach(
             violation -> {
                 String msg = "The value " + violation.getInvalidValue().toString() + " not correctly formatted.";
-            errors.put(violation.getPropertyPath().toString(), msg);
-        });
+                errors.put(violation.getPropertyPath().toString(), msg);
+            });
         return ResponseEntity.badRequest().body(errors);
     }
 

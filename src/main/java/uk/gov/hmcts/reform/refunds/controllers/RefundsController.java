@@ -400,7 +400,8 @@ public class RefundsController {
                                                          @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                          @PathVariable
                                                          @Pattern(regexp = "^RF-\\d{4}-\\d{4}-\\d{4}-\\d{4}$",
-                                                             message = "Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.")
+                                                             message = "Refund reference failed validation checks. " +
+                                                                 "Possible scenarios include, refund not being expired, or being closed already.")
                                                          String reference) {
         IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
 
