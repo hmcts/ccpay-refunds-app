@@ -1205,6 +1205,68 @@ class RefundServiceImplTest {
     }
 
     @Test
+    void givenRefundAmtFeeLessThanPaymentAmt_whenInitiateRefund_thenRefundResponseReceivedWithClosedRefund() throws Exception {
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").refundReason("RR005").ccdCaseNumber(
+            "2").refundAmount(BigDecimal.valueOf(555)).paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
+            ContactDetails.contactDetailsWith().addressLine("ABC Street").email("mock@test.com").city("London").county(
+                "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
+            Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
+                new BigDecimal(100)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
+
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
+            "YY").name("XX YY").roles(Arrays.asList(
+            "payments-refund-approver",
+            "payments-refund",
+            "payments-refund-approver-AAA",
+            "payments-refund-AAA"
+        )).sub("ZZ").build();
+
+        when(refundsRepository.findByPaymentReference(anyString()))
+            .thenReturn(Optional.of(Utility.refundListSupplierForApprovedStatusAndClosed.get()));
+
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
+        when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name(
+            "RR007").build());
+
+        RefundResponse refundResponse = refundsService.initiateRefund(refundRequest, map, idamUserIdResponse);
+        assertNotNull(refundResponse);
+        assertEquals("RF1234567890", refundResponse.getRefundReference());
+    }
+
+    @Test
+    void givenRefundAmtFeeExceedsThanPaymentAmt_whenInitiateRefund_with_closed_refund() throws Exception {
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").refundReason("RR005").ccdCaseNumber(
+            "2").refundAmount(BigDecimal.valueOf(555)).paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
+            ContactDetails.contactDetailsWith().addressLine("ABC Street").email("mock@test.com").city("London").county(
+                "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
+            Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
+                new BigDecimal(900)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
+
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
+            "YY").name("XX YY").roles(Arrays.asList(
+            "payments-refund-approver",
+            "payments-refund",
+            "payments-refund-approver-AAA",
+            "payments-refund-AAA"
+        )).sub("ZZ").build();
+
+
+        when(refundsRepository.findByPaymentReference(anyString()))
+            .thenReturn(Optional.of(Utility.refundListSupplierForAcceptedStatusAndClosed.get()));
+
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
+        when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
+
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> refundsService.initiateRefund(refundRequest, map, idamUserIdResponse)
+        );
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("The amount to refund can not be more than"));
+    }
+
+    @Test
     void testRefundListEmptyForSearchCritieria() {
         ReflectionTestUtils.setField(refundsService, "numberOfDays", numberOfDays);
         when(refundsRepository.findAll()).thenReturn(null);

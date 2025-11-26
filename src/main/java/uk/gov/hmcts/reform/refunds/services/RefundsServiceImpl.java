@@ -81,6 +81,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -715,19 +716,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private BigDecimal getTotalRefundedAmountIssueRefund(String paymentReference) {
-        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(paymentReference);
-        BigDecimal totalRefundedAmount = BigDecimal.ZERO;
-
-        if (refundsList.isPresent()) {
-            List<Refund> refundsListStatus =
-                refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
-                        RefundStatus.REJECTED))
-                    .collect(Collectors.toList());
-            for (Refund ref : refundsListStatus) {
-                totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
-            }
-        }
-        return totalRefundedAmount;
+        return refundsRepository.findByPaymentReference(paymentReference)
+            .orElse(Collections.emptyList())
+            .stream()
+            .filter(refund -> !refund.getRefundStatus().getName().equals(RefundStatus.CLOSED.getName())
+                && !refund.getRefundStatus().getName().equals(RefundStatus.REJECTED.getName())
+            ).map(Refund::getAmount)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @SuppressWarnings({"PMD"})
@@ -1041,7 +1037,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundsRepository.save(expiredRefund);
             return initiateRefundProcess(expiredRefund, idamUserIdResponse);
 
-        } catch (RefundNotFoundException | CheckDigitException exception) {
+        } catch (RefundNotFoundException refundNotFoundException) {
+            throw refundNotFoundException;
+        } catch (CheckDigitException exception) {
             throw new ReissueExpiredRefundException(exception.getMessage());
         } catch (RuntimeException runtimeException) {
             throw getReissueExpiredRefundException();
@@ -1050,7 +1048,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static ReissueExpiredRefundException getReissueExpiredRefundException() {
         return new ReissueExpiredRefundException(
-            "Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.");
+            "There was a problem processing the supplied refund reference.");
     }
 
     private void validateCurrentRefund(Refund expiredRefund) {
