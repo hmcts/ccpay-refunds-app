@@ -1095,8 +1095,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .statusHistories(Arrays.asList(
                 StatusHistory.statusHistoryWith()
                     .createdBy(idamUserIdResponse.getUid())
-                    .notes(getReissueLabel(expiredRefund.getPaymentReference())
-                               + " re-issue of original refund " + expiredRefund.getReference())
+                    .notes(getReissueLabel(expiredRefund.getPaymentReference()))
                     .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
                     .status(REISSUED.getName()).build(),
                 StatusHistory.statusHistoryWith()
@@ -1133,7 +1132,16 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         } else {
             suffix = "th";
         }
-        return expiredCount + suffix;
+        String originalLabel = expiredCount + suffix;
+
+        Refund oldestClosedRefund = refunds.stream()
+            .filter(r -> RefundStatus.CLOSED.getName().equals(r.getRefundStatus().getName()))
+            .min((r1, r2) -> r1.getDateCreated().compareTo(r2.getDateCreated()))
+            .orElse(null);
+
+        String originalRefundReference = oldestClosedRefund != null ? oldestClosedRefund.getReference() : "";
+
+        return originalLabel +  " re-issue of original refund "+(originalRefundReference.isEmpty() ? "" :  originalRefundReference);
     }
 
 }
