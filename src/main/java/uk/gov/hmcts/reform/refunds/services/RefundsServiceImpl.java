@@ -1047,6 +1047,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             throw getReissueExpiredRefundException();
         }
     }
+
     private static ReissueExpiredRefundException getReissueExpiredRefundException() {
         return new ReissueExpiredRefundException(
             "There was a problem processing the supplied refund reference.");
