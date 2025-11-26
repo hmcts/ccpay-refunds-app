@@ -1139,7 +1139,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         String originalRefundReference = oldestClosedRefund != null ? oldestClosedRefund.getReference() : "";
 
-        return originalLabel +  " re-issue of original refund "+(originalRefundReference.isEmpty() ? "" :  originalRefundReference);
+        return originalLabel +  " re-issue of original refund " + (originalRefundReference.isEmpty() ? "" :  originalRefundReference);
     }
 
 }
