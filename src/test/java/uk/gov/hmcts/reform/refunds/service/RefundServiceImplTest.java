@@ -1463,7 +1463,7 @@ class RefundServiceImplTest {
                 "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
             Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
                 new BigDecimal(100)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
-
+        when(refundServiceRoleUtil.validateRefundRoleWithServiceName(anyList(),anyString())).thenReturn(true);
         when(refundsRepository.findByReferenceOrThrow(anyString()))
             .thenReturn(getExpiredRefund());
 
