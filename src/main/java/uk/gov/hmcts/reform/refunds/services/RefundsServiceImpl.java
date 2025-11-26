@@ -1037,7 +1037,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundsRepository.save(expiredRefund);
             return initiateRefundProcess(expiredRefund, idamUserIdResponse);
 
-        } catch (RefundNotFoundException | CheckDigitException exception) {
+        } catch (RefundNotFoundException refundNotFoundException) {
+            throw refundNotFoundException;
+        } catch (CheckDigitException exception) {
             throw new ReissueExpiredRefundException(exception.getMessage());
         } catch (RuntimeException runtimeException) {
             throw getReissueExpiredRefundException();
@@ -1046,7 +1048,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static ReissueExpiredRefundException getReissueExpiredRefundException() {
         return new ReissueExpiredRefundException(
-            "Refund reference failed validation checks. Possible scenarios include, refund not being expired, or being closed already.");
+            "There was a problem processing the supplied refund reference.");
     }
 
     private void validateCurrentRefund(Refund expiredRefund) {
