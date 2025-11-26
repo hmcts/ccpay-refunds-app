@@ -40,6 +40,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
@@ -1023,6 +1024,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                                                 IdamUserIdResponse idamUserIdResponse) {
         try {
             Refund expiredRefund = refundsRepository.findByReferenceOrThrow(refundReference);
+            refundServiceRoleUtil.validateRefundRoleWithServiceName(idamUserIdResponse.getRoles(), expiredRefund.getServiceType());
             validateCurrentRefund(expiredRefund);
             expiredRefund.setRefundStatus(RefundStatus.CLOSED);
             expiredRefund.setUpdatedBy(idamUserIdResponse.getUid());
@@ -1037,15 +1039,14 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             refundsRepository.save(expiredRefund);
             return initiateRefundProcess(expiredRefund, idamUserIdResponse);
 
-        } catch (RefundNotFoundException refundNotFoundException) {
-            throw refundNotFoundException;
+        } catch (RefundNotFoundException | ActionNotAllowedException exception) {
+            throw exception;
         } catch (CheckDigitException exception) {
             throw new ReissueExpiredRefundException(exception.getMessage());
         } catch (RuntimeException runtimeException) {
             throw getReissueExpiredRefundException();
         }
     }
-
     private static ReissueExpiredRefundException getReissueExpiredRefundException() {
         return new ReissueExpiredRefundException(
             "There was a problem processing the supplied refund reference.");
