@@ -130,7 +130,7 @@ class RefundServiceImplTest {
     @Spy
     private PaymentFailureResponseMapper paymentFailureResponseMapper;
 
-    @Mock
+    @Spy
     private RefundServiceRoleUtil refundServiceRoleUtil;
 
     @Mock
