@@ -125,7 +125,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final String SEND_REFUND = "SendRefund";
 
     private static final String REFUND_CLOSED_BY_CASE_WORKER = "Refund closed by case worker";
-    private static final String REFUND_REISSUED_BY = "Refund reissued by";
+
+    private static final String SYSTEM_USER = "System user";
+
     private static final String REFUND_APPROVED_BY_SYSTEM = "Refund approved by system";
 
     private static final Predicate[] REF = new Predicate[0];
@@ -1089,8 +1091,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                         .map(fee -> String.valueOf(fee.getFeeId()))
                         .collect(Collectors.joining(",")))
             .serviceType(expiredRefund.getServiceType())
-            .createdBy(idamUserIdResponse.getUid())
-            .updatedBy(idamUserIdResponse.getUid())
+            .createdBy(SYSTEM_USER)
+            .updatedBy(SYSTEM_USER)
             .contactDetails(expiredRefund.getContactDetails())
             .refundFees(copiedFees)
             .refundInstructionType(APPROVED.getName())
