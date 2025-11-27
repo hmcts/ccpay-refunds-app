@@ -241,6 +241,7 @@ class RefundServiceImplTest {
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .serviceType("AAA")
             .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
             .statusHistories(Arrays.asList(Utility.STATUS_HISTORY_SUPPLIER_WITH_EXPIRED.get()))
             .refundFees(Arrays.asList(RefundFees.refundFeesWith().refundAmount(BigDecimal.valueOf(100)).code("1").build()))
@@ -1452,7 +1453,9 @@ class RefundServiceImplTest {
         IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
             "YY").name("XX YY").roles(Arrays.asList(
             "payments-refund-approver",
-            "payments-refund"
+            "payments-refund",
+            "payments-refund-approver-AAA",
+            "payments-refund-AAA"
         )).sub("ZZ").build();
 
         RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").reference("RF-1111-2222-3333")
