@@ -372,6 +372,7 @@ class RefundServiceImplTest {
         userMap.put("payments-refund", Collections.singletonList(dto));
         when(contextStartListener.getUserMap()).thenReturn(userMap);
         exception.expect(UserNotFoundException.class);
+
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             null,
             map,
@@ -1451,9 +1452,7 @@ class RefundServiceImplTest {
         IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
             "YY").name("XX YY").roles(Arrays.asList(
             "payments-refund-approver",
-            "payments-refund",
-            "payments-refund-approver-AAA",
-            "payments-refund-AAA"
+            "payments-refund"
         )).sub("ZZ").build();
 
         RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").reference("RF-1111-2222-3333")
@@ -1463,7 +1462,6 @@ class RefundServiceImplTest {
                 "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
             Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
                 new BigDecimal(100)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
-        when(refundServiceRoleUtil.validateRefundRoleWithServiceName(anyList(),anyString())).thenReturn(true);
         when(refundsRepository.findByReferenceOrThrow(anyString()))
             .thenReturn(getExpiredRefund());
 
