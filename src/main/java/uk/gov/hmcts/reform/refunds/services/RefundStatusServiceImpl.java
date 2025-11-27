@@ -77,6 +77,28 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 RefundStatus.ACCEPTED,
                 LIBERATA_REASON)
             ));
+            IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+            String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
+            headers.put("authorization", Collections.singletonList(authorization));
+
+            Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
+            if (notificationDetails == null) {
+                LOG.error("Notification not found. Not able to send notification.");
+            } else {
+                ContactDetails newContact = ContactDetails.contactDetailsWith()
+                    .notificationType(notificationDetails.getNotificationType())
+                    .postalCode(notificationDetails.getContactDetails().getPostalCode())
+                    .city(notificationDetails.getContactDetails().getCity())
+                    .country(notificationDetails.getContactDetails().getCountry())
+                    .county(notificationDetails.getContactDetails().getCounty())
+                    .addressLine(notificationDetails.getContactDetails().getAddressLine())
+                    .email(notificationDetails.getContactDetails().getEmail())
+                    .build();
+                refund.setContactDetails(newContact);
+            }
+            String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
+            notificationService.updateNotification(headers, refund, null, templateId);
+
         } else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
             refund.setRefundStatus(RefundStatus.EXPIRED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
@@ -100,26 +122,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
 
-                IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
-                String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
-                headers.put("authorization", Collections.singletonList(authorization));
-
-                Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
-                if (notificationDetails == null) {
-                    LOG.error("Notification not found. Not able to send notification.");
-                } else {
-                    ContactDetails newContact = ContactDetails.contactDetailsWith()
-                        .notificationType(notificationDetails.getNotificationType())
-                        .postalCode(notificationDetails.getContactDetails().getPostalCode())
-                        .city(notificationDetails.getContactDetails().getCity())
-                        .country(notificationDetails.getContactDetails().getCountry())
-                        .county(notificationDetails.getContactDetails().getCounty())
-                        .addressLine(notificationDetails.getContactDetails().getAddressLine())
-                        .email(notificationDetails.getContactDetails().getEmail())
-                        .build();
-                    refund.setContactDetails(newContact);
-                }
-
                 refund.setRefundStatus(RefundStatus.APPROVED);
                 refund.setUpdatedBy(SYSTEM_USER);
                 Refund refundUpdated = refundsRepository.findByReferenceOrThrow(reference);
@@ -128,9 +130,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     RefundStatus.APPROVED,
                     LIBERATA_REJECT_UPDATE)
                 ));
-                String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
-                notificationService.updateNotification(headers, refund, null, templateId);
-
             }
         }
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
