@@ -60,23 +60,18 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
-        if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)
-                && (refund.getRefundStatus() == RefundStatus.APPROVED) && refund.getUpdatedBy() == SYSTEM_USER) {
-            //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
+        if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
             refund.setRefundStatus(RefundStatus.ACCEPTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
                 RefundStatus.ACCEPTED,
                 LIBERATA_REASON)
             ));
-            refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
-        } else if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
-            refund.setRefundStatus(RefundStatus.ACCEPTED);
-            refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                LIBERATA_NAME,
-                RefundStatus.ACCEPTED,
-                LIBERATA_REASON)
-            ));
+            if (refund.getRefundStatus() == RefundStatus.APPROVED && refund.getUpdatedBy() == SYSTEM_USER) {
+                //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
+                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+            }
+
             IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
             String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
             headers.put("authorization", Collections.singletonList(authorization));
@@ -96,10 +91,11 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     .build();
                 refund.setContactDetails(newContact);
             }
+
             String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
             notificationService.updateNotification(headers, refund, null, templateId);
 
-        } else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
+        }else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
             refund.setRefundStatus(RefundStatus.EXPIRED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
@@ -107,7 +103,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 statusUpdateRequest.getReason())
             ));
             refund.setUpdatedBy(LIBERATA_NAME);
-        } else {
+        }else {
             refund.setRefundStatus(RefundStatus.REJECTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
