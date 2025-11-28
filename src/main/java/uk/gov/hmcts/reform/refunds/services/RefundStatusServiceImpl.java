@@ -95,7 +95,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
             notificationService.updateNotification(headers, refund, null, templateId);
 
-        }else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
+        } else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
             refund.setRefundStatus(RefundStatus.EXPIRED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
@@ -103,7 +103,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 statusUpdateRequest.getReason())
             ));
             refund.setUpdatedBy(LIBERATA_NAME);
-        }else {
+        } else {
             refund.setRefundStatus(RefundStatus.REJECTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
