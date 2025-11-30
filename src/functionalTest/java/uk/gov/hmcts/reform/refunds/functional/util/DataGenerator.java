@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 public class DataGenerator {
 
     public String generateEmail(int length) {
-        String allowedChars = "abcdefghijklmnopqrstuvwxyz" +
-            "1234567890";//numbers
+        String allowedChars = "abcdefghijklmnopqrstuvwxyz"
+            + "1234567890";//numbers
 
         String random = RandomStringUtils.random(length, allowedChars);
         String email = random + "@mailtest.gov.uk";

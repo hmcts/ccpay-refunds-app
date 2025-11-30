@@ -5,8 +5,8 @@ import io.restassured.response.Response;
 import jakarta.inject.Inject;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.AfterClass;
+//import org.junit.After;
+//import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,14 +38,22 @@ import uk.gov.service.notify.Notification;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.not;
+//import static org.assertj.core.api.Assertions.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @ActiveProfiles("functional")
 @RunWith(SpringIntegrationSerenityRunner.class)
@@ -124,7 +132,10 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE_WITHOUT_SERVICE = user5.getAuthorisationToken();
             userEmails.add(user5.getEmail());
 
-            USER_TOKEN_PROBATE_DRAFT_CASE_CREATOR = idamService.authenticateUser(testConfigProperties.getProbateCaseworkerUsername(), testConfigProperties.getProbateCaseworkerPassword());
+            USER_TOKEN_PROBATE_DRAFT_CASE_CREATOR = idamService.authenticateUser(
+                testConfigProperties.getProbateCaseworkerUsername(),
+                testConfigProperties.getProbateCaseworkerPassword()
+            );
             USER_ID_PROBATE_DRAFT_CASE_CREATOR = idamService.getUserDetails(USER_TOKEN_PROBATE_DRAFT_CASE_CREATOR);
 
             SERVICE_TOKEN_CMC =
@@ -450,7 +461,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
-        assertEquals( "There was a problem processing the supplied refund reference.", reissueExpiredRefundResponse.getBody().asString());
+        assertEquals("There was a problem processing the supplied refund reference.", reissueExpiredRefundResponse.getBody().asString());
     }
 
     @Test
@@ -583,7 +594,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueClosedRefundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
-        assertEquals( "There was a problem processing the supplied refund reference.", reissueClosedRefundResponse.getBody().asString());
+        assertEquals("There was a problem processing the supplied refund reference.", reissueClosedRefundResponse.getBody().asString());
     }
 
     @Test
@@ -1085,7 +1096,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
-        assertThat(reissueExpiredRefundResponse.getBody().asString()).isEqualTo(String.format("{\"reissueExpired.reference\":\"The value %s not correctly formatted.\"}", refundReference));
+        assertThat(reissueExpiredRefundResponse.getBody().asString()).
+            isEqualTo(String.format("{\"reissueExpired.reference\":\"The value %s not correctly formatted.\"}", refundReference)
+            );
     }
 
     @Test
