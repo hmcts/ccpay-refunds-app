@@ -43,6 +43,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.RefundResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
+import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
@@ -241,6 +242,7 @@ class RefundServiceImplTest {
             .paymentReference("RC-1111-2234-1077-1123")
             .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
+            .serviceType("AAA")
             .updatedBy(Utility.GET_REFUND_LIST_CCD_CASE_USER_ID2)
             .statusHistories(Arrays.asList(Utility.STATUS_HISTORY_SUPPLIER_WITH_EXPIRED.get()))
             .refundFees(Arrays.asList(RefundFees.refundFeesWith().refundAmount(BigDecimal.valueOf(100)).code("1").build()))
@@ -372,6 +374,7 @@ class RefundServiceImplTest {
         userMap.put("payments-refund", Collections.singletonList(dto));
         when(contextStartListener.getUserMap()).thenReturn(userMap);
         exception.expect(UserNotFoundException.class);
+
         RefundListDtoResponse refundListDtoResponse = refundsService.getRefundList(
             null,
             map,
@@ -1205,6 +1208,68 @@ class RefundServiceImplTest {
     }
 
     @Test
+    void givenRefundAmtFeeLessThanPaymentAmt_whenInitiateRefund_thenRefundResponseReceivedWithClosedRefund() throws Exception {
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").refundReason("RR005").ccdCaseNumber(
+            "2").refundAmount(BigDecimal.valueOf(555)).paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
+            ContactDetails.contactDetailsWith().addressLine("ABC Street").email("mock@test.com").city("London").county(
+                "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
+            Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
+                new BigDecimal(100)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
+
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
+            "YY").name("XX YY").roles(Arrays.asList(
+            "payments-refund-approver",
+            "payments-refund",
+            "payments-refund-approver-AAA",
+            "payments-refund-AAA"
+        )).sub("ZZ").build();
+
+        when(refundsRepository.findByPaymentReference(anyString()))
+            .thenReturn(Optional.of(Utility.refundListSupplierForApprovedStatusAndClosed.get()));
+
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
+        when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name(
+            "RR007").build());
+
+        RefundResponse refundResponse = refundsService.initiateRefund(refundRequest, map, idamUserIdResponse);
+        assertNotNull(refundResponse);
+        assertEquals("RF1234567890", refundResponse.getRefundReference());
+    }
+
+    @Test
+    void givenRefundAmtFeeExceedsThanPaymentAmt_whenInitiateRefund_with_closed_refund() throws Exception {
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").refundReason("RR005").ccdCaseNumber(
+            "2").refundAmount(BigDecimal.valueOf(555)).paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
+            ContactDetails.contactDetailsWith().addressLine("ABC Street").email("mock@test.com").city("London").county(
+                "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
+            Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
+                new BigDecimal(900)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
+
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
+            "YY").name("XX YY").roles(Arrays.asList(
+            "payments-refund-approver",
+            "payments-refund",
+            "payments-refund-approver-AAA",
+            "payments-refund-AAA"
+        )).sub("ZZ").build();
+
+
+        when(refundsRepository.findByPaymentReference(anyString()))
+            .thenReturn(Optional.of(Utility.refundListSupplierForAcceptedStatusAndClosed.get()));
+
+        when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
+        when(referenceUtil.getNext(anyString())).thenReturn("RF1234567890");
+
+        Exception exception = assertThrows(
+            InvalidRefundRequestException.class,
+            () -> refundsService.initiateRefund(refundRequest, map, idamUserIdResponse)
+        );
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains("The amount to refund can not be more than"));
+    }
+
+    @Test
     void testRefundListEmptyForSearchCritieria() {
         ReflectionTestUtils.setField(refundsService, "numberOfDays", numberOfDays);
         when(refundsRepository.findAll()).thenReturn(null);
@@ -1401,7 +1466,6 @@ class RefundServiceImplTest {
                 "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
             Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
                 new BigDecimal(100)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
-
         when(refundsRepository.findByReferenceOrThrow(anyString()))
             .thenReturn(getExpiredRefund());
 
@@ -1409,6 +1473,34 @@ class RefundServiceImplTest {
 
         assertNotNull(response);
         verify(refundsRepository, times(2)).save(any(Refund.class));
+    }
+
+
+
+
+    @Test
+    void testInitiateReissueRefund_failByRole() throws Exception {
+
+        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
+            "YY").name("XX YY").roles(Arrays.asList(
+            "payments-SSS"
+        )).sub("ZZ").build();
+
+        RefundRequest refundRequest = RefundRequest.refundRequestWith().paymentReference("1").reference("RF-1111-2222-3333")
+            .refundReason("RR005").ccdCaseNumber("2").refundAmount(BigDecimal.valueOf(777))
+            .paymentAmount(BigDecimal.valueOf(666)).feeIds("3").contactDetails(
+                ContactDetails.contactDetailsWith().addressLine("ABC Street").email("mock@test.com").city("London").county(
+                    "Greater London").country("UK").postalCode("E1 6AN").notificationType("Letter").build()).refundFees(
+                Collections.singletonList(RefundFeeDto.refundFeeRequestWith().feeId(1).code("RR001").version("1.0").volume(1).refundAmount(
+                    new BigDecimal(100)).build())).serviceType("AAA").paymentChannel("BBB").paymentMethod("CCC").build();
+        when(refundsRepository.findByReferenceOrThrow(anyString()))
+            .thenReturn(getExpiredRefund());
+
+        // Expect ActionNotAllowedException due to invalid role for service
+        assertThrows(
+            ActionNotAllowedException.class, () ->
+            refundsService.initiateReissueRefund(refundRequest.getReference(), map, idamUserIdResponse)
+        );
     }
 
     @Test
