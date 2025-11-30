@@ -5,8 +5,8 @@ import io.restassured.response.Response;
 import jakarta.inject.Inject;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
-//import org.junit.After;
-//import org.junit.AfterClass;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +20,11 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
-import uk.gov.hmcts.reform.refunds.functional.config.*;
+import uk.gov.hmcts.reform.refunds.functional.config.CcdService;
+import uk.gov.hmcts.reform.refunds.functional.config.IdamService;
+import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
+import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
+import uk.gov.hmcts.reform.refunds.functional.config.ValidUser;
 import uk.gov.hmcts.reform.refunds.functional.fixture.RefundsFixture;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
@@ -44,14 +48,16 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
-//import static org.assertj.core.api.Assertions.not;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+//import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
@@ -1096,8 +1102,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(BAD_REQUEST.value());
-        assertThat(reissueExpiredRefundResponse.getBody().asString()).
-            isEqualTo(String.format("{\"reissueExpired.reference\":\"The value %s not correctly formatted.\"}", refundReference)
+        assertThat(reissueExpiredRefundResponse.getBody().asString())
+            .isEqualTo(String.format("{\"reissueExpired.reference\":\"The value %s not correctly formatted.\"}", refundReference)
             );
     }
 
@@ -1677,34 +1683,33 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             .filter(rf -> rf.getRefundReference().equals(refundReference)).findFirst().get();
     }
 
-//    @After
-//    public void deleteRefundsAndPayments() {
-//        if (!refundReferences.isEmpty()) {
-//            //delete refund record
-//            refundReferences.forEach(refundReference -> paymentTestService.deleteRefund(
-//                USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-//                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-//                refundReference
-//            ).then().statusCode(NO_CONTENT.value()));
-//        }
-//        if (!paymentReferences.isEmpty()) {
-//            // delete payment record
-//            paymentReferences.forEach(paymentReference -> paymentTestService.deletePayment(
-//                USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-//                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-//                paymentReference,
-//                testConfigProperties.basePaymentsUrl
-//            ).then().statusCode(NO_CONTENT.value()));
-//        }
-//    }
-//
-//    @AfterClass
-//    public static void tearDown() {
-//        if (!userEmails.isEmpty()) {
-//            // delete idam test user
-//            userEmails.forEach(IdamService::deleteUser);
-//        }
-//    }
+    @After
+    public void deleteRefundsAndPayments() {
+        /*if (!refundReferences.isEmpty()) {
+            //delete refund record
+            refundReferences.forEach(refundReference -> paymentTestService.deleteRefund(
+                USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                refundReference
+            ).then().statusCode(NO_CONTENT.value()));
+        }
+        if (!paymentReferences.isEmpty()) {
+            // delete payment record
+            paymentReferences.forEach(paymentReference -> paymentTestService.deletePayment(
+                USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                paymentReference,
+                testConfigProperties.basePaymentsUrl
+            ).then().statusCode(NO_CONTENT.value()));
+        }*/
+    }
 
+    @AfterClass
+    public static void tearDown() {
+        /* if (!userEmails.isEmpty()) {
+            // delete idam test user
+            userEmails.forEach(IdamService::deleteUser);
+        } */
+    }
 
 }
