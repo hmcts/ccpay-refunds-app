@@ -67,6 +67,8 @@ idam:
     client:
       id: ${IDAM_PAYBUBBLE_CLIENT_ID:paybubble}
       secret: ${IDAM_PAYBUBBLE_CLIENT_SECRET:}
+    redirect:
+      uri: ${IDAM_PAYBUBBLE_REDIRECT_URI:https://paybubble.aat.platform.hmcts.net/oauth2/callback}
 oauth2:
   redirect:
     uri: ${OAUTH2_REDIRECT_URI:https://moneyclaims.aat.platform.hmcts.net}
@@ -107,3 +109,14 @@ mock:
 refund:
   search:
     days: 7
+notification:
+  api:
+    key: ${NOTIFY_API_KEY}
+ccd:
+  api:
+    url: ${CCD_API_URL:http://ccd-data-store-api-aat.service.core-compute-aat.internal}
+probate:
+  caseworker:
+    username: ${PROBATE_CASE_WORKER_USER_NAME}
+    password: ${PROBATE_CASE_WORKER_PASSWORD}
+

@@ -5,13 +5,17 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import jakarta.inject.Named;
 import net.serenitybdd.rest.SerenityRest;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundDto;
+import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Named
@@ -190,4 +194,12 @@ public class PaymentTestService {
             .queryParams("paymentReferenceList", paymentReferenceList)
             .get("/refund/payment-failure-report");
     }
+
+    public Response reissueExpiredRefund(final String userToken, final String serviceToken,
+                                   final String refundReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .post("/refund/reissue-expired/{reference}", refundReference);
+    }
+
 }
