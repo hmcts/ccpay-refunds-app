@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.idam.client.models.TokenExchangeResponse;
 import uk.gov.hmcts.reform.idam.client.models.test.CreateUserRequest;
 import uk.gov.hmcts.reform.idam.client.models.test.UserRole;
+import uk.gov.hmcts.reform.refunds.functional.response.idam.IdamGetUserDetailsResponse;
 
 import java.util.Base64;
 import java.util.UUID;
@@ -58,7 +59,7 @@ public class IdamService {
         String email = nextUserEmail();
         CreateUserRequest userRequest = userRequest(email, roles);
         LOG.info("idamApi : " + idamApi.toString());
-        LOG.info("userRequest : " + userRequest);
+        LOG.info("userRequest : " + userRequest.toString());
         try {
             idamApi.createUser(userRequest);
         } catch (Exception ex) {
@@ -97,8 +98,8 @@ public class IdamService {
         String authorisation = username + ":" + password;
         String base64Authorisation = Base64.getEncoder().encodeToString(authorisation.getBytes());
 
-        LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
-        LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
+        LOG.info("testConfig.getIdamPayBubbleClientId() : " + testConfig.getIdamPayBubbleClientId());
+        LOG.info("testConfig.getIdamPayBubbleClientRedirectUri() : " + testConfig.getIdamPayBubbleClientRedirectUri());
 
         try {
             TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(username,
@@ -107,9 +108,19 @@ public class IdamService {
                                                                                GRANT_TYPE,
                                                                                testConfig.getIdamPayBubbleClientId(),
                                                                                testConfig.getIdamPayBubbleClientSecret(),
-                                                                               testConfig.getOauth2().getRedirectUrl());
+                                                                               testConfig.getIdamPayBubbleClientRedirectUri());
 
             return BEARER + tokenExchangeResponse.getAccessToken();
+        } catch (Exception ex) {
+            LOG.info(ex.getMessage());
+        }
+        return null;
+    }
+
+    public String getUserDetails(String accessToken) {
+        try {
+            IdamGetUserDetailsResponse idamGetUserDetailsResponse = idamApi.getDetails(accessToken);
+            return idamGetUserDetailsResponse.getId();
         } catch (Exception ex) {
             LOG.info(ex.getMessage());
         }

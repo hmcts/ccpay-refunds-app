@@ -9,7 +9,9 @@ properties([
     string(name: 'TEST_URL_PAYMENT', defaultValue: 'http://payment-api-aat.service.core-compute-aat.internal', description: 'The payment app url you want to run these tests against'),
     string(name: 'IDAM_API_URL', defaultValue: 'https://idam-api.aat.platform.hmcts.net', description: 'The Idam url you want to run these tests against'),
     string(name: 'S2S_URL', defaultValue: 'http://rpe-service-auth-provider-aat.service.core-compute-aat.internal', description: 'The s2s url you want to run these tests against'),
-    string(name: 'OAUTH2_REDIRECT_URI', defaultValue: 'https://moneyclaims.aat.platform.hmcts.net', description: 'The redirect url you want to authenticate users and get idam token'),
+    string(name: 'OAUTH2_REDIRECT_URI', defaultValue: 'https://moneyclaims.aat.platform.hmcts.net', description: 'The cmc redirect url you want to authenticate users and get idam token'),
+    string(name: 'IDAM_PAYBUBBLE_REDIRECT_URI', defaultValue: 'https://paybubble.aat.platform.hmcts.net/oauth2/callback', description: 'The idam redirect url you want to authenticate users and get idam token'),
+    string(name: 'CCD_API_URL', defaultValue: 'http://ccd-data-store-api-aat.service.core-compute-aat.internal', description: 'The Idam url you want to run these tests against'),
     string(name: 'SecurityRules',
       defaultValue: 'http://raw.githubusercontent.com/hmcts/security-test-rules/master/conf/security-rules.conf',
       description: 'SecurityUrl against which rules will be executed'),
@@ -33,7 +35,10 @@ def secrets = [
     secret('paybubble-idam-client-secret', 'OIDC_CLIENT_SECRET'),
     secret('refunds-api-client-secret', 'REFUND_SERVICE_ACCOUNT_CLIENT_SECRET'),
     secret('refunds-api-user-password', 'REFUND_SERVICE_ACCOUNT_PASSWORD'),
-    secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET')
+    secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET'),
+    secret('notifications-email-apikey', 'NOTIFY_API_KEY'),
+    secret('probate-caseworker-username', 'PROBATE_CASE_WORKER_USER_NAME'),
+    secret('probate-caseworker-password', 'PROBATE_CASE_WORKER_PASSWORD')
   ]
 ]
 
@@ -53,6 +58,8 @@ withNightlyPipeline(type, product, component) {
   env.IDAM_API_URL = params.IDAM_API_URL
   env.S2S_URL = params.S2S_URL
   env.OAUTH2_REDIRECT_URI = params.OAUTH2_REDIRECT_URI
+  env.IDAM_PAYBUBBLE_REDIRECT_URI = params.IDAM_PAYBUBBLE_REDIRECT_URI
+  env.CCD_API_URL = params.CCD_API_URL
   loadVaultSecrets(secrets)
   enableSecurityScan()
   enableMutationTest()

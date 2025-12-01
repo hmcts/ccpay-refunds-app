@@ -17,7 +17,10 @@ def secrets = [
     secret('paybubble-idam-client-secret', 'OIDC_CLIENT_SECRET'),
     secret('refunds-api-client-secret', 'REFUND_SERVICE_ACCOUNT_CLIENT_SECRET'),
     secret('refunds-api-user-password', 'REFUND_SERVICE_ACCOUNT_PASSWORD'),
-    secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET')
+    secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET'),
+    secret('notifications-email-apikey', 'NOTIFY_API_KEY'),
+    secret('probate-caseworker-username', 'PROBATE_CASE_WORKER_USER_NAME'),
+    secret('probate-caseworker-password', 'PROBATE_CASE_WORKER_PASSWORD')
   ]
 ]
 
