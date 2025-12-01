@@ -190,4 +190,12 @@ public class PaymentTestService {
             .queryParams("paymentReferenceList", paymentReferenceList)
             .get("/refund/payment-failure-report");
     }
+
+    public Response reissueExpiredRefund(final String userToken, final String serviceToken,
+                                   final String refundReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .post("/refund/reissue-expired/{reference}", refundReference);
+    }
+
 }
