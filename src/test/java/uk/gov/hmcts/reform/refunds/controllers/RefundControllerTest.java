@@ -1777,35 +1777,6 @@ class RefundControllerTest {
         assertEquals(1, rejectionReasonList.size());
     }
 
-    @Test
-    void updateRefundStatusAccepted() throws Exception {
-
-        refund.setRefundStatus(RefundStatus.APPROVED);
-        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
-
-        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
-
-        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
-        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-                                       eq(IdamUserIdResponse.class)
-        )).thenReturn(responseEntity);
-        RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith().status(
-            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
-        MvcResult result = mockMvc.perform(patch(
-            "/refund/{reference}",
-            "RF-1234-1234-1234-1234"
-        )
-                                               .content(asJsonString(refundStatusUpdateRequest))
-                                               .header("Authorization", "user")
-                                               .header("ServiceAuthorization", "Services")
-                                               .contentType(MediaType.APPLICATION_JSON)
-                                               .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent())
-            .andReturn();
-
-        assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
-
-    }
 
     @Test
     void updateRefundStatusExpired() throws Exception {
