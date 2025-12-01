@@ -1092,7 +1092,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                         .collect(Collectors.joining(",")))
             .serviceType(expiredRefund.getServiceType())
             .createdBy(idamUserIdResponse.getUid())
-            .updatedBy(idamUserIdResponse.getUid())
+            .updatedBy(SYSTEM_USER)
             .contactDetails(expiredRefund.getContactDetails())
             .refundFees(copiedFees)
             .refundInstructionType(APPROVED.getName())

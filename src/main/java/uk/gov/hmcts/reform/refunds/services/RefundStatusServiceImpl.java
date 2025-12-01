@@ -61,16 +61,16 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
+            if (refund.getRefundStatus() == RefundStatus.APPROVED && refund.getUpdatedBy() == SYSTEM_USER) {
+                //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
+                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+            }
             refund.setRefundStatus(RefundStatus.ACCEPTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
                 RefundStatus.ACCEPTED,
                 LIBERATA_REASON)
             ));
-            if (refund.getRefundStatus() == RefundStatus.APPROVED && refund.getUpdatedBy() == SYSTEM_USER) {
-                //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
-                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
-            }
 
             IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
             String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
