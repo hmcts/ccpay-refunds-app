@@ -90,6 +90,7 @@ import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.RejectionReasonRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.services.IacService;
+import uk.gov.hmcts.reform.refunds.services.IdamService;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.NotificationServiceImpl;
 import uk.gov.hmcts.reform.refunds.services.PaymentService;
@@ -390,6 +391,9 @@ class RefundControllerTest {
     private RefundsServiceImpl refundsService;
     @MockBean
     private RefundsRepository refundsRepository;
+
+    @MockBean
+    private IdamService idamService;
 
     @MockBean
     private StatusHistoryRepository statusHistoryRepository;
@@ -1777,6 +1781,42 @@ class RefundControllerTest {
         assertEquals(1, rejectionReasonList.size());
     }
 
+    @Test
+    void updateRefundStatusAccepted() throws Exception {
+
+        refund.setRefundStatus(RefundStatus.APPROVED);
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken(
+            "qwerrtyuiop").build();
+        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        when(paymentService.fetchPaymentGroupResponse(any(), anyString()))
+            .thenReturn(getPaymentGroupDto());
+
+        RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith().status(
+            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        MvcResult result = mockMvc.perform(patch(
+            "/refund/{reference}",
+            "RF-1234-1234-1234-1234"
+        )
+                                               .content(asJsonString(refundStatusUpdateRequest))
+                                               .header("Authorization", "user")
+                                               .header("ServiceAuthorization", "Services")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent())
+            .andReturn();
+
+        assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
+
+    }
 
     @Test
     void updateRefundStatusExpired() throws Exception {

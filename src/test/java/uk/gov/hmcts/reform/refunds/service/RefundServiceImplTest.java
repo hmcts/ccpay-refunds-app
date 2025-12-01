@@ -658,7 +658,7 @@ class RefundServiceImplTest {
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(Utility.refundListSupplierForSendBackStatus.get());
         when(paymentService.fetchPaymentGroupResponse(
             any(),
-            anyString()
+            "RC-1111-2222-3333-4444"
         )).thenReturn(Utility.PAYMENT_GROUP_RESPONSE.get());
         when(refundReasonRepository.findByCodeOrThrow(anyString())).thenThrow(RefundReasonNotFoundException.class);
         when(idamService.getUserId(any())).thenReturn(Utility.IDAM_USER_ID_RESPONSE);
