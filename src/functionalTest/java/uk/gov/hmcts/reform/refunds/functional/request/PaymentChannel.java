@@ -17,8 +17,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "payment_channel")
 public class PaymentChannel {
 
-    public final static PaymentChannel TELEPHONY = new PaymentChannel("telephony", "Through the IVR");
-    public final static PaymentChannel ONLINE = new PaymentChannel("online", "Through online portal");
+    public static final PaymentChannel TELEPHONY = new PaymentChannel("telephony", "Through the IVR");
+    public static final PaymentChannel ONLINE = new PaymentChannel("online", "Through online portal");
 
     @Id
     @Column(name = "name", nullable = false)

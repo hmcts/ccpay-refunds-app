@@ -8,7 +8,13 @@ import net.serenitybdd.rest.SerenityRest;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.functional.request.*;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanCcdPayment;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanDcnPayment;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentGroupDto;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -216,7 +222,7 @@ public class PaymentTestService {
             .contentType(ContentType.JSON)
             .baseUri(baseUri)
             .body(bulkScanPaymentRequest)
-            .post("/payment-groups/{payment-group-reference}/bulk-scan-payments", paymentGroupReference );
+            .post("/payment-groups/{payment-group-reference}/bulk-scan-payments", paymentGroupReference);
     }
 
     public Response postBulkScanDcnPayment(final String serviceToken,

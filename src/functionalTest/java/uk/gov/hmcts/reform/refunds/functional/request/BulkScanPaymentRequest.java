@@ -1,24 +1,20 @@
 package uk.gov.hmcts.reform.refunds.functional.request;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import jakarta.validation.constraints.AssertFalse;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.With;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import uk.gov.hmcts.reform.refunds.functional.util.PaymentMethodType;
 
 import java.math.BigDecimal;
@@ -79,24 +75,6 @@ public class BulkScanPaymentRequest {
     @NotEmpty
     @NotNull
     private String documentControlNumber;
-
-    @JsonIgnore
-    @AssertFalse(message = "Invalid payment banked date. Date format should be UTC.")
-    public boolean isValidBankedDate() {
-        if (bankedDate != null) {
-            try {
-                DateTime.parse(bankedDate);
-            } catch (IllegalArgumentException fe) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @AssertFalse(message = "Either ccdCaseNumber or exceptionRecord is required.")
-    private boolean isEitherOneRequired() {
-        return (StringUtils.isEmpty(ccdCaseNumber) && StringUtils.isEmpty(exceptionRecord));
-    }
 
 }
 

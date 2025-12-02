@@ -11,13 +11,13 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,7 +36,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class BulkScanDcnPayment {
 
     @JsonProperty("document_control_number")
-    @Pattern(regexp="-?\\d+(\\.\\d+)?", message = "document_control_number should be numeric")
     @Size(min = 21, max = 21, message = "document_control_number length must be 21 digits")
     private String dcnReference;
     /*
@@ -80,7 +79,7 @@ public class BulkScanDcnPayment {
     @AssertFalse(message = "Invalid banked_Date. Date format should be YYYY-MM-DD (e.g. 2019-01-01). should never be a future date")
     public boolean isValidBankedDateFormat() {
         if (bankedDate != null) {
-            if(! bankedDate.matches("\\d{4}-\\d{2}-\\d{2}")){
+            if (! bankedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
                 return true;
             }
             SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd", Locale.UK);

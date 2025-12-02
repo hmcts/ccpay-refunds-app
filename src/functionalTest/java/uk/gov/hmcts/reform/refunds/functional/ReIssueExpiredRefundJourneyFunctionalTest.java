@@ -28,8 +28,16 @@ import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.functional.config.ValidUser;
 import uk.gov.hmcts.reform.refunds.functional.fixture.RefundsFixture;
-import uk.gov.hmcts.reform.refunds.functional.request.*;
-import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanCcdPayment;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanDcnPayment;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.FeeDto;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentChannel;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentDto;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentGroupDto;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentStatus;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
 import uk.gov.hmcts.reform.refunds.functional.util.DataGenerator;
@@ -1576,7 +1584,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
     @Test
     public void positive_reissue_refund_for_cheque_payment() throws Exception {
-        String emailAddress = dataGenerator.generateEmail(16);
+        final String emailAddress = dataGenerator.generateEmail(16);
         final String service = "Probate";
         final String feeAmount = "300.00";
         final String feeCode = "FEE0219";
@@ -1838,7 +1846,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
     @Test
     public void positive_reissue_refund_for_cash_payment() throws Exception {
-        String emailAddress = dataGenerator.generateEmail(16);
+        final String emailAddress = dataGenerator.generateEmail(16);
         final String service = "Probate";
         final String feeAmount = "300.00";
         final String feeCode = "FEE0219";
@@ -2100,7 +2108,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
     @Test
     public void positive_reissue_refund_for_postal_order_payment() throws Exception {
-        String emailAddress = dataGenerator.generateEmail(16);
+        final String emailAddress = dataGenerator.generateEmail(16);
         final String service = "Probate";
         final String feeAmount = "300.00";
         final String feeCode = "FEE0219";
