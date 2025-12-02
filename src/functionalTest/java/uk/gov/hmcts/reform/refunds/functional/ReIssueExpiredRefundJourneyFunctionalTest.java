@@ -4,7 +4,9 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import jakarta.inject.Inject;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -26,13 +28,21 @@ import uk.gov.hmcts.reform.refunds.functional.config.S2sTokenService;
 import uk.gov.hmcts.reform.refunds.functional.config.TestConfigProperties;
 import uk.gov.hmcts.reform.refunds.functional.config.ValidUser;
 import uk.gov.hmcts.reform.refunds.functional.fixture.RefundsFixture;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanCcdPayment;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanDcnPayment;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.FeeDto;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentChannel;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentDto;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentGroupDto;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
-import uk.gov.hmcts.reform.refunds.functional.response.PaymentDto;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentStatus;
 import uk.gov.hmcts.reform.refunds.functional.response.RefundResponse;
 import uk.gov.hmcts.reform.refunds.functional.service.PaymentTestService;
 import uk.gov.hmcts.reform.refunds.functional.util.DataGenerator;
 import uk.gov.hmcts.reform.refunds.functional.util.NotifyUtil;
+import uk.gov.hmcts.reform.refunds.functional.util.PaymentMethodType;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
@@ -42,7 +52,9 @@ import uk.gov.service.notify.Notification;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -88,6 +100,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
     private static String SERVICE_TOKEN_PAY_BUBBLE_PAYMENT;
     private static String USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE;
+    private static String USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
     private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE_WITHOUT_SERVICE;
@@ -137,6 +150,10 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             ValidUser user5 = idamService.createUserWithSearchScope("payments-refund-approver");
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE_WITHOUT_SERVICE = user5.getAuthorisationToken();
             userEmails.add(user5.getEmail());
+
+            ValidUser user6 = idamService.createUserWithSearchScope("payments");
+            USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE = user6.getAuthorisationToken();
+            userEmails.add(user6.getEmail());
 
             USER_TOKEN_PROBATE_DRAFT_CASE_CREATOR = idamService.authenticateUser(
                 testConfigProperties.getProbateCaseworkerUsername(),
@@ -224,6 +241,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         assertEquals("HMCTS refund request approved", emailSubject,
                      "Email subject does not match for initial Refund Accepted");
+        assertTrue(emailBody1.contains("Refund reference: " + refundReference),
+                   "Email body does not contain the refund reference");
         assertTrue(emailBody1.contains("Your refund will be processed and sent to the account you originally made the payment from within 14 days"),
                    "Email body does not contain expected text for initial Refund Accepted");
 
@@ -270,9 +289,11 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification1.getId(), "New notification not sent"); //ensure it's a new email
+        assertNotEquals(notification2.getId(), notification1.getId(), "New notification not sent"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
+        assertTrue(emailBody2.contains("Refund reference: " + refundReference),
+                   "Email body does not contain the refund reference");
         assertTrue(emailBody2.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
                    "Email body does not contain expected text for Refund Rejected");
 
@@ -342,6 +363,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertNotEquals(notification3.getId(), notification2.getId(), "New notification not sent"); //ensure it's a new notification
 
         String emailBody3 = notifyUtil.getNotifyEmailBody(notification3);
+        assertTrue(emailBody3.contains("Refund reference: " + newRefundReference),
+                   "Email body does not contain new refund reference");
         assertTrue(emailBody3.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
                    "Email body does not contain expected text for Refund Rejected");
 
@@ -1559,6 +1582,792 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertEquals(String.format("The amount to refund can not be more than £%s", remainingFeeRefundAmount), refundResponse.getBody().asString());
     }
 
+    @Test
+    public void positive_reissue_refund_for_cheque_payment() throws Exception {
+        final String emailAddress = dataGenerator.generateEmail(16);
+        final String service = "Probate";
+        final String feeAmount = "300.00";
+        final String feeCode = "FEE0219";
+        final String feeVersion = "6";
+        final String refundReason = "RR001";
+        final String refundAmount = "300.00";
+        final String paymentMethod = "cheque";
+        final Integer bankGiroSlipNo = 965556;
+
+        String ccdCaseNumber = ccdService.createProbateDraftCase(
+            USER_ID_PROBATE_DRAFT_CASE_CREATOR,
+            USER_TOKEN_PROBATE_DRAFT_CASE_CREATOR,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT
+        );
+        LOG.info("Probate draft case number : {}", ccdCaseNumber);
+
+        String[] dcn = {"6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER)};
+
+        BulkScanDcnPayment bulkScanDcnPayment = createBulkScanDcnPayment(
+            new BigDecimal(feeAmount),
+            bankGiroSlipNo,
+            LocalDate.now().toString(),
+            "GBP",
+            dcn[0],
+            paymentMethod
+        );
+        Response bulkScanDcnPaymentResponse = paymentTestService.postBulkScanDcnPayment(
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.bulkscanApiUrl,
+            bulkScanDcnPayment
+        );
+        bulkScanDcnPaymentResponse.then().statusCode(CREATED.value()).and().toString().equals("created");
+
+        BulkScanCcdPayment bulkScanCcdPayment = createBulkScanCcdPayments(ccdCaseNumber,
+                                                                          dcn,
+                                                                          "AA08",
+                                                                          false);
+        Response bulkScanCcdPaymentsResponse = paymentTestService.postBulkScanCcdPayments(
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.bulkscanApiUrl,
+            bulkScanCcdPayment
+        );
+        bulkScanCcdPaymentsResponse.then().statusCode(CREATED.value()).body(
+            "payment_dcns",
+            equalTo(Arrays.asList(dcn))
+        );
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(feeAmount))
+            .service(service)
+            .siteId("AA08")
+            .currency("GBP")
+            .documentControlNumber(dcn[0])
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentProvider("exela")
+            .giroSlipNo(bankGiroSlipNo.toString())
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                                    .calculatedAmount(new BigDecimal(feeAmount))
+                                    .code(feeCode)
+                                    .version(feeVersion)
+                                    .reference("testRef1")
+                                    .volume(1)
+                                    .ccdCaseNumber(ccdCaseNumber)
+                                    .build())).build();
+
+        Response paymentGroupResponse = paymentTestService.addNewFeeAndPaymentGroup(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                                                    SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                                                                    testConfigProperties.basePaymentsUrl,
+                                                                                    paymentGroupDto
+        );
+
+        assertThat(paymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        String paymentGroupReference = paymentGroupResponse.getBody().jsonPath().getString("payment_group_reference");
+
+        Response paymentResponse = paymentTestService.createBulkScanPayment(
+            USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.basePaymentsUrl,
+            bulkScanPaymentRequest,
+            paymentGroupReference
+        );
+
+        assertThat(paymentResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        String paymentReference = paymentResponse.getBody().jsonPath().getString("reference");
+
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                                                                              SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,
+                                                                              "20",
+                                                                              testConfigProperties.basePaymentsUrl
+        );
+
+        final String refundReference = performRefund(refundReason, paymentReference, refundAmount, feeAmount, feeCode, feeVersion, emailAddress);
+        refundReferences.add(refundReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        // verify that status changed to Approved
+        RefundDto refundDto1 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.APPROVED, refundDto1.getRefundStatus());
+        assertEquals("Amended claim", refundDto1.getReason());
+
+        // Liberata Accepted the Refund
+        Response updateRefundStatusResponse1 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith()
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateRefundStatusResponse1.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Accepted
+        RefundDto refundDto2 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.ACCEPTED, refundDto2.getRefundStatus());
+        assertEquals("Amended claim", refundDto2.getReason());
+
+        // Verify notification email content for Refund Accepted after Rejected
+        Notification notification1 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        String emailBody1 = notifyUtil.getNotifyEmailBody(notification1);
+        assertTrue(emailBody1.contains("Refund reference: " + refundReference),
+                   "Email body does not contain the refund reference");
+        assertTrue(emailBody1.contains("To receive this refund, you must give us the correct bank details to process the request."),
+                   "Email body does not contain expected text for Refund Accepted");
+
+        // Liberata expired the refund after 21 days
+        Response updateRefundStatusResponse2 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith().reason("Unable to process expired refund")
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.EXPIRED).build()
+        );
+        assertThat(updateRefundStatusResponse2.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Expired
+        RefundDto refundDto3 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.EXPIRED, refundDto3.getRefundStatus());
+        assertEquals("Amended claim", refundDto3.getReason());
+
+        // Reissue the expired refund
+        Response reissueExpiredRefundResponse = paymentTestService.reissueExpiredRefund(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
+        assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        String newRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference).matches()).isEqualTo(true);
+        refundReferences.add(newRefundReference);
+
+        // verify that old refund status changed to Closed
+        RefundDto refundDto4 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.CLOSED, refundDto4.getRefundStatus());
+        assertEquals("Amended claim", refundDto4.getReason());
+
+        // verify that new refund status changed to Approved immediately after Ressiued and Reason remain same
+        // Reissued status will be verified in status history as the refund list response returns the latest status only
+        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, newRefundReference, "Approved");
+        assertEquals(RefundStatus.APPROVED, refundDto5.getRefundStatus());
+        assertEquals("Amended claim", refundDto5.getReason());
+
+        // Liberata Accepted the Refund
+        Response updateRefundStatusResponse3 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            newRefundReference,
+            RefundStatusUpdateRequest.RefundRequestWith()
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateRefundStatusResponse3.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Accepted
+        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference);
+        assertEquals(RefundStatus.ACCEPTED, refundDto6.getRefundStatus());
+        assertEquals("Amended claim", refundDto6.getReason());
+
+        // Verify notification email content for Refund Accepted after Reissued
+        Notification notification2 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        if (notification2.getId().equals(notification1.getId())) {
+            // try again
+            try {
+                Thread.sleep(2000); // wait for 2 seconds before retrying
+                LOG.info("Retrying to fetch notification email for {}", emailAddress);
+                notification2 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent"); //ensure it's a new notification
+
+        String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
+        assertTrue(emailBody2.contains("Refund reference: " + newRefundReference),
+                   "Email body does not contain new refund reference");
+        assertTrue(emailBody2.contains("To receive this refund, you must give us the correct bank details to process the request."),
+                   "Email body does not contain expected text for Refund Accepted");
+
+        //verify the old refund status history
+        Response oldRefundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
+            );
+        assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> oldRefundStatusHistoryList =
+            oldRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        assertEquals(8, oldRefundStatusHistoryList.size());
+
+        assertEquals("Closed", oldRefundStatusHistoryList.get(0).get("status").trim());
+        assertEquals("Refund closed by case worker", oldRefundStatusHistoryList.get(0).get("notes").trim());
+
+        assertEquals("Expired", oldRefundStatusHistoryList.get(1).get("status").trim());
+        assertEquals("Unable to process expired refund", oldRefundStatusHistoryList.get(1).get("notes").trim());
+
+        assertEquals("Accepted", oldRefundStatusHistoryList.get(5).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(5).get("notes").trim());
+
+        assertEquals("Approved", oldRefundStatusHistoryList.get(6).get("status").trim());
+        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(6).get("notes").trim());
+
+        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(7).get("status").trim());
+        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(7).get("notes").trim());
+
+        //verify the new refund status history
+        Response newRefundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference
+            );
+        assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> newRefundStatusHistoryList =
+            newRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        assertEquals(3, newRefundStatusHistoryList.size());
+
+        assertEquals("Accepted", newRefundStatusHistoryList.get(0).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", newRefundStatusHistoryList.get(0).get("notes").trim());
+
+        assertEquals("Approved", newRefundStatusHistoryList.get(1).get("status").trim());
+        assertEquals("Refund approved by system", newRefundStatusHistoryList.get(1).get("notes").trim());
+
+        assertEquals("Reissued", newRefundStatusHistoryList.get(2).get("status").trim());
+        assertEquals("1st re-issue of original refund " + refundReference, newRefundStatusHistoryList.get(2).get("notes").trim());
+    }
+
+    @Test
+    public void positive_reissue_refund_for_cash_payment() throws Exception {
+        final String emailAddress = dataGenerator.generateEmail(16);
+        final String service = "Probate";
+        final String feeAmount = "300.00";
+        final String feeCode = "FEE0219";
+        final String feeVersion = "6";
+        final String refundReason = "RR001";
+        final String refundAmount = "300.00";
+        final String paymentMethod = "cash";
+        final Integer bankGiroSlipNo = 965556;
+
+        String ccdCaseNumber = ccdService.createProbateDraftCase(
+            USER_ID_PROBATE_DRAFT_CASE_CREATOR,
+            USER_TOKEN_PROBATE_DRAFT_CASE_CREATOR,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT
+        );
+        LOG.info("Probate draft case number : {}", ccdCaseNumber);
+
+        String[] dcn = {"6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER)};
+
+        BulkScanDcnPayment bulkScanDcnPayment = createBulkScanDcnPayment(
+            new BigDecimal(feeAmount),
+            bankGiroSlipNo,
+            LocalDate.now().toString(),
+            "GBP",
+            dcn[0],
+            paymentMethod
+        );
+        Response bulkScanDcnPaymentResponse = paymentTestService.postBulkScanDcnPayment(
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.bulkscanApiUrl,
+            bulkScanDcnPayment
+        );
+        bulkScanDcnPaymentResponse.then().statusCode(CREATED.value()).and().toString().equals("created");
+
+        BulkScanCcdPayment bulkScanCcdPayment = createBulkScanCcdPayments(ccdCaseNumber,
+                                                                          dcn,
+                                                                          "AA08",
+                                                                          false);
+        Response bulkScanCcdPaymentsResponse = paymentTestService.postBulkScanCcdPayments(
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.bulkscanApiUrl,
+            bulkScanCcdPayment
+        );
+        bulkScanCcdPaymentsResponse.then().statusCode(CREATED.value()).body(
+            "payment_dcns",
+            equalTo(Arrays.asList(dcn))
+        );
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(feeAmount))
+            .service(service)
+            .siteId("AA08")
+            .currency("GBP")
+            .documentControlNumber(dcn[0])
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CASH)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentProvider("exela")
+            .giroSlipNo(bankGiroSlipNo.toString())
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                                    .calculatedAmount(new BigDecimal(feeAmount))
+                                    .code(feeCode)
+                                    .version(feeVersion)
+                                    .reference("testRef1")
+                                    .volume(1)
+                                    .ccdCaseNumber(ccdCaseNumber)
+                                    .build())).build();
+
+        Response paymentGroupResponse = paymentTestService.addNewFeeAndPaymentGroup(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                                                    SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                                                                    testConfigProperties.basePaymentsUrl,
+                                                                                    paymentGroupDto
+        );
+
+        assertThat(paymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        String paymentGroupReference = paymentGroupResponse.getBody().jsonPath().getString("payment_group_reference");
+
+        Response paymentResponse = paymentTestService.createBulkScanPayment(
+            USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.basePaymentsUrl,
+            bulkScanPaymentRequest,
+            paymentGroupReference
+        );
+
+        assertThat(paymentResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        String paymentReference = paymentResponse.getBody().jsonPath().getString("reference");
+
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                                                                              SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,
+                                                                              "20",
+                                                                              testConfigProperties.basePaymentsUrl
+        );
+
+        final String refundReference = performRefund(refundReason, paymentReference, refundAmount, feeAmount, feeCode, feeVersion, emailAddress);
+        refundReferences.add(refundReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        // verify that status changed to Approved
+        RefundDto refundDto1 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.APPROVED, refundDto1.getRefundStatus());
+        assertEquals("Amended claim", refundDto1.getReason());
+
+        // Liberata Accepted the Refund
+        Response updateRefundStatusResponse1 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith()
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateRefundStatusResponse1.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Accepted
+        RefundDto refundDto2 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.ACCEPTED, refundDto2.getRefundStatus());
+        assertEquals("Amended claim", refundDto2.getReason());
+
+        // Verify notification email content for Refund Accepted after Rejected
+        Notification notification1 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        String emailBody1 = notifyUtil.getNotifyEmailBody(notification1);
+        assertTrue(emailBody1.contains("Refund reference: " + refundReference),
+                   "Email body does not contain the refund reference");
+        assertTrue(emailBody1.contains("To receive this refund, you must give us the correct bank details to process the request."),
+                   "Email body does not contain expected text for Refund Accepted");
+
+        // Liberata expired the refund after 21 days
+        Response updateRefundStatusResponse2 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith().reason("Unable to process expired refund")
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.EXPIRED).build()
+        );
+        assertThat(updateRefundStatusResponse2.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Expired
+        RefundDto refundDto3 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.EXPIRED, refundDto3.getRefundStatus());
+        assertEquals("Amended claim", refundDto3.getReason());
+
+        // Reissue the expired refund
+        Response reissueExpiredRefundResponse = paymentTestService.reissueExpiredRefund(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
+        assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        String newRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference).matches()).isEqualTo(true);
+        refundReferences.add(newRefundReference);
+
+        // verify that old refund status changed to Closed
+        RefundDto refundDto4 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.CLOSED, refundDto4.getRefundStatus());
+        assertEquals("Amended claim", refundDto4.getReason());
+
+        // verify that new refund status changed to Approved immediately after Ressiued and Reason remain same
+        // Reissued status will be verified in status history as the refund list response returns the latest status only
+        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, newRefundReference, "Approved");
+        assertEquals(RefundStatus.APPROVED, refundDto5.getRefundStatus());
+        assertEquals("Amended claim", refundDto5.getReason());
+
+        // Liberata Accepted the Refund
+        Response updateRefundStatusResponse3 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            newRefundReference,
+            RefundStatusUpdateRequest.RefundRequestWith()
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateRefundStatusResponse3.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Accepted
+        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference);
+        assertEquals(RefundStatus.ACCEPTED, refundDto6.getRefundStatus());
+        assertEquals("Amended claim", refundDto6.getReason());
+
+        // Verify notification email content for Refund Accepted after Reissued
+        Notification notification2 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        if (notification2.getId().equals(notification1.getId())) {
+            // try again
+            try {
+                Thread.sleep(2000); // wait for 2 seconds before retrying
+                LOG.info("Retrying to fetch notification email for {}", emailAddress);
+                notification2 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent"); //ensure it's a new notification
+
+        String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
+        assertTrue(emailBody2.contains("Refund reference: " + newRefundReference),
+                   "Email body does not contain new refund reference");
+        assertTrue(emailBody2.contains("To receive this refund, you must give us the correct bank details to process the request."),
+                   "Email body does not contain expected text for Refund Accepted");
+
+        //verify the old refund status history
+        Response oldRefundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
+            );
+        assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> oldRefundStatusHistoryList =
+            oldRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        assertEquals(8, oldRefundStatusHistoryList.size());
+
+        assertEquals("Closed", oldRefundStatusHistoryList.get(0).get("status").trim());
+        assertEquals("Refund closed by case worker", oldRefundStatusHistoryList.get(0).get("notes").trim());
+
+        assertEquals("Expired", oldRefundStatusHistoryList.get(1).get("status").trim());
+        assertEquals("Unable to process expired refund", oldRefundStatusHistoryList.get(1).get("notes").trim());
+
+        assertEquals("Accepted", oldRefundStatusHistoryList.get(5).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(5).get("notes").trim());
+
+        assertEquals("Approved", oldRefundStatusHistoryList.get(6).get("status").trim());
+        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(6).get("notes").trim());
+
+        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(7).get("status").trim());
+        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(7).get("notes").trim());
+
+        //verify the new refund status history
+        Response newRefundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference
+            );
+        assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> newRefundStatusHistoryList =
+            newRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        assertEquals(3, newRefundStatusHistoryList.size());
+
+        assertEquals("Accepted", newRefundStatusHistoryList.get(0).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", newRefundStatusHistoryList.get(0).get("notes").trim());
+
+        assertEquals("Approved", newRefundStatusHistoryList.get(1).get("status").trim());
+        assertEquals("Refund approved by system", newRefundStatusHistoryList.get(1).get("notes").trim());
+
+        assertEquals("Reissued", newRefundStatusHistoryList.get(2).get("status").trim());
+        assertEquals("1st re-issue of original refund " + refundReference, newRefundStatusHistoryList.get(2).get("notes").trim());
+    }
+
+    @Test
+    public void positive_reissue_refund_for_postal_order_payment() throws Exception {
+        final String emailAddress = dataGenerator.generateEmail(16);
+        final String service = "Probate";
+        final String feeAmount = "300.00";
+        final String feeCode = "FEE0219";
+        final String feeVersion = "6";
+        final String refundReason = "RR001";
+        final String refundAmount = "300.00";
+        final String paymentMethod = "postalorder";
+        final Integer bankGiroSlipNo = 965556;
+
+        String ccdCaseNumber = ccdService.createProbateDraftCase(
+            USER_ID_PROBATE_DRAFT_CASE_CREATOR,
+            USER_TOKEN_PROBATE_DRAFT_CASE_CREATOR,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT
+        );
+        LOG.info("Probate draft case number : {}", ccdCaseNumber);
+
+        String[] dcn = {"6600000000001" + RandomUtils.nextInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER)};
+
+        BulkScanDcnPayment bulkScanDcnPayment = createBulkScanDcnPayment(
+            new BigDecimal(feeAmount),
+            bankGiroSlipNo,
+            LocalDate.now().toString(),
+            "GBP",
+            dcn[0],
+            paymentMethod
+        );
+        Response bulkScanDcnPaymentResponse = paymentTestService.postBulkScanDcnPayment(
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.bulkscanApiUrl,
+            bulkScanDcnPayment
+        );
+        bulkScanDcnPaymentResponse.then().statusCode(CREATED.value()).and().toString().equals("created");
+
+        BulkScanCcdPayment bulkScanCcdPayment = createBulkScanCcdPayments(ccdCaseNumber,
+                                                                          dcn,
+                                                                          "AA08",
+                                                                          false);
+        Response bulkScanCcdPaymentsResponse = paymentTestService.postBulkScanCcdPayments(
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.bulkscanApiUrl,
+            bulkScanCcdPayment
+        );
+        bulkScanCcdPaymentsResponse.then().statusCode(CREATED.value()).body(
+            "payment_dcns",
+            equalTo(Arrays.asList(dcn))
+        );
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(feeAmount))
+            .service(service)
+            .siteId("AA08")
+            .currency("GBP")
+            .documentControlNumber(dcn[0])
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.POSTAL_ORDER)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentProvider("exela")
+            .giroSlipNo(bankGiroSlipNo.toString())
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                                    .calculatedAmount(new BigDecimal(feeAmount))
+                                    .code(feeCode)
+                                    .version(feeVersion)
+                                    .reference("testRef1")
+                                    .volume(1)
+                                    .ccdCaseNumber(ccdCaseNumber)
+                                    .build())).build();
+
+        Response paymentGroupResponse = paymentTestService.addNewFeeAndPaymentGroup(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                                                    SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+                                                                                    testConfigProperties.basePaymentsUrl,
+                                                                                    paymentGroupDto
+        );
+
+        assertThat(paymentGroupResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+
+        String paymentGroupReference = paymentGroupResponse.getBody().jsonPath().getString("payment_group_reference");
+
+        Response paymentResponse = paymentTestService.createBulkScanPayment(
+            USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            testConfigProperties.basePaymentsUrl,
+            bulkScanPaymentRequest,
+            paymentGroupReference
+        );
+
+        assertThat(paymentResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        String paymentReference = paymentResponse.getBody().jsonPath().getString("reference");
+
+        // Update Payments for CCDCaseNumber by certain days
+        paymentTestService.updateThePaymentDateByCcdCaseNumberForCertainHours(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
+                                                                              SERVICE_TOKEN_CMC,
+                                                                              ccdCaseNumber,
+                                                                              "20",
+                                                                              testConfigProperties.basePaymentsUrl
+        );
+
+        final String refundReference = performRefund(refundReason, paymentReference, refundAmount, feeAmount, feeCode, feeVersion, emailAddress);
+        refundReferences.add(refundReference);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        // verify that status changed to Approved
+        RefundDto refundDto1 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.APPROVED, refundDto1.getRefundStatus());
+        assertEquals("Amended claim", refundDto1.getReason());
+
+        // Liberata Accepted the Refund
+        Response updateRefundStatusResponse1 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith()
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateRefundStatusResponse1.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Accepted
+        RefundDto refundDto2 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.ACCEPTED, refundDto2.getRefundStatus());
+        assertEquals("Amended claim", refundDto2.getReason());
+
+        // Verify notification email content for Refund Accepted after Rejected
+        Notification notification1 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        String emailBody1 = notifyUtil.getNotifyEmailBody(notification1);
+        assertTrue(emailBody1.contains("Refund reference: " + refundReference),
+                   "Email body does not contain the refund reference");
+        assertTrue(emailBody1.contains("To receive this refund, you must give us the correct bank details to process the request."),
+                   "Email body does not contain expected text for Refund Accepted");
+
+        // Liberata expired the refund after 21 days
+        Response updateRefundStatusResponse2 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith().reason("Unable to process expired refund")
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.EXPIRED).build()
+        );
+        assertThat(updateRefundStatusResponse2.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Expired
+        RefundDto refundDto3 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.EXPIRED, refundDto3.getRefundStatus());
+        assertEquals("Amended claim", refundDto3.getReason());
+
+        // Reissue the expired refund
+        Response reissueExpiredRefundResponse = paymentTestService.reissueExpiredRefund(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference);
+        assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        String newRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference).matches()).isEqualTo(true);
+        refundReferences.add(newRefundReference);
+
+        // verify that old refund status changed to Closed
+        RefundDto refundDto4 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.CLOSED, refundDto4.getRefundStatus());
+        assertEquals("Amended claim", refundDto4.getReason());
+
+        // verify that new refund status changed to Approved immediately after Ressiued and Reason remain same
+        // Reissued status will be verified in status history as the refund list response returns the latest status only
+        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, newRefundReference, "Approved");
+        assertEquals(RefundStatus.APPROVED, refundDto5.getRefundStatus());
+        assertEquals("Amended claim", refundDto5.getReason());
+
+        // Liberata Accepted the Refund
+        Response updateRefundStatusResponse3 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            newRefundReference,
+            RefundStatusUpdateRequest.RefundRequestWith()
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateRefundStatusResponse3.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Accepted
+        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference);
+        assertEquals(RefundStatus.ACCEPTED, refundDto6.getRefundStatus());
+        assertEquals("Amended claim", refundDto6.getReason());
+
+        // Verify notification email content for Refund Accepted after Reissued
+        Notification notification2 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        if (notification2.getId().equals(notification1.getId())) {
+            // try again
+            try {
+                Thread.sleep(2000); // wait for 2 seconds before retrying
+                LOG.info("Retrying to fetch notification email for {}", emailAddress);
+                notification2 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent"); //ensure it's a new notification
+
+        String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
+        assertTrue(emailBody2.contains("Refund reference: " + newRefundReference),
+                   "Email body does not contain new refund reference");
+        assertTrue(emailBody2.contains("To receive this refund, you must give us the correct bank details to process the request."),
+                   "Email body does not contain expected text for Refund Accepted");
+
+        //verify the old refund status history
+        Response oldRefundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
+            );
+        assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> oldRefundStatusHistoryList =
+            oldRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        assertEquals(8, oldRefundStatusHistoryList.size());
+
+        assertEquals("Closed", oldRefundStatusHistoryList.get(0).get("status").trim());
+        assertEquals("Refund closed by case worker", oldRefundStatusHistoryList.get(0).get("notes").trim());
+
+        assertEquals("Expired", oldRefundStatusHistoryList.get(1).get("status").trim());
+        assertEquals("Unable to process expired refund", oldRefundStatusHistoryList.get(1).get("notes").trim());
+
+        assertEquals("Accepted", oldRefundStatusHistoryList.get(5).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(5).get("notes").trim());
+
+        assertEquals("Approved", oldRefundStatusHistoryList.get(6).get("status").trim());
+        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(6).get("notes").trim());
+
+        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(7).get("status").trim());
+        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(7).get("notes").trim());
+
+        //verify the new refund status history
+        Response newRefundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference
+            );
+        assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> newRefundStatusHistoryList =
+            newRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        assertEquals(3, newRefundStatusHistoryList.size());
+
+        assertEquals("Accepted", newRefundStatusHistoryList.get(0).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", newRefundStatusHistoryList.get(0).get("notes").trim());
+
+        assertEquals("Approved", newRefundStatusHistoryList.get(1).get("status").trim());
+        assertEquals("Refund approved by system", newRefundStatusHistoryList.get(1).get("notes").trim());
+
+        assertEquals("Reissued", newRefundStatusHistoryList.get(2).get("status").trim());
+        assertEquals("1st re-issue of original refund " + refundReference, newRefundStatusHistoryList.get(2).get("notes").trim());
+    }
+
     private String createPayment(String service, String siteId, String ccdCaseNumber, String feeAmount, String feeCode, String feeVersion) {
         final String accountNumber = testConfigProperties.existingAccountNumber;
 
@@ -1681,6 +2490,31 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         return refundsListDto.getRefundList().stream()
             .filter(rf -> rf.getRefundReference().equals(refundReference)).findFirst().get();
+    }
+
+    public static BulkScanDcnPayment createBulkScanDcnPayment(BigDecimal amount, Integer bankGiroCreditSlipNumber, String bankedDate,
+                                                           String currency, String dcnReference, String method) {
+
+        return BulkScanDcnPayment
+            .createPaymentRequestWith()
+            .amount(amount)
+            .bankGiroCreditSlipNumber(bankGiroCreditSlipNumber)
+            .bankedDate(bankedDate)
+            .currency(currency)
+            .dcnReference(dcnReference)
+            .method(method)
+            .build();
+    }
+
+    public static BulkScanCcdPayment createBulkScanCcdPayments(String ccdCaseNumber, String[] dcn,
+                                                                   String responsibleServiceId, boolean isExceptionRecord) {
+        return BulkScanCcdPayment
+            .createBSPaymentRequestWith()
+            .ccdCaseNumber(ccdCaseNumber)
+            .documentControlNumbers(dcn)
+            .responsibleServiceId(responsibleServiceId)
+            .isExceptionRecord(isExceptionRecord)
+            .build();
     }
 
     @After

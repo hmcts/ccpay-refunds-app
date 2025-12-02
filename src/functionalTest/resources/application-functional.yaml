@@ -112,6 +112,9 @@ refund:
 notification:
   api:
     key: ${NOTIFY_API_KEY}
+bulkscan:
+  api:
+    url: ${BULKSCAN_API_URL:http://ccpay-bulkscanning-api-aat.service.core-compute-aat.internal}
 ccd:
   api:
     url: ${CCD_API_URL:http://ccd-data-store-api-aat.service.core-compute-aat.internal}

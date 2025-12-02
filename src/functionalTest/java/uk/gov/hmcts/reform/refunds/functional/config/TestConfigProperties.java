@@ -29,6 +29,9 @@ public class TestConfigProperties {
     @Value("${idam.api.url}")
     public String idamApiUrl;
 
+    @Value("${bulkscan.api.url}")
+    public String bulkscanApiUrl;
+
     @Value("${ccd.api.url}")
     public String ccdApiUrl;
 
