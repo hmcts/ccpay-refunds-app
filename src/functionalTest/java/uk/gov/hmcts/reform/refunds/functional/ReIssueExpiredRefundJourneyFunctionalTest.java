@@ -1131,7 +1131,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
     }
 
     @Test
-    public void positive_new_refund_for_remaining_fee_amount_allowed_after_other_refunds_reissued() {
+    public void positive_new_refund_for_remaining_fee_amount_allowed_after_other_refunds_reissued() throws NotificationClientException {
+        final String emailAddress = dataGenerator.generateEmail(16);
         final String service = "PROBATE";
         final String siteId = "ABA6";
         final String feeAmount = "300.00";
@@ -1150,7 +1151,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         final String paymentReference = createPayment(service, siteId, ccdCaseNumber, feeAmount, feeCode, feeVersion);
         paymentReferences.add(paymentReference);
-        final String refundReference = performRefund(refundReason, paymentReference, refundAmount1, feeAmount, feeCode, feeVersion);
+        final String refundReference = performRefund(refundReason, paymentReference, refundAmount1, feeAmount, feeCode, feeVersion, emailAddress);
         refundReferences.add(refundReference);
 
         //This API Request tests the Retrieve Actions endpoint as well.
@@ -1316,6 +1317,33 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference2).matches()).isEqualTo(true);
         refundReferences.add(newRefundReference2);
 
+        // Liberata Accepted the Refund
+        Response updateRefundStatusResponse6 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            newRefundReference2,
+            RefundStatusUpdateRequest.RefundRequestWith()
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateRefundStatusResponse6.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status changed to Accepted
+        RefundDto refundDto11 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        assertEquals(RefundStatus.ACCEPTED, refundDto11.getRefundStatus());
+        assertEquals("Amended claim", refundDto11.getReason());
+
+        // Verify notification email content for Refund Accepted
+        Notification notification = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        String emailSubject = notifyUtil.getNotifyEmailSubject(notification);
+        String emailBody1 = notifyUtil.getNotifyEmailBody(notification);
+
+        assertEquals("HMCTS refund request approved", emailSubject,
+                     "Email subject does not match for initial Refund Accepted");
+        assertTrue(emailBody1.contains("Refund reference: " + newRefundReference2),
+                   "Email body does not contain the expected refund reference");
+        assertTrue(emailBody1.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
+                   "Email body does not contain expected text for initial Refund Accepted");
+
         //verify the 2nd re-issued refund status history
         Response newRefundStatusHistoryListResponse2 =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1324,15 +1352,18 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertThat(newRefundStatusHistoryListResponse2.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> newRefundStatusHistoryList2 =
             newRefundStatusHistoryListResponse2.getBody().jsonPath().getList("status_history_dto_list");
-        assertEquals(2, newRefundStatusHistoryList2.size());
-        assertEquals("Approved", newRefundStatusHistoryList2.get(0).get("status").trim());
-        assertEquals("Refund approved by system", newRefundStatusHistoryList2.get(0).get("notes").trim());
+        assertEquals(3, newRefundStatusHistoryList2.size());
+        assertEquals("Accepted", newRefundStatusHistoryList2.get(0).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", newRefundStatusHistoryList2.get(0).get("notes").trim());
 
-        assertEquals("Reissued", newRefundStatusHistoryList2.get(1).get("status").trim());
-        assertEquals("2nd re-issue of original refund " + refundReference, newRefundStatusHistoryList2.get(1).get("notes").trim());
+        assertEquals("Approved", newRefundStatusHistoryList2.get(1).get("status").trim());
+        assertEquals("Refund approved by system", newRefundStatusHistoryList2.get(1).get("notes").trim());
+
+        assertEquals("Reissued", newRefundStatusHistoryList2.get(2).get("status").trim());
+        assertEquals("2nd re-issue of original refund " + refundReference, newRefundStatusHistoryList2.get(2).get("notes").trim());
 
         // Can create a new refund for remaining fee amount after other refunds re-issued
-        final String refundReference2 = performRefund(refundReason, paymentReference, refundAmount2, feeAmount, feeCode, feeVersion);
+        final String refundReference2 = performRefund(refundReason, paymentReference, refundAmount2, feeAmount, feeCode, feeVersion, emailAddress);
         refundReferences.add(refundReference2);
     }
 
@@ -1815,14 +1846,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertEquals("Expired", oldRefundStatusHistoryList.get(1).get("status").trim());
         assertEquals("Unable to process expired refund", oldRefundStatusHistoryList.get(1).get("notes").trim());
 
-        assertEquals("Accepted", oldRefundStatusHistoryList.get(5).get("status").trim());
-        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(5).get("notes").trim());
+        assertEquals("Accepted", oldRefundStatusHistoryList.get(2).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(2).get("notes").trim());
 
-        assertEquals("Approved", oldRefundStatusHistoryList.get(6).get("status").trim());
-        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(6).get("notes").trim());
+        assertEquals("Approved", oldRefundStatusHistoryList.get(3).get("status").trim());
+        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(3).get("notes").trim());
 
-        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(7).get("status").trim());
-        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(7).get("notes").trim());
+        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(4).get("status").trim());
+        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(4).get("notes").trim());
 
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
@@ -2077,14 +2108,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertEquals("Expired", oldRefundStatusHistoryList.get(1).get("status").trim());
         assertEquals("Unable to process expired refund", oldRefundStatusHistoryList.get(1).get("notes").trim());
 
-        assertEquals("Accepted", oldRefundStatusHistoryList.get(5).get("status").trim());
-        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(5).get("notes").trim());
+        assertEquals("Accepted", oldRefundStatusHistoryList.get(2).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(2).get("notes").trim());
 
-        assertEquals("Approved", oldRefundStatusHistoryList.get(6).get("status").trim());
-        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(6).get("notes").trim());
+        assertEquals("Approved", oldRefundStatusHistoryList.get(3).get("status").trim());
+        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(3).get("notes").trim());
 
-        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(7).get("status").trim());
-        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(7).get("notes").trim());
+        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(4).get("status").trim());
+        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(4).get("notes").trim());
 
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
@@ -2339,14 +2370,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertEquals("Expired", oldRefundStatusHistoryList.get(1).get("status").trim());
         assertEquals("Unable to process expired refund", oldRefundStatusHistoryList.get(1).get("notes").trim());
 
-        assertEquals("Accepted", oldRefundStatusHistoryList.get(5).get("status").trim());
-        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(5).get("notes").trim());
+        assertEquals("Accepted", oldRefundStatusHistoryList.get(2).get("status").trim());
+        assertEquals("Sent to Middle Office for Processing", oldRefundStatusHistoryList.get(2).get("notes").trim());
 
-        assertEquals("Approved", oldRefundStatusHistoryList.get(6).get("status").trim());
-        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(6).get("notes").trim());
+        assertEquals("Approved", oldRefundStatusHistoryList.get(3).get("status").trim());
+        assertEquals("Sent to middle office", oldRefundStatusHistoryList.get(3).get("notes").trim());
 
-        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(7).get("status").trim());
-        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(7).get("notes").trim());
+        assertEquals("Sent for approval", oldRefundStatusHistoryList.get(4).get("status").trim());
+        assertEquals("Refund initiated and sent to team leader", oldRefundStatusHistoryList.get(4).get("notes").trim());
 
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
