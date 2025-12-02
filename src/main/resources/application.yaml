@@ -67,7 +67,7 @@ spring:
 trusted:
   s2s:
     service:
-      names: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp
+      names: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp,pcs_api
 auth:
   idam:
     client:

@@ -1,12 +1,12 @@
 # ccpay-refunds-app template
 
 [![Build Status](https://travis-ci.org/hmcts/ccpay-refunds-app.svg?branch=master)](https://travis-ci.org/hmcts/ccpay-refunds-app)
- 
+
 ## Notes
 
 Since Spring Boot 2.1 bean overriding is disabled. If you want to enable it you will need to set `spring.main.allow-bean-definition-overriding` to `true`.
 
-JUnit 5 is now enabled by default in the project. Please refrain from using JUnit4 and use the next generation 
+JUnit 5 is now enabled by default in the project. Please refrain from using JUnit4 and use the next generation
 
 ## Building and deploying the application
 
@@ -89,5 +89,5 @@ There is no need to remove postgres and java or similar core images.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details..
 
