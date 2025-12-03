@@ -76,6 +76,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
             }
+            // Get the original refund reference, it could the current one or the one from which it was cloned.
+            String originalRefundReference = getOriginalRefund(refund);
             refund.setRefundStatus(RefundStatus.ACCEPTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
@@ -89,7 +91,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             headers.put("authorization", Collections.singletonList(authorization));
 
 
-            Notification notificationDetails = notificationService.getNotificationDetails(headers, getOriginalRefund(refund));
+            Notification notificationDetails = notificationService.getNotificationDetails(headers, originalRefundReference);
             if (notificationDetails == null) {
                 LOG.error("Notification not found. Not able to send notification.");
             } else {
@@ -147,7 +149,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     private boolean isAClonedRefund(Refund refund) {
         // We check if the refund status is APPROVED and if it was updated by the SYSTEM_USER. IF so,
         // A cloned refund is one that was created as a result of a REISSUED status change.
-        return refund.getRefundStatus() == RefundStatus.APPROVED && refund.getUpdatedBy() == SYSTEM_USER;
+        return refund.getRefundStatus().getName().equals(RefundStatus.APPROVED .getName()) && refund.getUpdatedBy().equals(SYSTEM_USER);
     }
 
     private String getOriginalRefund(Refund refund) {
