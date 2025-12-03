@@ -1328,7 +1328,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertThat(updateRefundStatusResponse6.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status changed to Accepted
-        RefundDto refundDto11 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
+        RefundDto refundDto11 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference2);
         assertEquals(RefundStatus.ACCEPTED, refundDto11.getRefundStatus());
         assertEquals("Amended claim", refundDto11.getReason());
 
@@ -1340,7 +1340,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertEquals("HMCTS refund request approved", emailSubject,
                      "Email subject does not match for initial Refund Accepted");
         assertTrue(emailBody1.contains("Refund reference: " + newRefundReference2),
-                   "Email body does not contain the expected refund reference");
+                   "Email body does not contain the expected refund reference, new email not have been sent");
         assertTrue(emailBody1.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
                    "Email body does not contain expected text for initial Refund Accepted");
 
