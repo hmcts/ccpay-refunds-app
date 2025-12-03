@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.refunds.services;
 
-import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.EnumUtils;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.eclipse.collections.impl.collector.Collectors2;
