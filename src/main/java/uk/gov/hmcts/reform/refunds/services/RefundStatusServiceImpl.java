@@ -61,73 +61,104 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
-            if (refund.getRefundStatus() == RefundStatus.APPROVED && refund.getUpdatedBy() == SYSTEM_USER) {
-                //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
-                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+            if(refund.getRefundStatus() == RefundStatus.APPROVED && refund.getUpdatedBy() == SYSTEM_USER){
+                updateRefundForPayitJourney(refund, statusUpdateRequest, headers);
+            }else{
+                updateRefundAcceptedJourney(refund, statusUpdateRequest, headers);
             }
-            refund.setRefundStatus(RefundStatus.ACCEPTED);
-            refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                LIBERATA_NAME,
-                RefundStatus.ACCEPTED,
-                LIBERATA_REASON)
-            ));
-
-            IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
-            String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
-            headers.put("authorization", Collections.singletonList(authorization));
-
-            Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
-            if (notificationDetails == null) {
-                LOG.error("Notification not found. Not able to send notification.");
-            } else {
-                ContactDetails newContact = ContactDetails.contactDetailsWith()
-                    .notificationType(notificationDetails.getNotificationType())
-                    .postalCode(notificationDetails.getContactDetails().getPostalCode())
-                    .city(notificationDetails.getContactDetails().getCity())
-                    .country(notificationDetails.getContactDetails().getCountry())
-                    .county(notificationDetails.getContactDetails().getCounty())
-                    .addressLine(notificationDetails.getContactDetails().getAddressLine())
-                    .email(notificationDetails.getContactDetails().getEmail())
-                    .build();
-                refund.setContactDetails(newContact);
-            }
-
-            String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
-            notificationService.updateNotification(headers, refund, null, templateId);
-
         } else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
-            refund.setRefundStatus(RefundStatus.EXPIRED);
-            refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                LIBERATA_NAME,
-                RefundStatus.EXPIRED,
-                statusUpdateRequest.getReason())
-            ));
-            refund.setUpdatedBy(LIBERATA_NAME);
+            updateRefundExpired(refund, statusUpdateRequest);
         } else {
-            refund.setRefundStatus(RefundStatus.REJECTED);
-            refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                LIBERATA_NAME,
-                RefundStatus.REJECTED,
-                statusUpdateRequest.getReason())
-            ));
-            refund.setUpdatedBy(LIBERATA_NAME);
-
-            if (null != statusUpdateRequest.getReason()
-                && statusUpdateRequest.getReason().equalsIgnoreCase(
-                RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
-
-                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
-
-                refund.setRefundStatus(RefundStatus.APPROVED);
-                refund.setUpdatedBy(SYSTEM_USER);
-                Refund refundUpdated = refundsRepository.findByReferenceOrThrow(reference);
-                refundUpdated.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
-                    SYSTEM_USER,
-                    RefundStatus.APPROVED,
-                    LIBERATA_REJECT_UPDATE)
-                ));
-            }
+            updateRefundRejectedJourney(refund, statusUpdateRequest, reference);
         }
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
+    }
+
+
+    private void updateRefundForPayitJourney(Refund refund, RefundStatusUpdateRequest statusUpdateRequest,
+                                             MultiValueMap<String, String> headers) {
+        refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+        refund.setRefundStatus(RefundStatus.ACCEPTED);
+        refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+            LIBERATA_NAME,
+            RefundStatus.ACCEPTED,
+            LIBERATA_REASON)
+        ));
+        sendAcceptedNotification(headers, refund, statusUpdateRequest);
+    }
+
+    private void updateRefundAcceptedJourney(Refund refund, RefundStatusUpdateRequest statusUpdateRequest,
+                                             MultiValueMap<String, String> headers) {
+        refund.setRefundStatus(RefundStatus.ACCEPTED);
+        refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+            LIBERATA_NAME,
+            RefundStatus.ACCEPTED,
+            LIBERATA_REASON)
+        ));
+        sendAcceptedNotification(headers, refund, statusUpdateRequest);
+    }
+
+    private void updateRefundExpired(Refund refund, RefundStatusUpdateRequest statusUpdateRequest) {
+        refund.setRefundStatus(RefundStatus.EXPIRED);
+        refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+            LIBERATA_NAME,
+            RefundStatus.EXPIRED,
+            statusUpdateRequest.getReason())
+        ));
+        refund.setUpdatedBy(LIBERATA_NAME);
+    }
+
+    private void updateRefundRejectedJourney(Refund refund, RefundStatusUpdateRequest statusUpdateRequest,
+                                             String reference){
+
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+            LIBERATA_NAME,
+            RefundStatus.REJECTED,
+            statusUpdateRequest.getReason())
+        ));
+        refund.setUpdatedBy(LIBERATA_NAME);
+
+        if (null != statusUpdateRequest.getReason()
+            && statusUpdateRequest.getReason().equalsIgnoreCase(
+            RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)) {
+
+            refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+
+            refund.setRefundStatus(RefundStatus.APPROVED);
+            refund.setUpdatedBy(SYSTEM_USER);
+            Refund refundUpdated = refundsRepository.findByReferenceOrThrow(reference);
+            refundUpdated.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
+                SYSTEM_USER,
+                RefundStatus.APPROVED,
+                LIBERATA_REJECT_UPDATE)
+            ));
+        }
+    }
+
+    private void sendAcceptedNotification(MultiValueMap<String, String> headers, Refund refund,
+                                          RefundStatusUpdateRequest statusUpdateRequest) {
+        IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+        String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
+        headers.put("authorization", Collections.singletonList(authorization));
+
+        Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
+        if (notificationDetails == null) {
+            LOG.error("Notification not found. Not able to send notification.");
+        } else {
+            ContactDetails newContact = ContactDetails.contactDetailsWith()
+                .notificationType(notificationDetails.getNotificationType())
+                .postalCode(notificationDetails.getContactDetails().getPostalCode())
+                .city(notificationDetails.getContactDetails().getCity())
+                .country(notificationDetails.getContactDetails().getCountry())
+                .county(notificationDetails.getContactDetails().getCounty())
+                .addressLine(notificationDetails.getContactDetails().getAddressLine())
+                .email(notificationDetails.getContactDetails().getEmail())
+                .build();
+            refund.setContactDetails(newContact);
+        }
+
+        String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
+        notificationService.updateNotification(headers, refund, null, templateId);
     }
 }
