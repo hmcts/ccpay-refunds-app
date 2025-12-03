@@ -69,15 +69,15 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         LOG.info("statusUpdateRequest: {}", statusUpdateRequest);
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
-
+        final boolean isAClonedRefund = isAClonedRefund(refund);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
-            if (isAClonedRefund(refund)) {
+            if (isAClonedRefund) {
                 //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
             }
             // Get the original refund reference, it could the current one or the one from which it was cloned.
-            final String originalRefundReference = getOriginalRefund(refund);
+            final String originalRefundReference = getOriginalRefund(refund, isAClonedRefund);
             refund.setRefundStatus(RefundStatus.ACCEPTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
@@ -145,14 +145,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     }
 
     private boolean isAClonedRefund(Refund refund) {
-        // We check if the refund status is APPROVED and if it was updated by the SYSTEM_USER. IF so,
-        // A cloned refund is one that was created as a result of a REISSUED status change.
-        return refund.getRefundStatus().getName().equals(RefundStatus.APPROVED.getName()) && refund.getUpdatedBy().equals(
-            SYSTEM_USER);
+        return statusHistoryRepository
+            .findByRefundOrderByDateCreatedDesc(refund)
+            .stream()
+            .anyMatch(history -> RefundStatus.REISSUED.getName().equals(history.getStatus()));
     }
 
-    private String getOriginalRefund(Refund refund) {
-        if (isAClonedRefund(refund)) {
+    private String getOriginalRefund(Refund refund, boolean isAClonedRefund) {
+        if (isAClonedRefund) {
             // For cloned refunds, get the reference from the first REISSUED status history
             List<StatusHistory> statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund);
             Optional<StatusHistory> firstReissued = statusHistories
