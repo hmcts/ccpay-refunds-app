@@ -149,7 +149,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     private boolean isAClonedRefund(Refund refund) {
         // We check if the refund status is APPROVED and if it was updated by the SYSTEM_USER. IF so,
         // A cloned refund is one that was created as a result of a REISSUED status change.
-        return refund.getRefundStatus().getName().equals(RefundStatus.APPROVED .getName()) && refund.getUpdatedBy().equals(SYSTEM_USER);
+        return refund.getRefundStatus().getName().equals(RefundStatus.APPROVED.getName()) && refund.getUpdatedBy().equals(
+            SYSTEM_USER);
     }
 
     private String getOriginalRefund(Refund refund) {
