@@ -77,7 +77,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
             }
             // Get the original refund reference, it could the current one or the one from which it was cloned.
-            String originalRefundReference = getOriginalRefund(refund);
+            final String originalRefundReference = getOriginalRefund(refund);
             refund.setRefundStatus(RefundStatus.ACCEPTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
@@ -85,13 +85,11 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 LIBERATA_REASON)
             ));
 
-
             IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
             String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
             headers.put("authorization", Collections.singletonList(authorization));
-
-
             Notification notificationDetails = notificationService.getNotificationDetails(headers, originalRefundReference);
+
             if (notificationDetails == null) {
                 LOG.error("Notification not found. Not able to send notification.");
             } else {
