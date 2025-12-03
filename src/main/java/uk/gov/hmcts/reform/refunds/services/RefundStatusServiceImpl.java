@@ -61,9 +61,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
-            if(refund.getRefundStatus() == RefundStatus.APPROVED && refund.getUpdatedBy() == SYSTEM_USER){
+            if (refund.getRefundStatus() == RefundStatus.APPROVED && refund.getUpdatedBy() == SYSTEM_USER) {
                 updateRefundForPayitJourney(refund, statusUpdateRequest, headers);
-            }else{
+            } else {
                 updateRefundAcceptedJourney(refund, statusUpdateRequest, headers);
             }
         } else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
@@ -109,7 +109,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     }
 
     private void updateRefundRejectedJourney(Refund refund, RefundStatusUpdateRequest statusUpdateRequest,
-                                             String reference){
+                                             String reference) {
 
         refund.setRefundStatus(RefundStatus.REJECTED);
         refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
