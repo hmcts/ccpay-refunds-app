@@ -1095,7 +1095,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .updatedBy(SYSTEM_USER)
             .contactDetails(expiredRefund.getContactDetails())
             .refundFees(copiedFees)
-            .refundInstructionType(APPROVED.getName())
             .statusHistories(Arrays.asList(
                 StatusHistory.statusHistoryWith()
                     .createdBy(idamUserIdResponse.getUid())
