@@ -57,8 +57,8 @@ public class RefundsUtil {
             LOG.info("getTemplate --> getRefundInstructionType {}", refund.getRefundInstructionType());
             if (REFUND_WHEN_CONTACTED.equals(refund.getRefundInstructionType())) {
                 LOG.info("getTemplate --> reason 1 {}", reason);
-                if (REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(reason) ||
-                    REFUND_REQUEST_ACCEPTED_REASON.equalsIgnoreCase(reason)) {
+                if (REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(reason)
+                    || REFUND_REQUEST_ACCEPTED_REASON.equalsIgnoreCase(reason)) {
                     LOG.info("getTemplate --> reason 2 {}", reason);
                     if (EMAIL.name().equals(refund.getContactDetails().getNotificationType())) {
                         templateId = refundWhenContactedEmailTemplateId;
