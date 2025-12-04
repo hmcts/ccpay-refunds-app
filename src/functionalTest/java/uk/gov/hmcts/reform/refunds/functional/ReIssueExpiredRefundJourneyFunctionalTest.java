@@ -289,7 +289,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification1.getId(), "New notification not sent after online payment initial rejected refund Accepted"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification1.getId(),
+                        "New notification not sent after online payment initial rejected refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
         assertTrue(emailBody2.contains("Refund reference: " + refundReference),
@@ -360,7 +361,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification3.getId(), notification2.getId(), "New notification not sent after online payment reissued refund is accepted"); //ensure it's a new notification
+        assertNotEquals(notification3.getId(), notification2.getId(),
+                        "New notification not sent after online payment reissued refund is accepted"); //ensure it's a new notification
 
         String emailBody3 = notifyUtil.getNotifyEmailBody(notification3);
         assertTrue(emailBody3.contains("Refund reference: " + reIssuedRefundReference),
@@ -1250,7 +1252,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification1.getId(), "New notification not sent after online payment initial rejected refund Accepted"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification1.getId(),
+                        "New notification not sent after online payment initial rejected refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
         assertTrue(emailBody2.contains("Refund reference: " + refundReference),
@@ -1336,7 +1339,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification3.getId(), notification2.getId(), "New notification not sent after online payment 1st reissued refund Accepted"); //ensure it's a new notification
+        assertNotEquals(notification3.getId(), notification2.getId(),
+                        "New notification not sent after online payment 1st reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody3 = notifyUtil.getNotifyEmailBody(notification3);
         assertTrue(emailBody3.contains("Refund reference: " + reIssuedRefundReference1),
@@ -1396,7 +1400,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification4.getId(), notification3.getId(), "New notification not sent after online payment 2nd reissued refund Accepted"); //ensure it's a new notification
+        assertNotEquals(notification4.getId(), notification3.getId(),
+                        "New notification not sent after online payment 2nd reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody4 = notifyUtil.getNotifyEmailBody(notification3);
         assertTrue(emailBody4.contains("Refund reference: " + reIssuedRefundReference2),
@@ -1882,7 +1887,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent after cheque payment reissued refund Accepted"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification2.getId(),
+                        "New notification not sent after cheque payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
         assertTrue(emailBody2.contains("Refund reference: " + reIssuedRefundReference),
@@ -2144,7 +2150,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent after cash payment reissued refund Accepted"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification2.getId(),
+                        "New notification not sent after cash payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
         assertTrue(emailBody2.contains("Refund reference: " + reIssuedRefundReference),
@@ -2406,7 +2413,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent after postal order payment reissued refund Accepted"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification2.getId(),
+                        "New notification not sent after postal order payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
         assertTrue(emailBody2.contains("Refund reference: " + reIssuedRefundReference),
