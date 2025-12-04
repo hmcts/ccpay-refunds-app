@@ -44,7 +44,7 @@ public class RefundsUtil {
 
     public static final String REFUND_WHEN_CONTACTED_REJECT_REASON = "Unable to apply refund to Card";
 
-    public static final String REFUND_REQUEST_ACCEPTED_REASON = "Refund request accepted";
+    public static final String REFUND_REQUEST_ACCEPTED_REASON = "Amended claim";
 
     public String getTemplate(Refund refund) {
         return getTemplate(refund, refund.getReason());
