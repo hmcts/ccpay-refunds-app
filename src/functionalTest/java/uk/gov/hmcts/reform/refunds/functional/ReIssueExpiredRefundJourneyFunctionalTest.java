@@ -289,13 +289,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification1.getId(), "New notification not sent"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification1.getId(),
+                        "New notification not sent after online payment initial rejected refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
         assertTrue(emailBody2.contains("Refund reference: " + refundReference),
                    "Email body does not contain the refund reference");
         assertTrue(emailBody2.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
-                   "Email body does not contain expected text for Refund Rejected");
+                   "Email body does not contain expected text after online payment initial rejected refund Accepted");
 
         // Liberata expired the refund after 21 days
         Response updateRefundStatusResponse3 = paymentTestService.updateRefundStatus(
@@ -318,9 +319,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        String newRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference).matches()).isEqualTo(true);
-        refundReferences.add(newRefundReference);
+        String reIssuedRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(reIssuedRefundReference).matches()).isEqualTo(true);
+        refundReferences.add(reIssuedRefundReference);
 
         // verify that old refund status changed to Closed
         RefundDto refundDto7 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
@@ -329,7 +330,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         // verify that new refund status changed to Approved immediately after Ressiued and Reason remain same
         // Reissued status will be verified in status history as the refund list response returns the latest status only
-        RefundDto refundDto8 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, newRefundReference, "Approved");
+        RefundDto refundDto8 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, reIssuedRefundReference, "Approved");
         assertEquals(RefundStatus.APPROVED, refundDto8.getRefundStatus());
         assertEquals("Amended claim", refundDto8.getReason());
 
@@ -337,14 +338,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Response updateRefundStatusResponse4 = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            newRefundReference,
+            reIssuedRefundReference,
             RefundStatusUpdateRequest.RefundRequestWith()
                 .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
         );
         assertThat(updateRefundStatusResponse4.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status changed to Accepted
-        RefundDto refundDto9 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference);
+        RefundDto refundDto9 = getRefundListByCaseNumber(ccdCaseNumber, reIssuedRefundReference);
         assertEquals(RefundStatus.ACCEPTED, refundDto9.getRefundStatus());
         assertEquals("Amended claim", refundDto9.getReason());
 
@@ -360,13 +361,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification3.getId(), notification2.getId(), "New notification not sent"); //ensure it's a new notification
+        assertNotEquals(notification3.getId(), notification2.getId(),
+                        "New notification not sent after online payment reissued refund is accepted"); //ensure it's a new notification
 
         String emailBody3 = notifyUtil.getNotifyEmailBody(notification3);
-        assertTrue(emailBody3.contains("Refund reference: " + newRefundReference),
+        assertTrue(emailBody3.contains("Refund reference: " + reIssuedRefundReference),
                    "Email body does not contain new refund reference");
         assertTrue(emailBody3.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
-                   "Email body does not contain expected text for Refund Rejected");
+                   "Email body does not contain expected text after online payment reissued refund is accepted");
 
         //verify the old refund status history
         Response oldRefundStatusHistoryListResponse =
@@ -405,7 +407,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference
             );
         assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> newRefundStatusHistoryList =
@@ -608,9 +610,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        String newRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference).matches()).isEqualTo(true);
-        refundReferences.add(newRefundReference);
+        String reIssuedRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(reIssuedRefundReference).matches()).isEqualTo(true);
+        refundReferences.add(reIssuedRefundReference);
 
         // verify that old refund status changed to Closed
         RefundDto refundDto7 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
@@ -1194,6 +1196,18 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertEquals(RefundStatus.ACCEPTED, refundDto2.getRefundStatus());
         assertEquals("Amended claim", refundDto2.getReason());
 
+        // Verify notification email content for initial Refund Accepted
+        Notification notification1 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        String emailSubject = notifyUtil.getNotifyEmailSubject(notification1);
+        String emailBody1 = notifyUtil.getNotifyEmailBody(notification1);
+
+        assertEquals("HMCTS refund request approved", emailSubject,
+                     "Email subject does not match for initial Refund Accepted");
+        assertTrue(emailBody1.contains("Refund reference: " + refundReference),
+                   "Email body does not contain the initial refund reference");
+        assertTrue(emailBody1.contains("Your refund will be processed and sent to the account you originally made the payment from within 14 days"),
+                   "Email body does not contain expected text after online payment initial Refund Accepted");
+
         //Liberata rejected the refund with the reason 'Unable to apply refund to Card'
         Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1226,6 +1240,27 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertEquals(RefundStatus.ACCEPTED, refundDto5.getRefundStatus());
         assertEquals("Amended claim", refundDto5.getReason());
 
+        // Verify notification email content for Refund Accepted after Rejected
+        Notification notification2 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        if (notification2.getId().equals(notification1.getId())) {
+            // try again
+            try {
+                Thread.sleep(2000); // wait for 2 seconds before retrying
+                LOG.info("Retrying to fetch notification email for {}", emailAddress);
+                notification2 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        assertNotEquals(notification2.getId(), notification1.getId(),
+                        "New notification not sent after online payment initial rejected refund Accepted"); //ensure it's a new notification
+
+        String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
+        assertTrue(emailBody2.contains("Refund reference: " + refundReference),
+                   "Email body does not contain the refund reference");
+        assertTrue(emailBody2.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
+                   "Email body does not contain expected text after online payment initial rejected refund Accepted");
+
         // Liberata expired the refund after 21 days
         Response updateRefundStatusResponse3 = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
@@ -1247,9 +1282,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        String newRefundReference1 = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference1).matches()).isEqualTo(true);
-        refundReferences.add(newRefundReference1);
+        String reIssuedRefundReference1 = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(reIssuedRefundReference1).matches()).isEqualTo(true);
+        refundReferences.add(reIssuedRefundReference1);
 
         // verify that old refund status changed to Closed
         RefundDto refundDto7 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
@@ -1258,14 +1293,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         // verify that new refund status changed to Approved immediately after Ressiued and Reason remain same
         // Reissued status will be verified in status history as the refund list response returns the latest status only
-        RefundDto refundDto8 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, newRefundReference1, "Approved");
+        RefundDto refundDto8 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, reIssuedRefundReference1, "Approved");
         assertEquals(RefundStatus.APPROVED, refundDto8.getRefundStatus());
         assertEquals("Amended claim", refundDto8.getReason());
 
         //verify the 1st re-issued refund status history
         Response newRefundStatusHistoryListResponse1 =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference1
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference1
             );
         assertThat(newRefundStatusHistoryListResponse1.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> newRefundStatusHistoryList1 =
@@ -1281,29 +1316,50 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Response updateRefundStatusResponse4 = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            newRefundReference1,
+            reIssuedRefundReference1,
             RefundStatusUpdateRequest.RefundRequestWith()
                 .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
         );
         assertThat(updateRefundStatusResponse4.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status changed to Accepted
-        RefundDto refundDto9 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference1);
+        RefundDto refundDto9 = getRefundListByCaseNumber(ccdCaseNumber, reIssuedRefundReference1);
         assertEquals(RefundStatus.ACCEPTED, refundDto9.getRefundStatus());
         assertEquals("Amended claim", refundDto9.getReason());
+
+        // Verify notification email content for Refund Accepted after 1st Reissued
+        Notification notification3 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        if (notification3.getId().equals(notification2.getId())) {
+            // try again
+            try {
+                Thread.sleep(2000); // wait for 2 seconds before retrying
+                LOG.info("Retrying to fetch notification email for {}", emailAddress);
+                notification3 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        assertNotEquals(notification3.getId(), notification2.getId(),
+                        "New notification not sent after online payment 1st reissued refund Accepted"); //ensure it's a new notification
+
+        String emailBody3 = notifyUtil.getNotifyEmailBody(notification3);
+        assertTrue(emailBody3.contains("Refund reference: " + reIssuedRefundReference1),
+                   "Email body does not contain new refund reference");
+        assertTrue(emailBody3.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
+                   "Email body does not contain expected text after online payment 1st reissued refund Accepted");
 
         // Liberata expired the 1st re-issued refund after 21 days
         Response updateRefundStatusResponse5 = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            newRefundReference1,
+            reIssuedRefundReference1,
             RefundStatusUpdateRequest.RefundRequestWith().reason("Unable to process expired refund")
                 .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.EXPIRED).build()
         );
         assertThat(updateRefundStatusResponse5.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status changed to Expired
-        RefundDto refundDto10 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference1);
+        RefundDto refundDto10 = getRefundListByCaseNumber(ccdCaseNumber, reIssuedRefundReference1);
         assertEquals(RefundStatus.EXPIRED, refundDto6.getRefundStatus());
         assertEquals("Amended claim", refundDto10.getReason());
 
@@ -1311,43 +1367,52 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Response reissueExpiredRefundResponse2 = paymentTestService.reissueExpiredRefund(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            newRefundReference1);
+            reIssuedRefundReference1);
         assertThat(reissueExpiredRefundResponse2.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        String newRefundReference2 = reissueExpiredRefundResponse2.getBody().jsonPath().getString("refund_reference");
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference2).matches()).isEqualTo(true);
-        refundReferences.add(newRefundReference2);
+        String reIssuedRefundReference2 = reissueExpiredRefundResponse2.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(reIssuedRefundReference2).matches()).isEqualTo(true);
+        refundReferences.add(reIssuedRefundReference2);
 
         // Liberata Accepted the Refund
         Response updateRefundStatusResponse6 = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            newRefundReference2,
+            reIssuedRefundReference2,
             RefundStatusUpdateRequest.RefundRequestWith()
                 .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
         );
         assertThat(updateRefundStatusResponse6.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status changed to Accepted
-        RefundDto refundDto11 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference2);
+        RefundDto refundDto11 = getRefundListByCaseNumber(ccdCaseNumber, reIssuedRefundReference2);
         assertEquals(RefundStatus.ACCEPTED, refundDto11.getRefundStatus());
         assertEquals("Amended claim", refundDto11.getReason());
 
-        // Verify notification email content for Refund Accepted
-        Notification notification = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
-        String emailSubject = notifyUtil.getNotifyEmailSubject(notification);
-        String emailBody1 = notifyUtil.getNotifyEmailBody(notification);
+        // Verify notification email content for Refund Accepted after 2nd Reissued
+        Notification notification4 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+        if (notification3.getId().equals(notification2.getId())) {
+            // try again
+            try {
+                Thread.sleep(2000); // wait for 2 seconds before retrying
+                LOG.info("Retrying to fetch notification email for {}", emailAddress);
+                notification4 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        assertNotEquals(notification4.getId(), notification3.getId(),
+                        "New notification not sent after online payment 2nd reissued refund Accepted"); //ensure it's a new notification
 
-        assertEquals("HMCTS refund request approved", emailSubject,
-                     "Email subject does not match for initial Refund Accepted");
-        assertTrue(emailBody1.contains("Refund reference: " + newRefundReference2),
-                   "Email body does not contain the expected refund reference, new email not have been sent");
-        assertTrue(emailBody1.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
-                   "Email body does not contain expected text for initial Refund Accepted");
+        String emailBody4 = notifyUtil.getNotifyEmailBody(notification3);
+        assertTrue(emailBody4.contains("Refund reference: " + reIssuedRefundReference2),
+                   "Email body does not contain 2nd re-issued refund reference");
+        assertTrue(emailBody4.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
+                   "Email body does not contain expected text after online payment 2nd reissued refund Accepted");
 
         //verify the 2nd re-issued refund status history
         Response newRefundStatusHistoryListResponse2 =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference2
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference2
             );
         assertThat(newRefundStatusHistoryListResponse2.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> newRefundStatusHistoryList2 =
@@ -1755,9 +1820,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Notification notification1 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
         String emailBody1 = notifyUtil.getNotifyEmailBody(notification1);
         assertTrue(emailBody1.contains("Refund reference: " + refundReference),
-                   "Email body does not contain the refund reference");
+                   "Email body does not contain the initial refund reference");
         assertTrue(emailBody1.contains("To receive this refund, you must give us the correct bank details to process the request."),
-                   "Email body does not contain expected text for Refund Accepted");
+                   "Email body does not contain expected text after cheque payment initial Refund Accepted");
 
         // Liberata expired the refund after 21 days
         Response updateRefundStatusResponse2 = paymentTestService.updateRefundStatus(
@@ -1780,9 +1845,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        String newRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference).matches()).isEqualTo(true);
-        refundReferences.add(newRefundReference);
+        String reIssuedRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(reIssuedRefundReference).matches()).isEqualTo(true);
+        refundReferences.add(reIssuedRefundReference);
 
         // verify that old refund status changed to Closed
         RefundDto refundDto4 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
@@ -1791,7 +1856,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         // verify that new refund status changed to Approved immediately after Ressiued and Reason remain same
         // Reissued status will be verified in status history as the refund list response returns the latest status only
-        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, newRefundReference, "Approved");
+        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, reIssuedRefundReference, "Approved");
         assertEquals(RefundStatus.APPROVED, refundDto5.getRefundStatus());
         assertEquals("Amended claim", refundDto5.getReason());
 
@@ -1799,14 +1864,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Response updateRefundStatusResponse3 = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            newRefundReference,
+            reIssuedRefundReference,
             RefundStatusUpdateRequest.RefundRequestWith()
                 .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
         );
         assertThat(updateRefundStatusResponse3.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status changed to Accepted
-        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference);
+        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, reIssuedRefundReference);
         assertEquals(RefundStatus.ACCEPTED, refundDto6.getRefundStatus());
         assertEquals("Amended claim", refundDto6.getReason());
 
@@ -1822,13 +1887,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification2.getId(),
+                        "New notification not sent after cheque payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
-        assertTrue(emailBody2.contains("Refund reference: " + newRefundReference),
+        assertTrue(emailBody2.contains("Refund reference: " + reIssuedRefundReference),
                    "Email body does not contain new refund reference");
         assertTrue(emailBody2.contains("To receive this refund, you must give us the correct bank details to process the request."),
-                   "Email body does not contain expected text for Refund Accepted");
+                   "Email body does not contain expected text after cheque payment reissued refund Accepted");
 
         //verify the old refund status history
         Response oldRefundStatusHistoryListResponse =
@@ -1858,7 +1924,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference
             );
         assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> newRefundStatusHistoryList =
@@ -2017,9 +2083,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Notification notification1 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
         String emailBody1 = notifyUtil.getNotifyEmailBody(notification1);
         assertTrue(emailBody1.contains("Refund reference: " + refundReference),
-                   "Email body does not contain the refund reference");
+                   "Email body does not contain the cash payment initial refund reference");
         assertTrue(emailBody1.contains("To receive this refund, you must give us the correct bank details to process the request."),
-                   "Email body does not contain expected text for Refund Accepted");
+                   "Email body does not contain expected text after cash payment initial refund Accepted");
 
         // Liberata expired the refund after 21 days
         Response updateRefundStatusResponse2 = paymentTestService.updateRefundStatus(
@@ -2042,9 +2108,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        String newRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference).matches()).isEqualTo(true);
-        refundReferences.add(newRefundReference);
+        String reIssuedRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(reIssuedRefundReference).matches()).isEqualTo(true);
+        refundReferences.add(reIssuedRefundReference);
 
         // verify that old refund status changed to Closed
         RefundDto refundDto4 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
@@ -2053,7 +2119,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         // verify that new refund status changed to Approved immediately after Ressiued and Reason remain same
         // Reissued status will be verified in status history as the refund list response returns the latest status only
-        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, newRefundReference, "Approved");
+        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, reIssuedRefundReference, "Approved");
         assertEquals(RefundStatus.APPROVED, refundDto5.getRefundStatus());
         assertEquals("Amended claim", refundDto5.getReason());
 
@@ -2061,14 +2127,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Response updateRefundStatusResponse3 = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            newRefundReference,
+            reIssuedRefundReference,
             RefundStatusUpdateRequest.RefundRequestWith()
                 .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
         );
         assertThat(updateRefundStatusResponse3.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status changed to Accepted
-        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference);
+        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, reIssuedRefundReference);
         assertEquals(RefundStatus.ACCEPTED, refundDto6.getRefundStatus());
         assertEquals("Amended claim", refundDto6.getReason());
 
@@ -2084,13 +2150,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification2.getId(),
+                        "New notification not sent after cash payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
-        assertTrue(emailBody2.contains("Refund reference: " + newRefundReference),
+        assertTrue(emailBody2.contains("Refund reference: " + reIssuedRefundReference),
                    "Email body does not contain new refund reference");
         assertTrue(emailBody2.contains("To receive this refund, you must give us the correct bank details to process the request."),
-                   "Email body does not contain expected text for Refund Accepted");
+                   "Email body does not contain expected text after cash payment reissued refund Accepted");
 
         //verify the old refund status history
         Response oldRefundStatusHistoryListResponse =
@@ -2120,7 +2187,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference
             );
         assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> newRefundStatusHistoryList =
@@ -2279,9 +2346,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Notification notification1 = notifyUtil.findEmailNotificationFromNotifyClient(emailAddress);
         String emailBody1 = notifyUtil.getNotifyEmailBody(notification1);
         assertTrue(emailBody1.contains("Refund reference: " + refundReference),
-                   "Email body does not contain the refund reference");
+                   "Email body does not contain the postal order payment initial refund reference");
         assertTrue(emailBody1.contains("To receive this refund, you must give us the correct bank details to process the request."),
-                   "Email body does not contain expected text for Refund Accepted");
+                   "Email body does not contain expected text after postal order payment initial refund Accepted");
 
         // Liberata expired the refund after 21 days
         Response updateRefundStatusResponse2 = paymentTestService.updateRefundStatus(
@@ -2304,9 +2371,9 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference);
         assertThat(reissueExpiredRefundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
-        String newRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
-        assertThat(REFUNDS_REGEX_PATTERN.matcher(newRefundReference).matches()).isEqualTo(true);
-        refundReferences.add(newRefundReference);
+        String reIssuedRefundReference = reissueExpiredRefundResponse.getBody().jsonPath().getString("refund_reference");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(reIssuedRefundReference).matches()).isEqualTo(true);
+        refundReferences.add(reIssuedRefundReference);
 
         // verify that old refund status changed to Closed
         RefundDto refundDto4 = getRefundListByCaseNumber(ccdCaseNumber, refundReference);
@@ -2315,7 +2382,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         // verify that new refund status changed to Approved immediately after Ressiued and Reason remain same
         // Reissued status will be verified in status history as the refund list response returns the latest status only
-        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, newRefundReference, "Approved");
+        RefundDto refundDto5 = getRefundListByCaseNumberAndStatus(ccdCaseNumber, reIssuedRefundReference, "Approved");
         assertEquals(RefundStatus.APPROVED, refundDto5.getRefundStatus());
         assertEquals("Amended claim", refundDto5.getReason());
 
@@ -2323,14 +2390,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         Response updateRefundStatusResponse3 = paymentTestService.updateRefundStatus(
             USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-            newRefundReference,
+            reIssuedRefundReference,
             RefundStatusUpdateRequest.RefundRequestWith()
                 .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
         );
         assertThat(updateRefundStatusResponse3.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // verify that status changed to Accepted
-        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, newRefundReference);
+        RefundDto refundDto6 = getRefundListByCaseNumber(ccdCaseNumber, reIssuedRefundReference);
         assertEquals(RefundStatus.ACCEPTED, refundDto6.getRefundStatus());
         assertEquals("Amended claim", refundDto6.getReason());
 
@@ -2346,13 +2413,14 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(), "New notification not sent"); //ensure it's a new notification
+        assertNotEquals(notification2.getId(), notification2.getId(),
+                        "New notification not sent after postal order payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
-        assertTrue(emailBody2.contains("Refund reference: " + newRefundReference),
+        assertTrue(emailBody2.contains("Refund reference: " + reIssuedRefundReference),
                    "Email body does not contain new refund reference");
         assertTrue(emailBody2.contains("To receive this refund, you must give us the correct bank details to process the request."),
-                   "Email body does not contain expected text for Refund Accepted");
+                   "Email body does not contain expected text after postal order payment reissued refund Accepted");
 
         //verify the old refund status history
         Response oldRefundStatusHistoryListResponse =
@@ -2382,7 +2450,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
             paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, newRefundReference
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference
             );
         assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> newRefundStatusHistoryList =
