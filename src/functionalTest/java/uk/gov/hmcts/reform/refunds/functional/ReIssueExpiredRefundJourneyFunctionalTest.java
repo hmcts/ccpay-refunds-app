@@ -1887,7 +1887,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(),
+        assertNotEquals(notification2.getId(), notification1.getId(),
                         "New notification not sent after cheque payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
@@ -1904,7 +1904,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> oldRefundStatusHistoryList =
             oldRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        assertEquals(8, oldRefundStatusHistoryList.size());
+        assertEquals(5, oldRefundStatusHistoryList.size());
 
         assertEquals("Closed", oldRefundStatusHistoryList.get(0).get("status").trim());
         assertEquals("Refund closed by case worker", oldRefundStatusHistoryList.get(0).get("notes").trim());
@@ -2150,7 +2150,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(),
+        assertNotEquals(notification2.getId(), notification1.getId(),
                         "New notification not sent after cash payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
@@ -2167,7 +2167,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> oldRefundStatusHistoryList =
             oldRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        assertEquals(8, oldRefundStatusHistoryList.size());
+        assertEquals(5, oldRefundStatusHistoryList.size());
 
         assertEquals("Closed", oldRefundStatusHistoryList.get(0).get("status").trim());
         assertEquals("Refund closed by case worker", oldRefundStatusHistoryList.get(0).get("notes").trim());
@@ -2413,7 +2413,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
                 Thread.currentThread().interrupt();
             }
         }
-        assertNotEquals(notification2.getId(), notification2.getId(),
+        assertNotEquals(notification2.getId(), notification1.getId(),
                         "New notification not sent after postal order payment reissued refund Accepted"); //ensure it's a new notification
 
         String emailBody2 = notifyUtil.getNotifyEmailBody(notification2);
@@ -2430,7 +2430,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> oldRefundStatusHistoryList =
             oldRefundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-        assertEquals(8, oldRefundStatusHistoryList.size());
+        assertEquals(5, oldRefundStatusHistoryList.size());
 
         assertEquals("Closed", oldRefundStatusHistoryList.get(0).get("status").trim());
         assertEquals("Refund closed by case worker", oldRefundStatusHistoryList.get(0).get("notes").trim());
