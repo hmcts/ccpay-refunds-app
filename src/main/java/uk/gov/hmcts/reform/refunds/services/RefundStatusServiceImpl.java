@@ -79,11 +79,15 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             // Get the original refund reference, it could the current one or the one from which it was cloned.
             final String originalRefundReference = getOriginalRefund(refund, isAClonedRefund);
             final String originalNoteForRejected = getOriginalNoteForRejected(refund);
+
+            // no cloned.
             if (statusUpdateRequest.getReason() == null && originalNoteForRejected != null) {
                 statusUpdateRequest.setReason(originalNoteForRejected);
             }
-            if (isAClonedRefund && statusUpdateRequest.getReason() == null && originalNoteForRejected != null) {
-                statusUpdateRequest.setReason(originalNoteForRejected);
+            if (isAClonedRefund) {
+                Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
+                final String originalNoteForRejectedForOrginalRefund = getOriginalNoteForRejected(refundOriginal);
+                statusUpdateRequest.setReason(originalNoteForRejectedForOrginalRefund);
             }
 
             refund.setRefundStatus(RefundStatus.ACCEPTED);
