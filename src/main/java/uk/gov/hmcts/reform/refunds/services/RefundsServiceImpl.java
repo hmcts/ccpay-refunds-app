@@ -116,6 +116,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String POSTAL_ORDER = "postal order";
 
+    private static final String CHEQUE = "cheque";
+
     private static final String BULK_SCAN = "bulk scan";
 
     private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
@@ -123,7 +125,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private static final String SEND_REFUND = "SendRefund";
 
     private static final String REFUND_CLOSED_BY_CASE_WORKER = "Refund closed by case worker";
-    private static final String REFUND_REISSUED_BY = "Refund reissued by";
+
+    private static final String SYSTEM_USER = "System user";
+
     private static final String REFUND_APPROVED_BY_SYSTEM = "Refund approved by system";
 
     private static final Predicate[] REF = new Predicate[0];
@@ -217,7 +221,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (refundRequest.getPaymentMethod() != null) {
 
             if (BULK_SCAN.equals(refundRequest.getPaymentChannel()) && (CASH.equals(refundRequest.getPaymentMethod())
-                || POSTAL_ORDER.equals(refundRequest.getPaymentMethod()))) {
+                || POSTAL_ORDER.equals(refundRequest.getPaymentMethod()) || CHEQUE.equals(refundRequest.getPaymentMethod()))) {
                 instructionType = REFUND_WHEN_CONTACTED;
             } else {
                 instructionType = SEND_REFUND;
@@ -1088,15 +1092,13 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                         .collect(Collectors.joining(",")))
             .serviceType(expiredRefund.getServiceType())
             .createdBy(idamUserIdResponse.getUid())
-            .updatedBy(idamUserIdResponse.getUid())
+            .updatedBy(SYSTEM_USER)
             .contactDetails(expiredRefund.getContactDetails())
             .refundFees(copiedFees)
-            .refundInstructionType(APPROVED.getName())
             .statusHistories(Arrays.asList(
                 StatusHistory.statusHistoryWith()
                     .createdBy(idamUserIdResponse.getUid())
-                    .notes(getReissueLabel(expiredRefund.getPaymentReference())
-                               + " re-issue of original refund " + expiredRefund.getReference())
+                    .notes(getReissueLabel(expiredRefund.getPaymentReference()))
                     .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
                     .status(REISSUED.getName()).build(),
                 StatusHistory.statusHistoryWith()
@@ -1133,7 +1135,16 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         } else {
             suffix = "th";
         }
-        return expiredCount + suffix;
+        String originalLabel = expiredCount + suffix;
+
+        Refund oldestClosedRefund = refunds.stream()
+            .filter(r -> RefundStatus.CLOSED.getName().equals(r.getRefundStatus().getName()))
+            .min((r1, r2) -> r1.getDateCreated().compareTo(r2.getDateCreated()))
+            .orElse(null);
+
+        String originalRefundReference = oldestClosedRefund != null ? oldestClosedRefund.getReference() : "";
+
+        return originalLabel +  " re-issue of original refund " + (originalRefundReference.isEmpty() ? "" :  originalRefundReference);
     }
 
 }
