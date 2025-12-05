@@ -82,7 +82,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             if (statusUpdateRequest.getReason() == null && originalNoteForRejected != null) {
                 statusUpdateRequest.setReason(originalNoteForRejected);
             }
-            if (isAClonedRefund && statusUpdateRequest.getReason() == null && originalNoteForRejected != null){
+            if (isAClonedRefund && statusUpdateRequest.getReason() == null && originalNoteForRejected != null) {
                 statusUpdateRequest.setReason(originalNoteForRejected);
             }
 
