@@ -156,13 +156,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             .anyMatch(history -> RefundStatus.REISSUED.getName().equals(history.getStatus()));
     }
 
-    private String getOriginalNoteForRejected(Refund refund){
+    private String getOriginalNoteForRejected(Refund refund) {
 
         Optional<StatusHistory> statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund).stream()
             .filter(history -> RefundStatus.REJECTED.getName().equals(history.getStatus()))
             .findFirst();
         return statusHistories.orElseGet(null).getNotes();
     }
+
     private String getOriginalRefund(Refund refund, boolean isAClonedRefund) {
         if (isAClonedRefund) {
             // For cloned refunds, get the reference from the first REISSUED status history
