@@ -82,6 +82,10 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             if (statusUpdateRequest.getReason() == null && originalNoteForRejected != null) {
                 statusUpdateRequest.setReason(originalNoteForRejected);
             }
+            if (isAClonedRefund && statusUpdateRequest.getReason() == null && originalNoteForRejected != null){
+                statusUpdateRequest.setReason(originalNoteForRejected);
+            }
+
             refund.setRefundStatus(RefundStatus.ACCEPTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
