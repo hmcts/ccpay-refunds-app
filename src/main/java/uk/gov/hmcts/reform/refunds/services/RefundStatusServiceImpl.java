@@ -78,6 +78,10 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             }
             // Get the original refund reference, it could the current one or the one from which it was cloned.
             final String originalRefundReference = getOriginalRefund(refund, isAClonedRefund);
+            final String originalNoteForRejected = getOriginalNoteForRejected(refund);
+            if (statusUpdateRequest.getReason() == null && originalNoteForRejected != null) {
+                statusUpdateRequest.setReason(originalNoteForRejected);
+            }
             refund.setRefundStatus(RefundStatus.ACCEPTED);
             refund.setStatusHistories(Arrays.asList(getStatusHistoryEntity(
                 LIBERATA_NAME,
@@ -104,6 +108,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                     .build();
                 refund.setContactDetails(newContact);
             }
+
 
             String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
             notificationService.updateNotification(headers, refund, null, templateId);
@@ -151,6 +156,13 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             .anyMatch(history -> RefundStatus.REISSUED.getName().equals(history.getStatus()));
     }
 
+    private String getOriginalNoteForRejected(Refund refund){
+
+        Optional<StatusHistory> statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund).stream()
+            .filter(history -> RefundStatus.REJECTED.getName().equals(history.getStatus()))
+            .findFirst();
+        return statusHistories.orElseGet(null).getNotes();
+    }
     private String getOriginalRefund(Refund refund, boolean isAClonedRefund) {
         if (isAClonedRefund) {
             // For cloned refunds, get the reference from the first REISSUED status history
