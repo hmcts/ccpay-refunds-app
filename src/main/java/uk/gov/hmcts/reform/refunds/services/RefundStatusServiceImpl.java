@@ -167,8 +167,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         } else {
             return null;
         }
-
-
     }
 
     private String getOriginalRefund(Refund refund, boolean isAClonedRefund) {
