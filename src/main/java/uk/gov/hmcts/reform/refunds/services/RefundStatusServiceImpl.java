@@ -161,7 +161,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         Optional<StatusHistory> statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund).stream()
             .filter(history -> RefundStatus.REJECTED.getName().equals(history.getStatus()))
             .findFirst();
-        return statusHistories.orElseGet(null).getNotes();
+
+        if (statusHistories.isPresent()) {
+            return statusHistories.get().getNotes();
+        } else {
+            return null;
+        }
+
+
     }
 
     private String getOriginalRefund(Refund refund, boolean isAClonedRefund) {
