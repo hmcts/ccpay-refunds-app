@@ -69,11 +69,12 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         LOG.info("statusUpdateRequest: {}", statusUpdateRequest);
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
-        final boolean isAClonedRefund = isAClonedRefund(refund);
+        boolean isAClonedRefund = isAClonedRefund(refund);
+        final boolean isEligibleForRefundWhenContacted = isAClonedRefund || isAcceptedForRefundWhenContacted(refund);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
-            if (isAClonedRefund) {
-                //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
+            if (isEligibleForRefundWhenContacted) {
+                //ACCEPTED for the second time from Liberata or reissued - going down the PAYIT journey
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
             }
             // Get the original refund reference, it could the current one or the one from which it was cloned.
@@ -164,8 +165,18 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             .anyMatch(history -> RefundStatus.REISSUED.getName().equals(history.getStatus()));
     }
 
-    private String getOriginalNoteForRejected(Refund refund) {
+    // Returns true if the last ACCEPTED status does NOT have REFUND_WHEN_CONTACTED_REJECT_REASON as its reason
+    private boolean isAcceptedForRefundWhenContacted(Refund refund) {
+        return statusHistoryRepository
+            .findByRefundOrderByDateCreatedDesc(refund)
+            .stream()
+            .filter(history -> RefundStatus.ACCEPTED.getName().equals(history.getStatus()))
+            .reduce((first, second) -> second) // get the last ACCEPTED status
+            .map(lastAccepted -> lastAccepted.getNotes() == null || !RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equals(lastAccepted.getNotes()))
+            .orElse(false);
+    }
 
+    private String getOriginalNoteForRejected(Refund refund) {
         Optional<StatusHistory> statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund).stream()
             .filter(history -> RefundStatus.REJECTED.getName().equals(history.getStatus()))
             .findFirst();

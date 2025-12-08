@@ -107,6 +107,37 @@ public class RefundStatusServiceImplTest {
         ResponseEntity<?> response = refundStatusService.updateRefundStatus("RF-1234-5678-9012-3456", request, headers);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertEquals("Refund status updated successfully", response.getBody());
+        // Should NOT set RefundInstructionType
+        assertEquals(null, refund.getRefundInstructionType());
+    }
+
+    @Test
+    void testUpdateRefundStatusAccepted_LastAcceptedStatusTriggersRefundWhenContacted() {
+        Refund refund = new Refund();
+        refund.setReference("RF-ORIGINAL-REF-0002");
+        refund.setRefundStatus(RefundStatus.REJECTED);
+        // isAClonedRefund = false
+        StatusHistory accepted1 = new StatusHistory();
+        accepted1.setStatus(RefundStatus.ACCEPTED.getName());
+        accepted1.setNotes("Some other reason");
+        StatusHistory accepted2 = new StatusHistory();
+        accepted2.setStatus(RefundStatus.ACCEPTED.getName());
+        accepted2.setNotes("Another valid reason"); // last ACCEPTED, not REFUND_WHEN_CONTACTED_REJECT_REASON
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(java.util.Arrays.asList(accepted1, accepted2));
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+        RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
+        request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
+        request.setReason("Accepted");
+        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
+        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+        stubNotificationService();
+        when(refundsUtil.getTemplate(any(), anyString())).thenReturn("templateId");
+        doNothing().when(notificationService).updateNotification(any(), any(), any(), anyString());
+        ResponseEntity<?> response = refundStatusService.updateRefundStatus("RF-ORIGINAL-REF-0002", request, headers);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals("Refund status updated successfully", response.getBody());
+        assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
     }
 
     @Test
@@ -140,6 +171,7 @@ public class RefundStatusServiceImplTest {
         ResponseEntity<?> response = refundStatusService.updateRefundStatus("RF-CLONED-REF-0001", request, headers);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertEquals("Refund status updated successfully", response.getBody());
+        assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
     }
 
     @Test
