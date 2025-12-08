@@ -72,22 +72,19 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         final boolean isAClonedRefund = isAClonedRefund(refund);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
-            if (isAClonedRefund) {
-                //ACECEPTED for the second time from Liberata this is going down the PAYIT journey
-                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
-            }
             // Get the original refund reference, it could the current one or the one from which it was cloned.
             final String originalRefundReference = getOriginalRefund(refund, isAClonedRefund);
             final String originalNoteForRejected = getOriginalNoteForRejected(refund);
 
-            // no cloned.
-            if (statusUpdateRequest.getReason() == null && originalNoteForRejected != null) {
-                statusUpdateRequest.setReason(originalNoteForRejected);
-            }
             if (isAClonedRefund) {
                 Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
                 final String originalNoteForRejectedForOrginalRefund = getOriginalNoteForRejected(refundOriginal);
                 statusUpdateRequest.setReason(originalNoteForRejectedForOrginalRefund);
+                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+            } else if (originalNoteForRejected != null
+                    && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(originalNoteForRejected)) {
+                refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+                statusUpdateRequest.setReason(originalNoteForRejected);
             }
 
             refund.setRefundStatus(RefundStatus.ACCEPTED);
