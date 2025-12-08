@@ -1403,7 +1403,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         assertNotEquals(notification4.getId(), notification3.getId(),
                         "New notification not sent after online payment 2nd reissued refund Accepted"); //ensure it's a new notification
 
-        String emailBody4 = notifyUtil.getNotifyEmailBody(notification3);
+        String emailBody4 = notifyUtil.getNotifyEmailBody(notification4);
         assertTrue(emailBody4.contains("Refund reference: " + reIssuedRefundReference2),
                    "Email body does not contain 2nd re-issued refund reference");
         assertTrue(emailBody4.contains("Unfortunately, our attempt to refund the payment card that you used was declined by your card provider."),
