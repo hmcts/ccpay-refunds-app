@@ -185,7 +185,11 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 .stream()
                 .filter(history -> RefundStatus.REISSUED.getName().equals(history.getStatus()))
                 .findFirst();
-            return extractRefundReference(firstReissued.get().getNotes());
+            if (firstReissued.isPresent()) {
+                return extractRefundReference(firstReissued.get().getNotes());
+            } else {
+                return null;
+            }
         }
         // For non-cloned refunds, return the current refund reference
         return refund.getReference();

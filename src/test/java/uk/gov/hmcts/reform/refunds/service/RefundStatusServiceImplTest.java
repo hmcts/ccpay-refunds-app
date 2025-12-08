@@ -11,24 +11,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.dtos.responses.ContactDetailsDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
-import uk.gov.hmcts.reform.refunds.dtos.responses.ContactDetailsDto;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
-import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
-import uk.gov.hmcts.reform.refunds.services.NotificationService;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
+import uk.gov.hmcts.reform.refunds.services.NotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusServiceImpl;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RefundStatusServiceImplTest {
     @Mock
@@ -95,7 +98,7 @@ public class RefundStatusServiceImplTest {
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
         request.setReason("Accepted");
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
         when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
         stubNotificationService();
@@ -128,7 +131,7 @@ public class RefundStatusServiceImplTest {
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
         request.setReason(null); // Should be set from original refund's rejected note
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
         when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
         stubNotificationService();
