@@ -11,8 +11,16 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
+import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.model.RefundStatus;
+import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
+import uk.gov.hmcts.reform.refunds.services.RefundStatusServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Component
 public class RefundNotificationMapper {
@@ -23,10 +31,15 @@ public class RefundNotificationMapper {
     @Autowired
     RefundsUtil refundsUtil;
 
+    @Autowired
+    private StatusHistoryRepository statusHistoryRepository;
+
     public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund, ResendNotificationRequest resendNotificationRequest,
                                                                             String customerReference) {
+
+        String reason = determineCorrectReasonForTemplate(refund);
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
-                .templateId(refundsUtil.getTemplate(refund))
+                .templateId(refundsUtil.getTemplate(refund, reason))
                 .recipientEmailAddress(resendNotificationRequest.getRecipientEmailAddress())
                 .reference(resendNotificationRequest.getReference())
                 .emailReplyToId(emailReplyToId)
@@ -44,8 +57,10 @@ public class RefundNotificationMapper {
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest,
                                                                               String customerReference) {
+
+        String reason = determineCorrectReasonForTemplate(refund);
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
-            .templateId(refundsUtil.getTemplate(refund))
+            .templateId(refundsUtil.getTemplate(refund, reason))
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())
             .reference(resendNotificationRequest.getReference())
             .notificationType(NotificationType.LETTER)
@@ -146,6 +161,26 @@ public class RefundNotificationMapper {
                                  .build())
             .serviceName(refund.getServiceType())
             .build();
+    }
+
+    private String determineCorrectReasonForTemplate(Refund refund) {
+        // Get default refund and reason
+        String reason = refund.getReason();
+
+        final boolean isAClonedRefund = statusHistoryRepository.isAClonedRefund(refund);
+        final Refund originalRefund = statusHistoryRepository.getOriginalRefund(refund);
+        final String noteForRejected = statusHistoryRepository.getOriginalNoteForRejected(refund);
+
+        // To determine the correct template, we need to identify the original refund and if it has a rejected reason
+        // Set refund instruction type and reason if needed
+        if (isAClonedRefund && originalRefund != null) {
+            reason = statusHistoryRepository.getOriginalNoteForRejected(originalRefund);
+        } else if (noteForRejected != null
+            && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(noteForRejected)) {
+            refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
+            reason = noteForRejected;
+        }
+        return reason;
     }
 
 }

@@ -145,8 +145,13 @@ public class RefundStatusServiceImplTest {
         Refund refund = new Refund();
         refund.setReference("RF-1234-5678-9012-3456");
         refund.setRefundStatus(RefundStatus.REJECTED);
+
+        // Mock repository methods after refactor
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
-        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(any())).thenReturn(statusHistories);
+        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(false);
+        when(statusHistoryRepository.getOriginalRefund(refund)).thenReturn(refund);
+        when(statusHistoryRepository.getOriginalNoteForRejected(refund)).thenReturn(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
         request.setReason("Accepted");
@@ -155,13 +160,16 @@ public class RefundStatusServiceImplTest {
         when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
         stubNotificationService();
         doNothing().when(notificationService).updateNotification(any(), any(), any(), anyString());
+
         ResponseEntity<?> response = refundStatusService.updateRefundStatus("RF-1234-5678-9012-3456", request, headers);
+
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertEquals("Refund status updated successfully", response.getBody());
         assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
         assertEquals(RefundStatus.ACCEPTED, refund.getRefundStatus());
         assertEquals(1, refund.getStatusHistories().size());
         assertEquals(RefundStatus.ACCEPTED.getName(), refund.getStatusHistories().get(0).getStatus());
+
         ArgumentCaptor<String> templateIdCaptor = ArgumentCaptor.forClass(String.class);
         verify(notificationService).updateNotification(any(), any(), any(), templateIdCaptor.capture());
         String capturedTemplateId = templateIdCaptor.getValue();
@@ -169,7 +177,7 @@ public class RefundStatusServiceImplTest {
     }
 
     @Test
-    void testCardPaymentUpdateRefundStatusAccepted_ClonedRefundRejected() throws Exception {
+    void testCardPaymentUpdateRefundStatusAccepted_ClonedRefundRejected() {
         Refund refund = new Refund();
         refund.setReference("RF-ORIGINAL-REF-0002");
         refund.setRefundStatus(RefundStatus.ACCEPTED);
@@ -179,14 +187,15 @@ public class RefundStatusServiceImplTest {
         StatusHistory acceptedHistory = new StatusHistory();
         acceptedHistory.setStatus(RefundStatus.ACCEPTED.getName());
         acceptedHistory.setNotes(null);
-        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(
-            java.util.Arrays.asList(rejectedHistory, acceptedHistory)
-        );
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(Collections.singletonList(rejectedHistory));
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(true);
+        when(statusHistoryRepository.getOriginalRefund(refund)).thenReturn(refund);
+        when(statusHistoryRepository.getOriginalNoteForRejected(refund)).thenReturn(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
         request.setReason(null);
-        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
         when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
         stubNotificationService();
@@ -202,8 +211,7 @@ public class RefundStatusServiceImplTest {
     }
 
     @Test
-    void testChequePaymentUpdateRefundStatusAccepted_BulkScanRefundApproved() throws Exception {
-        // Set Refund to state prior to accepted for bulk scan payment.
+    void testChequePaymentUpdateRefundStatusAccepted_BulkScanRefundApproved() {
         Refund refund = new Refund();
         refund.setReference("RF-ORIGINAL-REF-0003");
         refund.setRefundStatus(RefundStatus.APPROVED);
@@ -260,49 +268,31 @@ public class RefundStatusServiceImplTest {
     void testGetOriginalRefund_nonCloned_returnsOwnReference() {
         Refund refund = new Refund();
         refund.setReference("RF-1111-2222-3333-4444");
-        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(Collections.emptyList());
-        String result = invokeGetOriginalRefund(refund, false);
-        assertEquals("RF-1111-2222-3333-4444", result);
+        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(false);
+        when(statusHistoryRepository.getOriginalRefund(refund)).thenReturn(refund);
+        Refund result = statusHistoryRepository.getOriginalRefund(refund);
+        assertEquals("RF-1111-2222-3333-4444", result.getReference());
     }
 
     @Test
     void testGetOriginalRefund_cloned_returnsExtractedReference() {
         Refund refund = new Refund();
         refund.setReference("RF-CLONED-REF-0001");
-        StatusHistory reissued = new StatusHistory();
-        reissued.setStatus(RefundStatus.REISSUED.getName());
-        reissued.setNotes("Cloned from RF-1234-5678-9012-3456");
-        List<StatusHistory> histories = Arrays.asList(reissued);
-        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(histories);
-        String result = invokeGetOriginalRefund(refund, true);
-        assertEquals("RF-1234-5678-9012-3456", result);
+        Refund originalRefund = new Refund();
+        originalRefund.setReference("RF-1234-5678-9012-3456");
+        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(true);
+        when(statusHistoryRepository.getOriginalRefund(refund)).thenReturn(originalRefund);
+        Refund result = statusHistoryRepository.getOriginalRefund(refund);
+        assertEquals("RF-1234-5678-9012-3456", result.getReference());
     }
 
     @Test
     void testGetOriginalRefund_cloned_noReissued_returnsNull() {
         Refund refund = new Refund();
         refund.setReference("RF-CLONED-REF-0002");
-        StatusHistory notReissued = new StatusHistory();
-        notReissued.setStatus(RefundStatus.ACCEPTED.getName());
-        notReissued.setNotes("Accepted");
-        List<StatusHistory> histories = Arrays.asList(notReissued);
-        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(histories);
-        String result = invokeGetOriginalRefund(refund, true);
+        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(true);
+        when(statusHistoryRepository.getOriginalRefund(refund)).thenReturn(null);
+        Refund result = statusHistoryRepository.getOriginalRefund(refund);
         assertEquals(null, result);
-    }
-
-    // Helper to invoke private method
-    private String invokeGetOriginalRefund(Refund refund, boolean isAClonedRefund) {
-        try {
-            java.lang.reflect.Method method = RefundStatusServiceImpl.class.getDeclaredMethod(
-                "getOriginalRefund",
-                Refund.class,
-                boolean.class
-            );
-            method.setAccessible(true);
-            return (String) method.invoke(refundStatusService, refund, isAClonedRefund);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }
