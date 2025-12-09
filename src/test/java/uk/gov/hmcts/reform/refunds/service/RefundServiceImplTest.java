@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.service;
 
+import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
@@ -25,8 +26,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.dtos.RefundsReportDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundSearchCriteria;
@@ -92,6 +95,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -1556,6 +1560,89 @@ class RefundServiceImplTest {
         assertNotNull(response.getRefundReference());
         verify(refundsRepository, atLeastOnce()).save(any(Refund.class));
         verify(refundsRepository, atLeastOnce()).findByPaymentReference(anyString());
+    }
+
+
+    @Test
+    void refundsReport_shouldReturnReportDtos_whenDatesAreValid() {
+        Date startDate = new Date(System.currentTimeMillis() - 100000);
+        Date endDate = new Date();
+
+        Tuple tuple = mock(Tuple.class);
+        when(tuple.get("date_created", Date.class)).thenReturn(startDate);
+        when(tuple.get("date_updated", Date.class)).thenReturn(endDate);
+        when(tuple.get("amount", BigDecimal.class)).thenReturn(BigDecimal.valueOf(100));
+        when(tuple.get("reason", String.class)).thenReturn("RR001");
+        when(tuple.get("refund_status", String.class)).thenReturn("Approved");
+        when(tuple.get("reference", String.class)).thenReturn("REF123");
+        when(tuple.get("payment_reference", String.class)).thenReturn("PAY123");
+        when(tuple.get("ccd_case_number", String.class)).thenReturn("CCD123");
+        when(tuple.get("service_type", String.class)).thenReturn("Probate");
+
+        when(refundsRepository.findAllRefundsByDateCreatedBetween(startDate, endDate))
+            .thenReturn(Arrays.asList(tuple));
+
+        List<RefundsReportDto> result = refundsService.refundsReport(startDate, endDate, new LinkedMultiValueMap<>());
+
+        assertEquals(1, result.size());
+        RefundsReportDto dto = result.get(0);
+        assertEquals(startDate, dto.getRefundDateCreated());
+        assertEquals(endDate, dto.getRefundDateUpdated());
+        assertEquals(BigDecimal.valueOf(100), dto.getAmount());
+        assertEquals("RR001", dto.getRefundReason());
+        assertEquals("Approved", dto.getRefundStatus());
+        assertEquals("REF123", dto.getRefundReference());
+        assertEquals("PAY123", dto.getPaymentReference());
+        assertEquals("CCD123", dto.getCcdCaseNumber());
+        assertEquals("Probate", dto.getServiceType());
+    }
+
+    @Test
+    void refundsReport_shouldThrowException_whenStartDateAfterEndDate() {
+        Date startDate = new Date(System.currentTimeMillis() + 100000);
+        Date endDate = new Date();
+
+        assertThrows(IllegalArgumentException.class, () ->
+            refundsService.refundsReport(startDate, endDate, new LinkedMultiValueMap<>())
+        );
+    }
+
+    @Test
+    void refundsReport_shouldReturnEmptyList_whenNoTuplesReturned() {
+        Date startDate = new Date(System.currentTimeMillis() - 100000);
+        Date endDate = new Date();
+
+        when(refundsRepository.findAllRefundsByDateCreatedBetween(startDate, endDate))
+            .thenReturn(Arrays.asList());
+
+        List<RefundsReportDto> result = refundsService.refundsReport(startDate, endDate, new LinkedMultiValueMap<>());
+
+        assertTrue(result.isEmpty());
+    }
+
+
+    @Test
+    void refundsReport_shouldReturnEmptyList_whenStartDateEqualsEndDate() {
+        Date date = new Date();
+        when(refundsRepository.findAllRefundsByDateCreatedBetween(date, date)).thenReturn(List.of());
+        List<?> result = refundsService.refundsReport(date, date, new LinkedMultiValueMap<>());
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void refundsReport_shouldThrowException_whenStartDateIsNull() {
+        Date endDate = new Date();
+        assertThrows(NullPointerException.class, () ->
+            refundsService.refundsReport(null, endDate, new LinkedMultiValueMap<>())
+        );
+    }
+
+    @Test
+    void refundsReport_shouldThrowException_whenEndDateIsNull() {
+        Date startDate = new Date();
+        assertThrows(NullPointerException.class, () ->
+            refundsService.refundsReport(startDate, null, new LinkedMultiValueMap<>())
+        );
     }
 
 }

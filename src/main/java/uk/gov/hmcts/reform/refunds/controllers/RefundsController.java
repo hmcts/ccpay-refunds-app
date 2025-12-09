@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.dtos.RefundsReportDto;
+import uk.gov.hmcts.reform.refunds.dtos.RefundsReportResponse;
 import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetailsResponse;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -59,10 +61,13 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.http.ResponseEntity.ok;
+import static uk.gov.hmcts.reform.refunds.utils.DateUtil.atEndOfDay;
+import static uk.gov.hmcts.reform.refunds.utils.DateUtil.atStartOfDay;
 
 @RestController
 @Validated
@@ -412,6 +417,24 @@ public class RefundsController {
                 .build(),
             HttpStatus.CREATED
         );
+    }
+
+
+    @Operation(summary = "API to generate report for refunds ", description = "Get list of refunds by providing date range. MM/dd/yyyy is  the supported date/time format.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Report Generated"),
+        @ApiResponse(responseCode = "404", description = "No Data found to generate Report"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @GetMapping("/refund/refunds-report")
+    public RefundsReportResponse retrieveRefundsReport(@RequestParam("date_from") Date fromDate,
+                                                       @RequestParam("date_to") Date toDate,
+                                                       @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                       @RequestHeader("Authorization") String authorization) {
+
+        LOG.info("Received refunds report request");
+        List<RefundsReportDto> refundsReportDto =  refundsService.refundsReport(atStartOfDay(fromDate), atEndOfDay(toDate), headers);
+        return new RefundsReportResponse(refundsReportDto);
     }
 
 }

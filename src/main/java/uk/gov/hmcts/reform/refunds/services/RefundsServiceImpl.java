@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.services;
 
 import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.EnumUtils;
+import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
@@ -21,6 +22,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.dtos.RefundsReportDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.Notification;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundResubmitPayhubRequest;
@@ -1134,6 +1136,33 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             suffix = "th";
         }
         return expiredCount + suffix;
+    }
+
+
+@Override
+    public List<RefundsReportDto> refundsReport(Date startDate, Date endDate, MultiValueMap<String, String> headers){
+        LOG.info("Enter refundsReport method");
+
+        if (startDate.after(endDate)) {
+            throw new IllegalArgumentException("Start date cannot be greater than end date");
+        }
+        List<Tuple> refundsTuples = refundsRepository.findAllRefundsByDateCreatedBetween(startDate, endDate);
+
+        List<RefundsReportDto> refundsReportDto = refundsTuples.stream()
+            .map(tup -> RefundsReportDto.refundsReportDtoWith()
+                .refundDateCreated(tup.get("date_created", Date.class))
+                .refundDateUpdated(tup.get("date_updated", Date.class))
+                .amount(tup.get("amount", BigDecimal.class))
+                .refundReason(tup.get("description", String.class))
+                .refundStatus(tup.get("refund_status", String.class))
+                .refundReference(tup.get("reference", String.class))
+                .paymentReference(tup.get("payment_reference", String.class))
+                .ccdCaseNumber(tup.get("ccd_case_number", String.class))
+                .serviceType(tup.get("service_type", String.class))
+                .build())
+            .toList();
+
+        return refundsReportDto;
     }
 
 }
