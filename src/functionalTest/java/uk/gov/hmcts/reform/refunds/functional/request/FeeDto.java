@@ -14,6 +14,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -44,4 +45,51 @@ public class FeeDto {
     private BigDecimal apportionAmount;
 
     private BigDecimal refundAmount;
+
+    private String ccdCaseNumber;
+
+    private String reference;
+
+    private Integer volume;
+
+    private BigDecimal feeAmount;
+
+    private String memoLine;
+
+    private String naturalAccountCode;
+
+    @Digits(integer = 10, fraction = 2, message = "Net amount cannot have more than 2 decimal places")
+    private BigDecimal netAmount;
+
+    private String jurisdiction1;
+
+    private String jurisdiction2;
+
+    private String description;
+
+    private String caseReference;
+
+    private BigDecimal allocatedAmount;
+
+    private Date dateApportioned;
+
+    private Date dateCreated;
+
+    private Date dateUpdated;
+
+    private BigDecimal amountDue;
+
+    private String paymentGroupReference;
+
+    private BigDecimal apportionedPayment;
+
+    private Date dateReceiptProcessed;
+
+    private Boolean remissionEnable;
+
+    private boolean issueRefundAddRefundAddRemission;
+
+    private BigDecimal overPayment;
+
+    private boolean addRemission;
 }

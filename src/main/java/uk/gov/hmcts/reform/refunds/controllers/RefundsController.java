@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -63,6 +65,7 @@ import java.util.Optional;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
+@Validated
 @Tag(name = "Refund Journey group")
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
@@ -388,6 +391,27 @@ public class RefundsController {
         }
 
         return new ResponseEntity<>(new RefundLiberataResponse(refunds), HttpStatus.OK);
+    }
+
+
+    @PostMapping("/refund/reissue-expired/{reference}")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity<RefundResponse> reissueExpired(@RequestHeader("Authorization") String authorization,
+                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                         @PathVariable
+                                                         @Pattern(regexp = "^RF-\\d{4}-\\d{4}-\\d{4}-\\d{4}$",
+                                                             message = "Refund reference failed validation checks. "
+                                                                 + "Possible scenarios include, refund not being expired, or being closed already.")
+                                                         String reference) {
+        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
+
+        RefundResponse refund = refundsService.initiateReissueRefund(reference, headers, idamUserIdResponse);
+        return new ResponseEntity<>(
+            RefundResponse.buildRefundResponseWith()
+                .refundReference(refund.getRefundReference())
+                .build(),
+            HttpStatus.CREATED
+        );
     }
 
 }
