@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundStatusServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -210,7 +211,8 @@ public class RefundStatusServiceImplTest {
         StatusHistory rejectedHistory = new StatusHistory();
         rejectedHistory.setStatus(RefundStatus.APPROVED.getName());
         rejectedHistory.setNotes("Sent to middle office for processing");
-        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(Collections.singletonList(rejectedHistory));
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(Collections.singletonList(
+            rejectedHistory));
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
@@ -252,5 +254,55 @@ public class RefundStatusServiceImplTest {
         String notes = "Some notes RF-1746-5507-4452-0488 more text";
         String ref = refundStatusService.extractRefundReference(notes);
         assertEquals("RF-1746-5507-4452-0488", ref);
+    }
+
+    @Test
+    void testGetOriginalRefund_nonCloned_returnsOwnReference() {
+        Refund refund = new Refund();
+        refund.setReference("RF-1111-2222-3333-4444");
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(Collections.emptyList());
+        String result = invokeGetOriginalRefund(refund, false);
+        assertEquals("RF-1111-2222-3333-4444", result);
+    }
+
+    @Test
+    void testGetOriginalRefund_cloned_returnsExtractedReference() {
+        Refund refund = new Refund();
+        refund.setReference("RF-CLONED-REF-0001");
+        StatusHistory reissued = new StatusHistory();
+        reissued.setStatus(RefundStatus.REISSUED.getName());
+        reissued.setNotes("Cloned from RF-1234-5678-9012-3456");
+        List<StatusHistory> histories = Arrays.asList(reissued);
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(histories);
+        String result = invokeGetOriginalRefund(refund, true);
+        assertEquals("RF-1234-5678-9012-3456", result);
+    }
+
+    @Test
+    void testGetOriginalRefund_cloned_noReissued_returnsNull() {
+        Refund refund = new Refund();
+        refund.setReference("RF-CLONED-REF-0002");
+        StatusHistory notReissued = new StatusHistory();
+        notReissued.setStatus(RefundStatus.ACCEPTED.getName());
+        notReissued.setNotes("Accepted");
+        List<StatusHistory> histories = Arrays.asList(notReissued);
+        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(histories);
+        String result = invokeGetOriginalRefund(refund, true);
+        assertEquals(null, result);
+    }
+
+    // Helper to invoke private method
+    private String invokeGetOriginalRefund(Refund refund, boolean isAClonedRefund) {
+        try {
+            java.lang.reflect.Method method = RefundStatusServiceImpl.class.getDeclaredMethod(
+                "getOriginalRefund",
+                Refund.class,
+                boolean.class
+            );
+            method.setAccessible(true);
+            return (String) method.invoke(refundStatusService, refund, isAClonedRefund);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
