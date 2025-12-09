@@ -1140,9 +1140,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         String originalLabel = expiredCount + suffix;
 
             Refund oldestClosedRefund = refunds.stream()
-            .filter(r -> RefundStatus.CLOSED.getName().equals(r.getRefundStatus().getName()))
-            .min((r1, r2) -> r1.getDateCreated().compareTo(r2.getDateCreated()))
-            .orElse(null);
+                            .filter(r -> RefundStatus.CLOSED.getName().equals(r.getRefundStatus().getName()) )
+                            .min((r1, r2) -> r1.getDateCreated().compareTo(r2.getDateCreated()))
+                            .orElse(null);
 
         String originalRefundReference = oldestClosedRefund != null ? oldestClosedRefund.getReference() : "";
 
