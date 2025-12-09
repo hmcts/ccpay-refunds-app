@@ -57,7 +57,7 @@ public interface RefundsRepository extends ListCrudRepository<Refund, Integer>, 
         + "r.payment_reference,r.ccd_case_number,r.service_type "
         + "FROM refunds r "
         + "LEFT JOIN refund_reasons rr ON r.reason = rr.code "
-        + "WHERE r.date_created BETWEEN :fromDate AND :toDate" , nativeQuery = true)
+        + "WHERE r.date_created BETWEEN :fromDate AND :toDate", nativeQuery = true)
     List<Tuple> findAllRefundsByDateCreatedBetween(
         @Param("fromDate") Date fromDate,
         @Param("toDate") Date toDate);

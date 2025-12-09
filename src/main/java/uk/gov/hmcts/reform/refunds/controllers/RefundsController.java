@@ -420,7 +420,8 @@ public class RefundsController {
     }
 
 
-    @Operation(summary = "API to generate report for refunds ", description = "Get list of refunds by providing date range. MM/dd/yyyy is  the supported date/time format.")
+    @Operation(summary = "API to generate report for refunds ",
+        description = "Get list of refunds by providing date range. MM/dd/yyyy is  the supported date/time format.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Report Generated"),
         @ApiResponse(responseCode = "404", description = "No Data found to generate Report"),
