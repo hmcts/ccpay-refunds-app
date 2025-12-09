@@ -11,16 +11,9 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
-import uk.gov.hmcts.reform.refunds.services.RefundStatusServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
-
-import java.util.Arrays;
-import java.util.Collections;
 
 @Component
 public class RefundNotificationMapper {
