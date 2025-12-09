@@ -32,7 +32,7 @@ public class RefundNotificationMapper {
 
         String reason = determineCorrectReasonForTemplate(refund);
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
-                .templateId(refundsUtil.getTemplate(refund, reason))
+                .templateId(refundsUtil.getTemplate(refund))
                 .recipientEmailAddress(resendNotificationRequest.getRecipientEmailAddress())
                 .reference(resendNotificationRequest.getReference())
                 .emailReplyToId(emailReplyToId)
@@ -53,7 +53,7 @@ public class RefundNotificationMapper {
 
         String reason = determineCorrectReasonForTemplate(refund);
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
-            .templateId(refundsUtil.getTemplate(refund, reason))
+            .templateId(refundsUtil.getTemplate(refund))
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())
             .reference(resendNotificationRequest.getReference())
             .notificationType(NotificationType.LETTER)
