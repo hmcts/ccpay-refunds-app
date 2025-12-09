@@ -1572,7 +1572,7 @@ class RefundServiceImplTest {
         when(tuple.get("date_created", Date.class)).thenReturn(startDate);
         when(tuple.get("date_updated", Date.class)).thenReturn(endDate);
         when(tuple.get("amount", BigDecimal.class)).thenReturn(BigDecimal.valueOf(100));
-        when(tuple.get("reason", String.class)).thenReturn("RR001");
+        when(tuple.get("description", String.class)).thenReturn("RR001");
         when(tuple.get("refund_status", String.class)).thenReturn("Approved");
         when(tuple.get("reference", String.class)).thenReturn("REF123");
         when(tuple.get("payment_reference", String.class)).thenReturn("PAY123");
