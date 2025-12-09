@@ -29,7 +29,6 @@ import uk.gov.hmcts.reform.refunds.services.RefundStatusServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -195,12 +194,12 @@ public class RefundStatusServiceImplTest {
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
         request.setReason(null);
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
         when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
         stubNotificationService();
         refund.setContactDetails(contactDetails);
         doNothing().when(notificationService).updateNotification(any(), any(), any(), anyString());
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         ResponseEntity<?> response = refundStatusService.updateRefundStatus("RF-ORIGINAL-REF-0002", request, headers);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertEquals("Refund status updated successfully", response.getBody());
