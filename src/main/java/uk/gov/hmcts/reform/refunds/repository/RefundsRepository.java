@@ -52,12 +52,12 @@ public interface RefundsRepository extends ListCrudRepository<Refund, Integer>, 
         + "AND rf.reference NOT IN(?2)")
     List<Refund> findAllByPaymentReference(String paymentReference,String reference);
 
-    @Query(value = "SELECT r.date_created, r.date_updated, r.amount, COALESCE(rr.description, 'No Reason') as description, "
-        + "r.refund_status, r.reference, "
+    @Query(value = "SELECT r.date_created,r.date_updated,r.amount,COALESCE(rr.description, 'No Reason') as description, "
+        + "r.refund_status,r.reference, "
         + "r.payment_reference,r.ccd_case_number,r.service_type "
         + "FROM refunds r "
         + "LEFT JOIN refund_reasons rr ON r.reason = rr.code "
-        + "WHERE r.date_created BETWEEN :fromDate AND :toDate" , nativeQuery = true)
+        + "WHERE r.date_created BETWEEN :fromDate AND :toDate", nativeQuery = true)
     List<Tuple> findAllRefundsByDateCreatedBetween(
         @Param("fromDate") Date fromDate,
         @Param("toDate") Date toDate);

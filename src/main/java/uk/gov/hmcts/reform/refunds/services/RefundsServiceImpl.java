@@ -1139,8 +1139,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         }
         String originalLabel = expiredCount + suffix;
 
-            Refund oldestClosedRefund = refunds.stream()
-                            .filter(r -> RefundStatus.CLOSED.getName().equals(r.getRefundStatus().getName()) )
+        Refund oldestClosedRefund = refunds.stream()
+                            .filter(r -> RefundStatus.CLOSED.getName().equals(r.getRefundStatus().getName()))
                             .min((r1, r2) -> r1.getDateCreated().compareTo(r2.getDateCreated()))
                             .orElse(null);
 
@@ -1150,8 +1150,8 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
 
-@Override
-    public List<RefundsReportDto> refundsReport(Date startDate, Date endDate, MultiValueMap<String, String> headers){
+    @Override
+    public List<RefundsReportDto> refundsReport(Date startDate, Date endDate, MultiValueMap<String, String> headers) {
         LOG.info("Enter refundsReport method");
 
         if (startDate.after(endDate)) {
