@@ -31,12 +31,14 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetailsResponse;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
+import uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
+import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationTemplatePreviewResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -50,6 +52,7 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.IacService;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
+import uk.gov.hmcts.reform.refunds.services.NotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
@@ -102,6 +105,9 @@ public class RefundsController {
 
     @Autowired
     private IacService iacService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -265,6 +271,19 @@ public class RefundsController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
+    }
+
+    @Operation(summary = "POST /doc-preview ", description = "Preview Notification by passing personalisation")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "403", description = "AuthError")
+    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+    @PostMapping("/refund/notifications/doc-preview")
+    public ResponseEntity<NotificationTemplatePreviewResponse> previewNotification(
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
+        @Valid @RequestBody DocPreviewRequest docPreviewRequest) {
+        LOG.info("Inside /refund/notifications/doc-preview for {}", docPreviewRequest.getPaymentReference());
+        return notificationService.previewNotification(docPreviewRequest,headers);
     }
 
     @Operation(summary = "PATCH refund/{reference}/action/{reviewer-action} Review Refund Request")
