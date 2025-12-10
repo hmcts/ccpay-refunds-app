@@ -15,16 +15,12 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
+import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class RefundStatusServiceImpl extends StateUtil implements RefundStatusService {
@@ -39,13 +35,11 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     private static final String LIBERATA_REJECT_UPDATE = "Refund approved by system";
     private static final Logger LOG = LoggerFactory.getLogger(RefundStatusServiceImpl.class);
 
-    private static final Pattern REF_PATTERN = Pattern.compile("\\bRF-\\d{4}-\\d{4}-\\d{4}-\\d{4}\\b");
-
     @Autowired
     private RefundsRepository refundsRepository;
 
     @Autowired
-    private StatusHistoryRepository statusHistoryRepository;
+    private StatusHistoryUtil statusHistoryUtil;
 
     @Autowired
     private NotificationService notificationService;
@@ -69,20 +63,20 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         LOG.info("statusUpdateRequest: {}", statusUpdateRequest);
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
-        final boolean isAClonedRefund = isAClonedRefund(refund);
+        final boolean isAClonedRefund = statusHistoryUtil.isAClonedRefund(refund);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
             // Get the original refund reference, it could the current one or the one from which it was cloned.
-            final String originalRefundReference = getOriginalRefund(refund, isAClonedRefund);
-            final String originalNoteForRejected = getOriginalNoteForRejected(refund);
+            final String originalRefundReference = statusHistoryUtil.getOriginalRefundReference(refund);
+            final String originalNoteForRejected = statusHistoryUtil.getOriginalNoteForRejected(refund);
 
             if (isAClonedRefund) {
                 Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
-                final String originalNoteForRejectedForOrginalRefund = getOriginalNoteForRejected(refundOriginal);
+                final String originalNoteForRejectedForOrginalRefund = statusHistoryUtil.getOriginalNoteForRejected(refundOriginal);
                 statusUpdateRequest.setReason(originalNoteForRejectedForOrginalRefund);
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
             } else if (originalNoteForRejected != null
-                    && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(originalNoteForRejected)) {
+                && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(originalNoteForRejected)) {
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
                 statusUpdateRequest.setReason(originalNoteForRejected);
             }
@@ -152,51 +146,5 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             }
         }
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
-    }
-
-    private boolean isAClonedRefund(Refund refund) {
-        return statusHistoryRepository
-            .findByRefundOrderByDateCreatedDesc(refund)
-            .stream()
-            .anyMatch(history -> RefundStatus.REISSUED.getName().equals(history.getStatus()));
-    }
-
-    private String getOriginalNoteForRejected(Refund refund) {
-
-        Optional<StatusHistory> statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund).stream()
-            .filter(history -> RefundStatus.REJECTED.getName().equals(history.getStatus()))
-            .findFirst();
-
-        if (statusHistories.isPresent()) {
-            return statusHistories.get().getNotes();
-        } else {
-            return null;
-        }
-    }
-
-    private String getOriginalRefund(Refund refund, boolean isAClonedRefund) {
-        if (isAClonedRefund) {
-            // For cloned refunds, get the reference from the first REISSUED status history
-            List<StatusHistory> statusHistories = statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund);
-            Optional<StatusHistory> firstReissued = statusHistories
-                .stream()
-                .filter(history -> RefundStatus.REISSUED.getName().equals(history.getStatus()))
-                .findFirst();
-            if (firstReissued.isPresent()) {
-                return extractRefundReference(firstReissued.get().getNotes());
-            } else {
-                return null;
-            }
-        }
-        // For non-cloned refunds, return the current refund reference
-        return refund.getReference();
-    }
-
-    public String extractRefundReference(String input) {
-        Matcher matcher = REF_PATTERN.matcher(input);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-        return null;
     }
 }
