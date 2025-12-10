@@ -24,9 +24,13 @@ class StatusHistoryUtilTest {
     private Refund refund;
 
     @BeforeEach
-    void setUp() {
-        statusHistoryUtil = spy(StatusHistoryUtil.class);
+    void setUp() throws Exception {
         repository = spy(StatusHistoryRepository.class);
+        statusHistoryUtil = spy(StatusHistoryUtil.class);
+        // Inject the repository into the util
+        java.lang.reflect.Field field = StatusHistoryUtil.class.getDeclaredField("statusHistoryRepository");
+        field.setAccessible(true);
+        field.set(statusHistoryUtil, repository);
 
         refund = new Refund();
         refund.setReference("RF-1111-2222-3333-4444");
@@ -83,4 +87,3 @@ class StatusHistoryUtilTest {
         assertNull(result);
     }
 }
-
