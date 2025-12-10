@@ -91,9 +91,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
             String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
             headers.put("authorization", Collections.singletonList(authorization));
-
-            // Needs to be the current refund reference to pickup correct contact details
-            Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
+            Notification notificationDetails = notificationService.getNotificationDetails(headers, originalRefundReference);
 
             if (notificationDetails == null) {
                 LOG.error("Notification not found. Not able to send notification.");

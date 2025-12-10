@@ -168,11 +168,9 @@ public class RefundNotificationMapper {
         final String originalNoteForRejected = statusHistoryRepository.getOriginalNoteForRejected(refund);
         if (isAClonedRefund) {
             Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
-            final String originalNoteForRejectedForOrginalRefund = statusHistoryRepository.getOriginalNoteForRejected(refundOriginal);
-            reason = originalNoteForRejectedForOrginalRefund;
+            reason = statusHistoryRepository.getOriginalNoteForRejected(refundOriginal);
         } else if (originalNoteForRejected != null
             && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(originalNoteForRejected)) {
-            refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
             reason = originalNoteForRejected;
         }
         return reason;
