@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.model.Refund;
+import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 
@@ -27,12 +28,14 @@ public class RefundNotificationMapper {
     @Autowired
     private StatusHistoryRepository statusHistoryRepository;
 
+    @Autowired
+    private RefundsRepository refundsRepository;
+
     public RefundNotificationEmailRequest getRefundNotificationEmailRequest(Refund refund, ResendNotificationRequest resendNotificationRequest,
                                                                             String customerReference) {
-
         String reason = determineCorrectReasonForTemplate(refund);
         return RefundNotificationEmailRequest.refundNotificationEmailRequestWith()
-                .templateId(refundsUtil.getTemplate(refund))
+                .templateId(refundsUtil.getTemplate(refund, reason))
                 .recipientEmailAddress(resendNotificationRequest.getRecipientEmailAddress())
                 .reference(resendNotificationRequest.getReference())
                 .emailReplyToId(emailReplyToId)
@@ -50,10 +53,9 @@ public class RefundNotificationMapper {
 
     public RefundNotificationLetterRequest getRefundNotificationLetterRequest(Refund refund, ResendNotificationRequest resendNotificationRequest,
                                                                               String customerReference) {
-
         String reason = determineCorrectReasonForTemplate(refund);
         return RefundNotificationLetterRequest.refundNotificationLetterRequestWith()
-            .templateId(refundsUtil.getTemplate(refund))
+            .templateId(refundsUtil.getTemplate(refund, reason))
             .recipientPostalAddress(resendNotificationRequest.getRecipientPostalAddress())
             .reference(resendNotificationRequest.getReference())
             .notificationType(NotificationType.LETTER)
@@ -159,21 +161,20 @@ public class RefundNotificationMapper {
     private String determineCorrectReasonForTemplate(Refund refund) {
         // Get default refund and reason
         String reason = refund.getReason();
-
         final boolean isAClonedRefund = statusHistoryRepository.isAClonedRefund(refund);
-        final Refund originalRefund = statusHistoryRepository.getOriginalRefund(refund);
-        final String noteForRejected = statusHistoryRepository.getOriginalNoteForRejected(refund);
 
-        // To determine the correct template, we need to identify the original refund and if it has a rejected reason
-        // Set refund instruction type and reason if needed
-        if (isAClonedRefund && originalRefund != null) {
-            reason = statusHistoryRepository.getOriginalNoteForRejected(originalRefund);
-        } else if (noteForRejected != null
-            && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(noteForRejected)) {
+        // Get the original refund reference, it could the current one or the one from which it was cloned.
+        final String originalRefundReference = statusHistoryRepository.getOriginalRefundReference(refund);
+        final String originalNoteForRejected = statusHistoryRepository.getOriginalNoteForRejected(refund);
+        if (isAClonedRefund) {
+            Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
+            final String originalNoteForRejectedForOrginalRefund = statusHistoryRepository.getOriginalNoteForRejected(refundOriginal);
+            reason = originalNoteForRejectedForOrginalRefund;
+        } else if (originalNoteForRejected != null
+            && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(originalNoteForRejected)) {
             refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
-            reason = noteForRejected;
+            reason = originalNoteForRejected;
         }
         return reason;
     }
-
 }

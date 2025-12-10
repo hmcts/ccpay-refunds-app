@@ -21,8 +21,6 @@ import uk.gov.hmcts.reform.refunds.utils.StateUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class RefundStatusServiceImpl extends StateUtil implements RefundStatusService {
@@ -36,8 +34,6 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     private static final String LIBERATA_REJECT_UPDATE = "Refund approved by system";
     private static final Logger LOG = LoggerFactory.getLogger(RefundStatusServiceImpl.class);
-
-    private static final Pattern REF_PATTERN = Pattern.compile("\\bRF-\\d{4}-\\d{4}-\\d{4}-\\d{4}\\b");
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -70,18 +66,14 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         final boolean isAClonedRefund = statusHistoryRepository.isAClonedRefund(refund);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
-            // Get the original refund (could be the current one or the one from which it was cloned)
-            final Refund originalRefund = statusHistoryRepository.getOriginalRefund(refund);
+            // Get the original refund reference, it could the current one or the one from which it was cloned.
+            final String originalRefundReference = statusHistoryRepository.getOriginalRefundReference(refund);
             final String originalNoteForRejected = statusHistoryRepository.getOriginalNoteForRejected(refund);
 
-            LOG.info("Original refund reference: {}", originalRefund != null ? originalRefund.getReference() : "null");
-
-            // Set refund instruction type and reason if needed
-            if (isAClonedRefund && originalRefund != null) {
-                String originalNoteForRejectedForOriginalRefund = statusHistoryRepository.getOriginalNoteForRejected(originalRefund);
-                if (originalNoteForRejectedForOriginalRefund != null) {
-                    statusUpdateRequest.setReason(originalNoteForRejectedForOriginalRefund);
-                }
+            if (isAClonedRefund) {
+                Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
+                final String originalNoteForRejectedForOrginalRefund = statusHistoryRepository.getOriginalNoteForRejected(refundOriginal);
+                statusUpdateRequest.setReason(originalNoteForRejectedForOrginalRefund);
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
             } else if (originalNoteForRejected != null
                 && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(originalNoteForRejected)) {
@@ -97,11 +89,11 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             ));
 
             IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
-            String authorization = "Bearer " + idamTokenResponse.getAccessToken();
+            String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
             headers.put("authorization", Collections.singletonList(authorization));
 
-            String notificationReference = (originalRefund != null) ? originalRefund.getReference() : refund.getReference();
-            Notification notificationDetails = notificationService.getNotificationDetails(headers, notificationReference);
+            // Needs to be the current refund reference to pickup correct contact details
+            Notification notificationDetails = notificationService.getNotificationDetails(headers, refund.getReference());
 
             if (notificationDetails == null) {
                 LOG.error("Notification not found. Not able to send notification.");
@@ -118,7 +110,8 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 refund.setContactDetails(newContact);
             }
 
-            String templateId = refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
+
+            String templateId =  refundsUtil.getTemplate(refund, statusUpdateRequest.getReason());
             notificationService.updateNotification(headers, refund, null, templateId);
 
         } else if (statusUpdateRequest.getStatus().getCode().equals(EXPIRED)) {
@@ -155,13 +148,5 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
             }
         }
         return new ResponseEntity<>("Refund status updated successfully", HttpStatus.NO_CONTENT);
-    }
-
-    public String extractRefundReference(String input) {
-        Matcher matcher = REF_PATTERN.matcher(input);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-        return null;
     }
 }
