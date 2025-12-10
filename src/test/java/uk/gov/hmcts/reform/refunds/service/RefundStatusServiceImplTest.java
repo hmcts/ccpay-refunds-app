@@ -22,11 +22,11 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
 import uk.gov.hmcts.reform.refunds.services.NotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundStatusServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
+import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -43,10 +43,13 @@ import static org.mockito.Mockito.when;
 public class RefundStatusServiceImplTest {
     @Mock
     private RefundsRepository refundsRepository;
+
     @Mock
-    private StatusHistoryRepository statusHistoryRepository;
+    private StatusHistoryUtil statusHistoryUtil;
+
     @Mock
     private NotificationService notificationService;
+
     @Mock
     private IdamService idamService;
 
@@ -145,9 +148,9 @@ public class RefundStatusServiceImplTest {
         refund.setReference("RF-1234-5678-9012-3456");
         refund.setRefundStatus(RefundStatus.REJECTED);
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
-        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(false);
-        when(statusHistoryRepository.getOriginalRefundReference(refund)).thenReturn("RF-1234-5678-9012-3456");
-        when(statusHistoryRepository.getOriginalNoteForRejected(refund)).thenReturn(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(statusHistoryUtil.isAClonedRefund(refund)).thenReturn(false);
+        when(statusHistoryUtil.getOriginalRefundReference(refund)).thenReturn("RF-1234-5678-9012-3456");
+        when(statusHistoryUtil.getOriginalNoteForRejected(refund)).thenReturn(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
         request.setReason("Accepted");
@@ -180,11 +183,10 @@ public class RefundStatusServiceImplTest {
         StatusHistory acceptedHistory = new StatusHistory();
         acceptedHistory.setStatus(RefundStatus.ACCEPTED.getName());
         acceptedHistory.setNotes(null);
-        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(Collections.singletonList(rejectedHistory));
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
-        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(true);
-        when(statusHistoryRepository.getOriginalRefundReference(refund)).thenReturn("RF-ORIGINAL-REF-0002");
-        when(statusHistoryRepository.getOriginalNoteForRejected(refund)).thenReturn(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+        when(statusHistoryUtil.isAClonedRefund(refund)).thenReturn(true);
+        when(statusHistoryUtil.getOriginalRefundReference(refund)).thenReturn("RF-ORIGINAL-REF-0002");
+        when(statusHistoryUtil.getOriginalNoteForRejected(refund)).thenReturn(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
         request.setReason(null);
@@ -212,8 +214,6 @@ public class RefundStatusServiceImplTest {
         StatusHistory rejectedHistory = new StatusHistory();
         rejectedHistory.setStatus(RefundStatus.APPROVED.getName());
         rejectedHistory.setNotes("Sent to middle office for processing");
-        when(statusHistoryRepository.findByRefundOrderByDateCreatedDesc(refund)).thenReturn(Collections.singletonList(
-            rejectedHistory));
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
         RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
@@ -256,9 +256,9 @@ public class RefundStatusServiceImplTest {
         refund.setReference("RF-CLONED-REF-0001");
         Refund originalRefund = new Refund();
         originalRefund.setReference("RF-1234-5678-9012-3456");
-        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(true);
-        when(statusHistoryRepository.getOriginalRefundReference(refund)).thenReturn(originalRefund.getReference());
-        String result = statusHistoryRepository.getOriginalRefundReference(refund);
+        when(statusHistoryUtil.isAClonedRefund(refund)).thenReturn(true);
+        when(statusHistoryUtil.getOriginalRefundReference(refund)).thenReturn(originalRefund.getReference());
+        String result = statusHistoryUtil.getOriginalRefundReference(refund);
         assertEquals("RF-1234-5678-9012-3456", result);
     }
 
@@ -266,8 +266,8 @@ public class RefundStatusServiceImplTest {
     void testGetOriginalRefund_cloned_noReissued_returnsNull() {
         Refund refund = new Refund();
         refund.setReference("RF-CLONED-REF-0002");
-        when(statusHistoryRepository.isAClonedRefund(refund)).thenReturn(true);
-        String result = statusHistoryRepository.getOriginalRefundReference(refund);
+        when(statusHistoryUtil.isAClonedRefund(refund)).thenReturn(true);
+        String result = statusHistoryUtil.getOriginalRefundReference(refund);
         assertEquals(null, result);
     }
 }

@@ -13,8 +13,8 @@ import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
+import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 
 @Component
 public class RefundNotificationMapper {
@@ -23,10 +23,10 @@ public class RefundNotificationMapper {
     private String emailReplyToId;
 
     @Autowired
-    RefundsUtil refundsUtil;
+    private RefundsUtil refundsUtil;
 
     @Autowired
-    private StatusHistoryRepository statusHistoryRepository;
+    private StatusHistoryUtil statusHistoryUtil;
 
     @Autowired
     private RefundsRepository refundsRepository;
@@ -161,14 +161,14 @@ public class RefundNotificationMapper {
     private String determineCorrectReasonForTemplate(Refund refund) {
         // Get default refund and reason
         String reason = refund.getReason();
-        final boolean isAClonedRefund = statusHistoryRepository.isAClonedRefund(refund);
+        final boolean isAClonedRefund = statusHistoryUtil.isAClonedRefund(refund);
 
         // Get the original refund reference, it could the current one or the one from which it was cloned.
-        final String originalRefundReference = statusHistoryRepository.getOriginalRefundReference(refund);
-        final String originalNoteForRejected = statusHistoryRepository.getOriginalNoteForRejected(refund);
+        final String originalRefundReference = statusHistoryUtil.getOriginalRefundReference(refund);
+        final String originalNoteForRejected = statusHistoryUtil.getOriginalNoteForRejected(refund);
         if (isAClonedRefund) {
             Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
-            reason = statusHistoryRepository.getOriginalNoteForRejected(refundOriginal);
+            reason = statusHistoryUtil.getOriginalNoteForRejected(refundOriginal);
         } else if (originalNoteForRejected != null
             && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(originalNoteForRejected)) {
             reason = originalNoteForRejected;

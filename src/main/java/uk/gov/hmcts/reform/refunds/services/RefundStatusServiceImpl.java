@@ -15,9 +15,9 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
-import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
+import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +39,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     private RefundsRepository refundsRepository;
 
     @Autowired
-    private StatusHistoryRepository statusHistoryRepository;
+    private StatusHistoryUtil statusHistoryUtil;
 
     @Autowired
     private NotificationService notificationService;
@@ -63,16 +63,16 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
         LOG.info("statusUpdateRequest: {}", statusUpdateRequest);
 
         Refund refund = refundsRepository.findByReferenceOrThrow(reference);
-        final boolean isAClonedRefund = statusHistoryRepository.isAClonedRefund(refund);
+        final boolean isAClonedRefund = statusHistoryUtil.isAClonedRefund(refund);
 
         if (statusUpdateRequest.getStatus().getCode().equals(ACCEPTED)) {
             // Get the original refund reference, it could the current one or the one from which it was cloned.
-            final String originalRefundReference = statusHistoryRepository.getOriginalRefundReference(refund);
-            final String originalNoteForRejected = statusHistoryRepository.getOriginalNoteForRejected(refund);
+            final String originalRefundReference = statusHistoryUtil.getOriginalRefundReference(refund);
+            final String originalNoteForRejected = statusHistoryUtil.getOriginalNoteForRejected(refund);
 
             if (isAClonedRefund) {
                 Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
-                final String originalNoteForRejectedForOrginalRefund = statusHistoryRepository.getOriginalNoteForRejected(refundOriginal);
+                final String originalNoteForRejectedForOrginalRefund = statusHistoryUtil.getOriginalNoteForRejected(refundOriginal);
                 statusUpdateRequest.setReason(originalNoteForRejectedForOrginalRefund);
                 refund.setRefundInstructionType(RefundsUtil.REFUND_WHEN_CONTACTED);
             } else if (originalNoteForRejected != null
