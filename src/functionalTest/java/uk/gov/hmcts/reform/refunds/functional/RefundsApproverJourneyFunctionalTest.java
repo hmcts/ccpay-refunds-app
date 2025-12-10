@@ -42,6 +42,7 @@ import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
+import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
 import java.math.BigDecimal;
@@ -2497,6 +2498,52 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(refundListResponse.getStatusCode()).isEqualTo(FORBIDDEN.value());
     }
 
+
+    @Test
+    public void positive_refund_reject_reason_unable_to_apply_refund_to_card_and_email() {
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
+        final String paymentReference = createPayment(ccdCaseNumber);
+        paymentReferences.add(paymentReference);
+        final String refundReference = performRefund(paymentReference);
+        refundReferences.add(refundReference);
+
+        //This API Request tests the Retrieve Actions endpoint as well.
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
+        assertThat(refundEvents.size()).isEqualTo(3);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
+        Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith().reason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED).build()
+        );
+        assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that contact details is erased
+        RefundDto refundDto = getRejectRefundDto(ccdCaseNumber, refundReference, "Approved");
+        assertEquals(RefundStatus.APPROVED, refundDto.getRefundStatus());
+        assertEquals("Amended claim", refundDto.getReason());
+    }
+
     @Test
     public void positive_refund_reject_reason_with_different_reason_and_email() {
         String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
@@ -2594,6 +2641,64 @@ public class RefundsApproverJourneyFunctionalTest {
         RefundDto refundDto = getRejectRefundDto(ccdCaseNumber, refundReference, "Rejected");
         assertEquals(RefundStatus.REJECTED, refundDto.getRefundStatus());
         assertNotEquals("Unable to apply refund to Card", refundDto.getReason());
+    }
+
+    @Test
+    public void positive_refund_reject_reason_unable_to_apply_refund_to_card_status_change_to_approve() {
+        String ccdCaseNumber = "11111234" + RandomUtils.secure().randomInt(CCD_EIGHT_DIGIT_LOWER, CCD_EIGHT_DIGIT_UPPER);
+
+        final String paymentReference = createPayment(ccdCaseNumber);
+        paymentReferences.add(paymentReference);
+        final String refundReference = performRefund(paymentReference);
+        refundReferences.add(refundReference);
+
+        //This API Request tests the Retrieve Actions endpoint as well.
+        Response response = paymentTestService.getRetrieveActions(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
+        assertThat(refundEvents.size()).isEqualTo(3);
+
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+
+        //reject refund with instruction type refundWhenContacted with reason unable to apply refund to card
+        Response updateRefundStatusResponse = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith().reason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED).build()
+        );
+        assertThat(updateRefundStatusResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that status change to Approved
+        RefundDto refundDto = getRejectRefundDto(ccdCaseNumber, refundReference, "Approved");
+        assertEquals(RefundStatus.APPROVED, refundDto.getRefundStatus());
+        assertEquals("Amended claim", refundDto.getReason());
+
+        Response updateRefundStatusResponse1 = paymentTestService.updateRefundStatus(
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            RefundStatusUpdateRequest.RefundRequestWith().reason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON)
+                .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build()
+        );
+        assertThat(updateRefundStatusResponse1.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+        // verify that after Approve change to Accepted
+        RefundDto refundDto1 = getRejectRefundDto(ccdCaseNumber, refundReference, "Accepted");
+        assertEquals(RefundStatus.ACCEPTED, refundDto1.getRefundStatus());
     }
 
     private RefundDto getRejectRefundDto(String ccdCaseNumber, String refundReference, String status) {

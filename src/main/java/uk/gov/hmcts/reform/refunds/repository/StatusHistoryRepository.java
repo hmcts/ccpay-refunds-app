@@ -13,4 +13,3 @@ public interface StatusHistoryRepository extends ListCrudRepository<StatusHistor
     List<StatusHistory> findByRefundOrderByDateCreatedDesc(Refund refund);
 
 }
-
