@@ -55,4 +55,7 @@ public class RefundsReportDto {
 
     @JsonProperty("service_type")
     private String serviceType;
+
+    @JsonProperty("notes")
+    private String notes;
 }

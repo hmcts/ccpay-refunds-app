@@ -1170,6 +1170,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
                 .paymentReference(tup.get("payment_reference", String.class))
                 .ccdCaseNumber(tup.get("ccd_case_number", String.class))
                 .serviceType(tup.get("service_type", String.class))
+                .notes(tup.get("notes", String.class))
                 .build())
             .toList();
 

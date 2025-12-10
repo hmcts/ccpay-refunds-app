@@ -1578,6 +1578,7 @@ class RefundServiceImplTest {
         when(tuple.get("payment_reference", String.class)).thenReturn("PAY123");
         when(tuple.get("ccd_case_number", String.class)).thenReturn("CCD123");
         when(tuple.get("service_type", String.class)).thenReturn("Probate");
+        when(tuple.get("notes", String.class)).thenReturn("Test notes");
 
         when(refundsRepository.findAllRefundsByDateCreatedBetween(startDate, endDate))
             .thenReturn(Arrays.asList(tuple));
@@ -1595,7 +1596,9 @@ class RefundServiceImplTest {
         assertEquals("PAY123", dto.getPaymentReference());
         assertEquals("CCD123", dto.getCcdCaseNumber());
         assertEquals("Probate", dto.getServiceType());
+        assertEquals("Test notes", dto.getNotes());
     }
+
 
     @Test
     void refundsReport_shouldThrowException_whenStartDateAfterEndDate() {

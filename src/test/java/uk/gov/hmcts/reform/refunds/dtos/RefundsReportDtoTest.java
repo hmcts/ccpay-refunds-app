@@ -25,6 +25,7 @@ class RefundsReportDtoTest {
             .ccdCaseNumber("1111-2222-3333-4444")
             .paymentDate(now)
             .serviceType("civil")
+            .notes("any notes")
             .build();
 
         assertEquals(now, dto.getRefundDateCreated());
@@ -37,6 +38,7 @@ class RefundsReportDtoTest {
         assertEquals("1111-2222-3333-4444", dto.getCcdCaseNumber());
         assertEquals(now, dto.getPaymentDate());
         assertEquals("civil", dto.getServiceType());
+        assertEquals("any notes", dto.getNotes());
     }
 
     @Test
@@ -55,6 +57,7 @@ class RefundsReportDtoTest {
         dto.setCcdCaseNumber("CASE999");
         dto.setPaymentDate(date);
         dto.setServiceType("family");
+        dto.setNotes("Some notes");
 
         assertEquals(date, dto.getRefundDateCreated());
         assertEquals(date, dto.getRefundDateUpdated());
@@ -66,5 +69,6 @@ class RefundsReportDtoTest {
         assertEquals("CASE999", dto.getCcdCaseNumber());
         assertEquals(date, dto.getPaymentDate());
         assertEquals("family", dto.getServiceType());
+        assertEquals("Some notes", dto.getNotes());
     }
 }
