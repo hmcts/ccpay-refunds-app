@@ -286,7 +286,11 @@ public class RefundsController {
         return notificationService.previewNotification(docPreviewRequest,headers);
     }
 
+<<<<<<< HEAD
     @Operation(summary = "PATCH /refund/{reference}/action/{reviewer-action} Review Refund Request")
+=======
+    @Operation(summary = "PATCH refund/{reference}/action/{reviewer-action} Review Refund Request")
+>>>>>>> 8bd16ac691f75abe8c9e8f5695ea6517f52be5b9
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Ok"),
         @ApiResponse(responseCode = "201", description = "Refund request reviewed successfully"),
