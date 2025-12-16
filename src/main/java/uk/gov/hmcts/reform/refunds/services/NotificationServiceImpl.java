@@ -123,10 +123,28 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public ResponseEntity<NotificationTemplatePreviewResponse> previewNotification(
+    public NotificationTemplatePreviewResponse previewNotification(
         DocPreviewRequest docPreviewRequest, MultiValueMap<String, String> headers) {
         Refund refund = refundsRepository.findByReferenceOrThrow(docPreviewRequest.getPersonalisation().getRefundReference());
         String reason = determineCorrectReasonForTemplate(refund);
+        // Set Contact details in refund based on values in docPreviewRequest
+        ContactDetails contactDetails = null;
+        if (EMAIL.name().equals(docPreviewRequest.getNotificationType().name())) {
+            contactDetails = ContactDetails.contactDetailsWith()
+                .email(docPreviewRequest.getRecipientEmailAddress())
+                .notificationType(EMAIL.name())
+                .build();
+        } else {
+            contactDetails = ContactDetails.contactDetailsWith()
+                .addressLine(docPreviewRequest.getRecipientPostalAddress().getAddressLine())
+                .city(docPreviewRequest.getRecipientPostalAddress().getCity())
+                .country(docPreviewRequest.getRecipientPostalAddress().getCountry())
+                .county(docPreviewRequest.getRecipientPostalAddress().getCounty())
+                .postalCode(docPreviewRequest.getRecipientPostalAddress().getPostalCode())
+                .notificationType(LETTER.name())
+                .build();
+        }
+        refund.setContactDetails(contactDetails);
         if (docPreviewRequest.getTemplateId() == null || docPreviewRequest.getTemplateId().isEmpty()) {
             docPreviewRequest.setTemplateId(refundsUtil.getTemplate(refund, reason));
         }
@@ -134,18 +152,28 @@ public class NotificationServiceImpl implements NotificationService {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                 new StringBuilder(notificationUrl).append("/notifications/doc-preview")
                     .toString());
-
             log.info("Notification URL in Refunds app for doc-preview {}", builder.toUriString());
-            return restTemplateNotify.exchange(builder.toUriString(), HttpMethod.POST, new HttpEntity<>(
-                docPreviewRequest,
-                getFormatedHeaders(headers)
-            ), NotificationTemplatePreviewResponse.class);
+            ResponseEntity<NotificationTemplatePreviewResponse> response = restTemplateNotify.exchange(
+                builder.toUriString(),
+                HttpMethod.POST,
+                new HttpEntity<>(docPreviewRequest, getFormatedHeaders(headers)),
+                NotificationTemplatePreviewResponse.class
+            );
+            NotificationTemplatePreviewResponse preview = response.getBody();
+            if (preview != null) {
+                log.info("Notification Template Preview Response: templateId={}, templateType={}, subject={}, bodyLength={}",
+                    preview.getTemplateId(), preview.getTemplateType(), preview.getSubject(),
+                    preview.getBody() != null ? preview.getBody().length() : 0);
+            } else {
+                log.info("Notification Template Preview Response: null body");
+            }
+            return preview;
         } catch (HttpClientErrorException exception) {
             handleHttpClientErrorException(exception);
         } catch (HttpServerErrorException exception) {
             log.info("Notification service is unavailable. Please try again later.");
         }
-        return new ResponseEntity<>(null, HttpStatus.SERVICE_UNAVAILABLE);
+        return null;
     }
 
     private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {

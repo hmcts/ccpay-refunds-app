@@ -724,7 +724,7 @@ class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "Sent for approval")
                                                   .queryParam("ccdCaseNumber", "")
-                                                  .queryParam("excludeCurrentUser", "false")
+                                                  .queryParam("excludeCurrentUser", "null")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
 
@@ -736,14 +736,11 @@ class RefundControllerTest {
 
         assertNotNull(refundListDtoResponse);
         assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals("mock-Forename mock-Surname", refundListDtoResponse.getRefundList().get(0).getUserFullName());
         assertEquals(
             uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL,
             refundListDtoResponse.getRefundList().get(0).getRefundStatus()
         );
-
-        assertTrue(refundListDtoResponse.getRefundList().stream()
-                       .anyMatch(refundListDto -> refundListDto.getUserFullName().equalsIgnoreCase(
-                           "mock-Forename mock-Surname")));
     }
 
     @Test
@@ -2572,7 +2569,7 @@ class RefundControllerTest {
 
         when(notificationService.previewNotification(any(uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest.class),
                                                       org.mockito.ArgumentMatchers.<MultiValueMap<String, String>>any()))
-            .thenReturn(ResponseEntity.ok(expectedResponse));
+            .thenReturn(expectedResponse);
 
         // Act + Assert
         mockMvc.perform(post("/refund/notifications/doc-preview")

@@ -283,7 +283,10 @@ public class RefundsController {
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody DocPreviewRequest docPreviewRequest) {
         LOG.info("Inside /refund/notifications/doc-preview for {}", docPreviewRequest.getPaymentReference());
-        return notificationService.previewNotification(docPreviewRequest,headers);
+        return new ResponseEntity<>(
+            notificationService.previewNotification(docPreviewRequest,headers),
+            HttpStatus.OK
+        );
     }
 
     @Operation(summary = "PATCH /refund/{reference}/action/{reviewer-action} Review Refund Request")
