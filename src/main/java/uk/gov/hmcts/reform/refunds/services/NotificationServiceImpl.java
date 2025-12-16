@@ -125,7 +125,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public ResponseEntity<NotificationTemplatePreviewResponse> previewNotification(
         DocPreviewRequest docPreviewRequest, MultiValueMap<String, String> headers) {
-        Refund refund = refundsRepository.findByReferenceOrThrow(docPreviewRequest.getPaymentReference());
+        Refund refund = refundsRepository.findByReferenceOrThrow(docPreviewRequest.getPersonalisation().getRefundReference());
         String reason = determineCorrectReasonForTemplate(refund);
         if (docPreviewRequest.getTemplateId() == null || docPreviewRequest.getTemplateId().isEmpty()) {
             docPreviewRequest.setTemplateId(refundsUtil.getTemplate(refund, reason));

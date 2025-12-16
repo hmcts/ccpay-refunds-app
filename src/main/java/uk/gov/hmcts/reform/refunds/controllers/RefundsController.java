@@ -273,7 +273,7 @@ public class RefundsController {
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
-    @Operation(summary = "POST /doc-preview ", description = "Preview Notification by passing personalisation")
+    @Operation(summary = "POST /refund/notifications/doc-preview", description = "Preview Notification by passing personalisation")
     @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "403", description = "AuthError")
     @ApiResponse(responseCode = "500", description = "Internal Server Error")
@@ -286,7 +286,7 @@ public class RefundsController {
         return notificationService.previewNotification(docPreviewRequest,headers);
     }
 
-    @Operation(summary = "PATCH refund/{reference}/action/{reviewer-action} Review Refund Request")
+    @Operation(summary = "PATCH /refund/{reference}/action/{reviewer-action} Review Refund Request")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Ok"),
         @ApiResponse(responseCode = "201", description = "Refund request reviewed successfully"),
