@@ -1590,7 +1590,6 @@ class RefundServiceImplTest {
         assertEquals(startDate, dto.getRefundDateCreated());
         assertEquals(endDate, dto.getRefundDateUpdated());
         assertEquals(BigDecimal.valueOf(100), dto.getAmount());
-        assertEquals("RR001", dto.getRefundReason());
         assertEquals("Approved", dto.getRefundStatus());
         assertEquals("REF123", dto.getRefundReference());
         assertEquals("PAY123", dto.getPaymentReference());

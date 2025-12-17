@@ -35,9 +35,6 @@ public class RefundsReportDto {
     @JsonProperty("amount")
     private BigDecimal amount;
 
-    @JsonProperty("reason")
-    private String refundReason;
-
     @JsonProperty("refund_status")
     private String refundStatus;
 

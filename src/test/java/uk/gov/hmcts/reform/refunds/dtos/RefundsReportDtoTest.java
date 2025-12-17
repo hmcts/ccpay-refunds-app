@@ -18,7 +18,6 @@ class RefundsReportDtoTest {
             .refundDateCreated(now)
             .refundDateUpdated(now)
             .amount(amount)
-            .refundReason("Duplicate payment")
             .refundStatus("Approved")
             .refundReference("REF123")
             .paymentReference("PAY456")
@@ -31,7 +30,6 @@ class RefundsReportDtoTest {
         assertEquals(now, dto.getRefundDateCreated());
         assertEquals(now, dto.getRefundDateUpdated());
         assertEquals(amount, dto.getAmount());
-        assertEquals("Duplicate payment", dto.getRefundReason());
         assertEquals("Approved", dto.getRefundStatus());
         assertEquals("REF123", dto.getRefundReference());
         assertEquals("PAY456", dto.getPaymentReference());
@@ -50,7 +48,6 @@ class RefundsReportDtoTest {
         dto.setRefundDateCreated(date);
         dto.setRefundDateUpdated(date);
         dto.setAmount(amount);
-        dto.setRefundReason("Reason");
         dto.setRefundStatus("Pending");
         dto.setRefundReference("REF999");
         dto.setPaymentReference("PAY999");
@@ -62,7 +59,6 @@ class RefundsReportDtoTest {
         assertEquals(date, dto.getRefundDateCreated());
         assertEquals(date, dto.getRefundDateUpdated());
         assertEquals(amount, dto.getAmount());
-        assertEquals("Reason", dto.getRefundReason());
         assertEquals("Pending", dto.getRefundStatus());
         assertEquals("REF999", dto.getRefundReference());
         assertEquals("PAY999", dto.getPaymentReference());
