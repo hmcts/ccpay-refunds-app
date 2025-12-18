@@ -158,12 +158,11 @@ public class NotificationServiceImpl implements NotificationService {
             log.info("Preview notification for existing refund - determining template based on refund reason");
             Refund refund = refundsRepository.findByReferenceOrThrow(docPreviewRequest.getPersonalisation().getRefundReference());
             refund.setContactDetails(contactDetails);
-            String refundReason = docPreviewRequest.getPersonalisation().getRefundReason();
+            String refundReason = determineCorrectReasonForTemplate(refund);
             log.info("Refund reason in previewNotification {}", refundReason);
             if (docPreviewRequest.getTemplateId() == null || docPreviewRequest.getTemplateId().isEmpty()) {
                 docPreviewRequest.setTemplateId(refundsUtil.getTemplate(refund, refundReason));
             }
-            String reason = determineCorrectReasonForTemplate(refund);
         }
 
         try {
