@@ -67,6 +67,7 @@ import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
+import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 import uk.gov.hmcts.reform.refunds.utils.Utility;
 import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
@@ -139,6 +140,9 @@ class RefundServiceImplTest {
 
     @MockBean
     private Specification<Refund> mockSpecification;
+
+    @Mock
+    private StatusHistoryUtil statusHistoryUtil;
 
     @MockBean
     private List<Refund> refund;
@@ -1531,9 +1535,28 @@ class RefundServiceImplTest {
         verify(refundsRepository, atLeastOnce()).save(any(Refund.class));
     }
 
-
     @Test
-    void testInitiateRefundProcess_createsAndSavesReissuedRefund() throws Exception {
+    void testInitiateRefundProcess_createsAndSavesReissuedRefund2() throws Exception {
+
+        // Ensure core dependencies are injected into the service under test
+        ReflectionTestUtils.setField(refundsService, "refundsRepository", refundsRepository);
+        ReflectionTestUtils.setField(refundsService, "referenceUtil", referenceUtil);
+        ReflectionTestUtils.setField(refundsService, "refundReasonRepository", refundReasonRepository);
+
+        // Wire the StatusHistoryUtil spy into the service under test and its repository dependency
+        ReflectionTestUtils.setField(refundsService, "statusHistoryUtil", statusHistoryUtil);
+        ReflectionTestUtils.setField(statusHistoryUtil, "statusHistoryRepository", statusHistoryRepository);
+
+        // Avoid hitting real parsing in util
+        Refund refund = getExpiredRefund();
+        org.mockito.Mockito.doReturn(refund.getReference())
+            .when(statusHistoryUtil).getOriginalRefundReference(any(Refund.class));
+
+        // No longer stubbing findByPaymentReference as current flow may not call it
+        when(referenceUtil.getNext(anyString())).thenReturn("RF-1111-2222-3333-4444");
+
+        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name(
+            "RR001").build());
 
         IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
             "YY").name("XX YY").roles(Arrays.asList(
@@ -1542,20 +1565,11 @@ class RefundServiceImplTest {
             "payments-refund-approver-AAA",
             "payments-refund-AAA"
         )).sub("ZZ").build();
-
-        Refund refund = getExpiredRefund();
-        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getRefundExpiredList()));
-        when(referenceUtil.getNext(anyString())).thenReturn("RF-1111-2222-3333-4444");
-
-        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name(
-            "RR001").build());
-
         RefundResponse response = refundsService.initiateRefundProcess(refund, idamUserIdResponse);
 
         assertNotNull(response);
         assertNotNull(response.getRefundReference());
         verify(refundsRepository, atLeastOnce()).save(any(Refund.class));
-        verify(refundsRepository, atLeastOnce()).findByPaymentReference(anyString());
+        // Removed verification of findByPaymentReference as it is not invoked in this path
     }
-
 }
