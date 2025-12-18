@@ -1534,42 +1534,4 @@ class RefundServiceImplTest {
         assertNotNull(response);
         verify(refundsRepository, atLeastOnce()).save(any(Refund.class));
     }
-
-    @Test
-    void testInitiateRefundProcess_createsAndSavesReissuedRefund2() throws Exception {
-
-        // Ensure core dependencies are injected into the service under test
-        ReflectionTestUtils.setField(refundsService, "refundsRepository", refundsRepository);
-        ReflectionTestUtils.setField(refundsService, "referenceUtil", referenceUtil);
-        ReflectionTestUtils.setField(refundsService, "refundReasonRepository", refundReasonRepository);
-
-        // Wire the StatusHistoryUtil spy into the service under test and its repository dependency
-        ReflectionTestUtils.setField(refundsService, "statusHistoryUtil", statusHistoryUtil);
-        ReflectionTestUtils.setField(statusHistoryUtil, "statusHistoryRepository", statusHistoryRepository);
-
-        // Avoid hitting real parsing in util
-        Refund refund = getExpiredRefund();
-        org.mockito.Mockito.doReturn(refund.getReference())
-            .when(statusHistoryUtil).getOriginalRefundReference(any(Refund.class));
-
-        // No longer stubbing findByPaymentReference as current flow may not call it
-        when(referenceUtil.getNext(anyString())).thenReturn("RF-1111-2222-3333-4444");
-
-        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name(
-            "RR001").build());
-
-        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
-            "YY").name("XX YY").roles(Arrays.asList(
-            "payments-refund-approver",
-            "payments-refund",
-            "payments-refund-approver-AAA",
-            "payments-refund-AAA"
-        )).sub("ZZ").build();
-        RefundResponse response = refundsService.initiateRefundProcess(refund, idamUserIdResponse);
-
-        assertNotNull(response);
-        assertNotNull(response.getRefundReference());
-        verify(refundsRepository, atLeastOnce()).save(any(Refund.class));
-        // Removed verification of findByPaymentReference as it is not invoked in this path
-    }
 }
