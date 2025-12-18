@@ -65,9 +65,13 @@ public class NotificationServiceImpl implements NotificationService {
     @Value("${notification.letter-path}")
     private String letterUrlPath;
 
+    private static final String STRING = "string";
+
     public static final String CONTENT_TYPE = "content-type";
 
     private static final String NOTIFICATION_NOT_SENT = "Notification not sent";
+
+    private static final String NEW_REFUND_PLACEHOLDER = "RF-****-****-****-****";
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
@@ -119,14 +123,14 @@ public class NotificationServiceImpl implements NotificationService {
             log.info("Notification service is unavailable. Please try again later.");
         }
         return new ResponseEntity<>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
-
     }
 
     @Override
     public NotificationTemplatePreviewResponse previewNotification(
         DocPreviewRequest docPreviewRequest, MultiValueMap<String, String> headers) {
-        Refund refund = refundsRepository.findByReferenceOrThrow(docPreviewRequest.getPersonalisation().getRefundReference());
-        String reason = determineCorrectReasonForTemplate(refund);
+        String refundRef = getRefundReference(docPreviewRequest);
+        log.info("Refund reference in previewNotification {}", refundRef);
+
         // Set Contact details in refund based on values in docPreviewRequest
         ContactDetails contactDetails = null;
         if (EMAIL.name().equals(docPreviewRequest.getNotificationType().name())) {
@@ -144,10 +148,24 @@ public class NotificationServiceImpl implements NotificationService {
                 .notificationType(LETTER.name())
                 .build();
         }
-        refund.setContactDetails(contactDetails);
-        if (docPreviewRequest.getTemplateId() == null || docPreviewRequest.getTemplateId().isEmpty()) {
-            docPreviewRequest.setTemplateId(refundsUtil.getTemplate(refund, reason));
+
+        // Check if this is a new refund.
+        if (NEW_REFUND_PLACEHOLDER.equals(refundRef)) {
+            log.info("Preview notification for new refund - skipping template determination");
+            // For new refunds, we do not determine the template as there is no refund record yet
+
+        } else {
+            log.info("Preview notification for existing refund - determining template based on refund reason");
+            Refund refund = refundsRepository.findByReferenceOrThrow(docPreviewRequest.getPersonalisation().getRefundReference());
+            refund.setContactDetails(contactDetails);
+            String refundReason = docPreviewRequest.getPersonalisation().getRefundReason();
+            log.info("Refund reason in previewNotification {}", refundReason);
+            if (docPreviewRequest.getTemplateId() == null || docPreviewRequest.getTemplateId().isEmpty()) {
+                docPreviewRequest.setTemplateId(refundsUtil.getTemplate(refund, refundReason));
+            }
+            String reason = determineCorrectReasonForTemplate(refund);
         }
+
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                 new StringBuilder(notificationUrl).append("/notifications/doc-preview")
@@ -174,6 +192,18 @@ public class NotificationServiceImpl implements NotificationService {
             log.info("Notification service is unavailable. Please try again later.");
         }
         return null;
+    }
+
+    private String getRefundReference(DocPreviewRequest docPreviewRequest) {
+        String refundRef;
+        if (null == docPreviewRequest.getPersonalisation().getRefundReference()
+            || docPreviewRequest.getPersonalisation().getRefundReference().equalsIgnoreCase(STRING)
+            || docPreviewRequest.getPersonalisation().getRefundReference().isEmpty()) {
+            refundRef = NEW_REFUND_PLACEHOLDER;
+        } else {
+            refundRef = docPreviewRequest.getPersonalisation().getRefundReference();
+        }
+        return refundRef;
     }
 
     private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {

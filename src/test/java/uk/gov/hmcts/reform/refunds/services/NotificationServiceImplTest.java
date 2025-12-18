@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,8 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
+
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -110,7 +113,8 @@ class NotificationServiceImplTest {
         when(refundsRepository.findByReferenceOrThrow(eq("RF-1746-5507-4452-0488"))).thenReturn(refund);
         when(statusHistoryUtil.isAClonedRefund(refund)).thenReturn(false);
         when(statusHistoryUtil.getOriginalNoteForRejected(refund)).thenReturn(null);
-        when(refundsUtil.getTemplate(eq(refund), eq("RR001"))).thenReturn("template-123");
+        // Refund reason is null per logs, so match any string (including null)
+        when(refundsUtil.getTemplate(eq(refund), any())).thenReturn("template-123");
 
         NotificationTemplatePreviewResponse body = NotificationTemplatePreviewResponse
             .buildNotificationTemplatePreviewWith()
@@ -122,21 +126,84 @@ class NotificationServiceImplTest {
         ResponseEntity<NotificationTemplatePreviewResponse> okResponse = ResponseEntity.ok(body);
 
         when(restTemplateNotify.exchange(eq("http://notify.local/notifications/doc-preview"),
-            eq(HttpMethod.POST), any(HttpEntity.class), eq(NotificationTemplatePreviewResponse.class)))
+                                         eq(HttpMethod.POST), any(HttpEntity.class), eq(NotificationTemplatePreviewResponse.class)))
             .thenReturn(okResponse);
 
         NotificationTemplatePreviewResponse response = notificationService.previewNotification(request, headers);
         assertNotNull(response);
         assertEquals("template-123", response.getTemplateId());
 
-        // verify template was set on request before sending
-        assertEquals("template-123", request.getTemplateId());
+        // Capture the actual request sent to Notify and verify templateId set there
+        ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplateNotify).exchange(eq("http://notify.local/notifications/doc-preview"), eq(HttpMethod.POST),
+                                            entityCaptor.capture(), eq(NotificationTemplatePreviewResponse.class));
+        HttpEntity<?> entity = entityCaptor.getValue();
+        DocPreviewRequest sentRequest = (DocPreviewRequest) entity.getBody();
+        assertNotNull(sentRequest);
+        assertEquals("template-123", sentRequest.getTemplateId());
 
-        // capture headers sent to notify service
-        ArgumentCaptor<HttpEntity<?>> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        var sentHeaders = entity.getHeaders();
+        assertEquals("application/json", sentHeaders.getFirst("content-type"));
+        assertEquals("Bearer user-token", sentHeaders.getFirst("Authorization"));
+        assertEquals("service-token", sentHeaders.getFirst("ServiceAuthorization"));
+    }
+
+    @Test
+    void previewNotification_skipsTemplateDeterminationForNewRefundPlaceholder() {
+        // Headers must include lowercase `authorization` for getFormatedHeaders
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.put("authorization", Collections.singletonList("Bearer user-token"));
+        headers.put("content-type", Collections.singletonList("application/json"));
+
+        // Service sets ServiceAuthorization via authTokenGenerator.generate()
+        when(authTokenGenerator.generate()).thenReturn("service-token");
+
+        // Stub Notify response
+        NotificationTemplatePreviewResponse body = NotificationTemplatePreviewResponse
+            .buildNotificationTemplatePreviewWith()
+            .templateId(null)
+            .templateType("email")
+            .subject("subject")
+            .body("body")
+            .build();
+        ResponseEntity<NotificationTemplatePreviewResponse> okResponse = ResponseEntity.ok(body);
+
+        when(restTemplateNotify.exchange(
+            eq("http://notify.local/notifications/doc-preview"),
+            eq(HttpMethod.POST),
+            any(HttpEntity.class),
+            eq(NotificationTemplatePreviewResponse.class)
+        )).thenReturn(okResponse);
+
+        // Build request with NEW_REFUND_PLACEHOLDER and missing templateId
+        DocPreviewRequest request = DocPreviewRequest.docPreviewRequestWith()
+            .templateId(null)
+            .notificationType(uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType.EMAIL)
+            .recipientEmailAddress("abc@abc.com")
+            .personalisation(uk.gov.hmcts.reform.refunds.dtos.requests.Personalisation.personalisationRequestWith()
+                                 .refundReference("RF-****-****-****-****") // NEW_REFUND_PLACEHOLDER
+                                 .refundReason("RR001")
+                                 .build())
+            .build();
+
+        // Execute
+        NotificationTemplatePreviewResponse response = notificationService.previewNotification(request, headers);
+        assertNotNull(response);
+        assertNull(response.getTemplateId(), "TemplateId should remain null for new refund placeholder");
+
+        // Repository should not be called for NEW_REFUND_PLACEHOLDER
+        verify(refundsRepository, Mockito.never()).findByReferenceOrThrow(anyString());
+
+        // Capture the actual request sent to Notify and verify templateId stayed null
+        ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplateNotify).exchange(eq("http://notify.local/notifications/doc-preview"), eq(HttpMethod.POST),
             entityCaptor.capture(), eq(NotificationTemplatePreviewResponse.class));
         HttpEntity<?> entity = entityCaptor.getValue();
+        DocPreviewRequest sentRequest = (DocPreviewRequest) entity.getBody();
+        assertNotNull(sentRequest);
+        assertNull(sentRequest.getTemplateId(), "Service should not set templateId for new refund");
+
+        // Verify headers forwarded correctly
         var sentHeaders = entity.getHeaders();
         assertEquals("application/json", sentHeaders.getFirst("content-type"));
         assertEquals("Bearer user-token", sentHeaders.getFirst("Authorization"));
