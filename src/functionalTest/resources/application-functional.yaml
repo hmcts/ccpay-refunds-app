@@ -87,9 +87,6 @@ s2s:
     paybubble:
       name: ${S2S_SERVICE_NAME_PAYBUBBLE:ccpay_bubble}
       secret: ${S2S_SERVICE_SECRET_PAYBUBBLE}
-azure:
-  application-insights:
-    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:}
 generated:
   user:
     email:
