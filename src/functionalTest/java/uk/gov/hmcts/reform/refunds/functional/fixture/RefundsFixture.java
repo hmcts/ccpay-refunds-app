@@ -167,6 +167,39 @@ public final class RefundsFixture {
 
     }
 
+    public static PaymentRefundRequest refundRequest(final String refundReason,
+                                                     final String paymentReference, final String refundAmount,
+                                                     final String feeAmount, final String feeCode,
+                                                     final String feeVersion, final int feeId, String emailAddress) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason)
+            .isOverPayment(false)
+            .totalRefundAmount(new BigDecimal(refundAmount))
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .apportionAmount(new BigDecimal(feeAmount))
+                    .calculatedAmount(new BigDecimal(feeAmount))
+                    .code(feeCode)
+                    .id(feeId)
+                    .version(feeVersion)
+                    .updatedVolume(1)
+                    .refundAmount(new BigDecimal(refundAmount))
+                    .build())
+            )
+            .contactDetails(ContactDetails.contactDetailsWith()
+                                .addressLine("High Street 112")
+                                .country("UK")
+                                .county("Londonshire")
+                                .city("London")
+                                .postalCode("P1 1PO")
+                                .email(emailAddress)
+                                .notificationType("EMAIL")
+                                .build())
+            .build();
+
+    }
+
     public static PaymentRefundRequest refundRequestWithLetter(final String refundReason,
                                                      final String paymentReference, final String refundAmount,
                                                      final String feeAmount, final int paymentId) {
