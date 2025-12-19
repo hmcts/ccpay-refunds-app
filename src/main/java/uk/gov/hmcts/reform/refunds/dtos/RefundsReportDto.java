@@ -35,10 +35,7 @@ public class RefundsReportDto {
     @JsonProperty("amount")
     private BigDecimal amount;
 
-    @JsonProperty("refund_status")
-    private String refundStatus;
-
-    @JsonProperty("reference")
+    @JsonProperty("reference [RF Number]")
     private String refundReference;
 
     @JsonProperty("payment_reference")
@@ -47,12 +44,12 @@ public class RefundsReportDto {
     @JsonProperty("ccd_case_number")
     private String ccdCaseNumber;
 
-    @JsonProperty("Payment Date")
-    private Date paymentDate;
-
     @JsonProperty("service_type")
     private String serviceType;
 
-    @JsonProperty("notes")
+    @JsonProperty("refund_status")
+    private String refundStatus;
+
+    @JsonProperty("refund_status_reason")
     private String notes;
 }
