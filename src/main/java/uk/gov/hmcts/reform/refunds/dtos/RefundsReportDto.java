@@ -35,7 +35,7 @@ public class RefundsReportDto {
     @JsonProperty("amount")
     private BigDecimal amount;
 
-    @JsonProperty("reference [RF Number]")
+    @JsonProperty("RF_reference")
     private String refundReference;
 
     @JsonProperty("payment_reference")
