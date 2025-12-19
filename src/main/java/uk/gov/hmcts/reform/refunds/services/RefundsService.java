@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.services;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.refunds.dtos.RefundsReportDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
@@ -15,6 +16,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,4 +49,6 @@ public interface RefundsService {
     List<RefundLiberata> search(Optional<String> startDateTimeString, Optional<String>  endDateTimeString, String refundReference);
 
     RefundResponse initiateReissueRefund(String refundReference, MultiValueMap<String, String> headers, IdamUserIdResponse idamUserIdResponse);
+
+    List<RefundsReportDto> refundsReport(Date startDate, Date endDate, MultiValueMap<String, String> headers);
 }
