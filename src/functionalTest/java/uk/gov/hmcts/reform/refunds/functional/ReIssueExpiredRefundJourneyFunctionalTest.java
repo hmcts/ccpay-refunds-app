@@ -1661,7 +1661,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
         final String refundReference2 = performRefund(refundReason, paymentReference, refundAmount2, feeAmount, feeCode, feeVersion, emailAddress);
         refundReferences.add(refundReference2);
 
-        //TODO: verify PayIt cycle for 2nd new refund
+        // verify PayIt cycle for 2nd new refund
         Response responseReviewRefund2 = paymentTestService.patchReviewRefund(
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
