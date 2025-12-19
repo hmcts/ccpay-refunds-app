@@ -67,6 +67,7 @@ import uk.gov.hmcts.reform.refunds.services.PaymentService;
 import uk.gov.hmcts.reform.refunds.services.RefundsServiceImpl;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
+import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 import uk.gov.hmcts.reform.refunds.utils.Utility;
 import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
@@ -139,6 +140,9 @@ class RefundServiceImplTest {
 
     @MockBean
     private Specification<Refund> mockSpecification;
+
+    @Mock
+    private StatusHistoryUtil statusHistoryUtil;
 
     @MockBean
     private List<Refund> refund;
@@ -1530,32 +1534,4 @@ class RefundServiceImplTest {
         assertNotNull(response);
         verify(refundsRepository, atLeastOnce()).save(any(Refund.class));
     }
-
-
-    @Test
-    void testInitiateRefundProcess_createsAndSavesReissuedRefund() throws Exception {
-
-        IdamUserIdResponse idamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName(
-            "YY").name("XX YY").roles(Arrays.asList(
-            "payments-refund-approver",
-            "payments-refund",
-            "payments-refund-approver-AAA",
-            "payments-refund-AAA"
-        )).sub("ZZ").build();
-
-        Refund refund = getExpiredRefund();
-        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getRefundExpiredList()));
-        when(referenceUtil.getNext(anyString())).thenReturn("RF-1111-2222-3333-4444");
-
-        when(refundReasonRepository.findByCodeOrThrow(anyString())).thenReturn(RefundReason.refundReasonWith().name(
-            "RR001").build());
-
-        RefundResponse response = refundsService.initiateRefundProcess(refund, idamUserIdResponse);
-
-        assertNotNull(response);
-        assertNotNull(response.getRefundReference());
-        verify(refundsRepository, atLeastOnce()).save(any(Refund.class));
-        verify(refundsRepository, atLeastOnce()).findByPaymentReference(anyString());
-    }
-
 }

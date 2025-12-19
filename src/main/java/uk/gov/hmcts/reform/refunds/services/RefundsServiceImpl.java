@@ -69,6 +69,7 @@ import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
+import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
 import java.math.BigDecimal;
@@ -176,6 +177,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Autowired
     private StatusHistoryRepository statusHistoryRepository;
+
+    @Autowired
+    private StatusHistoryUtil statusHistoryUtil;
 
     @Autowired
     private ContextStartListener contextStartListener;
@@ -1098,7 +1102,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .statusHistories(Arrays.asList(
                 StatusHistory.statusHistoryWith()
                     .createdBy(idamUserIdResponse.getUid())
-                    .notes(getReissueLabel(expiredRefund.getPaymentReference()))
+                    .notes(statusHistoryUtil.getReissueLabel(expiredRefund))
                     .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
                     .status(REISSUED.getName()).build(),
                 StatusHistory.statusHistoryWith()
@@ -1117,35 +1121,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
 
-    private String getReissueLabel(String paymentReference) {
-        List<Refund> refunds = refundsRepository.findByPaymentReference(paymentReference)
-            .orElse(Collections.emptyList());
-        long expiredCount = refunds.stream()
-            .flatMap(r -> r.getStatusHistories().stream())
-            .filter(h -> RefundStatus.EXPIRED.getName().equals(h.getStatus()))
-            .count();
-
-        String suffix;
-        if (expiredCount == 1) {
-            suffix = "st";
-        } else if (expiredCount == 2) {
-            suffix = "nd";
-        } else if (expiredCount == 3) {
-            suffix = "rd";
-        } else {
-            suffix = "th";
-        }
-        String originalLabel = expiredCount + suffix;
-
-        Refund oldestClosedRefund = refunds.stream()
-            .filter(r -> RefundStatus.CLOSED.getName().equals(r.getRefundStatus().getName()))
-            .min((r1, r2) -> r1.getDateCreated().compareTo(r2.getDateCreated()))
-            .orElse(null);
-
-        String originalRefundReference = oldestClosedRefund != null ? oldestClosedRefund.getReference() : "";
-
-        return originalLabel +  " re-issue of original refund " + (originalRefundReference.isEmpty() ? "" :  originalRefundReference);
-    }
 
 }
 
