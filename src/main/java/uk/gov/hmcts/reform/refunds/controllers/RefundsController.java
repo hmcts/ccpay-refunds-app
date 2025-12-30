@@ -75,6 +75,7 @@ import java.util.Optional;
 import static org.springframework.http.ResponseEntity.ok;
 import static uk.gov.hmcts.reform.refunds.utils.DateUtil.atEndOfDay;
 import static uk.gov.hmcts.reform.refunds.utils.DateUtil.atStartOfDay;
+import static uk.gov.hmcts.reform.refunds.utils.DateUtil.toDdMmYyyy;
 
 @RestController
 @Validated
@@ -459,13 +460,17 @@ public class RefundsController {
                                                        @RequestHeader("Authorization") String authorization) {
 
         LOG.info("Received refunds report request");
+
+        String fromDateFormatted = toDdMmYyyy(fromDateStr);
+        String toDateFormatted = toDdMmYyyy(toDateStr);
+
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         sdf.setLenient(false);
         Date fromDate;
         Date toDate;
         try {
-            fromDate = sdf.parse(fromDateStr);
-            toDate = sdf.parse(toDateStr);
+            fromDate = sdf.parse(fromDateFormatted);
+            toDate = sdf.parse(toDateFormatted);
         } catch (ParseException e) {
             throw new RefundReportException("Invalid date format. Use dd/MM/yyyy.");
         }
