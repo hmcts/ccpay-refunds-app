@@ -461,7 +461,8 @@ public class RefundsController {
         LOG.info("Received refunds report request");
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         sdf.setLenient(false);
-        Date fromDate, toDate;
+        Date fromDate;
+        Date toDate;
         try {
             fromDate = sdf.parse(fromDateStr);
             toDate = sdf.parse(toDateStr);
