@@ -59,7 +59,8 @@ public interface RefundsRepository extends ListCrudRepository<Refund, Integer>, 
         + "INNER JOIN status_history sh ON r.id = sh.refunds_id AND r.refund_status = sh.status "
         + "WHERE (r.refund_status NOT IN ('Sent for approval', 'Update required') "
         + "OR (r.refund_status = 'Rejected' AND sh.notes != 'Rejected by Team Leader') ) "
-        + "AND r.date_created BETWEEN :fromDate AND :toDate", nativeQuery = true)
+        + "AND r.date_created BETWEEN :fromDate AND :toDate "
+        + "ORDER BY r.date_created ASC", nativeQuery = true)
     List<Tuple> findAllRefundsByDateCreatedBetween(
         @Param("fromDate") Date fromDate,
         @Param("toDate") Date toDate);

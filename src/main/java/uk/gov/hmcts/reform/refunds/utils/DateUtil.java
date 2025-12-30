@@ -4,6 +4,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.DateTimeParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -14,6 +16,7 @@ import java.util.Date;
 @Component
 public class DateUtil {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DateUtil.class);
 
     private static final DateTimeParser[] ISO_DATE_TIME_PARSERS = {
         DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").getParser(),
@@ -36,12 +39,14 @@ public class DateUtil {
     public static Date atStartOfDay(Date date) {
         LocalDateTime localDateTime = dateToLocalDateTime(date);
         LocalDateTime startOfDay = localDateTime == null ? null : localDateTime.with(LocalTime.MIN);
+        LOG.error("Start date {} ", date);
         return localDateTimeToDate(startOfDay);
     }
 
     public static Date atEndOfDay(Date date) {
         LocalDateTime localDateTime = dateToLocalDateTime(date);
         LocalDateTime endOfDay = localDateTime == null ? null : localDateTime.with(LocalTime.MAX);
+        LOG.error("End date {} ", date);
         return localDateTimeToDate(endOfDay);
     }
 

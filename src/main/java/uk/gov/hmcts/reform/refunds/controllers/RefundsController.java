@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +51,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReportException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.IacService;
@@ -64,6 +66,8 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -449,14 +453,31 @@ public class RefundsController {
         @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
     @GetMapping("/refund/refunds-report")
-    public RefundsReportResponse retrieveRefundsReport(@RequestParam("date_from") Date fromDate,
-                                                       @RequestParam("date_to") Date toDate,
+    public RefundsReportResponse retrieveRefundsReport(@RequestParam("date_from") String fromDateStr,
+                                                       @RequestParam("date_to") String toDateStr,
                                                        @RequestHeader(required = false) MultiValueMap<String, String> headers,
                                                        @RequestHeader("Authorization") String authorization) {
 
         LOG.info("Received refunds report request");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        sdf.setLenient(false);
+        Date fromDate, toDate;
+        try {
+            fromDate = sdf.parse(fromDateStr);
+            toDate = sdf.parse(toDateStr);
+        } catch (ParseException e) {
+            throw new RefundReportException("Invalid date format. Use dd/MM/yyyy.");
+        }
+
         List<RefundsReportDto> refundsReportDto =  refundsService.refundsReport(atStartOfDay(fromDate), atEndOfDay(toDate), headers);
         return new RefundsReportResponse(refundsReportDto);
+    }
+
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(RefundReportException.class)
+    public String return400(RefundReportException ex) {
+        return ex.getMessage();
     }
 
 }
