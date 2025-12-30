@@ -56,7 +56,9 @@ public class DateUtil {
 
 
     public static String toDdMmYyyy(String dateStr) {
-        if (dateStr == null) return null;
+        if (dateStr == null) {
+            return null;
+        }
         // Handle YYYY-MM-DD
         if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
             String[] parts = dateStr.split("-");
