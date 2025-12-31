@@ -90,8 +90,6 @@ public class RefundReviewServiceImpl extends StateUtil implements RefundReviewSe
             refundsUtil.logPaymentDto(paymentData);
             refundsUtil.validateRefundRequestFees(refundForGivenReference, paymentData);
             updateRefundStatus(refundForGivenReference, refundEvent);
-            notificationService.updateNotification(headers, refundForGivenReference,
-                                                   refundReviewRequest.getTemplatePreview());
             refundsRepository.save(refundForGivenReference);
             statusMessage = "Refund approved";
             LOG.info("APPROVED Status saved in Refunds DB");
