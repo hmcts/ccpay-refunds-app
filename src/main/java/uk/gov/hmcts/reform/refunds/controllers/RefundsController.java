@@ -479,11 +479,4 @@ public class RefundsController {
         return new RefundsReportResponse(refundsReportDto);
     }
 
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(RefundReportException.class)
-    public String return400(RefundReportException ex) {
-        return ex.getMessage();
-    }
-
 }
