@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100012
+      author: osmith
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              UPDATE refund_status
+              SET description = CASE name
+                WHEN 'Reissued' THEN 'Refund request reissued'
+                WHEN 'Closed' THEN 'Refund request closed'
+                WHEN 'Expired' THEN 'Refund request expired'
+              END
+              WHERE name IN ('Reissued', 'Closed', 'Expired');
