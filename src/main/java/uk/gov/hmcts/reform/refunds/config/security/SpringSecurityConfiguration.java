@@ -134,6 +134,8 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/payment/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/refund/notifications/doc-preview")
+                    .hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()
             )
