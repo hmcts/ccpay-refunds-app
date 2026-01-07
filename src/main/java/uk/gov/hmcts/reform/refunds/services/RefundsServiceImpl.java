@@ -40,12 +40,10 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.UserIdentityDataDto;
-import uk.gov.hmcts.reform.refunds.exceptions.ActionNotAllowedException;
 import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReissueExpiredRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
@@ -69,12 +67,9 @@ import uk.gov.hmcts.reform.refunds.utils.DateUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
-import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 import uk.gov.hmcts.reform.refunds.validator.RefundValidator;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,7 +78,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -91,8 +85,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.APPROVED;
-import static uk.gov.hmcts.reform.refunds.model.RefundStatus.REISSUED;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL;
 import static uk.gov.hmcts.reform.refunds.model.RefundStatus.UPDATEREQUIRED;
 
@@ -117,19 +109,11 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     private static final String POSTAL_ORDER = "postal order";
 
-    private static final String CHEQUE = "cheque";
-
     private static final String BULK_SCAN = "bulk scan";
 
     private static final String REFUND_WHEN_CONTACTED = "RefundWhenContacted";
 
     private static final String SEND_REFUND = "SendRefund";
-
-    private static final String REFUND_CLOSED_BY_CASE_WORKER = "Refund closed by case worker";
-
-    private static final String SYSTEM_USER = "System user";
-
-    private static final String REFUND_APPROVED_BY_SYSTEM = "Refund approved by system";
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -179,9 +163,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private StatusHistoryRepository statusHistoryRepository;
 
     @Autowired
-    private StatusHistoryUtil statusHistoryUtil;
-
-    @Autowired
     private ContextStartListener contextStartListener;
 
     @Autowired
@@ -195,7 +176,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
 
     private static final String REFUND_INITIATED_AND_SENT_TO_TEAM_LEADER = "Refund initiated and sent to team leader";
-
 
     private static final String IDAM_USER_NOT_FOUND_MSG = "User not found";
 
@@ -223,13 +203,7 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         String instructionType = null;
         if (refundRequest.getPaymentMethod() != null) {
-
-            if (BULK_SCAN.equals(refundRequest.getPaymentChannel()) && (CASH.equals(refundRequest.getPaymentMethod())
-                || POSTAL_ORDER.equals(refundRequest.getPaymentMethod()) || CHEQUE.equals(refundRequest.getPaymentMethod()))) {
-                instructionType = REFUND_WHEN_CONTACTED;
-            } else {
-                instructionType = SEND_REFUND;
-            }
+            instructionType = SEND_REFUND;
         }
 
         Refund refund = initiateRefundEntity(refundRequest, idamUserIdResponse.getUid(), instructionType);
@@ -725,14 +699,19 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     }
 
     private BigDecimal getTotalRefundedAmountIssueRefund(String paymentReference) {
-        return refundsRepository.findByPaymentReference(paymentReference)
-            .orElse(Collections.emptyList())
-            .stream()
-            .filter(refund -> !refund.getRefundStatus().getName().equals(RefundStatus.CLOSED.getName())
-                && !refund.getRefundStatus().getName().equals(RefundStatus.REJECTED.getName())
-            ).map(Refund::getAmount)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Optional<List<Refund>> refundsList = refundsRepository.findByPaymentReference(paymentReference);
+        BigDecimal totalRefundedAmount = BigDecimal.ZERO;
+
+        if (refundsList.isPresent()) {
+            List<Refund> refundsListStatus =
+                refundsList.get().stream().filter(refund -> !refund.getRefundStatus().equals(
+                        RefundStatus.REJECTED))
+                    .collect(Collectors.toList());
+            for (Refund ref : refundsListStatus) {
+                totalRefundedAmount = ref.getAmount().add(totalRefundedAmount);
+            }
+        }
+        return totalRefundedAmount;
     }
 
     @SuppressWarnings({"PMD"})
@@ -1025,102 +1004,4 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     public void deleteRefundFee(List<Integer> refundFeesId) {
         refundFeesRepository.deleteByIdIn(refundFeesId);
     }
-
-
-    @Override
-    public RefundResponse initiateReissueRefund(String refundReference, MultiValueMap<String, String> headers,
-                                                IdamUserIdResponse idamUserIdResponse) {
-        try {
-            Refund expiredRefund = refundsRepository.findByReferenceOrThrow(refundReference);
-            refundServiceRoleUtil.validateRefundRoleWithServiceName(idamUserIdResponse.getRoles(), expiredRefund.getServiceType());
-            validateCurrentRefund(expiredRefund);
-            expiredRefund.setRefundStatus(RefundStatus.CLOSED);
-            expiredRefund.setUpdatedBy(idamUserIdResponse.getUid());
-            List<StatusHistory> statusHistories = new ArrayList<>(expiredRefund.getStatusHistories());
-            statusHistories.add(StatusHistory.statusHistoryWith()
-                                    .createdBy(idamUserIdResponse.getUid())
-                                    .status(RefundStatus.CLOSED.getName())
-                                    .notes(REFUND_CLOSED_BY_CASE_WORKER)
-                                    .build());
-            expiredRefund.setStatusHistories(statusHistories);
-            LOG.info("Refund closed for reissue with reference: {}", expiredRefund.getReference());
-            refundsRepository.save(expiredRefund);
-            return initiateRefundProcess(expiredRefund, idamUserIdResponse);
-
-        } catch (RefundNotFoundException | ActionNotAllowedException exception) {
-            throw exception;
-        } catch (CheckDigitException exception) {
-            throw new ReissueExpiredRefundException(exception.getMessage());
-        } catch (RuntimeException runtimeException) {
-            throw getReissueExpiredRefundException();
-        }
-    }
-
-    private static ReissueExpiredRefundException getReissueExpiredRefundException() {
-        return new ReissueExpiredRefundException(
-            "There was a problem processing the supplied refund reference.");
-    }
-
-    private void validateCurrentRefund(Refund expiredRefund) {
-        if (!expiredRefund.getRefundStatus().getName().equals(RefundStatus.EXPIRED.getName())) {
-            throw getReissueExpiredRefundException();
-        }
-    }
-
-    public RefundResponse initiateRefundProcess(Refund expiredRefund, IdamUserIdResponse idamUserIdResponse)
-        throws CheckDigitException {
-
-        List<RefundFees> copiedFees = expiredRefund.getRefundFees().stream()
-            .map(fee -> {
-                RefundFees newFee = new RefundFees();
-                newFee.setFeeId(fee.getFeeId());
-                newFee.setRefundAmount(fee.getRefundAmount());
-                newFee.setCode(fee.getCode());
-                newFee.setVersion(fee.getVersion());
-                newFee.setVolume(fee.getVolume());
-                return newFee; })
-            .collect(Collectors.toList());
-
-        Refund refund = Refund.refundsWith()
-            .amount(expiredRefund.getAmount())
-            .ccdCaseNumber(expiredRefund.getCcdCaseNumber())
-            .paymentReference(expiredRefund.getPaymentReference())
-            .reason(expiredRefund.getReason())
-            .refundStatus(APPROVED)
-            .refundInstructionType(expiredRefund.getRefundInstructionType())
-            .notificationSentFlag(expiredRefund.getNotificationSentFlag())
-            .contactDetails(expiredRefund.getContactDetails())
-            .reference(referenceUtil.getNext("RF"))
-            .feeIds(copiedFees.stream()
-                        .map(fee -> String.valueOf(fee.getFeeId()))
-                        .collect(Collectors.joining(",")))
-            .serviceType(expiredRefund.getServiceType())
-            .createdBy(idamUserIdResponse.getUid())
-            .updatedBy(SYSTEM_USER)
-            .contactDetails(expiredRefund.getContactDetails())
-            .refundFees(copiedFees)
-            .statusHistories(Arrays.asList(
-                StatusHistory.statusHistoryWith()
-                    .createdBy(idamUserIdResponse.getUid())
-                    .notes(statusHistoryUtil.getReissueLabel(expiredRefund))
-                    .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-                    .status(REISSUED.getName()).build(),
-                StatusHistory.statusHistoryWith()
-                    .createdBy(idamUserIdResponse.getUid())
-                    .notes(REFUND_APPROVED_BY_SYSTEM)
-                    .status(APPROVED.getName())
-                    .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-                    .build())
-            ).build();
-
-        refundsRepository.save(refund);
-        LOG.info("Reissued Refund saved");
-        return RefundResponse.buildRefundResponseWith()
-            .refundReference(refund.getReference())
-            .build();
-    }
-
-
-
 }
-

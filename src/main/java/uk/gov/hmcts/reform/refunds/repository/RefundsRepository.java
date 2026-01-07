@@ -49,4 +49,5 @@ public interface RefundsRepository extends ListCrudRepository<Refund, Integer>, 
         + "where rf.paymentReference = ?1  AND (rf.refundStatus.name = 'Approved' or rf.refundStatus.name = 'Accepted')"
         + "AND rf.reference NOT IN(?2)")
     List<Refund> findAllByPaymentReference(String paymentReference,String reference);
+
 }

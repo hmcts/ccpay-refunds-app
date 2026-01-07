@@ -14,7 +14,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class Utility {
@@ -106,54 +105,6 @@ public class Utility {
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
             .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
             .build();
-
-
-    public static final Supplier<List<Refund>> refundListSupplierForApprovedStatusAndClosed = () -> Arrays.asList(
-        Refund.refundsWith()
-            .id(1)
-            .amount(BigDecimal.valueOf(100))
-            .refundFees(Collections.singletonList(
-                RefundFees.refundFeesWith()
-                    .feeId(1)
-                    .code("RR001")
-                    .version("1.0")
-                    .volume(1)
-                    .refundAmount(new BigDecimal(100))
-                    .build()))
-            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
-            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
-            .reference("RF-1111-2234-1077-1123")
-            .refundStatus(RefundStatus.APPROVED)
-            .reason("RR001")
-            .paymentReference("RC-1111-2234-1077-1123")
-            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
-            .build(),
-
-        Refund.refundsWith()
-            .id(2)
-            .amount(BigDecimal.valueOf(200))
-            .refundFees(Collections.singletonList(
-                RefundFees.refundFeesWith()
-                    .feeId(2)
-                    .code("RR002")
-                    .version("1.0")
-                    .volume(1)
-                    .refundAmount(new BigDecimal(200))
-                    .build()))
-            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
-            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
-            .reference("RF-2222-3344-5566-7788")
-            .refundStatus(RefundStatus.CLOSED)
-            .reason("RR002")
-            .paymentReference("RC-2222-3344-5566-7788")
-            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
-            .build()
-    );
-
     public static final Supplier<Refund> refundListSupplierForAcceptedStatus = () -> Refund.refundsWith()
             .id(1)
             .amount(BigDecimal.valueOf(900))
@@ -175,55 +126,6 @@ public class Utility {
             .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
             .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
             .build();
-
-
-    public static final Supplier<List<Refund>> refundListSupplierForAcceptedStatusAndClosed = () -> Arrays.asList(
-        Refund.refundsWith()
-            .id(1)
-            .amount(BigDecimal.valueOf(900))
-            .refundFees(Collections.singletonList(
-                RefundFees.refundFeesWith()
-                    .feeId(1)
-                    .code("RR001")
-                    .version("1.0")
-                    .volume(1)
-                    .refundAmount(BigDecimal.valueOf(900))
-                    .build()))
-            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
-            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
-            .reference("RF-1111-2234-1077-1123")
-            .refundStatus(RefundStatus.ACCEPTED)
-            .reason("RR001")
-            .paymentReference("RC-1111-2234-1077-1123")
-            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
-            .build(),
-
-        Refund.refundsWith()
-            .id(2)
-            .amount(BigDecimal.valueOf(500))
-            .refundFees(Collections.singletonList(
-                RefundFees.refundFeesWith()
-                    .feeId(2)
-                    .code("RR002")
-                    .version("1.0")
-                    .volume(1)
-                    .refundAmount(BigDecimal.valueOf(500))
-                    .build()))
-            .ccdCaseNumber(GET_REFUND_LIST_CCD_CASE_NUMBER)
-            .createdBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
-            .reference("RF-2222-3344-5566-7788")
-            .refundStatus(RefundStatus.CLOSED)
-            .reason("RR002")
-            .paymentReference("RC-2222-3344-5566-7788")
-            .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-            .dateUpdated(Timestamp.valueOf(LocalDateTime.now()))
-            .updatedBy(GET_REFUND_LIST_CCD_CASE_USER_ID3)
-            .build()
-    );
-
-
     public static final Supplier<Refund> refundListSupplierForSubmittedStatus = () -> Refund.refundsWith()
             .id(2)
             .amount(BigDecimal.valueOf(200))
@@ -311,10 +213,4 @@ public class Utility {
         IdamUserIdResponse.idamUserIdResponseWith().uid("1").givenName("XX").familyName("YY").name("XX YY")
             .roles(Arrays.asList("payments")).sub("ZZ")
             .build();
-
-    public static final Supplier<StatusHistory> STATUS_HISTORY_SUPPLIER_WITH_EXPIRED = () -> StatusHistory.statusHistoryWith()
-        .id(1)
-        .status(RefundStatus.EXPIRED.getName())
-        .dateCreated(Timestamp.valueOf(LocalDateTime.now()))
-        .build();
 }

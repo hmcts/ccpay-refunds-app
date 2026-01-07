@@ -109,7 +109,6 @@ notification:
   email-to-reply: ${EMAIL_TO_REPLY:}
   service-mailbox: ${SERVICE_MAIL_BOX:}
   service-url: ${SERVICE_URL:http://service}
-  key: ${NOTIFY_API_KEY}
 
 logging:
   level:
@@ -120,7 +119,3 @@ logging:
 refund:
   search:
     days: 7
-
-bulkscan:
-  api:
-    url: ${BULKSCAN_API_URL}

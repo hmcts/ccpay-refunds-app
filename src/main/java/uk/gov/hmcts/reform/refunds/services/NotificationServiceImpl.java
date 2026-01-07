@@ -18,12 +18,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationEmailRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundNotificationLetterRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.TemplatePreview;
 import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
-import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationTemplatePreviewResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
@@ -31,9 +29,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendReq
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
-import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
-import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,25 +61,15 @@ public class NotificationServiceImpl implements NotificationService {
     @Value("${notification.letter-path}")
     private String letterUrlPath;
 
-    private static final String STRING = "string";
-
     public static final String CONTENT_TYPE = "content-type";
 
     private static final String NOTIFICATION_NOT_SENT = "Notification not sent";
-
-    private static final String NEW_REFUND_PLACEHOLDER = "RF-****-****-****-****";
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
     @Autowired
     private PaymentService paymentService;
-
-    @Autowired
-    private StatusHistoryUtil statusHistoryUtil;
-
-    @Autowired
-    private RefundsRepository refundsRepository;
 
     private static Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
@@ -123,87 +109,9 @@ public class NotificationServiceImpl implements NotificationService {
             log.info("Notification service is unavailable. Please try again later.");
         }
         return new ResponseEntity<>("Notification service is unavailable",HttpStatus.SERVICE_UNAVAILABLE);
+
     }
 
-    @Override
-    public NotificationTemplatePreviewResponse previewNotification(
-        DocPreviewRequest docPreviewRequest, MultiValueMap<String, String> headers) {
-        String refundRef = getRefundReference(docPreviewRequest);
-        log.info("Refund reference in previewNotification {}", refundRef);
-
-        // Set Contact details in refund based on values in docPreviewRequest
-        ContactDetails contactDetails = null;
-        if (EMAIL.name().equals(docPreviewRequest.getNotificationType().name())) {
-            contactDetails = ContactDetails.contactDetailsWith()
-                .email(docPreviewRequest.getRecipientEmailAddress())
-                .notificationType(EMAIL.name())
-                .build();
-        } else {
-            contactDetails = ContactDetails.contactDetailsWith()
-                .addressLine(docPreviewRequest.getRecipientPostalAddress().getAddressLine())
-                .city(docPreviewRequest.getRecipientPostalAddress().getCity())
-                .country(docPreviewRequest.getRecipientPostalAddress().getCountry())
-                .county(docPreviewRequest.getRecipientPostalAddress().getCounty())
-                .postalCode(docPreviewRequest.getRecipientPostalAddress().getPostalCode())
-                .notificationType(LETTER.name())
-                .build();
-        }
-
-        // Check if this is a new refund.
-        if (NEW_REFUND_PLACEHOLDER.equals(refundRef)) {
-            log.info("Preview notification for new refund - skipping template determination");
-            // For new refunds, we do not determine the template as there is no refund record yet
-
-        } else {
-            log.info("Preview notification for existing refund - determining template based on refund reason");
-            Refund refund = refundsRepository.findByReferenceOrThrow(docPreviewRequest.getPersonalisation().getRefundReference());
-            refund.setContactDetails(contactDetails);
-            String refundReason = determineCorrectReasonForTemplate(refund);
-            log.info("Refund reason in previewNotification {}", refundReason);
-            if (docPreviewRequest.getTemplateId() == null || docPreviewRequest.getTemplateId().isEmpty()) {
-                docPreviewRequest.setTemplateId(refundsUtil.getTemplate(refund, refundReason));
-            }
-        }
-
-        try {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
-                new StringBuilder(notificationUrl).append("/notifications/doc-preview")
-                    .toString());
-            log.info("Notification URL in Refunds app for doc-preview {}", builder.toUriString());
-            ResponseEntity<NotificationTemplatePreviewResponse> response = restTemplateNotify.exchange(
-                builder.toUriString(),
-                HttpMethod.POST,
-                new HttpEntity<>(docPreviewRequest, getFormatedHeaders(headers)),
-                NotificationTemplatePreviewResponse.class
-            );
-            NotificationTemplatePreviewResponse preview = response.getBody();
-            if (preview != null) {
-                log.info("Notification Template Preview Response: templateId={}, templateType={}, subject={}, bodyLength={}",
-                    preview.getTemplateId(), preview.getTemplateType(), preview.getSubject(),
-                    preview.getBody() != null ? preview.getBody().length() : 0);
-            } else {
-                log.info("Notification Template Preview Response: null body");
-            }
-            return preview;
-        } catch (HttpClientErrorException exception) {
-            handleHttpClientErrorException(exception);
-        } catch (HttpServerErrorException exception) {
-            log.info("Notification service is unavailable. Please try again later.");
-        }
-        return null;
-    }
-
-    private String getRefundReference(DocPreviewRequest docPreviewRequest) {
-        String refundRef;
-        if (null == docPreviewRequest.getPersonalisation().getRefundReference()
-            || docPreviewRequest.getPersonalisation().getRefundReference().equalsIgnoreCase(STRING)
-            || docPreviewRequest.getPersonalisation().getRefundReference().isEmpty()) {
-            refundRef = NEW_REFUND_PLACEHOLDER;
-        } else {
-            refundRef = docPreviewRequest.getPersonalisation().getRefundReference();
-        }
-        return refundRef;
-    }
 
     private MultiValueMap<String, String> getFormatedHeaders(MultiValueMap<String, String> headers) {
         List<String> authtoken = headers.get("authorization");
@@ -358,24 +266,6 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
         return customerReference;
-    }
-
-    private String determineCorrectReasonForTemplate(Refund refund) {
-        // Get default refund and reason
-        String reason = refund.getReason();
-        final boolean isAClonedRefund = statusHistoryUtil.isAClonedRefund(refund);
-
-        // Get the original refund reference, it could the current one or the one from which it was cloned.
-        final String originalRefundReference = statusHistoryUtil.getOriginalRefundReference(refund);
-        final String originalNoteForRejected = statusHistoryUtil.getOriginalNoteForRejected(refund);
-        if (isAClonedRefund) {
-            Refund refundOriginal = refundsRepository.findByReferenceOrThrow(originalRefundReference);
-            reason = statusHistoryUtil.getOriginalNoteForRejected(refundOriginal);
-        } else if (originalNoteForRejected != null
-            && RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON.equalsIgnoreCase(originalNoteForRejected)) {
-            reason = originalNoteForRejected;
-        }
-        return reason;
     }
 
 }

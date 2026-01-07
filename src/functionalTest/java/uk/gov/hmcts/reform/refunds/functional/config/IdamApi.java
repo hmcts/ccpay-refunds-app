@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import uk.gov.hmcts.reform.idam.client.models.TokenExchangeResponse;
 import uk.gov.hmcts.reform.idam.client.models.test.CreateUserRequest;
-import uk.gov.hmcts.reform.refunds.functional.response.idam.IdamGetUserDetailsResponse;
 
 public interface IdamApi {
 
@@ -31,10 +30,6 @@ public interface IdamApi {
                                        @Param("client_id") String clientId,
                                        @Param("client_secret") String clientSecret,
                                        @Param("redirect_uri") String redirectUri);
-
-    @RequestLine("GET /details")
-    @Headers({"Content-Type: application/json", "Authorization: {accessToken}"})
-    IdamGetUserDetailsResponse getDetails(@Param("accessToken") String accessToken);
 
 }
 

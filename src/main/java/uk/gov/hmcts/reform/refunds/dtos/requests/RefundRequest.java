@@ -71,5 +71,4 @@ public class RefundRequest {
 
     private String paymentMethod;
     private String paymentChannel;
-    private String reference;
 }
