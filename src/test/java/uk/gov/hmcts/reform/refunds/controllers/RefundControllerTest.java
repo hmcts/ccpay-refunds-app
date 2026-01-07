@@ -443,7 +443,7 @@ class RefundControllerTest {
     @Qualifier("restTemplateNotify")
     private RestTemplate restTemplateNotify;
 
-    @Mock
+    @MockBean
     private NotificationServiceImpl notificationService;
 
     @MockBean
@@ -724,7 +724,7 @@ class RefundControllerTest {
                                                   .header("ServiceAuthorization", "Services")
                                                   .queryParam("status", "Sent for approval")
                                                   .queryParam("ccdCaseNumber", "")
-                                                  .queryParam("excludeCurrentUser", "false")
+                                                  .queryParam("excludeCurrentUser", "null")
                                                   .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andReturn();
 
@@ -736,14 +736,11 @@ class RefundControllerTest {
 
         assertNotNull(refundListDtoResponse);
         assertEquals(1, refundListDtoResponse.getRefundList().size());
+        assertEquals("mock-Forename mock-Surname", refundListDtoResponse.getRefundList().get(0).getUserFullName());
         assertEquals(
             uk.gov.hmcts.reform.refunds.model.RefundStatus.SENTFORAPPROVAL,
             refundListDtoResponse.getRefundList().get(0).getRefundStatus()
         );
-
-        assertTrue(refundListDtoResponse.getRefundList().stream()
-                       .anyMatch(refundListDto -> refundListDto.getUserFullName().equalsIgnoreCase(
-                           "mock-Forename mock-Surname")));
     }
 
     @Test
@@ -1777,10 +1774,11 @@ class RefundControllerTest {
         assertEquals(1, rejectionReasonList.size());
     }
 
-    @Test
-    void updateRefundStatusAccepted() throws Exception {
 
-        refund.setRefundStatus(RefundStatus.APPROVED);
+    @Test
+    void updateRefundStatusExpired() throws Exception {
+
+        refund.setRefundStatus(RefundStatus.EXPIRED);
         when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
 
         IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
@@ -1790,11 +1788,11 @@ class RefundControllerTest {
                                        eq(IdamUserIdResponse.class)
         )).thenReturn(responseEntity);
         RefundStatusUpdateRequest refundStatusUpdateRequest = RefundStatusUpdateRequest.RefundRequestWith().status(
-            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.EXPIRED).build();
         MvcResult result = mockMvc.perform(patch(
-            "/refund/{reference}",
-            "RF-1234-1234-1234-1234"
-        )
+                "/refund/{reference}",
+                "RF-1234-1234-1234-1234"
+            )
                                                .content(asJsonString(refundStatusUpdateRequest))
                                                .header("Authorization", "user")
                                                .header("ServiceAuthorization", "Services")
@@ -1837,6 +1835,67 @@ class RefundControllerTest {
 
         assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
     }
+
+    @Test
+    void updateRefundStatusRejectedWithReasonRefundWhenContacted() throws Exception {
+
+        refund.setRefundStatus(RefundStatus.APPROVED);
+        refund.setContactDetails(ContactDetails.contactDetailsWith()
+                                   .email("abc@abc.com")
+                                   .notificationType("EMAIL")
+                                   .build());
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+        when(restTemplateNotify.exchange(anyString(),
+                                         Mockito.any(HttpMethod.class),
+                                         Mockito.any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Ok", HttpStatus.OK));
+
+        when(refundsRepository.save(any(Refund.class))).thenReturn(refund);
+
+        IdamUserIdResponse mockIdamUserIdResponse = getIdamResponse();
+
+        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+                                       eq(IdamUserIdResponse.class)
+        )).thenReturn(responseEntity);
+
+        when(restTemplateIdam.exchange(anyString(),
+                                       Mockito.any(HttpMethod.class),
+                                       Mockito.any(HttpEntity.class), eq(IdamTokenResponse.class)))
+            .thenReturn(new ResponseEntity<>(idamTokenResponse, HttpStatus.OK));
+
+        when(restTemplateNotify.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(
+            NotificationsDtoResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getNotificationDtoResponse())));
+
+        when(restTemplatePayment.exchange(anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), eq(
+            PaymentGroupResponse.class))).thenReturn(ResponseEntity.of(
+            Optional.of(getPaymentGroupDto())
+
+        ));
+
+        RefundStatusUpdateRequest refundStatusUpdateRequest = new RefundStatusUpdateRequest(
+            RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON,
+            uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED
+        );
+
+        MvcResult result = mockMvc.perform(patch(
+                "/refund/{reference}",
+                "RF-1234-1234-1234-1234"
+            )
+               .content(asJsonString(refundStatusUpdateRequest))
+               .header("Authorization", "user")
+               .header("ServiceAuthorization", "Services")
+               .contentType(MediaType.APPLICATION_JSON)
+               .accept(MediaType.APPLICATION_JSON))
+               .andExpect(status().isNoContent())
+               .andReturn();
+
+        assertEquals("Refund status updated successfully", result.getResponse().getContentAsString());
+        assertEquals(RefundStatus.APPROVED, refund.getRefundStatus());
+        assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
+    }
+
 
     @Test
     void updateRefundStatusRejectedWithOutReason() throws Exception {
@@ -2479,5 +2538,77 @@ class RefundControllerTest {
             .endDate(toDate)
             .refundReference("RF-1111-2234-1077-1123")
             .build();
+    }
+
+    @Test
+    void previewNotification_returnsTemplatePreviewResponse() throws Exception {
+        // Arrange: build a DocPreviewRequest for EMAIL
+        var docPreviewRequest = uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest.docPreviewRequestWith()
+            .paymentReference("RC-1234-5678-9012-3456")
+            .paymentMethod("card")
+            .paymentChannel("online")
+            .serviceName("cmc")
+            .recipientEmailAddress("user@example.com")
+            .notificationType(NotificationType.EMAIL)
+            .personalisation(uk.gov.hmcts.reform.refunds.dtos.requests.Personalisation.personalisationRequestWith()
+                .ccdCaseNumber("1111222233334444")
+                .refundReference("RF-9999-8888-7777-6666")
+                .customerReference("RC-1234-5678-9012-3456")
+                .build())
+            .build();
+
+        var expectedResponse = uk.gov.hmcts.reform.refunds.dtos.responses.NotificationTemplatePreviewResponse
+            .buildNotificationTemplatePreviewWith()
+            .templateId("template-123")
+            .templateType("email")
+            .subject("HMCTS refund request approved")
+            .html("<p>Dear Test User</p>")
+            .body("Dear Test User")
+            .recipientContact(new uk.gov.hmcts.reform.refunds.dtos.responses.RecipientContact("user@example.com", null))
+            .build();
+
+        when(notificationService.previewNotification(any(uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest.class),
+                                                      org.mockito.ArgumentMatchers.<MultiValueMap<String, String>>any()))
+            .thenReturn(expectedResponse);
+
+        // Act + Assert
+        mockMvc.perform(post("/refund/notifications/doc-preview")
+                .header("Authorization", "auth-token")
+                .header("ServiceAuthorization", "service-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(docPreviewRequest)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.template_id").value("template-123"))
+            .andExpect(jsonPath("$.template_type").value("email"))
+            .andExpect(jsonPath("$.subject").value("HMCTS refund request approved"))
+            .andExpect(jsonPath("$.body").value("Dear Test User"));
+
+        verify(notificationService, times(1))
+            .previewNotification(any(uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest.class),
+                                 org.mockito.ArgumentMatchers.<MultiValueMap<String, String>>any());
+    }
+
+    @Test
+    void previewNotification_missingRequiredField_returnsBadRequest() throws Exception {
+        // Missing paymentMethod should trigger validation error
+        var invalidRequest = uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest.docPreviewRequestWith()
+            .paymentReference("RC-1234-5678-9012-3456")
+            .paymentChannel("online")
+            .serviceName("cmc")
+            .recipientEmailAddress("user@example.com")
+            .notificationType(NotificationType.EMAIL)
+            .personalisation(uk.gov.hmcts.reform.refunds.dtos.requests.Personalisation.personalisationRequestWith()
+                .ccdCaseNumber("1111222233334444")
+                .refundReference("RF-9999-8888-7777-6666")
+                .customerReference("RC-1234-5678-9012-3456")
+                .build())
+            .build();
+
+        mockMvc.perform(post("/refund/notifications/doc-preview")
+                .header("Authorization", "auth-token")
+                .header("ServiceAuthorization", "service-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(invalidRequest)))
+            .andExpect(status().isBadRequest());
     }
 }
