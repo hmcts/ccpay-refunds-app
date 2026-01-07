@@ -30,10 +30,6 @@ public class RefundStatus {
         "Refund request sent to liberata"
     );
     public static final RefundStatus CANCELLED = new RefundStatus("Cancelled", "Refund request cancelled");
-    public static final RefundStatus EXPIRED = new RefundStatus("Expired", "Refund request expired");
-    public static final RefundStatus CLOSED = new RefundStatus("Closed", "Refund request closed");
-    public static final RefundStatus REISSUED = new RefundStatus("Reissued", "Refund request reissued");
-
 
     @Id
     @Column(name = "name")
@@ -56,12 +52,6 @@ public class RefundStatus {
                 return REJECTED;
             case "Cancelled":
                 return CANCELLED;
-            case "Expired":
-                return EXPIRED;
-            case "Closed":
-                return CLOSED;
-            case "Reissued":
-                return REISSUED;
             default:
                 throw new InvalidRefundRequestException("Invalid Refund status");
         }

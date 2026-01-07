@@ -29,12 +29,6 @@ public class TestConfigProperties {
     @Value("${idam.api.url}")
     public String idamApiUrl;
 
-    @Value("${bulkscan.api.url}")
-    public String bulkscanApiUrl;
-
-    @Value("${ccd.api.url}")
-    public String ccdApiUrl;
-
     @Value("${s2s.url}")
     private String s2sBaseUrl;
 
@@ -70,18 +64,4 @@ public class TestConfigProperties {
 
     @Value("${idam.paybubble.client.secret}")
     public String idamPayBubbleClientSecret;
-
-    @Value("${idam.paybubble.redirect.uri}")
-    public String idamPayBubbleClientRedirectUri;
-
-    @Value("${notification.api.key}")
-    public String notificationApiKey;
-
-    @Value("${probate.caseworker.username}")
-    public String probateCaseworkerUsername;
-
-    @Value("${probate.caseworker.password}")
-    public String probateCaseworkerPassword;
-
-
 }

@@ -45,6 +45,4 @@ public interface RefundsService {
     List<Refund> getRefundsForPaymentReference(String paymentReference);
 
     List<RefundLiberata> search(Optional<String> startDateTimeString, Optional<String>  endDateTimeString, String refundReference);
-
-    RefundResponse initiateReissueRefund(String refundReference, MultiValueMap<String, String> headers, IdamUserIdResponse idamUserIdResponse);
 }

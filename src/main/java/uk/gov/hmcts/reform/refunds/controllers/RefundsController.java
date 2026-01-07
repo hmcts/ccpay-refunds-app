@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -16,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,14 +29,12 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetailsResponse;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
-import uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResendNotificationRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.ResubmitRefundRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
-import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationTemplatePreviewResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberata;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundLiberataResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.RefundListDtoResponse;
@@ -52,7 +48,6 @@ import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.IacService;
 import uk.gov.hmcts.reform.refunds.services.IdamService;
-import uk.gov.hmcts.reform.refunds.services.NotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundNotificationService;
 import uk.gov.hmcts.reform.refunds.services.RefundReasonsService;
 import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
@@ -68,7 +63,6 @@ import java.util.Optional;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
-@Validated
 @Tag(name = "Refund Journey group")
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
@@ -105,9 +99,6 @@ public class RefundsController {
 
     @Autowired
     private IacService iacService;
-
-    @Autowired
-    private NotificationService notificationService;
 
     @GetMapping("/refund/reasons")
     public ResponseEntity<List<RefundReason>> getRefundReason(@RequestHeader("Authorization") String authorization) {
@@ -273,23 +264,7 @@ public class RefundsController {
         return new ResponseEntity<>(refundsService.getStatusHistory(headers, reference), HttpStatus.OK);
     }
 
-    @Operation(summary = "POST /refund/notifications/doc-preview", description = "Preview Notification by passing personalisation")
-    @ApiResponse(responseCode = "200", description = "Success")
-    @ApiResponse(responseCode = "403", description = "AuthError")
-    @ApiResponse(responseCode = "500", description = "Internal Server Error")
-    @PostMapping("/refund/notifications/doc-preview")
-    public ResponseEntity<NotificationTemplatePreviewResponse> previewNotification(
-        @RequestHeader("Authorization") String authorization,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @Valid @RequestBody DocPreviewRequest docPreviewRequest) {
-        LOG.info("Inside /refund/notifications/doc-preview for {}", docPreviewRequest.getPaymentReference());
-        return new ResponseEntity<>(
-            notificationService.previewNotification(docPreviewRequest,headers),
-            HttpStatus.OK
-        );
-    }
-
-    @Operation(summary = "PATCH /refund/{reference}/action/{reviewer-action} Review Refund Request")
+    @Operation(summary = "PATCH refund/{reference}/action/{reviewer-action} Review Refund Request")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Ok"),
         @ApiResponse(responseCode = "201", description = "Refund request reviewed successfully"),
@@ -413,27 +388,6 @@ public class RefundsController {
         }
 
         return new ResponseEntity<>(new RefundLiberataResponse(refunds), HttpStatus.OK);
-    }
-
-
-    @PostMapping("/refund/reissue-expired/{reference}")
-    @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<RefundResponse> reissueExpired(@RequestHeader("Authorization") String authorization,
-                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers,
-                                                         @PathVariable
-                                                         @Pattern(regexp = "^RF-\\d{4}-\\d{4}-\\d{4}-\\d{4}$",
-                                                             message = "Refund reference failed validation checks. "
-                                                                 + "Possible scenarios include, refund not being expired, or being closed already.")
-                                                         String reference) {
-        IdamUserIdResponse idamUserIdResponse = idamService.getUserId(headers);
-
-        RefundResponse refund = refundsService.initiateReissueRefund(reference, headers, idamUserIdResponse);
-        return new ResponseEntity<>(
-            RefundResponse.buildRefundResponseWith()
-                .refundReference(refund.getRefundReference())
-                .build(),
-            HttpStatus.CREATED
-        );
     }
 
 }

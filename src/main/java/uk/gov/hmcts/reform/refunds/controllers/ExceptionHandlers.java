@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
-import jakarta.validation.ConstraintViolationException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +31,13 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentExceptio
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
-import uk.gov.hmcts.reform.refunds.exceptions.ReissueExpiredRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+
 
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked", "rawtypes"})
@@ -62,23 +59,10 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
-        InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class,
-        ReissueExpiredRefundException.class})
+        InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class})
     public ResponseEntity return400(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getConstraintViolations().forEach(
-            violation -> {
-                String msg = "The value " + violation.getInvalidValue().toString() + " not correctly formatted.";
-                errors.put(violation.getPropertyPath().toString(), msg);
-            });
-        return ResponseEntity.badRequest().body(errors);
     }
 
     @ExceptionHandler({ForbiddenToApproveRefundException.class})
