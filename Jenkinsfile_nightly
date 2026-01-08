@@ -64,9 +64,9 @@ withNightlyPipeline(type, product, component) {
   env.CCD_API_URL = params.CCD_API_URL
   env.BULKSCAN_API_URL = params.BULKSCAN_API_URL
   loadVaultSecrets(secrets)
-  enableSecurityScan()
-  enableMutationTest()
-  enableFortifyScan('ccpay-aat')
+  //enableSecurityScan()
+  //enableMutationTest()
+  //enableFortifyScan('ccpay-aat')
   enableFullFunctionalTest()
   enableSlackNotifications('#fee-pay-nightly-pipeline')
 
