@@ -18,7 +18,7 @@ dependencies:
     version: 1.0.30
     repository: 'oci://hmctspublic.azurecr.io/helm'
     condition: ccpay-bulkscanning-api.enabled
-  - name: ccpay-notifications-service
-    version: 1.0.20
-    repository: 'oci://hmctspublic.azurecr.io/helm'
-    condition: ccpay-notifications-service.enabled
+#  - name: ccpay-notifications-service
+#    version: 1.0.19
+#    repository: 'oci://hmctspublic.azurecr.io/helm'
+#    condition: ccpay-notifications-service.enabled
