@@ -23,8 +23,6 @@ public class LaunchDarklyFeatureToggler implements FeatureToggler {
 
     @Override
     public boolean getBooleanValue(String key, Boolean defaultValue) {
-
-        LOG.info("userName in LaunchDarklyFeatureToggler: {}", userName);
         LDContext context = LDContext.create(userName);
 
         return ldClient.boolVariation(
