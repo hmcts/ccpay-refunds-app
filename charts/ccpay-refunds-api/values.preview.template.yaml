@@ -82,8 +82,8 @@ java:
       initdb:
         scripts:
           init.sql: |
-#            CREATE DATABASE payment WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
-#            CREATE DATABASE notifications WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE payment WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE notifications WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
             CREATE DATABASE bulkscanning WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
 
 #payment-api:
