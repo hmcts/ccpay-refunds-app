@@ -10,10 +10,10 @@ dependencies:
   - name: java
     version: 5.3.0
     repository: 'oci://hmctspublic.azurecr.io/helm'
-  - name: payment-api
-    version: 2.3.65
-    repository: 'oci://hmctspublic.azurecr.io/helm'
-    condition: payment-api.enabled
+#  - name: payment-api
+#    version: 2.3.65
+#    repository: 'oci://hmctspublic.azurecr.io/helm'
+#    condition: payment-api.enabled
   - name: ccpay-bulkscanning-api
     version: 1.0.30
     repository: 'oci://hmctspublic.azurecr.io/helm'
