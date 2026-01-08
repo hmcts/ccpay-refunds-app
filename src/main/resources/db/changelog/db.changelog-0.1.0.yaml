@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100010
+      author: osmith
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              INSERT INTO refund_status (name, description)
+                VALUES
+                  ('Expired', 'Refund expired');
