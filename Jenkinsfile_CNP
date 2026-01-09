@@ -133,7 +133,8 @@ withPipeline(type, product, app) {
   }
 
   before('functionalTest:preview') {
-    env.TEST_URL_PAYMENT = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    // env.TEST_URL_PAYMENT = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    env.TEST_URL_PAYMENT = "http://payment-api-aat.service.core-compute-aat.internal"
     env.BULKSCAN_API_URL = "https://ccpay-bulkscanning-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     println """\
                 Using TEST_URL_PAYMENT: ${env.TEST_URL_PAYMENT}""".stripIndent()
@@ -154,8 +155,10 @@ withPipeline(type, product, app) {
 
   onPR() {
     // Re-enable these when pointing to preview chart apps instead.
-    env.PAYMENT_API_URL = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
-    env.NOTIFICATION_API_URL = "https://ccpay-notifications-service-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    //env.PAYMENT_API_URL = "https://payment-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    env.PAYMENT_API_URL = "http://payment-api-aat.service.core-compute-aat.internal"
+    //env.NOTIFICATION_API_URL = "https://ccpay-notifications-service-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    env.NOTIFICATION_API_URL = "https://ccpay-notifications-service-pr-693.preview.platform.hmcts.net"
     env.REFUND_API_URL = "https://ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.BULKSCAN_API_URL = "https://ccpay-bulkscanning-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
   }
