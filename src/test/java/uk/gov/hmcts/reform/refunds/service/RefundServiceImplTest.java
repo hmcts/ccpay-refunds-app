@@ -51,6 +51,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReportException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
 import uk.gov.hmcts.reform.refunds.mapper.RefundFeeMapper;
@@ -1580,7 +1581,8 @@ class RefundServiceImplTest {
         Date startDate = new Date(System.currentTimeMillis() + 100000);
         Date endDate = new Date();
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(
+            RefundReportException.class, () ->
             refundsService.refundsReport(startDate, endDate, new LinkedMultiValueMap<>())
         );
     }

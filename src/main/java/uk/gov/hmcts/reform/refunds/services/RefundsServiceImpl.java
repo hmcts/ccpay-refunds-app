@@ -47,6 +47,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.ActionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReportException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReissueExpiredRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import uk.gov.hmcts.reform.refunds.mapper.PaymentFailureResponseMapper;
@@ -1128,8 +1129,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         LOG.info("Enter refundsReport method");
 
         if (startDate.after(endDate)) {
-            throw new IllegalArgumentException("Start date cannot be greater than end date");
+            throw new RefundReportException("Start date cannot be greater than end date");
         }
+
         List<Tuple> refundsTuples = refundsRepository.findAllRefundsByDateCreatedBetween(startDate, endDate);
 
         List<RefundsReportDto> refundsReportDto = refundsTuples.stream()

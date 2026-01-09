@@ -12,6 +12,7 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DateUtilTest {
 
@@ -87,5 +88,32 @@ class DateUtilTest {
         assertEquals(12, dateTime.getHourOfDay());
         assertEquals(34, dateTime.getMinuteOfHour());
         assertEquals(56, dateTime.getSecondOfMinute());
+    }
+
+    @Test
+    void toDdMmYyyy_shouldConvertIsoFormat() {
+        assertEquals("25/10/2024", DateUtil.toDdMmYyyy("2024-10-25"));
+    }
+
+    @Test
+    void toDdMmYyyy_shouldConvertMmDdYyyyFormat() {
+        assertEquals("25/10/2024", DateUtil.toDdMmYyyy("10/25/2024"));
+    }
+
+    @Test
+    void toDdMmYyyy_shouldReturnDdMmYyyyFormat() {
+        assertEquals("31/12/2025", DateUtil.toDdMmYyyy("31/12/2025"));
+    }
+
+    @Test
+    void toDdMmYyyy_shouldReturnNullForNullInput() {
+        assertNull(DateUtil.toDdMmYyyy(null));
+    }
+
+    @Test
+    void toDdMmYyyy_shouldThrowForInvalidFormat() {
+        assertThrows(IllegalArgumentException.class, () -> DateUtil.toDdMmYyyy("2024.10.25"));
+        assertThrows(IllegalArgumentException.class, () -> DateUtil.toDdMmYyyy("25-10-2024"));
+        assertThrows(IllegalArgumentException.class, () -> DateUtil.toDdMmYyyy("2024/10/25"));
     }
 }
