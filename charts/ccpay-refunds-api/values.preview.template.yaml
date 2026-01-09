@@ -1,4 +1,8 @@
 java:
+  devmemoryRequests: 1024Mi
+  devcpuRequests: 256m
+  devmemoryLimits: 2048Mi
+  devcpuLimits: 1500m
   # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_NAME}.preview.platform.hmcts.net
