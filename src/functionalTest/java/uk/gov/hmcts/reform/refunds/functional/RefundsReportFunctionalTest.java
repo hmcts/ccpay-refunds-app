@@ -402,6 +402,12 @@ public class RefundsReportFunctionalTest {
             assertThat(refundReportDto.getPaymentReference()).isEqualTo(paymentReference);
             assertThat(refundReportDto.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
             assertThat(refundReportDto.getServiceType()).isEqualToIgnoringCase(service);
+            if (refundReference.equals(refundReference1)) {
+                assertThat(refundReportDto.getRefundStatus()).isEqualTo("Accepted");
+                assertThat(refundReportDto.getNotes()).isEqualTo("Sent to Middle Office for Processing");
+            } else {
+                assertThat(refundReportDto.getRefundStatus()).isEqualTo("Rejected");
+            }
         });
     }
 
@@ -598,29 +604,8 @@ public class RefundsReportFunctionalTest {
         assertThat(updateRefundStatusResponse3.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
         // Verify the Expired refund in the report
-        String dateFrom = getReportDate(new Date(System.currentTimeMillis()));
-        String dateTo = getReportDate(new Date(System.currentTimeMillis()));
-
-        Response refundsReportData1 = paymentTestService.getRefundsByStartAndEndDate(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                                                     SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, dateFrom, dateTo);
-
-        assertThat(refundsReportData1.getStatusCode()).isEqualTo(OK.value());
-        RefundsReportResponse refundsReportResponse1 =
-            refundsReportData1.getBody().as(RefundsReportResponse.class);
-        RefundsReportDto refundReportDto1 = refundsReportResponse1.getRefundsReportList().stream()
-            .filter(reportDto -> reportDto.getRefundReference().equals(refundReference))
-            .findFirst()
-            .orElse(null);
-        assertThat(refundReportDto1).isNotNull();
-        assertThat(getReportDate(refundReportDto1.getRefundDateCreated())).isEqualTo(dateFrom);
-        assertThat(getReportDate(refundReportDto1.getRefundDateUpdated())).isEqualTo(dateFrom);
-        assertThat(refundReportDto1.getAmount()).isEqualTo(new BigDecimal(refundAmount));
-        assertThat(refundReportDto1.getRefundReference()).isEqualTo(refundReference);
-        assertThat(refundReportDto1.getPaymentReference()).isEqualTo(paymentReference);
-        assertThat(refundReportDto1.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-        assertThat(refundReportDto1.getServiceType()).isEqualToIgnoringCase(service);
-        assertThat(refundReportDto1.getRefundStatus()).isEqualTo("Expired");
-        assertThat(refundReportDto1.getNotes()).isEqualTo("Unable to process expired refund");
+        final String dateFrom = getReportDate(new Date(System.currentTimeMillis()));
+        final String dateTo = getReportDate(new Date(System.currentTimeMillis()));
 
         // Reissue the expired refund
         Response reissueExpiredRefundResponse = paymentTestService.reissueExpiredRefund(
@@ -633,53 +618,37 @@ public class RefundsReportFunctionalTest {
         refundReferences.add(reIssuedRefundReference);
 
         // verify the Closed refund in the report
-        Response refundsReportData2 = paymentTestService.getRefundsByStartAndEndDate(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+        Response refundsReportData = paymentTestService.getRefundsByStartAndEndDate(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                                      SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, dateFrom, dateTo);
 
-        assertThat(refundsReportData2.getStatusCode()).isEqualTo(OK.value());
-        RefundsReportResponse refundsReportResponse2 =
-            refundsReportData2.getBody().as(RefundsReportResponse.class);
-        RefundsReportDto refundReportDto2 = refundsReportResponse2.getRefundsReportList().stream()
-            .filter(reportDto -> reportDto.getRefundReference().equals(refundReference))
-            .findFirst()
-            .orElse(null);
-        assertThat(refundReportDto2).isNotNull();
-        assertThat(getReportDate(refundReportDto2.getRefundDateCreated())).isEqualTo(dateFrom);
-        assertThat(getReportDate(refundReportDto2.getRefundDateUpdated())).isEqualTo(dateFrom);
-        assertThat(refundReportDto2.getAmount()).isEqualTo(new BigDecimal(refundAmount));
-        assertThat(refundReportDto2.getRefundReference()).isEqualTo(refundReference);
-        assertThat(refundReportDto2.getPaymentReference()).isEqualTo(paymentReference);
-        assertThat(refundReportDto2.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-        assertThat(refundReportDto2.getServiceType()).isEqualToIgnoringCase(service);
-        assertThat(refundReportDto2.getRefundStatus()).isEqualTo("Closed");
-        assertThat(refundReportDto2.getNotes()).isEqualTo("Refund closed by case worker");
-
-        // verify that new refund is approved by system user in the report
-
-        Response refundsReportData3 = paymentTestService.getRefundsByStartAndEndDate(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
-                                                                                     SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, dateFrom, dateTo);
-
-        assertThat(refundsReportData3.getStatusCode()).isEqualTo(OK.value());
-        RefundsReportResponse refundsReportResponse3 =
-            refundsReportData3.getBody().as(RefundsReportResponse.class);
-        RefundsReportDto refundReportDto3 = refundsReportResponse3.getRefundsReportList().stream()
-            .filter(reportDto -> reportDto.getRefundReference().equals(reIssuedRefundReference))
-            .findFirst()
-            .orElse(null);
-        assertThat(refundReportDto3).isNotNull();
-        assertThat(getReportDate(refundReportDto3.getRefundDateCreated())).isEqualTo(dateFrom);
-        assertThat(getReportDate(refundReportDto3.getRefundDateUpdated())).isEqualTo(dateFrom);
-        assertThat(refundReportDto3.getAmount()).isEqualTo(new BigDecimal(refundAmount));
-        assertThat(refundReportDto3.getRefundReference()).isEqualTo(reIssuedRefundReference);
-        assertThat(refundReportDto3.getPaymentReference()).isEqualTo(paymentReference);
-        assertThat(refundReportDto3.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
-        assertThat(refundReportDto3.getServiceType()).isEqualToIgnoringCase(service);
-        assertThat(refundReportDto3.getRefundStatus()).isEqualTo("Approved");
-        assertThat(refundReportDto3.getNotes()).isEqualTo("Refund approved by system");
+        assertThat(refundsReportData.getStatusCode()).isEqualTo(OK.value());
+        RefundsReportResponse refundsReportResponse =
+            refundsReportData.getBody().as(RefundsReportResponse.class);
+        refundReferences.forEach(refundRef -> {
+            RefundsReportDto refundReportDto = refundsReportResponse.getRefundsReportList().stream()
+                .filter(reportDto -> reportDto.getRefundReference().equals(refundRef))
+                .findFirst()
+                .orElse(null);
+            assertThat(refundReportDto).isNotNull();
+            assertThat(getReportDate(refundReportDto.getRefundDateCreated())).isEqualTo(dateFrom);
+            assertThat(getReportDate(refundReportDto.getRefundDateUpdated())).isEqualTo(dateFrom);
+            assertThat(refundReportDto.getAmount()).isEqualTo(new BigDecimal(refundAmount));
+            assertThat(refundReportDto.getRefundReference()).isEqualTo(refundRef);
+            assertThat(refundReportDto.getPaymentReference()).isEqualTo(paymentReference);
+            assertThat(refundReportDto.getCcdCaseNumber()).isEqualTo(ccdCaseNumber);
+            assertThat(refundReportDto.getServiceType()).isEqualToIgnoringCase(service);
+            if (refundRef.equals(refundReference)) {
+                assertThat(refundReportDto.getRefundStatus()).isEqualTo("Closed");
+                assertThat(refundReportDto.getNotes()).isEqualTo("Refund closed by case worker");
+            } else if (refundRef.equals(reIssuedRefundReference)) {
+                assertThat(refundReportDto.getRefundStatus()).isEqualTo("Approved");
+                assertThat(refundReportDto.getNotes()).isEqualTo("Refund approved by system");
+            }
+        });
     }
 
     @Test
-    public void negative_refund_report_not_have_team_leader_rejected_refunds() {
+    public void negative_refund_report_not_have_team_leader_rejected_refund() {
         String emailAddress = dataGenerator.generateEmail(16);
         final String service = "PROBATE";
         final String siteId = "ABA6";
@@ -725,6 +694,7 @@ public class RefundsReportFunctionalTest {
         String dateFrom = getReportDate(new Date(System.currentTimeMillis()));
         String dateTo = getReportDate(new Date(System.currentTimeMillis()));
 
+        // verify that the refund is not in the report as its in 'Rejected' status by team leader
         Response refundsReportData = paymentTestService.getRefundsByStartAndEndDate(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                                    SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, dateFrom, dateTo);
 
@@ -736,6 +706,79 @@ public class RefundsReportFunctionalTest {
             .findFirst()
             .orElse(null);
         assertThat(refundReportDto).isNull();
+    }
+
+    @Test
+    public void negative_refund_report_not_have_sent_for_approval_and_update_required_refunds() {
+        String emailAddress = dataGenerator.generateEmail(16);
+        final String service = "PROBATE";
+        final String siteId = "ABA6";
+        final String feeAmount = "300.00";
+        final String feeCode = "FEE0219";
+        final String feeVersion = "6";
+        final String refundReason = "RR001";
+        final String refundAmount = "300.00";
+
+        String ccdCaseNumber = ccdService.createProbateDraftCase(
+            USER_ID_PROBATE_DRAFT_CASE_CREATOR,
+            USER_TOKEN_PROBATE_DRAFT_CASE_CREATOR,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT
+        );
+        LOG.info("Probate draft case number : {}", ccdCaseNumber);
+
+        final String paymentReference = createPayment(service, siteId, ccdCaseNumber, feeAmount, feeCode, feeVersion);
+        paymentReferences.add(paymentReference);
+        final String refundReference = performRefund(
+            refundReason,
+            paymentReference,
+            refundAmount,
+            feeAmount,
+            feeCode,
+            feeVersion,
+            emailAddress
+        );
+        refundReferences.add(refundReference);
+
+        String dateFrom = getReportDate(new Date(System.currentTimeMillis()));
+        String dateTo = getReportDate(new Date(System.currentTimeMillis()));
+
+        // verify that the refund is not in the report as its in 'Sent for Approval' status
+        Response refundsReportData1 = paymentTestService.getRefundsByStartAndEndDate(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                                                    SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, dateFrom, dateTo);
+
+        assertThat(refundsReportData1.getStatusCode()).isEqualTo(OK.value());
+        RefundsReportResponse refundsReportResponse1 =
+            refundsReportData1.getBody().as(RefundsReportResponse.class);
+        RefundsReportDto refundReportDto1 = refundsReportResponse1.getRefundsReportList().stream()
+            .filter(reportDto -> reportDto.getRefundReference().equals(refundReference))
+            .findFirst()
+            .orElse(null);
+        assertThat(refundReportDto1).isNull();
+
+        // update required for refund
+        Response responseReviewRefund = paymentTestService.patchReviewRefund(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
+            SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
+            refundReference,
+            ReviewerAction.SENDBACK.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE004")
+                .reason("More evidence is required").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund returned to caseworker");
+
+        // verify that the refund is not in the report as its in 'Update Required' status
+        Response refundsReportData2 = paymentTestService.getRefundsByStartAndEndDate(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+                                                                                    SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, dateFrom, dateTo);
+
+        assertThat(refundsReportData2.getStatusCode()).isEqualTo(OK.value());
+        RefundsReportResponse refundsReportResponse =
+            refundsReportData2.getBody().as(RefundsReportResponse.class);
+        RefundsReportDto refundReportDto2 = refundsReportResponse.getRefundsReportList().stream()
+            .filter(reportDto -> reportDto.getRefundReference().equals(refundReference))
+            .findFirst()
+            .orElse(null);
+        assertThat(refundReportDto2).isNull();
     }
 
     @Test
