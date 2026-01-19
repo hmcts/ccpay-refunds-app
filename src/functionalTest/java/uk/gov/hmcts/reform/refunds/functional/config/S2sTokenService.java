@@ -1,9 +1,8 @@
 package uk.gov.hmcts.reform.refunds.functional.config;
 
 import feign.Feign;
+import feign.FeignException;
 import feign.jackson.JacksonEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +11,6 @@ public class S2sTokenService {
 
     private final OneTimePasswordFactory oneTimePasswordFactory;
     private final S2sApi s2sApi;
-    private static final Logger LOG = LoggerFactory.getLogger(S2sTokenService.class);
 
     @Autowired
     public S2sTokenService(OneTimePasswordFactory oneTimePasswordFactory, TestConfigProperties testProps) {
@@ -23,15 +21,25 @@ public class S2sTokenService {
     }
 
     public String getS2sToken(String microservice, String secret) {
-        String otp = oneTimePasswordFactory.validOneTimePassword(secret);
-        LOG.info("s2sApi : " + s2sApi.toString());
-        LOG.info("microservice : " + microservice);
-        LOG.info("secret : " + secret);
-        try {
-            return s2sApi.serviceToken(microservice, otp);
-        } catch (Exception ex) {
-            LOG.info(ex.getMessage());
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("S2S secret is missing for microservice '" + microservice
+                                               + "'. Ensure the relevant S2S_SERVICE_SECRET_* env var is set.");
         }
-        return null;
+
+        String otp = oneTimePasswordFactory.validOneTimePassword(secret);
+
+        try {
+            String token = s2sApi.serviceToken(microservice, otp);
+            if (token == null || token.isBlank()) {
+                throw new IllegalStateException("Received empty S2S token for microservice '" + microservice + "'.");
+            }
+            return token;
+        } catch (FeignException ex) {
+            throw new IllegalStateException(
+                "Failed to obtain S2S token for microservice '" + microservice + "' (status " + ex.status() + ")"
+                    + ". Check S2S_URL and the service secret.",
+                ex
+            );
+        }
     }
 }
