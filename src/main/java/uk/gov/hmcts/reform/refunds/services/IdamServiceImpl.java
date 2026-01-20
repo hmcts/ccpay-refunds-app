@@ -99,6 +99,7 @@ public class IdamServiceImpl implements IdamService {
 
     private ResponseEntity<IdamUserIdResponse> getResponseEntity(MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseUrl + USERID_ENDPOINT);
+        LOG.debug("builder.toUriString() in getResponseEntity : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
                 builder.toUriString(),
