@@ -1123,7 +1123,6 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
             .build();
     }
 
-
     @Override
     public List<RefundsReportDto> refundsReport(Date startDate, Date endDate, MultiValueMap<String, String> headers) {
         LOG.info("Enter refundsReport method");
@@ -1150,6 +1149,5 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
         return refundsReportDto;
     }
-
 }
 

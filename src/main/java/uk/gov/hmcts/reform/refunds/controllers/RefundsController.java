@@ -478,5 +478,4 @@ public class RefundsController {
         List<RefundsReportDto> refundsReportDto =  refundsService.refundsReport(atStartOfDay(fromDate), atEndOfDay(toDate), headers);
         return new RefundsReportResponse(refundsReportDto);
     }
-
 }

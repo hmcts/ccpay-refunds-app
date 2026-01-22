@@ -1575,7 +1575,6 @@ class RefundServiceImplTest {
         assertEquals("Test notes", dto.getNotes());
     }
 
-
     @Test
     void refundsReport_shouldThrowException_whenStartDateAfterEndDate() {
         Date startDate = new Date(System.currentTimeMillis() + 100000);
@@ -1599,7 +1598,6 @@ class RefundServiceImplTest {
 
         assertTrue(result.isEmpty());
     }
-
 
     @Test
     void refundsReport_shouldReturnEmptyList_whenStartDateEqualsEndDate() {
