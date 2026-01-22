@@ -8,7 +8,11 @@ import net.serenitybdd.rest.SerenityRest;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanCcdPayment;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanDcnPayment;
+import uk.gov.hmcts.reform.refunds.functional.request.BulkScanPaymentRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.reform.refunds.functional.request.PaymentGroupDto;
 import uk.gov.hmcts.reform.refunds.functional.request.PaymentRefundRequest;
 import uk.gov.hmcts.reform.refunds.functional.request.ResubmitRefundRequest;
 
@@ -190,4 +194,57 @@ public class PaymentTestService {
             .queryParams("paymentReferenceList", paymentReferenceList)
             .get("/refund/payment-failure-report");
     }
+
+    public Response reissueExpiredRefund(final String userToken, final String serviceToken,
+                                   final String refundReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .post("/refund/reissue-expired/{reference}", refundReference);
+    }
+
+    public Response addNewFeeAndPaymentGroup(final String userToken,
+                                             final String serviceToken,
+                                             final String baseUri,
+                                             PaymentGroupDto paymentGroupFeeRequest) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .body(paymentGroupFeeRequest)
+            .post("/payment-groups");
+    }
+
+    public Response createBulkScanPayment(final String userToken,
+                                          final String serviceToken,
+                                          final String baseUri,
+                                          BulkScanPaymentRequest bulkScanPaymentRequest,
+                                          String paymentGroupReference) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .body(bulkScanPaymentRequest)
+            .post("/payment-groups/{payment-group-reference}/bulk-scan-payments", paymentGroupReference);
+    }
+
+    public Response postBulkScanDcnPayment(final String serviceToken,
+                                           final String baseUri,
+                                           BulkScanDcnPayment bulkScanDcnPayment) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .body(bulkScanDcnPayment)
+            .when()
+            .post("/bulk-scan-payment");
+    }
+
+    public Response postBulkScanCcdPayments(final String serviceToken,
+                                            final String baseUri,
+                                            BulkScanCcdPayment bulkScanCcdPayment) {
+        return givenWithServiceHeaders(serviceToken)
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .body(bulkScanCcdPayment)
+            .when()
+            .post("/bulk-scan-payments");
+    }
+
 }
