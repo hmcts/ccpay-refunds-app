@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.Tuple;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -124,6 +125,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -2610,5 +2613,53 @@ class RefundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(invalidRequest)))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void retrieveRefundsReport_returnsOk_withReportList() throws Exception {
+        // This endpoint uses RefundsServiceImpl.refundsReport(), which maps DB Tuples into RefundsReportDto.
+        // So we mock the repository native query to return a Tuple with the expected column aliases.
+        Tuple tuple = mock(Tuple.class);
+        when(tuple.get(eq("date_created"), eq(Date.class))).thenReturn(new Date());
+        when(tuple.get(eq("date_updated"), eq(Date.class))).thenReturn(new Date());
+        when(tuple.get(eq("amount"), eq(BigDecimal.class))).thenReturn(BigDecimal.valueOf(100));
+        when(tuple.get(eq("reference"), eq(String.class))).thenReturn("RF-1111-2234-1077-1123");
+        when(tuple.get(eq("payment_reference"), eq(String.class))).thenReturn("RC-1111-2234-1077-1123");
+        when(tuple.get(eq("ccd_case_number"), eq(String.class))).thenReturn("1111222233334444");
+        when(tuple.get(eq("service_type"), eq(String.class))).thenReturn("cmc");
+        when(tuple.get(eq("refund_status"), eq(String.class))).thenReturn("Approved");
+        when(tuple.get(eq("notes"), eq(String.class))).thenReturn("notes");
+
+        when(refundsRepository.findAllRefundsByDateCreatedBetween(any(), any()))
+            .thenReturn(List.of(tuple));
+
+        mockMvc.perform(get("/refund/refunds-report")
+                            .queryParam("date_from", "01/12/2025")
+                            .queryParam("date_to", "13/12/2025")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "Services")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.refunds_report_list", hasSize(1)))
+            .andExpect(jsonPath("$.refunds_report_list[0].RF_reference").value("RF-1111-2234-1077-1123"))
+            .andExpect(jsonPath("$.refunds_report_list[0].payment_reference").value("RC-1111-2234-1077-1123"));
+
+        verify(refundsRepository, times(1)).findAllRefundsByDateCreatedBetween(any(), any());
+    }
+
+    @Test
+    void retrieveRefundsReport_returns5xx_whenInvalidDateFormat() {
+        // DateUtil.toDdMmYyyy throws IllegalArgumentException which is wrapped by Spring as ServletException
+        assertThrows(jakarta.servlet.ServletException.class, () ->
+            mockMvc.perform(get("/refund/refunds-report")
+                                .queryParam("date_from", "not-a-date")
+                                .queryParam("date_to", "also-not-a-date")
+                                .header("Authorization", "user")
+                                .header("ServiceAuthorization", "Services")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andReturn()
+        );
+
+        verify(refundsService, never()).refundsReport(any(), any(), any());
     }
 }
