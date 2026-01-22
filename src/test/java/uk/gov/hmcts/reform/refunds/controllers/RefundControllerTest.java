@@ -2617,8 +2617,6 @@ class RefundControllerTest {
 
     @Test
     void retrieveRefundsReport_returnsOk_withReportList() throws Exception {
-        // This endpoint uses RefundsServiceImpl.refundsReport(), which maps DB Tuples into RefundsReportDto.
-        // So we mock the repository native query to return a Tuple with the expected column aliases.
         Tuple tuple = mock(Tuple.class);
         when(tuple.get(eq("date_created"), eq(Date.class))).thenReturn(new Date());
         when(tuple.get(eq("date_updated"), eq(Date.class))).thenReturn(new Date());
@@ -2648,18 +2646,15 @@ class RefundControllerTest {
     }
 
     @Test
-    void retrieveRefundsReport_returns5xx_whenInvalidDateFormat() {
-        // DateUtil.toDdMmYyyy throws IllegalArgumentException which is wrapped by Spring as ServletException
-        assertThrows(jakarta.servlet.ServletException.class, () ->
-            mockMvc.perform(get("/refund/refunds-report")
-                                .queryParam("date_from", "not-a-date")
-                                .queryParam("date_to", "also-not-a-date")
-                                .header("Authorization", "user")
-                                .header("ServiceAuthorization", "Services")
-                                .accept(MediaType.APPLICATION_JSON))
-                .andReturn()
-        );
+    void retrieveRefundsReport_returns400_whenInvalidDateFormat() throws Exception {
+        mockMvc.perform(get("/refund/refunds-report")
+                            .queryParam("date_from", "not-a-date")
+                            .queryParam("date_to", "also-not-a-date")
+                            .header("Authorization", "user")
+                            .header("ServiceAuthorization", "Services")
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
 
-        verify(refundsService, never()).refundsReport(any(), any(), any());
+        verify(refundsRepository, never()).findAllRefundsByDateCreatedBetween(any(), any());
     }
 }

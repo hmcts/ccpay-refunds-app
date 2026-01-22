@@ -461,17 +461,17 @@ public class RefundsController {
 
         LOG.info("Received refunds report request");
 
-        String fromDateFormatted = toDdMmYyyy(fromDateStr);
-        String toDateFormatted = toDdMmYyyy(toDateStr);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        sdf.setLenient(false);
         Date fromDate;
         Date toDate;
         try {
+            String fromDateFormatted = toDdMmYyyy(fromDateStr);
+            String toDateFormatted = toDdMmYyyy(toDateStr);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            sdf.setLenient(false);
+
             fromDate = sdf.parse(fromDateFormatted);
             toDate = sdf.parse(toDateFormatted);
-        } catch (ParseException e) {
+        } catch (ParseException | IllegalArgumentException e) {
             throw new RefundReportException("Invalid date format. Use dd/MM/yyyy.");
         }
 
