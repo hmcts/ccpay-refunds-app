@@ -129,6 +129,7 @@ public class SpringSecurityConfiguration {
                 .requestMatchers("/jobs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refunds/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/refund/refunds-report").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund/payment-failure-report").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.GET, "/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
