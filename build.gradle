@@ -101,8 +101,8 @@ task functional(type: Test) {
   reports {
     junitXml.required = true
     html.required = true
-    junitXml.outputLocation = file("$buildDir/test-results/functional")
-    html.outputLocation = file("$buildDir/reports/tests/functional")
+    junitXml.outputLocation = file("${project.buildDir}/test-results/functional")
+    html.outputLocation = file("${project.buildDir}/reports/tests/functional")
   }
 }
 
