@@ -98,10 +98,22 @@ task functional(type: Test) {
   classpath = sourceSets.functionalTest.runtimeClasspath
   enableAssertions = true
   scanForTestClasses = true
+  reports {
+    junitXml.required = true
+    html.required = true
+    junitXml.outputLocation = file("${project.buildDir}/test-results/functional")
+    html.outputLocation = file("${project.buildDir}/reports/tests/functional")
+  }
 }
 
 // Serenity Reporting
 functional.finalizedBy(aggregate)
+
+tasks.register('functionalTest') {
+  description = "Alias for functional tests (keeps CI task naming consistent)"
+  group = "Verification"
+  dependsOn functional
+}
 
 task integration(type: Test) {
   description = "Runs integration tests"
