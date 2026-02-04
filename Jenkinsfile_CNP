@@ -112,6 +112,8 @@ withPipeline(type, product, app) {
       reportName           : "CCPAY Refunds PREVIEW API Functional Test Report"
     ]
 
+    junit allowEmptyResults: true, testResults: 'build/test-results/functional/**/*.xml'
+
     publishHTML target: [
       reportDir            : "target/site/serenity/",
       allowMissing         : true,
@@ -146,6 +148,7 @@ withPipeline(type, product, app) {
       reportName           : "CCPAY Refunds AAT Functional Tests",
       alwaysLinkToLastBuild: true
     ]
+    junit allowEmptyResults: true, testResults: 'build/test-results/functional/**/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
 
@@ -160,4 +163,3 @@ withPipeline(type, product, app) {
     env.BULKSCAN_API_URL = "https://ccpay-bulkscanning-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
   }
 }
-

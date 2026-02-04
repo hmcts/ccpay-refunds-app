@@ -82,6 +82,7 @@ withNightlyPipeline(type, product, component) {
       reportName           : "AAT Functional Tests",
       alwaysLinkToLastBuild: true
     ]
+    junit allowEmptyResults: true, testResults: 'build/test-results/functional/**/*.xml'
 
   }
 
