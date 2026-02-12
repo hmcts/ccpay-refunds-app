@@ -28,7 +28,7 @@ apply from: 'liquibase.gradle'
 group = 'uk.gov.hmcts.reform'
 version = '0.0.1'
 
-def springCloudVersion = '2023.0.6'
+def springCloudVersion = '2025.1.1'
 def javaLoggingVersion = '6.1.9'
 
 java {
@@ -214,7 +214,7 @@ dependencyManagement {
     dependencySet(group: 'com.google.guava', version: '33.5.0-jre') {
       entry 'guava'
     }
-    dependencySet(group: 'org.springframework.cloud', version: '4.3.0') {
+    dependencySet(group: 'org.springframework.cloud', version: '5.0.1') {
       entry 'spring-cloud-starter-openfeign'
       entry 'spring-cloud-openfeign-core'
     }
