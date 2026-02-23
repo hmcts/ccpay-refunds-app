@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PACT_BROKER_FULL_URL: https://pact-broker.platform.hmcts.net
     steps:
       - uses: actions/checkout@v5
       - name: Set up JDK 21
