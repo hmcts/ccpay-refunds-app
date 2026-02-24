@@ -132,12 +132,10 @@ task smoke(type: Test) {
   testLogging.showStandardStreams = true
 }
 
-def pactDir = project.layout.projectDirectory.dir("pacts").asFile
-
 task runAndPublishConsumerPactTests(type: Test) {
   description = "Runs consumer pact tests"
   group = "Verification"
-  systemProperty 'pact.rootDir', pactDir.absolutePath
+  systemProperty 'pact.rootDir', "pacts"
   testClassesDirs = sourceSets.test.output.classesDirs
   classpath = sourceSets.test.runtimeClasspath
   include "uk/gov/hmcts/reform/**"
@@ -149,7 +147,7 @@ pact {
     pactBrokerUrl = System.getenv("PACT_BROKER_FULL_URL") ?: 'http://localhost:80'
   }
   publish {
-    pactDirectory = pactDir.absolutePath
+    pactDirectory = "pacts"
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     version = System.getenv("GIT_COMMIT") ?: "local-${System.currentTimeMillis()}"
   }
