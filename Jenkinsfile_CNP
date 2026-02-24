@@ -164,13 +164,11 @@ withPipeline(type, product, app) {
     env.REFUND_API_URL = "https://ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.BULKSCAN_API_URL = "https://ccpay-bulkscanning-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
-  }
-
-  onPR() {
     enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
   }
 
   onMaster() {
+    env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
     enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
   }
 }
