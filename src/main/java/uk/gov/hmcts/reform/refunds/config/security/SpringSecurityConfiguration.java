@@ -15,10 +15,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
@@ -33,10 +32,8 @@ import uk.gov.hmcts.reform.refunds.config.security.validator.AudienceValidator;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -57,8 +54,6 @@ public class SpringSecurityConfiguration {
 
     @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
     private String issuerUri;
-    @Value("${oidc.issuer}")
-    private String tokenIssuer;
     @Value("${oidc.audience-list}")
     private String[] allowedAudiences;
 
@@ -161,28 +156,14 @@ public class SpringSecurityConfiguration {
             JwtDecoders.fromOidcIssuerLocation(issuerUri);
 
         OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(Arrays.asList(allowedAudiences));
-        OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-        OAuth2TokenValidator<Jwt> withIssuer = new JwtClaimValidator<String>("iss", issuer ->
-            Stream.of(issuerUri, tokenIssuer)
-                .filter(Objects::nonNull)
-                .map(this::normalizeIssuer)
-                .anyMatch(validIssuer -> validIssuer.equals(normalizeIssuer(issuer)))
-        );
+        OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuerUri);
 
-        OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(
-            withTimestamp,
+        OAuth2TokenValidator<Jwt> combined = new DelegatingOAuth2TokenValidator<>(
             withIssuer,
             audienceValidator
         );
-        jwtDecoder.setJwtValidator(withAudience);
+        jwtDecoder.setJwtValidator(combined);
 
         return jwtDecoder;
-    }
-
-    private String normalizeIssuer(String issuer) {
-        if (issuer == null || issuer.isBlank()) {
-            return "";
-        }
-        return issuer.endsWith("/") ? issuer.substring(0, issuer.length() - 1) : issuer;
     }
 }
