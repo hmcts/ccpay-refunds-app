@@ -162,7 +162,7 @@ public class SpringSecurityConfiguration {
 
         OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(Arrays.asList(allowedAudiences));
         OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-        OAuth2TokenValidator<Jwt> withIssuer = new JwtClaimValidator<>("iss", issuer ->
+        OAuth2TokenValidator<Jwt> withIssuer = new JwtClaimValidator<String>("iss", issuer ->
             Stream.of(issuerUri, tokenIssuer)
                 .filter(Objects::nonNull)
                 .map(this::normalizeIssuer)
