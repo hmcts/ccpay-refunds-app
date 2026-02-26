@@ -15,9 +15,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -33,8 +33,10 @@ import uk.gov.hmcts.reform.refunds.config.security.validator.AudienceValidator;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -160,7 +162,12 @@ public class SpringSecurityConfiguration {
 
         OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(Arrays.asList(allowedAudiences));
         OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-        OAuth2TokenValidator<Jwt> withIssuer = new JwtIssuerValidator(tokenIssuer);
+        OAuth2TokenValidator<Jwt> withIssuer = new JwtClaimValidator<>("iss", issuer ->
+            Stream.of(issuerUri, tokenIssuer)
+                .filter(Objects::nonNull)
+                .map(this::normalizeIssuer)
+                .anyMatch(validIssuer -> validIssuer.equals(normalizeIssuer(issuer)))
+        );
 
         OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(
             withTimestamp,
@@ -170,5 +177,12 @@ public class SpringSecurityConfiguration {
         jwtDecoder.setJwtValidator(withAudience);
 
         return jwtDecoder;
+    }
+
+    private String normalizeIssuer(String issuer) {
+        if (issuer == null || issuer.isBlank()) {
+            return "";
+        }
+        return issuer.endsWith("/") ? issuer.substring(0, issuer.length() - 1) : issuer;
     }
 }
