@@ -21,6 +21,7 @@ plugins {
   id "info.solidsoft.pitest" version '1.15.0'
   id 'io.freefair.lombok' version '8.14.2'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
+  id 'au.com.dius.pact' version '4.6.20'
 }
 
 apply from: 'liquibase.gradle'
@@ -130,6 +131,30 @@ task smoke(type: Test) {
   classpath = sourceSets.smokeTest.runtimeClasspath
   testLogging.showStandardStreams = true
 }
+
+task runAndPublishConsumerPactTests(type: Test) {
+  description = "Runs consumer pact tests"
+  group = "Verification"
+  systemProperty 'pact.rootDir', "pacts"
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  include "uk/gov/hmcts/reform/**"
+  include "uk/gov/hmcts/rd/**"
+}
+
+pact {
+  broker {
+    pactBrokerUrl = System.getenv("PACT_BROKER_FULL_URL") ?: 'http://localhost:80'
+  }
+  publish {
+    pactDirectory = "pacts"
+    tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
+    version = System.getenv("GIT_COMMIT") ?: "local-${System.currentTimeMillis()}"
+  }
+}
+
+runAndPublishConsumerPactTests.finalizedBy pactPublish
+check.dependsOn runAndPublishConsumerPactTests
 
 pmd {
   toolVersion = "6.55.0"
@@ -296,7 +321,6 @@ dependencies {
   implementation group: 'org.springframework.boot', name:'spring-boot-starter-oauth2-client'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-client'
-  implementation group: 'org.testng', name: 'testng', version: '7.11.0'
   implementation group: "io.hypersistence", name: "hypersistence-utils-hibernate-63", version: "3.11.0"
   implementation group: 'uk.gov.service.notify', name: 'notifications-java-client', version: '5.2.1-RELEASE'
 
@@ -305,6 +329,8 @@ dependencies {
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 
   testImplementation 'com.github.hmcts:fortify-client:1.4.10:all'
+  testImplementation group: 'org.testng', name:'testng', version:'7.11.0'
+  testImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version:'4.6.20'
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: versions.restAssured
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.21.3'
   testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.27.7'
