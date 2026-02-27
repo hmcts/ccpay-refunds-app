@@ -55,6 +55,10 @@ public class SpringSecurityConfiguration {
 
     @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
     private String issuerUri;
+
+    @Value("${oidc.issuer}")
+    private String issuerOverride;
+
     @Value("${oidc.audience-list}")
     private String[] allowedAudiences;
 
@@ -157,7 +161,7 @@ public class SpringSecurityConfiguration {
 
         OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(Arrays.asList(allowedAudiences));
         OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-        OAuth2TokenValidator<Jwt> withIssuer = new JwtIssuerValidator(issuerUri);
+        OAuth2TokenValidator<Jwt> withIssuer = new JwtIssuerValidator(issuerOverride);
 
         OAuth2TokenValidator<Jwt> combined = new DelegatingOAuth2TokenValidator<>(
             withTimestamp, withIssuer, audienceValidator);
