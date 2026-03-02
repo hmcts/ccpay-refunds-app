@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.refunds.config.security;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -14,14 +16,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.refunds.config.security.converter.RefundsJwtGrantedAuthoritiesConverter;
 import uk.gov.hmcts.reform.refunds.config.security.exception.RefundsAccessDeniedHandler;
@@ -33,6 +36,7 @@ import uk.gov.hmcts.reform.refunds.config.security.validator.MultiIssuerValidato
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,6 +48,8 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity
 @Configuration
 public class SpringSecurityConfiguration {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
 
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
@@ -158,12 +164,27 @@ public class SpringSecurityConfiguration {
 
     @Bean
     JwtDecoder jwtDecoder() {
-        NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder)
-            JwtDecoders.fromOidcIssuerLocation(issuerUri);
+        // Fetch OIDC provider configuration to discover actual issuer and JWKS URI
+        Map<String, Object> oidcConfig = fetchOidcConfiguration(issuerUri);
+        String discoveredIssuer = oidcConfig != null ? (String) oidcConfig.get("issuer") : null;
+        String jwksUri = oidcConfig != null ? (String) oidcConfig.get("jwks_uri") : null;
+
+        NimbusJwtDecoder jwtDecoder;
+        if (jwksUri != null) {
+            LOG.info("Building JwtDecoder from discovered JWKS URI: {}", jwksUri);
+            jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwksUri)
+                .jwsAlgorithm(SignatureAlgorithm.RS256)
+                .build();
+        } else {
+            LOG.warn("OIDC configuration fetch failed, falling back to standard OIDC discovery");
+            jwtDecoder = (NimbusJwtDecoder)
+                org.springframework.security.oauth2.jwt.JwtDecoders.fromOidcIssuerLocation(issuerUri);
+        }
 
         OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(List.of(allowedAudiences));
         OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-        List<String> validIssuers = Stream.of(issuerUri, issuerOverride)
+
+        List<String> validIssuers = Stream.of(issuerUri, issuerOverride, discoveredIssuer)
             .filter(s -> s != null && !s.isBlank())
             .collect(Collectors.toList());
         OAuth2TokenValidator<Jwt> withIssuers = new MultiIssuerValidator(validIssuers);
@@ -173,5 +194,17 @@ public class SpringSecurityConfiguration {
         jwtDecoder.setJwtValidator(combined);
 
         return jwtDecoder;
+    }
+
+    @java.lang.SuppressWarnings("unchecked")
+    private Map<String, Object> fetchOidcConfiguration(String oidcIssuerUri) {
+        try {
+            RestTemplate rest = new RestTemplate();
+            return rest.getForObject(
+                oidcIssuerUri + "/.well-known/openid-configuration", Map.class);
+        } catch (Exception ex) {
+            LOG.warn("Failed to fetch OIDC configuration from {}: {}", oidcIssuerUri, ex.getMessage());
+            return null;
+        }
     }
 }

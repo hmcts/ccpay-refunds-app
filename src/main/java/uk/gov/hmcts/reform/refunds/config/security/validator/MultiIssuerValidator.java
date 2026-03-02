@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.util.Assert;
 
 import java.util.List;
@@ -35,7 +36,10 @@ public class MultiIssuerValidator implements OAuth2TokenValidator<Jwt> {
 
     @Override
     public OAuth2TokenValidatorResult validate(Jwt jwt) {
-        String issuer = jwt.getIssuer() != null ? normalizeIssuer(jwt.getIssuer().toString()) : null;
+        String issuer = jwt.getClaimAsString(JwtClaimNames.ISS);
+        if (issuer != null) {
+            issuer = normalizeIssuer(issuer);
+        }
         if (issuer != null && validIssuers.contains(issuer)) {
             return OAuth2TokenValidatorResult.success();
         }
