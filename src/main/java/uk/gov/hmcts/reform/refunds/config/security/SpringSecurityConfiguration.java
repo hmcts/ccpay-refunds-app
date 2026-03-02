@@ -31,11 +31,12 @@ import uk.gov.hmcts.reform.refunds.config.security.utils.SecurityUtils;
 import uk.gov.hmcts.reform.refunds.config.security.validator.AudienceValidator;
 import uk.gov.hmcts.reform.refunds.config.security.validator.MultiIssuerValidator;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -160,9 +161,11 @@ public class SpringSecurityConfiguration {
         NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder)
             JwtDecoders.fromOidcIssuerLocation(issuerUri);
 
-        OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(Arrays.asList(allowedAudiences));
+        OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(List.of(allowedAudiences));
         OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-        List<String> validIssuers = Arrays.asList(issuerUri, issuerOverride);
+        List<String> validIssuers = Stream.of(issuerUri, issuerOverride)
+            .filter(s -> s != null && !s.isBlank())
+            .collect(Collectors.toList());
         OAuth2TokenValidator<Jwt> withIssuers = new MultiIssuerValidator(validIssuers);
 
         OAuth2TokenValidator<Jwt> combined = new DelegatingOAuth2TokenValidator<>(
