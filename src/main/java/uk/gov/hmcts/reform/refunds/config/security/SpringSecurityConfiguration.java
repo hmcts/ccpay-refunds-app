@@ -151,7 +151,6 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/refundstest").permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/refund/*").permitAll()
                 .requestMatchers("/jobs/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refunds/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund/refunds-report").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund/payment-failure-report").permitAll()
