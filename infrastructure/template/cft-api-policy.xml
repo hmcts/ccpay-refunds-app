@@ -34,7 +34,7 @@
                     Array.Reverse(challenge);
                 }
 
-                HMACSHA1 hmac = new HMACSHA1(secretKeyBytes);
+                HMACSHA256 hmac = new HMACSHA256(secretKeyBytes);
                 byte[] hash = hmac.ComputeHash(challenge);
                 int offset = hash[19] &amp; 0xf;
                 int truncatedHash = hash[offset] &amp; 0x7f;
