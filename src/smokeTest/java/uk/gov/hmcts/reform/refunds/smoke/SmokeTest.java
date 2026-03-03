@@ -52,6 +52,17 @@ public class SmokeTest {
                 .getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
+            // Debug: log the JWT issuer claim for diagnostics
+            try {
+                String rawToken = USER_TOKEN.replace("Bearer ", "");
+                String[] parts = rawToken.split("\\.");
+                if (parts.length >= 2) {
+                    String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
+                    log.info("JWT payload (for issuer diagnostics): {}", payload);
+                }
+            } catch (Exception e) {
+                log.warn("Could not decode JWT for diagnostics: {}", e.getMessage());
+            }
         }
     }
 
