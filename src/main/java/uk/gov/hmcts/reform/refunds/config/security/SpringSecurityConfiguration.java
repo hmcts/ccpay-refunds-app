@@ -115,7 +115,7 @@ public class SpringSecurityConfiguration {
 
         http
             .securityMatcher("/payment/**")
-            .addFilter(serviceAuthFilter)
+            .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .csrf(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
