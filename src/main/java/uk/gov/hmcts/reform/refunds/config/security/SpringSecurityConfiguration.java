@@ -124,8 +124,6 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.PATCH, "/payment/**").authenticated()
                 .anyRequest().authenticated()
             )
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
-            .oauth2Client(Customizer.withDefaults())
             .exceptionHandling(exception -> exception
                 .accessDeniedHandler(refundsAccessDeniedHandler)
                 .authenticationEntryPoint(refundsAuthenticationEntryPoint)
