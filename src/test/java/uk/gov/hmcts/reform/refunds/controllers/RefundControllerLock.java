@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +17,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
+import uk.gov.hmcts.reform.idam.client.models.UserInfo;
+import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -25,8 +31,11 @@ import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import java.math.BigDecimal;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -45,6 +54,12 @@ public class RefundControllerLock {
     @MockBean
     private LaunchDarklyFeatureToggler featureToggle;
 
+    @MockBean
+    private ServiceAuthFilter serviceAuthFilter;
+
+    @MockBean
+    private IdamRepository idamRepository;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -55,7 +70,13 @@ public class RefundControllerLock {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        doAnswer(invocation -> {
+            FilterChain chain = invocation.getArgument(2);
+            chain.doFilter(invocation.getArgument(0), invocation.getArgument(1));
+            return null;
+        }).when(serviceAuthFilter).doFilter(
+            any(ServletRequest.class), any(ServletResponse.class), any(FilterChain.class));
         mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
@@ -232,11 +253,13 @@ public class RefundControllerLock {
 
     @Test
     public void patchRefundWithInsufficientRoleShouldReturn403() throws Exception {
+        when(idamRepository.getUserInfo(anyString())).thenReturn(
+            UserInfo.builder().uid("test-uid").roles(Collections.singletonList("payments")).build());
         MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
             .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
         securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
-                .with(jwt().authorities(new SimpleGrantedAuthority("citizen")))
+                .with(jwt().authorities(new SimpleGrantedAuthority("payments")))
                 .content(asJsonString(request))
                 .header("ServiceAuthorization", "Services")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -246,6 +269,8 @@ public class RefundControllerLock {
 
     @Test
     public void patchRefundWithRefundRoleShouldNotReturn401Or403() throws Exception {
+        when(idamRepository.getUserInfo(anyString())).thenReturn(
+            UserInfo.builder().uid("test-uid").roles(Collections.singletonList("payments-refund")).build());
         MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
             .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
