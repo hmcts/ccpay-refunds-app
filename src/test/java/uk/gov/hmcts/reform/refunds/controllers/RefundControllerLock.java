@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
@@ -26,6 +28,8 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -214,5 +218,46 @@ public class RefundControllerLock {
             .andReturn();
     }
 
+    @Test
+    public void patchRefundWithoutAuthShouldReturn401() throws Exception {
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .content(asJsonString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void patchRefundWithInsufficientRoleShouldReturn403() throws Exception {
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .with(jwt().authorities(new SimpleGrantedAuthority("citizen")))
+                .content(asJsonString(request))
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void patchRefundWithRefundRoleShouldNotReturn401Or403() throws Exception {
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        int status = securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .with(jwt().authorities(new SimpleGrantedAuthority("payments-refund")))
+                .content(asJsonString(request))
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getStatus();
+        Assertions.assertTrue(status != 401 && status != 403,
+            "Expected status other than 401/403 but got " + status);
+    }
 
 }
