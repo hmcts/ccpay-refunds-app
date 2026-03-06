@@ -285,4 +285,22 @@ public class RefundControllerLock {
             "Expected status other than 401/403 but got " + status);
     }
 
+    @Test
+    public void patchRefundWithApproverRoleShouldNotReturn401Or403() throws Exception {
+        when(idamRepository.getUserInfo(anyString())).thenReturn(
+            UserInfo.builder().uid("test-uid").roles(Collections.singletonList("payments-refund-approver")).build());
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        int status = securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .with(jwt().authorities(new SimpleGrantedAuthority("payments-refund-approver")))
+                .content(asJsonString(request))
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getStatus();
+        Assertions.assertTrue(status != 401 && status != 403,
+            "Expected status other than 401/403 but got " + status);
+    }
+
 }
