@@ -28,7 +28,7 @@ apply from: 'liquibase.gradle'
 group = 'uk.gov.hmcts.reform'
 version = '0.0.1'
 
-def springCloudVersion = '2024.0.1'
+def springCloudVersion = '2025.1.1'
 def javaLoggingVersion = '8.0.0'
 
 java {
