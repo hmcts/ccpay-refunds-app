@@ -1904,6 +1904,7 @@ public class RefundsApproverJourneyFunctionalTest {
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
         assertThat(refundEvents.size()).isEqualTo(3);
         Response cancelResponse = paymentTestService.patchCancelRefunds(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             paymentReference
         );
@@ -1939,6 +1940,7 @@ public class RefundsApproverJourneyFunctionalTest {
         List<RefundEvent> refundEvents = response.getBody().jsonPath().get("$");
         assertThat(refundEvents.size()).isEqualTo(3);
         Response cancelResponse = paymentTestService.patchCancelRefunds(
+            USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             paymentReference
         );
