@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.RefundFeeNotFoundInPaymentExceptio
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundReasonNotFoundException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReportException;
 import uk.gov.hmcts.reform.refunds.exceptions.ReissueExpiredRefundException;
 import uk.gov.hmcts.reform.refunds.exceptions.RetrospectiveRemissionNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.UnequalRemissionAmountWithRefundRaisedException;
@@ -63,12 +64,11 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({PaymentInvalidRequestException.class, RefundListEmptyException.class, ActionNotFoundException.class,
         InvalidRefundRequestException.class, InvalidRefundReviewRequestException.class, InvalidRefundNotificationResendRequestException.class,
-        ReissueExpiredRefundException.class})
+        ReissueExpiredRefundException.class, RefundReportException.class})
     public ResponseEntity return400(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
-
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException ex) {

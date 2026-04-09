@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.refunds.repository;
 
+import jakarta.persistence.Tuple;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundNotFoundException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -49,4 +51,17 @@ public interface RefundsRepository extends ListCrudRepository<Refund, Integer>, 
         + "where rf.paymentReference = ?1  AND (rf.refundStatus.name = 'Approved' or rf.refundStatus.name = 'Accepted')"
         + "AND rf.reference NOT IN(?2)")
     List<Refund> findAllByPaymentReference(String paymentReference,String reference);
+
+    @Query(value = "SELECT r.date_created,r.date_updated,r.amount,"
+        + "r.reference,r.payment_reference,r.ccd_case_number,"
+        + "r.service_type,r.refund_status,sh.notes "
+        + "FROM refunds r "
+        + "INNER JOIN status_history sh ON r.id = sh.refunds_id AND r.refund_status = sh.status "
+        + "WHERE ( r.refund_status IN ('Accepted', 'Approved','Cancelled','Expired','Reissued','Closed') "
+        + "OR (r.refund_status = 'Rejected' and sh.created_by = 'Middle office provider') ) "
+        + "AND r.date_created BETWEEN :fromDate AND :toDate "
+        + "ORDER BY r.date_created ASC", nativeQuery = true)
+    List<Tuple> findAllRefundsByDateCreatedBetween(
+        @Param("fromDate") Date fromDate,
+        @Param("toDate") Date toDate);
 }

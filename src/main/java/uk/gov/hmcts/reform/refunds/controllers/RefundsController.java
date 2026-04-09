@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.reform.refunds.dtos.RefundsReportDto;
+import uk.gov.hmcts.reform.refunds.dtos.RefundsReportResponse;
 import uk.gov.hmcts.reform.refunds.dtos.SupplementaryDetailsResponse;
 import uk.gov.hmcts.reform.refunds.dtos.enums.NotificationType;
 import uk.gov.hmcts.reform.refunds.dtos.requests.DocPreviewRequest;
@@ -48,6 +50,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.ResubmitRefundResponseDto;
 import uk.gov.hmcts.reform.refunds.dtos.responses.StatusHistoryResponseDto;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.RefundListEmptyException;
+import uk.gov.hmcts.reform.refunds.exceptions.RefundReportException;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundReason;
 import uk.gov.hmcts.reform.refunds.services.IacService;
@@ -62,10 +65,16 @@ import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.ReviewerAction;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.http.ResponseEntity.ok;
+import static uk.gov.hmcts.reform.refunds.utils.DateUtil.atEndOfDay;
+import static uk.gov.hmcts.reform.refunds.utils.DateUtil.atStartOfDay;
+import static uk.gov.hmcts.reform.refunds.utils.DateUtil.toDdMmYyyy;
 
 @RestController
 @Validated
@@ -436,4 +445,37 @@ public class RefundsController {
         );
     }
 
+    @Operation(summary = "API to generate report for refunds ",
+        description = "Get list of refunds by providing date range. MM/dd/yyyy is  the supported date/time format.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Report Generated"),
+        @ApiResponse(responseCode = "400", description = "Invalid dates"),
+        @ApiResponse(responseCode = "404", description = "No Data found to generate Report"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    @GetMapping("/refund/refunds-report")
+    public RefundsReportResponse retrieveRefundsReport(@RequestParam("date_from") String fromDateStr,
+                                                       @RequestParam("date_to") String toDateStr,
+                                                       @RequestHeader(required = false) MultiValueMap<String, String> headers,
+                                                       @RequestHeader("Authorization") String authorization) {
+
+        LOG.info("Received refunds report request");
+
+        Date fromDate;
+        Date toDate;
+        try {
+            String fromDateFormatted = toDdMmYyyy(fromDateStr);
+            String toDateFormatted = toDdMmYyyy(toDateStr);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            sdf.setLenient(false);
+
+            fromDate = sdf.parse(fromDateFormatted);
+            toDate = sdf.parse(toDateFormatted);
+        } catch (ParseException | IllegalArgumentException e) {
+            throw new RefundReportException("Invalid date format. Use dd/MM/yyyy.");
+        }
+
+        List<RefundsReportDto> refundsReportDto =  refundsService.refundsReport(atStartOfDay(fromDate), atEndOfDay(toDate), headers);
+        return new RefundsReportResponse(refundsReportDto);
+    }
 }

@@ -2,6 +2,8 @@
 
 @Library("Infrastructure")
 
+import uk.gov.hmcts.contino.AppPipelineDsl
+
 def type = "java"
 def product = "ccpay"
 def app = "refunds-api"
@@ -112,6 +114,8 @@ withPipeline(type, product, app) {
       reportName           : "CCPAY Refunds PREVIEW API Functional Test Report"
     ]
 
+    junit allowEmptyResults: true, testResults: 'build/test-results/functional/**/*.xml'
+
     publishHTML target: [
       reportDir            : "target/site/serenity/",
       allowMissing         : true,
@@ -146,6 +150,7 @@ withPipeline(type, product, app) {
       reportName           : "CCPAY Refunds AAT Functional Tests",
       alwaysLinkToLastBuild: true
     ]
+    junit allowEmptyResults: true, testResults: 'build/test-results/functional/**/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
 
@@ -158,6 +163,12 @@ withPipeline(type, product, app) {
     env.NOTIFICATION_API_URL = "https://ccpay-notifications-service-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.REFUND_API_URL = "https://ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
     env.BULKSCAN_API_URL = "https://ccpay-bulkscanning-api-ccpay-refunds-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
+    enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
+  }
+
+  onMaster() {
+    env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
+    enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
   }
 }
-

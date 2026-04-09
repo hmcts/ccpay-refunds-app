@@ -195,6 +195,13 @@ public class PaymentTestService {
             .get("/refund/payment-failure-report");
     }
 
+    public Response getRefundsByStartAndEndDate(String userToken, String serviceToken, String dateFrom, String dateTo) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/refund/refunds-report?date_from={dateFrom}&date_to={dateTo}", dateFrom, dateTo);
+
+    }
+
     public Response reissueExpiredRefund(final String userToken, final String serviceToken,
                                    final String refundReference) {
         return givenWithAuthHeaders(userToken, serviceToken)
