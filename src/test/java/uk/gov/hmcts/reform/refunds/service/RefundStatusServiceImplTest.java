@@ -106,6 +106,8 @@ public class RefundStatusServiceImplTest {
     @BeforeEach
     void setUp() throws Exception {
         mocks = MockitoAnnotations.openMocks(this);
+        setField(refundStatusService, "liberataUsername", "liberata-user");
+        setField(refundStatusService, "liberataPassword", "liberata-pass");
         // Set arbitrary template IDs for testing
         setField(refundsUtil, "chequePoCashLetterTemplateId", "CHEQUE_PO_CASH_LETTER_ID");
         setField(refundsUtil, "chequePoCashEmailTemplateId", "CHEQUE_PO_CASH_EMAIL_ID");
@@ -156,7 +158,7 @@ public class RefundStatusServiceImplTest {
         request.setReason("Accepted");
         final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
-        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+        when(idamService.getSecurityTokens(any(),any())).thenReturn(idamTokenResponse);
         stubNotificationService();
         doNothing().when(notificationService).updateNotification(any(), any(), any(), anyString());
         ResponseEntity<?> response = refundStatusService.updateRefundStatus("RF-1234-5678-9012-3456", request, headers);
@@ -191,7 +193,7 @@ public class RefundStatusServiceImplTest {
         request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
         request.setReason(null);
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
-        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+        when(idamService.getSecurityTokens(any(),any())).thenReturn(idamTokenResponse);
         stubNotificationService();
         refund.setContactDetails(contactDetails);
         doNothing().when(notificationService).updateNotification(any(), any(), any(), anyString());
@@ -220,7 +222,7 @@ public class RefundStatusServiceImplTest {
         request.setReason(null);
         final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
-        when(idamService.getSecurityTokens()).thenReturn(idamTokenResponse);
+        when(idamService.getSecurityTokens(any(),any())).thenReturn(idamTokenResponse);
         stubNotificationService();
         refund.setContactDetails(contactDetails);
         doNothing().when(notificationService).updateNotification(any(), any(), any(), anyString());
@@ -251,6 +253,132 @@ public class RefundStatusServiceImplTest {
     }
 
     @Test
+    void testAcceptedStatusWhenNotificationMissingStillReturnsNoContent() {
+        Refund refund = new Refund();
+        refund.setReference("RF-NOTIFICATION-MISSING-0001");
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+        when(statusHistoryUtil.isAClonedRefund(refund)).thenReturn(false);
+        when(statusHistoryUtil.getOriginalRefundReference(refund)).thenReturn(refund.getReference());
+        when(statusHistoryUtil.getOriginalNoteForRejected(refund)).thenReturn(null);
+
+        RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
+        request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
+        request.setReason("Accepted");
+
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
+        when(idamService.getSecurityTokens(any(), any())).thenReturn(idamTokenResponse);
+        when(notificationService.getNotificationDetails(any(), anyString())).thenReturn(null);
+        doNothing().when(notificationService).updateNotification(any(), any(), any(), anyString());
+
+        ResponseEntity<?> response = refundStatusService.updateRefundStatus(
+            refund.getReference(),
+            request,
+            new LinkedMultiValueMap<>()
+        );
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals("Refund status updated successfully", response.getBody());
+        assertEquals(RefundStatus.ACCEPTED, refund.getRefundStatus());
+    }
+
+    @Test
+    void testAcceptedStatusWithNonMatchingOriginalRejectReasonDoesNotSetRefundWhenContacted() {
+        Refund refund = new Refund();
+        refund.setReference("RF-NON-MATCHING-ORIGINAL-NOTE-0001");
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+        when(statusHistoryUtil.isAClonedRefund(refund)).thenReturn(false);
+        when(statusHistoryUtil.getOriginalRefundReference(refund)).thenReturn(refund.getReference());
+        when(statusHistoryUtil.getOriginalNoteForRejected(refund)).thenReturn("Different note");
+
+        RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
+        request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED);
+        request.setReason("Accepted");
+
+        IdamTokenResponse idamTokenResponse = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("token").build();
+        when(idamService.getSecurityTokens(any(), any())).thenReturn(idamTokenResponse);
+        stubNotificationService();
+        doNothing().when(notificationService).updateNotification(any(), any(), any(), anyString());
+
+        ResponseEntity<?> response = refundStatusService.updateRefundStatus(
+            refund.getReference(),
+            request,
+            new LinkedMultiValueMap<>()
+        );
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals("Refund status updated successfully", response.getBody());
+        assertEquals(RefundStatus.ACCEPTED, refund.getRefundStatus());
+        assertEquals(null, refund.getRefundInstructionType());
+    }
+
+    @Test
+    void testRejectedRefundWhenContactedReasonMovesToApprovedBySystem() {
+        Refund refund = new Refund();
+        refund.setReference("RF-REJECTED-TO-APPROVED-0001");
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+
+        RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
+        request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED);
+        request.setReason(RefundsUtil.REFUND_WHEN_CONTACTED_REJECT_REASON);
+
+        ResponseEntity<?> response = refundStatusService.updateRefundStatus(
+            refund.getReference(),
+            request,
+            new LinkedMultiValueMap<>()
+        );
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals("Refund status updated successfully", response.getBody());
+        assertEquals(RefundStatus.APPROVED, refund.getRefundStatus());
+        assertEquals(RefundsUtil.REFUND_WHEN_CONTACTED, refund.getRefundInstructionType());
+        assertEquals("System user", refund.getUpdatedBy());
+    }
+
+    @Test
+    void testRejectedRefundWithNonMatchingReasonStaysRejected() {
+        Refund refund = new Refund();
+        refund.setReference("RF-REJECTED-NON-MATCH-0001");
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+
+        RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
+        request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED);
+        request.setReason("Some other rejection reason");
+
+        ResponseEntity<?> response = refundStatusService.updateRefundStatus(
+            refund.getReference(),
+            request,
+            new LinkedMultiValueMap<>()
+        );
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals("Refund status updated successfully", response.getBody());
+        assertEquals(RefundStatus.REJECTED, refund.getRefundStatus());
+        assertEquals("Middle office provider", refund.getUpdatedBy());
+    }
+
+    @Test
+    void testRejectedRefundWithNullReasonStaysRejected() {
+        Refund refund = new Refund();
+        refund.setReference("RF-REJECTED-NULL-REASON-0001");
+        when(refundsRepository.findByReferenceOrThrow(anyString())).thenReturn(refund);
+
+        RefundStatusUpdateRequest request = new RefundStatusUpdateRequest();
+        request.setStatus(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.REJECTED);
+        request.setReason(null);
+
+        ResponseEntity<?> response = refundStatusService.updateRefundStatus(
+            refund.getReference(),
+            request,
+            new LinkedMultiValueMap<>()
+        );
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals("Refund status updated successfully", response.getBody());
+        assertEquals(RefundStatus.REJECTED, refund.getRefundStatus());
+        assertEquals("Middle office provider", refund.getUpdatedBy());
+    }
+
+    @Test
     void testGetOriginalRefund_cloned_returnsExtractedReference() {
         Refund refund = new Refund();
         refund.setReference("RF-CLONED-REF-0001");
@@ -271,5 +399,3 @@ public class RefundStatusServiceImplTest {
         assertEquals(null, result);
     }
 }
-
-

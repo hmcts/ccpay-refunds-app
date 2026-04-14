@@ -95,8 +95,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 LIBERATA_REASON)
             ));
 
-            //IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens(liberataUsername,liberataPassword);
-            IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+            IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens(liberataUsername,liberataPassword);
             String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
             headers.put("authorization", Collections.singletonList(authorization));
             Notification notificationDetails = notificationService.getNotificationDetails(headers, originalRefundReference);
