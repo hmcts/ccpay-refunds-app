@@ -90,6 +90,10 @@ idam:
     totp_secret: ${OIDC_S2S_SECRET}
     microservice: ${OIDC_S2S_MICROSERVICE_NAME}
 
+liberataUser:
+  username: ${LIBERATA_USERNAME:ccpay-liberata-user-id}
+  password: ${LIBERATA_USER_PASSWORD:ccpay-liberata-user-password}
+
 refunds:
   serviceAccount:
     clientId: ${REFUND_SERVICE_ACCOUNT_CLIENT_ID:}

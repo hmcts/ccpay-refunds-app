@@ -228,6 +228,33 @@ public class IdamServiceImpl implements IdamService {
         return idamTokenResponse.getBody();
     }
 
+
+    public IdamTokenResponse getSecurityTokens(String username, String password) {
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+            .fromUriString(idamBaseUrl + TOKEN_ENDPOINT)
+            .queryParam("client_id", serviceClientId)
+            .queryParam("client_secret", serviceClientSecret)
+            .queryParam("grant_type", serviceGrantType)
+            .queryParam("password", password)
+            .queryParam("redirect_uri", redirectUri)
+            .queryParam("scope", serviceScope)
+            .queryParam("username", username);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        ResponseEntity<IdamTokenResponse> idamTokenResponse = restTemplateIdam.exchange(
+            builder.build(false).toUriString(),
+            HttpMethod.POST,
+            new HttpEntity<>(httpHeaders, EMPTY),
+            IdamTokenResponse.class
+        );
+
+        return idamTokenResponse.getBody();
+    }
+
+
+
     private StringBuilder getRoles(List<String> roles) {
         StringBuilder rolesValue = new StringBuilder("(");
         if (!roles.isEmpty()) {
