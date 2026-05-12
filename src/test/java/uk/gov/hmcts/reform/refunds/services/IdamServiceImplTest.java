@@ -17,6 +17,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
@@ -44,6 +45,9 @@ public class IdamServiceImplTest {
 
     @Mock
     private RestTemplate restTemplateIdam;
+
+    @Mock
+    private IdamClient idamClient;
 
     @BeforeEach
     void setUp() {
@@ -254,17 +258,13 @@ public class IdamServiceImplTest {
 
     @Test
     void getSecurityTokensWithUsernameAndPasswordUsesProvidedCredentials() {
-        IdamTokenResponse token = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("user-token").build();
-        when(restTemplateIdam.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(IdamTokenResponse.class)))
-            .thenReturn(ResponseEntity.ok(token));
+        when(idamClient.getAccessToken("lib-user", "lib-pass")).thenReturn("user-token");
 
-        IdamTokenResponse actual = idamService.getSecurityTokens("lib-user", "lib-pass");
+        String actual = idamService.getSecurityTokens("lib-user", "lib-pass");
 
-        assertEquals("user-token", actual.getAccessToken());
-        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-        verify(restTemplateIdam).exchange(urlCaptor.capture(), eq(HttpMethod.POST), any(HttpEntity.class),
-                                          eq(IdamTokenResponse.class));
-        assertTrue(urlCaptor.getValue().contains("username=lib-user"));
-        assertTrue(urlCaptor.getValue().contains("password=lib-pass"));
+        assertEquals("user-token", actual);
+        verify(idamClient).getAccessToken("lib-user", "lib-pass");
+        verify(restTemplateIdam, never()).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class),
+                                                   eq(IdamTokenResponse.class));
     }
 }

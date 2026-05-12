@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
-import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -50,6 +50,9 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
 
     @Autowired
     RefundsUtil refundsUtil;
+
+    @Autowired
+    private IdamClient idamClient;
 
     @Value("${liberataUser.username}")
     private String liberataUsername;
@@ -95,8 +98,7 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 LIBERATA_REASON)
             ));
 
-            IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens(liberataUsername,liberataPassword);
-            String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
+            String authorization = idamService.getSecurityTokens(liberataUsername,liberataPassword);
             headers.put("authorization", Collections.singletonList(authorization));
             Notification notificationDetails = notificationService.getNotificationDetails(headers, originalRefundReference);
 

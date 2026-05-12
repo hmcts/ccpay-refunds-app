@@ -18,6 +18,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserIdResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamUserInfoResponse;
@@ -74,6 +75,9 @@ public class IdamServiceImpl implements IdamService {
 
     @Value("${refunds.serviceAccount.redirectUri}")
     private String redirectUri;
+
+    @Autowired
+    private IdamClient idamClient;
 
 
     @Override
@@ -229,28 +233,24 @@ public class IdamServiceImpl implements IdamService {
     }
 
 
-    public IdamTokenResponse getSecurityTokens(String username, String password) {
-        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
-            .fromUriString(idamBaseUrl + TOKEN_ENDPOINT)
-            .queryParam("client_id", serviceClientId)
-            .queryParam("client_secret", serviceClientSecret)
-            .queryParam("grant_type", serviceGrantType)
-            .queryParam("password", password)
-            .queryParam("redirect_uri", redirectUri)
-            .queryParam("scope", serviceScope)
-            .queryParam("username", username);
 
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+    public String getSecurityTokens(String username, String password) {
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            throw new IllegalArgumentException("username and password must be provided");
+        }
 
-        ResponseEntity<IdamTokenResponse> idamTokenResponse = restTemplateIdam.exchange(
-            builder.build(false).toUriString(),
-            HttpMethod.POST,
-            new HttpEntity<>(httpHeaders, EMPTY),
-            IdamTokenResponse.class
-        );
+        try {
+            String tokenResponse = idamClient.getAccessToken(username, password);
 
-        return idamTokenResponse.getBody();
+            if (tokenResponse == null || tokenResponse.isBlank()) {
+                throw new GatewayTimeoutException("Unable to retrieve access token. Please try again later");
+            }
+
+            return tokenResponse;
+        } catch (Exception ex) {
+            LOG.error("Failed to retrieve IDAM access token", ex);
+            throw new GatewayTimeoutException("Unable to retrieve access token. Please try again later");
+        }
     }
 
 
