@@ -272,7 +272,7 @@ public class IdamServiceImplTest {
     @Test
     void getSecurityTokensWithUsernameAndPasswordThrowsIllegalArgumentExceptionWhenUsernameIsNull() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                   () -> idamService.getSecurityTokens(null, "pass"));
+            () -> idamService.getSecurityTokens(null, "pass"));
         assertEquals("username and password must be provided", ex.getMessage());
         verify(idamClient, never()).getAccessToken(anyString(), anyString());
     }
@@ -280,7 +280,7 @@ public class IdamServiceImplTest {
     @Test
     void getSecurityTokensWithUsernameAndPasswordThrowsIllegalArgumentExceptionWhenUsernameIsBlank() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                   () -> idamService.getSecurityTokens("   ", "pass"));
+            () -> idamService.getSecurityTokens("   ", "pass"));
         assertEquals("username and password must be provided", ex.getMessage());
         verify(idamClient, never()).getAccessToken(anyString(), anyString());
     }
@@ -288,7 +288,7 @@ public class IdamServiceImplTest {
     @Test
     void getSecurityTokensWithUsernameAndPasswordThrowsIllegalArgumentExceptionWhenPasswordIsNull() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                   () -> idamService.getSecurityTokens("user", null));
+            () -> idamService.getSecurityTokens("user", null));
         assertEquals("username and password must be provided", ex.getMessage());
         verify(idamClient, never()).getAccessToken(anyString(), anyString());
     }
@@ -296,7 +296,7 @@ public class IdamServiceImplTest {
     @Test
     void getSecurityTokensWithUsernameAndPasswordThrowsIllegalArgumentExceptionWhenPasswordIsBlank() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                   () -> idamService.getSecurityTokens("user", "\t"));
+            () -> idamService.getSecurityTokens("user", "\t"));
         assertEquals("username and password must be provided", ex.getMessage());
         verify(idamClient, never()).getAccessToken(anyString(), anyString());
     }
@@ -306,7 +306,7 @@ public class IdamServiceImplTest {
         when(idamClient.getAccessToken("user", "pass")).thenReturn(null);
 
         GatewayTimeoutException ex = assertThrows(GatewayTimeoutException.class,
-                                                  () -> idamService.getSecurityTokens("user", "pass"));
+            () -> idamService.getSecurityTokens("user", "pass"));
         assertEquals("Unable to retrieve access token. Please try again later", ex.getMessage());
         verify(idamClient).getAccessToken("user", "pass");
     }
@@ -316,7 +316,7 @@ public class IdamServiceImplTest {
         when(idamClient.getAccessToken("user", "pass")).thenReturn("  ");
 
         GatewayTimeoutException ex = assertThrows(GatewayTimeoutException.class,
-                                                  () -> idamService.getSecurityTokens("user", "pass"));
+            () -> idamService.getSecurityTokens("user", "pass"));
         assertEquals("Unable to retrieve access token. Please try again later", ex.getMessage());
         verify(idamClient).getAccessToken("user", "pass");
     }
@@ -326,7 +326,7 @@ public class IdamServiceImplTest {
         when(idamClient.getAccessToken("user", "pass")).thenThrow(new RuntimeException("boom"));
 
         GatewayTimeoutException ex = assertThrows(GatewayTimeoutException.class,
-                                                  () -> idamService.getSecurityTokens("user", "pass"));
+            () -> idamService.getSecurityTokens("user", "pass"));
         assertEquals("Unable to retrieve access token. Please try again later", ex.getMessage());
         verify(idamClient).getAccessToken("user", "pass");
     }
