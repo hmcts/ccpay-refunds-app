@@ -22,7 +22,9 @@ def secrets = [
     secret('paybubble-idam-client-secret','IDAM_PAYBUBBLE_CLIENT_SECRET'),
     secret('notifications-email-apikey', 'NOTIFY_API_KEY'),
     secret('probate-caseworker-username', 'PROBATE_CASE_WORKER_USER_NAME'),
-    secret('probate-caseworker-password', 'PROBATE_CASE_WORKER_PASSWORD')
+    secret('probate-caseworker-password', 'PROBATE_CASE_WORKER_PASSWORD'),
+    secret('ccpay-liberata-user-id', 'LIBERATA_USERNAME'),
+    secret('ccpay-liberata-password', 'LIBERATA_PASSWORD')
   ]
 ]
 
