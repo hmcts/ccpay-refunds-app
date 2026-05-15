@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.UserNotFoundException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -254,5 +255,45 @@ public class IdamServiceImplTest {
         IdamTokenResponse actual = idamService.getSecurityTokens();
 
         assertEquals("service-token", actual.getAccessToken());
+    }
+
+    @Test
+    void getSecurityTokensWithCredentialsReturnsBody() {
+        IdamTokenResponse token = IdamTokenResponse.idamFullNameRetrivalResponseWith()
+            .accessToken("user-token")
+            .build();
+        when(restTemplateIdam.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(IdamTokenResponse.class)))
+            .thenReturn(ResponseEntity.ok(token));
+
+        IdamTokenResponse actual = idamService.getSecurityTokens("lib-user", "lib-pass");
+
+        assertEquals("user-token", actual.getAccessToken());
+    }
+
+    @Test
+    void getSecurityTokensWithCredentialsReturnsNullWhenBodyIsNull() {
+        when(restTemplateIdam.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(IdamTokenResponse.class)))
+            .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+
+        IdamTokenResponse actual = idamService.getSecurityTokens("lib-user", "lib-pass");
+
+        assertNull(actual);
+    }
+
+    @Test
+    void getSecurityTokensWithCredentialsIncludesUsernameAndPasswordInUrl() {
+        IdamTokenResponse token = IdamTokenResponse.idamFullNameRetrivalResponseWith().accessToken("user-token").build();
+        when(restTemplateIdam.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(IdamTokenResponse.class)))
+            .thenReturn(ResponseEntity.ok(token));
+
+        idamService.getSecurityTokens("user.name@example.com", "P@ss word");
+
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(restTemplateIdam).exchange(urlCaptor.capture(), eq(HttpMethod.POST), any(HttpEntity.class),
+                                          eq(IdamTokenResponse.class));
+        String url = urlCaptor.getValue();
+        assertTrue(url.contains("username="));
+        assertTrue(url.contains("password="));
+        assertTrue(url.contains("client_id=client-id"));
     }
 }
