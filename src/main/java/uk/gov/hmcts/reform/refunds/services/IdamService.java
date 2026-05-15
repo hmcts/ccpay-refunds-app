@@ -17,7 +17,7 @@ public interface IdamService {
 
     IdamTokenResponse  getSecurityTokens();
 
-    String getSecurityTokens(String username, String password);
+    IdamTokenResponse getSecurityTokens(String username, String password);
 
 
 }
