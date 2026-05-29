@@ -144,7 +144,7 @@ public class RefundStatusServiceImplTest {
         }
     }
 
-    //@Test
+    @Test
     void testCardPaymentUpdateRefundStatusAccepted_OriginalRefundRejected() {
         Refund refund = new Refund();
         refund.setReference("RF-1234-5678-9012-3456");
