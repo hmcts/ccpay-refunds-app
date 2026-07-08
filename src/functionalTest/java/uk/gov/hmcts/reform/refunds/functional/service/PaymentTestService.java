@@ -73,9 +73,12 @@ public class PaymentTestService {
                                   final String serviceToken,
                                   final String ccdCaseNumber,
                                   final String status,
-                                  final String excludeCurrentUser) {
+                                  final String excludeCurrentUser,
+                                  final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
-            .contentType(ContentType.JSON).when()
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .when()
             .queryParams("ccdCaseNumber", ccdCaseNumber)
             .queryParams("status", status)
             .queryParam("excludeCurrentUser", excludeCurrentUser)
@@ -85,9 +88,12 @@ public class PaymentTestService {
     public Response getRefundList(final String userToken,
                                   final String serviceToken,
                                   final String status,
-                                  final String excludeCurrentUser) {
+                                  final String excludeCurrentUser,
+                                  final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
-            .contentType(ContentType.JSON).when()
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .when()
             .queryParams("status", status)
             .queryParam("excludeCurrentUser", excludeCurrentUser)
             .get("/refund");
@@ -95,9 +101,12 @@ public class PaymentTestService {
 
     public Response getRefundList(final String userToken,
                                   final String serviceToken,
-                                  final String ccdCaseNumber) {
+                                  final String ccdCaseNumber,
+                                  final String baseUri) {
         return givenWithAuthHeaders(userToken, serviceToken)
-            .contentType(ContentType.JSON).when()
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .when()
             .queryParams("ccdCaseNumber", ccdCaseNumber)
             .get("/refund");
     }

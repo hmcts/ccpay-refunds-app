@@ -2995,7 +2995,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
     private RefundDto getRefundListByCaseNumber(String ccdCaseNumber, String refundReference) {
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       ccdCaseNumber
+                                                                       ccdCaseNumber,
+                                                                       testConfigProperties.baseTestUrl
         );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
@@ -3007,7 +3008,8 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
     private RefundDto getRefundListByCaseNumberAndStatus(String ccdCaseNumber, String refundReference, String status) {
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       ccdCaseNumber, status, "false"
+                                                                       ccdCaseNumber, status, "false",
+                                                                       testConfigProperties.baseTestUrl
         );
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
