@@ -225,8 +225,8 @@ public class RefundsApproverJourneyFunctionalTest {
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse =
             paymentTestService.getRefundList(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
-                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber
-            );
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber,
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(NO_CONTENT.value());
     }
 
@@ -565,8 +565,8 @@ public class RefundsApproverJourneyFunctionalTest {
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse =
             paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE_WITHOUT_SERVICE,
-                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber
-            );
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber,
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
         assertEquals(refundListDtoResponse.getRefundList().size(), 3);
@@ -747,8 +747,8 @@ public class RefundsApproverJourneyFunctionalTest {
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_ROLE_WITH_PROBATE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                                                              "Sent for approval",
-                                                                             "false"
-        );
+                                                                             "false",
+            testConfigProperties.baseTestUrl);
 
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
@@ -921,8 +921,8 @@ public class RefundsApproverJourneyFunctionalTest {
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse =
             paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_APPROVER_ROLE,
-                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber
-            );
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber,
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
         assertThat(refundListDtoResponse.getRefundList().get(0).getRefundStatus().getName())
@@ -1258,8 +1258,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             ccdCaseNumber, "Update required", "false"
-        );
+                                                                             ccdCaseNumber, "Update required", "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
@@ -1329,8 +1329,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             ccdCaseNumber, "Update required", "false"
-        );
+                                                                             ccdCaseNumber, "Update required", "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
@@ -1618,8 +1618,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             ccdCaseNumber, "Update required", "false"
-        );
+                                                                             ccdCaseNumber, "Update required", "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
@@ -1654,8 +1654,8 @@ public class RefundsApproverJourneyFunctionalTest {
                                                                                         SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                                                                         ccdCaseNumber,
                                                                                         "Sent for approval",
-                                                                                        "false"
-        );
+                                                                                        "false",
+            testConfigProperties.baseTestUrl);
 
         final RefundListDtoResponse refundsListDtosAfterUpdate = refundListResponseAfterUpdate.getBody().as(
             RefundListDtoResponse.class);
@@ -1689,8 +1689,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             ccdCaseNumber, "Update required", "false"
-        );
+                                                                             ccdCaseNumber, "Update required", "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
@@ -1726,8 +1726,8 @@ public class RefundsApproverJourneyFunctionalTest {
                                                                                         SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                                                                         ccdCaseNumber,
                                                                                         "Sent for approval",
-                                                                                        "false"
-        );
+                                                                                        "false",
+            testConfigProperties.baseTestUrl);
 
         final RefundListDtoResponse refundsListDtosAfterUpdate = refundListResponseAfterUpdate.getBody().as(
             RefundListDtoResponse.class);
@@ -1762,8 +1762,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             ccdCaseNumber, "Update required", "false"
-        );
+                                                                             ccdCaseNumber, "Update required", "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
@@ -1799,8 +1799,8 @@ public class RefundsApproverJourneyFunctionalTest {
                                                                                         SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                                                                         ccdCaseNumber,
                                                                                         "Sent for approval",
-                                                                                        "false"
-        );
+                                                                                        "false",
+            testConfigProperties.baseTestUrl);
 
         final RefundListDtoResponse refundsListDtosAfterUpdate = refundListResponseAfterUpdate.getBody().as(
             RefundListDtoResponse.class);
@@ -1836,8 +1836,8 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                              SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                             ccdCaseNumber, "Update required", "false"
-        );
+                                                                             ccdCaseNumber, "Update required", "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         final RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
@@ -1873,8 +1873,8 @@ public class RefundsApproverJourneyFunctionalTest {
                                                                                         SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
                                                                                         ccdCaseNumber,
                                                                                         "Sent for approval",
-                                                                                        "false"
-        );
+                                                                                        "false",
+            testConfigProperties.baseTestUrl);
 
         final RefundListDtoResponse refundsListDtosAfterUpdate = refundListResponseAfterUpdate.getBody().as(
             RefundListDtoResponse.class);
@@ -1974,8 +1974,8 @@ public class RefundsApproverJourneyFunctionalTest {
         // verify that contact details is registered
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       ccdCaseNumber, "Sent for approval", "false"
-        );
+                                                                       ccdCaseNumber, "Sent for approval", "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         Optional<RefundDto> optionalRefundDto = refundsListDto.getRefundList().stream()
@@ -1999,8 +1999,8 @@ public class RefundsApproverJourneyFunctionalTest {
         // verify that contact details is erased
         refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                               SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                              ccdCaseNumber, "Rejected", "false"
-        );
+                                                              ccdCaseNumber, "Rejected", "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
         optionalRefundDto = refundsListDto.getRefundList().stream().sorted((s1, s2) ->
@@ -2413,8 +2413,8 @@ public class RefundsApproverJourneyFunctionalTest {
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse =
             paymentTestService.getRefundList(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
-                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber
-            );
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber,
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundListDtoResponse = refundListResponse.getBody().as(RefundListDtoResponse.class);
         assertThat(refundListDtoResponse.getRefundList().get(0).getRefundStatus().getName())
@@ -2493,8 +2493,8 @@ public class RefundsApproverJourneyFunctionalTest {
         // Fetch refunds based on CCD Case Number
         final Response refundListResponse =
             paymentTestService.getRefundList(USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE,
-                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber
-            );
+                                             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, ccdCaseNumber,
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(FORBIDDEN.value());
     }
 
@@ -2704,8 +2704,8 @@ public class RefundsApproverJourneyFunctionalTest {
     private RefundDto getRejectRefundDto(String ccdCaseNumber, String refundReference, String status) {
         Response refundListResponse = paymentTestService.getRefundList(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
                                                                        SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
-                                                                       ccdCaseNumber, status, "false"
-        );
+                                                                       ccdCaseNumber, status, "false",
+            testConfigProperties.baseTestUrl);
         assertThat(refundListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         RefundListDtoResponse refundsListDto = refundListResponse.getBody().as(RefundListDtoResponse.class);
 
