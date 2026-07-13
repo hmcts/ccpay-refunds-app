@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.refunds.functional.service;
 
-import io.restassured.http.ContentType;
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import jakarta.inject.Named;
@@ -277,7 +277,9 @@ public class PaymentTestService {
                                       final String excludeCurrentUser) {
         try {
             java.net.URI parsedUri = java.net.URI.create(baseUri);
-            LOG.info("FT refund-list request target: baseUri={}, currentRestAssuredBaseUri={}, scheme={}, host={}, port={}, path=/refund, hasCcdCaseNumber={}, hasStatus={}, excludeCurrentUser={}, httpsProxySet={}, httpProxySet={}",
+            LOG.info("FT refund-list request target: baseUri={}, currentRestAssuredBaseUri={}, "
+                    + "scheme={}, host={}, port={}, path=/refund, hasCcdCaseNumber={}, hasStatus={}, "
+                    + "excludeCurrentUser={}, httpsProxySet={}, httpProxySet={}",
                 baseUri,
                 RestAssured.baseURI,
                 parsedUri.getScheme(),
