@@ -19,11 +19,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.refunds.config.ContextStartListener;
+import uk.gov.hmcts.reform.refunds.config.security.utils.SecurityUtils;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.model.RefundStatus;
-import uk.gov.hmcts.reform.refunds.model.RejectionReason;
 import uk.gov.hmcts.reform.refunds.model.StatusHistory;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
 import uk.gov.hmcts.reform.refunds.services.IdamServiceImpl;
@@ -37,7 +38,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -81,16 +85,14 @@ public class RefundsActionControllerTest {
     @MockBean
     private JwtDecoder jwtDecoder;
 
+    @MockBean
+    private SecurityUtils securityUtils;
+
+    @MockBean
+    private ServiceAuthFilter serviceAuthFilter;
+
     @Autowired
     private ObjectMapper objectMapper;
-
-    private RejectionReason getRejectionReason() {
-        return RejectionReason
-                .rejectionReasonWith()
-                .code("RR0001")
-                .name("rejection name")
-                .build();
-    }
 
     @BeforeEach
     void setUp() {
@@ -98,7 +100,7 @@ public class RefundsActionControllerTest {
     }
 
     @Test
-    void givenPaymentReference_whenCancelRefunds_thenRefundsAreCancelled() throws Exception {
+    public void givenPaymentReference_whenCancelRefunds_thenRefundsAreCancelled() throws Exception {
 
         List<Refund> refunds = Collections.singletonList(getRefund());
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
@@ -114,7 +116,7 @@ public class RefundsActionControllerTest {
     }
 
     @Test
-    void givenPaymentReference_whenCancelRefunds_thenRefundNotFoundException() throws Exception {
+    public void givenPaymentReference_whenCancelRefunds_thenRefundNotFoundException() throws Exception {
 
         when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
@@ -126,6 +128,35 @@ public class RefundsActionControllerTest {
 
         String errorMessage = mvcResult.getResponse().getContentAsString();
         assertEquals("Refunds not found for payment reference RC-1111-2222-3333-4444", errorMessage);
+    }
+
+    @Test
+    public void givenPaymentReference_whenCancelRefunds_thenUserAuthFilterIsNotInvoked() throws Exception {
+
+        List<Refund> refunds = Collections.singletonList(getRefund());
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+
+        mockMvc.perform(patch(
+                "/payment/{paymentReference}/action/cancel",
+                "RC-1111-2222-3333-4444"))
+                .andExpect(status().isOk());
+
+        verifyNoInteractions(securityUtils);
+        verify(serviceAuthFilter).doFilter(any(), any(), any());
+    }
+
+    @Test
+    public void givenPaymentReference_whenCancelRefunds_thenServiceAuthFilterIsInvoked() throws Exception {
+
+        List<Refund> refunds = Collections.singletonList(getRefund());
+        when(refundsRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(refunds));
+
+        mockMvc.perform(patch(
+                "/payment/{paymentReference}/action/cancel",
+                "RC-1111-2222-3333-4444"))
+                .andExpect(status().isOk());
+
+        verify(serviceAuthFilter).doFilter(any(), any(), any());
     }
 
     private Refund getRefund() {
