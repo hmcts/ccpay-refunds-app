@@ -19,7 +19,7 @@ public class CcdService {
     private static CcdApi ccdApi;
     private final TestConfigProperties testConfig;
 
-    private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CcdService.class);
 
     @Autowired
     public CcdService(TestConfigProperties testConfig) {
@@ -31,35 +31,45 @@ public class CcdService {
     }
 
     public String createProbateDraftCase(String userId, String authToken, String s2sToken) {
-        String  probateDraftCaseCreateToken = getProbateDraftCaseCreateToken(userId, authToken, s2sToken);
+        String probateDraftCaseCreateToken = getProbateDraftCaseCreateToken(userId, authToken, s2sToken);
         ProbateDraftCaseCreateRequest probateDraftCaseCreateRequest = probateDraftCaseCreateRequest(probateDraftCaseCreateToken);
-        LOG.info("Create Probate Draft Case Request : " + probateDraftCaseCreateRequest.toString());
+        LOG.info("Create Probate Draft Case Request : {}", probateDraftCaseCreateRequest);
+
+        ProbateDraftCaseCreateResponse probateDraftCase;
         try {
-            ProbateDraftCaseCreateResponse probateDraftCase = ccdApi.createProbateDraftCase(
+            probateDraftCase = ccdApi.createProbateDraftCase(
                 authToken,
                 s2sToken,
                 probateDraftCaseCreateRequest
             );
-            return probateDraftCase.getId();
-
-        } catch (Exception ex) {
-            LOG.info(ex.getMessage());
+        } catch (RuntimeException ex) {
+            throw new IllegalStateException("Failed to create Probate draft case in CCD", ex);
         }
-        return null;
+
+        if (probateDraftCase == null || probateDraftCase.getId() == null) {
+            throw new IllegalStateException("CCD create Probate draft case response did not contain a case id");
+        }
+
+        return probateDraftCase.getId();
     }
 
     public String getProbateDraftCaseCreateToken(String userId, String authToken, String s2sToken) {
+        ProbateCreateDraftTokenResponse probateCreateDraftTokenResponse;
         try {
-            ProbateCreateDraftTokenResponse probateCreateDraftTokenResponse = ccdApi.getProbateDraftCaseCreateToken(
+            probateCreateDraftTokenResponse = ccdApi.getProbateDraftCaseCreateToken(
                 userId,
                 authToken,
                 s2sToken
             );
-            return probateCreateDraftTokenResponse.getToken();
-        } catch (Exception ex) {
-            LOG.info(ex.getMessage());
+        } catch (RuntimeException ex) {
+            throw new IllegalStateException("Failed to get Probate draft case create token from CCD", ex);
         }
-        return null;
+
+        if (probateCreateDraftTokenResponse == null || probateCreateDraftTokenResponse.getToken() == null) {
+            throw new IllegalStateException("CCD Probate draft case create token response did not contain a token");
+        }
+
+        return probateCreateDraftTokenResponse.getToken();
     }
 
     public ProbateDraftCaseCreateRequest probateDraftCaseCreateRequest(String createEventToken) {
