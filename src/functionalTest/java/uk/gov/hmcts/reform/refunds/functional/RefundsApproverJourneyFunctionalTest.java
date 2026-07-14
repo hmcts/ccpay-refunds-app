@@ -13,6 +13,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -74,6 +76,8 @@ import static org.springframework.http.HttpStatus.OK;
 @SpringBootTest
 public class RefundsApproverJourneyFunctionalTest {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RefundsApproverJourneyFunctionalTest.class);
+
     @Autowired
     private TestConfigProperties testConfigProperties;
 
@@ -113,6 +117,11 @@ public class RefundsApproverJourneyFunctionalTest {
     public void setUp() {
 
         RestAssured.baseURI = testConfigProperties.baseTestUrl;
+        LOG.info("FT setup: test.url.refunds={}, RestAssured.baseURI={}, httpsProxySet={}, httpProxySet={}",
+            testConfigProperties.baseTestUrl,
+            RestAssured.baseURI,
+            System.getProperty("https.proxyHost") != null,
+            System.getProperty("http.proxyHost") != null);
         if (!TOKENS_INITIALIZED) {
             ValidUser user1 = idamService.createUserWith("caseworker-cmc-solicitor");
             USER_TOKEN_ACCOUNT_WITH_SOLICITORS_ROLE = user1.getAuthorisationToken();
