@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.reform.refunds.services.RefundReviewService;
 
 @RestController
 @Tag(name = "Refund Actions")
+@RateLimiter(name = "refundsApi")
 public class RefundsActionController {
 
     private static final Logger LOG = LoggerFactory.getLogger(RefundsActionController.class);

@@ -89,3 +89,11 @@ notify:
 refund:
   search:
     days: 2
+
+resilience4j:
+  ratelimiter:
+    instances:
+      refundsApi:
+        limit-for-period: 10000
+        limit-refresh-period: 1s
+        timeout-duration: 0
