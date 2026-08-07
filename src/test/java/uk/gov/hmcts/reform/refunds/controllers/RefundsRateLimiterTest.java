@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +79,9 @@ class RefundsRateLimiterTest {
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @MockBean
+    private LDClientInterface ldClient;
 
     @MockBean
     private RefundNotificationService refundNotificationService;
