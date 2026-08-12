@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
+import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
@@ -59,6 +60,9 @@ public class RefundControllerLock {
 
     @MockBean
     private IdamRepository idamRepository;
+
+    @MockBean
+    private AuthTokenValidator authTokenValidator;
 
     @Autowired
     private MockMvc mockMvc;
@@ -305,18 +309,34 @@ public class RefundControllerLock {
 
     @Test
     public void patchRefundWithServiceTokenOnlyShouldNotReturn401Or403() throws Exception {
+        when(authTokenValidator.getServiceName(anyString())).thenReturn("api_gw");
         when(featureToggle.getBooleanValue(eq("refunds-release"), anyBoolean())).thenReturn(true);
         MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
             .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
         int status = securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
-                .header("ServiceAuthorization", "Services")
+                .header("ServiceAuthorization", "Bearer api-gw-token")
                 .content(asJsonString(request))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
             .andReturn().getResponse().getStatus();
         Assertions.assertTrue(status != 401 && status != 403,
             "Expected status other than 401/403 but got " + status);
+    }
+
+    @Test
+    public void patchRefundWithNonApiGwServiceTokenShouldBeRejected() throws Exception {
+        when(authTokenValidator.getServiceName(anyString())).thenReturn("payment_app");
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .header("ServiceAuthorization", "Bearer payment-app-token")
+                .content(asJsonString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is(401))
+            .andReturn();
     }
 
 }

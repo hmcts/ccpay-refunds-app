@@ -83,11 +83,6 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
-    public AuthorizationManager<RequestAuthorizationContext> refundStatusUpdateAuthorizationManager() {
-        return new RefundStatusUpdateAuthorizationManager();
-    }
-
-    @Bean
     @Order(1)
     protected SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         http

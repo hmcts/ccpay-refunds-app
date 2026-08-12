@@ -57,7 +57,7 @@ idam:
   api:
     url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
   s2s-authorised:
-    services:  ccpay_bubble,internal,payment_app,refunds_api
+    services:  ccpay_bubble,internal,payment_app,refunds_api,api_gw
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     totp_secret: ${OIDC_S2S_SECRET:}
