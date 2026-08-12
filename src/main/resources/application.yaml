@@ -67,7 +67,7 @@ spring:
 trusted:
   s2s:
     service:
-      names: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp,pcs_api
+      names: payment_app,ccpay_bubble,api_gw,ccd_gw,xui_webapp,pcs_api,pt_api
 auth:
   idam:
     client:
@@ -175,3 +175,11 @@ notify:
 refund:
   search:
     days: 7
+
+resilience4j:
+  ratelimiter:
+    instances:
+      refundsApi:
+        limit-for-period: ${REFUNDS_API_RATE_LIMIT_FOR_PERIOD:10}
+        limit-refresh-period: ${REFUNDS_API_RATE_LIMIT_REFRESH_PERIOD:1s}
+        timeout-duration: ${REFUNDS_API_RATE_LIMIT_TIMEOUT_DURATION:0}

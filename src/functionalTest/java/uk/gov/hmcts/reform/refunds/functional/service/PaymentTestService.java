@@ -1,10 +1,13 @@
 package uk.gov.hmcts.reform.refunds.functional.service;
 
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import jakarta.inject.Named;
 import net.serenitybdd.rest.SerenityRest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundReviewRequest;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
@@ -20,6 +23,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Named
 public class PaymentTestService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentTestService.class);
 
     public Response postPbaPayment(final String userToken,
                                    final String serviceToken,
@@ -73,9 +78,13 @@ public class PaymentTestService {
                                   final String serviceToken,
                                   final String ccdCaseNumber,
                                   final String status,
-                                  final String excludeCurrentUser) {
+                                  final String excludeCurrentUser,
+                                  final String baseUri) {
+        logRefundListRequest(baseUri, ccdCaseNumber != null, status != null, excludeCurrentUser);
         return givenWithAuthHeaders(userToken, serviceToken)
-            .contentType(ContentType.JSON).when()
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .when()
             .queryParams("ccdCaseNumber", ccdCaseNumber)
             .queryParams("status", status)
             .queryParam("excludeCurrentUser", excludeCurrentUser)
@@ -85,9 +94,13 @@ public class PaymentTestService {
     public Response getRefundList(final String userToken,
                                   final String serviceToken,
                                   final String status,
-                                  final String excludeCurrentUser) {
+                                  final String excludeCurrentUser,
+                                  final String baseUri) {
+        logRefundListRequest(baseUri, false, status != null, excludeCurrentUser);
         return givenWithAuthHeaders(userToken, serviceToken)
-            .contentType(ContentType.JSON).when()
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .when()
             .queryParams("status", status)
             .queryParam("excludeCurrentUser", excludeCurrentUser)
             .get("/refund");
@@ -95,9 +108,13 @@ public class PaymentTestService {
 
     public Response getRefundList(final String userToken,
                                   final String serviceToken,
-                                  final String ccdCaseNumber) {
+                                  final String ccdCaseNumber,
+                                  final String baseUri) {
+        logRefundListRequest(baseUri, ccdCaseNumber != null, false, null);
         return givenWithAuthHeaders(userToken, serviceToken)
-            .contentType(ContentType.JSON).when()
+            .contentType(ContentType.JSON)
+            .baseUri(baseUri)
+            .when()
             .queryParams("ccdCaseNumber", ccdCaseNumber)
             .get("/refund");
     }
@@ -252,6 +269,30 @@ public class PaymentTestService {
             .body(bulkScanCcdPayment)
             .when()
             .post("/bulk-scan-payments");
+    }
+
+    private void logRefundListRequest(final String baseUri,
+                                      final boolean hasCcdCaseNumber,
+                                      final boolean hasStatus,
+                                      final String excludeCurrentUser) {
+        try {
+            java.net.URI parsedUri = java.net.URI.create(baseUri);
+            LOG.info("FT refund-list request target: baseUri={}, currentRestAssuredBaseUri={}, "
+                    + "scheme={}, host={}, port={}, path=/refund, hasCcdCaseNumber={}, hasStatus={}, "
+                    + "excludeCurrentUser={}, httpsProxySet={}, httpProxySet={}",
+                baseUri,
+                RestAssured.baseURI,
+                parsedUri.getScheme(),
+                parsedUri.getHost(),
+                parsedUri.getPort(),
+                hasCcdCaseNumber,
+                hasStatus,
+                excludeCurrentUser,
+                System.getProperty("https.proxyHost") != null,
+                System.getProperty("http.proxyHost") != null);
+        } catch (IllegalArgumentException ex) {
+            LOG.warn("FT refund-list request target has invalid baseUri: {}", baseUri);
+        }
     }
 
 }
