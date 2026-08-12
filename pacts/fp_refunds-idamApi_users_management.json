@@ -1,0 +1,133 @@
+{
+  "consumer": {
+    "name": "fp_refunds"
+  },
+  "interactions": [
+    {
+      "description": "a request for page of Users from FP Refunds API",
+      "key": "fe381eb2",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "access_token has been obtained as a user"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer UserAuthToken"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "Bearer UserAuthToken"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/v1/users",
+        "query": {
+          "query": [
+            "(roles:pui-case-manager) AND lastModified:>now-1h"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": [
+            {
+              "active": true,
+              "email": "case.officer@example.com",
+              "forename": "Case",
+              "id": "1111-2222-3333-4567",
+              "surname": "Officer"
+            }
+          ],
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$[0].active": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0].email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0].forename": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0].id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0].surname": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.20"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "idamApi_users_management"
+  }
+}

@@ -76,9 +76,9 @@ public class RefundStatusUpdateAuthorizationManager implements AuthorizationMana
             return false;
         }
 
-        String token = serviceAuthorization.startsWith("Bearer ")
-            ? serviceAuthorization.substring(BEARER_PREFIX.length())
-            : serviceAuthorization;
+        String token = serviceAuthorization.startsWith(BEARER_PREFIX)
+            ? serviceAuthorization
+            : BEARER_PREFIX + serviceAuthorization;
 
         final String microservice;
         try {
