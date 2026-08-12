@@ -303,4 +303,20 @@ public class RefundControllerLock {
             "Expected status other than 401/403 but got " + status);
     }
 
+    @Test
+    public void patchRefundWithServiceTokenOnlyShouldNotReturn401Or403() throws Exception {
+        when(featureToggle.getBooleanValue(eq("refunds-release"), anyBoolean())).thenReturn(true);
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        int status = securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .header("ServiceAuthorization", "Services")
+                .content(asJsonString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getStatus();
+        Assertions.assertTrue(status != 401 && status != 403,
+            "Expected status other than 401/403 but got " + status);
+    }
+
 }
