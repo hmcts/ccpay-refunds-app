@@ -309,13 +309,13 @@ public class RefundControllerLock {
 
     @Test
     public void patchRefundWithServiceTokenOnlyShouldNotReturn401Or403() throws Exception {
-        when(authTokenValidator.getServiceName(anyString())).thenReturn("api_gw");
+        when(authTokenValidator.getServiceName(anyString())).thenReturn("ccpay_gw");
         when(featureToggle.getBooleanValue(eq("refunds-release"), anyBoolean())).thenReturn(true);
         MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
             .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
         int status = securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
-                .header("ServiceAuthorization", "Bearer api-gw-token")
+                .header("ServiceAuthorization", "Bearer ccpay-gw-token")
                 .content(asJsonString(request))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))

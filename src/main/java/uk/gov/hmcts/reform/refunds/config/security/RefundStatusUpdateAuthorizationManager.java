@@ -25,7 +25,7 @@ public class RefundStatusUpdateAuthorizationManager implements AuthorizationMana
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final Set<String> AUTHORISED_REFUND_ROLES =
         Set.of(AUTHORISED_REFUNDS_APPROVER_ROLE, AUTHORISED_REFUNDS_ROLE);
-    private static final String API_GW_MICROSERVICE = "api_gw";
+    private static final String CCPAY_GW_MICROSERVICE = "ccpay_gw";
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final AuthTokenValidator authTokenValidator;
@@ -87,6 +87,6 @@ public class RefundStatusUpdateAuthorizationManager implements AuthorizationMana
             return false;
         }
 
-        return authorisedServices.contains(microservice) && API_GW_MICROSERVICE.equals(microservice);
+        return authorisedServices.contains(microservice) && CCPAY_GW_MICROSERVICE.equals(microservice);
     }
 }
