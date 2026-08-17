@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,6 +23,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.refunds.config.security.converter.RefundsJwtGrantedAuthoritiesConverter;
 import uk.gov.hmcts.reform.refunds.config.security.exception.RefundsAccessDeniedHandler;
@@ -51,6 +53,7 @@ public class SpringSecurityConfiguration {
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
     private final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint;
     private final RefundsAccessDeniedHandler refundsAccessDeniedHandler;
+    private final AuthorizationManager<RequestAuthorizationContext> refundStatusUpdateAuthorizationManager;
 
     @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
     private String issuerUri;
@@ -65,7 +68,8 @@ public class SpringSecurityConfiguration {
         final Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
         final SecurityUtils securityUtils,
         final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint,
-        final RefundsAccessDeniedHandler refundsAccessDeniedHandler
+        final RefundsAccessDeniedHandler refundsAccessDeniedHandler,
+        final AuthorizationManager<RequestAuthorizationContext> refundStatusUpdateAuthorizationManager
     ) {
         super();
         this.serviceAndUserAuthFilter = new ServiceAndUserAuthFilter(
@@ -75,6 +79,7 @@ public class SpringSecurityConfiguration {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
         this.refundsAuthenticationEntryPoint = refundsAuthenticationEntryPoint;
         this.refundsAccessDeniedHandler = refundsAccessDeniedHandler;
+        this.refundStatusUpdateAuthorizationManager = refundStatusUpdateAuthorizationManager;
     }
 
     @Bean
@@ -125,7 +130,7 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.PATCH,"/refund/resubmit/*").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.GET, "/refundstest").permitAll()
-                .requestMatchers(HttpMethod.PATCH, "/refund/*").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/refund/*").access(refundStatusUpdateAuthorizationManager)
                 .requestMatchers("/jobs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refunds/**").permitAll()
