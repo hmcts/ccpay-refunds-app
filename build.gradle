@@ -3,6 +3,15 @@ buildscript {
     mavenLocal()
     mavenCentral()
   }
+  configurations.all {
+    resolutionStrategy {
+      eachDependency { DependencyResolveDetails details ->
+        if (details.requested.name == 'query') {
+          details.useVersion '14.7.0'
+        }
+      }
+    }
+  }
   dependencies {
     classpath("net.serenity-bdd:serenity-single-page-report:4.3.4")
   }
