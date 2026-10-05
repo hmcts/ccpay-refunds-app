@@ -268,18 +268,18 @@ public class RefundsApproverJourneyFunctionalTest {
                 .reason("The case details don’t match the help with fees details").build()
         );
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
-         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund rejected");
-         Response refundStatusHistoryListResponse =
-             paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
-                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-             );
-         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
-         List<Map<String, String>> statusHistoryList =
-             refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
-         statusHistoryList.forEach(entry -> {
-             assertThat(
-                 entry.get("status").trim().equals("Rejected")
-                     || entry.get("status").trim().equals("Sent for approval"))
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund rejected");
+        Response refundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
+            );
+        assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        List<Map<String, String>> statusHistoryList =
+            refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
+        statusHistoryList.forEach(entry -> {
+            assertThat(
+                entry.get("status").trim().equals("Rejected")
+                    || entry.get("status").trim().equals("Sent for approval"))
                 .isTrue();
             assertThat(
                 entry.get("notes").trim().equals("The case details don’t match the help with fees details")
@@ -984,16 +984,16 @@ public class RefundsApproverJourneyFunctionalTest {
             USER_TOKEN_PAYMENTS_REFUND_APPROVER_AND_PAYMENTS_ROLE,
             SERVICE_TOKEN_PAY_BUBBLE_PAYMENT,
             refundReference,
-             ReviewerAction.APPROVE.name(),
-             RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
-         );
-         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
-         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
+            ReviewerAction.APPROVE.name(),
+            RefundReviewRequest.buildRefundReviewRequest().code("RE001").reason("Wrong Data").build()
+        );
+        assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
+        assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
-         Response refundStatusHistoryListResponse =
-             paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
-                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
-             );
+        Response refundStatusHistoryListResponse =
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
+                                                SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
+            );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         List<Map<String, String>> statusHistoryList =
             refundStatusHistoryListResponse.getBody().jsonPath().getList("status_history_dto_list");
