@@ -11,6 +11,9 @@ buildscript {
     }
 
   }
+  configurations.classpath {
+    resolutionStrategy.force 'io.cucumber:query:14.7.0'
+  }
   dependencies {
     classpath("net.serenity-bdd:serenity-single-page-report:4.3.4")
   }
@@ -259,6 +262,9 @@ dependencyManagement {
     dependencySet(group: 'com.google.guava', version: '33.5.0-jre') {
       entry 'guava'
     }
+
+    // Avoid version-range metadata resolution (maven-metadata.xml) when Maven Central is rate-limited.
+    dependency 'io.cucumber:query:14.7.0'
   }
 }
 
