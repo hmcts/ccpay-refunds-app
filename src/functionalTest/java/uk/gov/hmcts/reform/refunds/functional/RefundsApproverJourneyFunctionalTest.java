@@ -270,7 +270,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getStatusCode()).isEqualTo(CREATED.value());
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund rejected");
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -991,7 +991,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1085,7 +1085,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1159,7 +1159,7 @@ public class RefundsApproverJourneyFunctionalTest {
         assertThat(responseReviewRefund.getBody().asString()).isEqualTo("Refund approved");
 
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1276,7 +1276,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         final String refundReferenceFromRefundList = optionalRefundDto.orElseThrow().getRefundReference();
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReferenceFromRefundList
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1347,7 +1347,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         final String refundReferenceFromRefundList = optionalRefundDto.orElseThrow().getRefundReference();
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReferenceFromRefundList
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1637,7 +1637,7 @@ public class RefundsApproverJourneyFunctionalTest {
 
         final String refundReferenceFromRefundList = optionalRefundDto.orElseThrow().getRefundReference();
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReferenceFromRefundList
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1707,7 +1707,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         final String refundReferenceFromRefundList = optionalRefundDto.orElseThrow().getRefundReference();
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReferenceFromRefundList
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1780,7 +1780,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         final String refundReferenceFromRefundList = optionalRefundDto.orElseThrow().getRefundReference();
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReferenceFromRefundList
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1854,7 +1854,7 @@ public class RefundsApproverJourneyFunctionalTest {
             .sorted((s1, s2) -> s2.getDateCreated().compareTo(s1.getDateCreated())).findFirst();
         final String refundReferenceFromRefundList = optionalRefundDto.orElseThrow().getRefundReference();
         Response refundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReferenceFromRefundList
             );
         assertThat(refundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
