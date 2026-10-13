@@ -167,6 +167,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
     private PaymentService paymentService;
 
     @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
     private RefundReasonRepository refundReasonRepository;
 
     @Autowired
@@ -525,6 +528,28 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (records == 0) {
             throw new RefundNotFoundException("No records found for given refund reference");
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteRefundsByCcdCaseNumber(MultiValueMap<String, String> headers, String ccdCaseNumber) {
+        LOG.info("Deleting refunds for CCD case number {}", ccdCaseNumber);
+
+        Optional<List<Refund>> refundsOptional = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
+        if (refundsOptional.isEmpty() || refundsOptional.get().isEmpty()) {
+            LOG.info("No refunds found for CCD case number {}. Returning successfully for idempotent delete.",
+                ccdCaseNumber);
+            return;
+        }
+
+        List<Refund> refunds = refundsOptional.get();
+        for (Refund refund : refunds) {
+            LOG.info("Deleting notifications for refund reference {} before refund deletion", refund.getReference());
+            notificationService.deleteNotification(headers, refund.getReference());
+        }
+
+        refundsRepository.deleteAll(refunds);
+        LOG.info("Deleted {} refund(s) for CCD case number {}", refunds.size(), ccdCaseNumber);
     }
 
     @Override

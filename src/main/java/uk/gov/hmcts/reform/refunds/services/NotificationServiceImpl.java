@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.refunds.dtos.responses.NotificationsDtoResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentGroupResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.PaymentResponse;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendRequestException;
+import uk.gov.hmcts.reform.refunds.exceptions.NotificationDeleteException;
 import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
@@ -215,6 +216,25 @@ public class NotificationServiceImpl implements NotificationService {
         return inputHeaders;
     }
 
+    private MultiValueMap<String, String> getFormatedHeadersForDelete(MultiValueMap<String, String> headers) {
+        MultiValueMap<String, String> inputHeaders = new LinkedMultiValueMap<>();
+        if (headers != null) {
+            List<String> contentType = headers.get(CONTENT_TYPE);
+            if (contentType != null) {
+                inputHeaders.put(CONTENT_TYPE, contentType);
+            }
+            List<String> authToken = headers.get("authorization");
+            if (authToken == null) {
+                authToken = headers.get("Authorization");
+            }
+            if (authToken != null) {
+                inputHeaders.put("Authorization", authToken);
+            }
+        }
+        inputHeaders.put("ServiceAuthorization", Arrays.asList(authTokenGenerator.generate()));
+        return inputHeaders;
+    }
+
     private void handleHttpClientErrorException(HttpClientErrorException exception) {
         String exceptionMessage = "Invalid Refund notification request.";
         HttpStatusCode status = exception.getStatusCode();
@@ -301,6 +321,42 @@ public class NotificationServiceImpl implements NotificationService {
 
         }
         return responseEntity;
+    }
+
+    @Override
+    public void deleteNotification(MultiValueMap<String, String> headers, String reference) {
+        String url = notificationUrl + "/notifications/v2/" + reference;
+        log.info("Deleting notifications for refund reference {} via {}", reference, url);
+
+        try {
+            ResponseEntity<Void> response = restTemplateNotify.exchange(
+                url,
+                HttpMethod.DELETE,
+                new HttpEntity<>(getFormatedHeadersForDelete(headers)),
+                Void.class
+            );
+            log.info("Notification delete response for reference {}: {}", reference, response.getStatusCode());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                log.info("No notifications found for refund reference {}. Continuing with refund deletion.", reference);
+                return;
+            }
+            log.error("Client error deleting notifications for refund reference {}: {}",
+                reference, exception.getMessage(), exception);
+            throw new NotificationDeleteException(
+                "Failed to delete notifications for refund reference " + reference, exception);
+        } catch (HttpServerErrorException exception) {
+            log.error("Notification service unavailable while deleting notifications for refund reference {}: {}",
+                reference, exception.getMessage(), exception);
+            throw new NotificationDeleteException(
+                "Notification service unavailable while deleting notifications for refund reference " + reference,
+                exception);
+        } catch (Exception exception) {
+            log.error("Unexpected error deleting notifications for refund reference {}: {}",
+                reference, exception.getMessage(), exception);
+            throw new NotificationDeleteException(
+                "Unexpected error deleting notifications for refund reference " + reference, exception);
+        }
     }
 
     @Override
