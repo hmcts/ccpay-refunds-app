@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.refunds.services.RefundsService;
+import uk.gov.hmcts.reform.refunds.utils.LogUtils;
 
 @RestController
 @Tag(name = "Refunds Deletion")
@@ -44,11 +45,13 @@ public class RefundsDeletionController {
     public void deleteRefundsByCcdCaseNumber(
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @PathVariable("ccdCaseNumber") String ccdCaseNumber) {
-        LOG.info("Received request to delete refunds for CCD case number {}", ccdCaseNumber);
+        String safeCcdCaseNumber = LogUtils.sanitize(ccdCaseNumber);
+        LOG.info("Received request to delete refunds for CCD case number {}", safeCcdCaseNumber);
         try {
             refundsService.deleteRefundsByCcdCaseNumber(headers, ccdCaseNumber);
         } catch (Exception ex) {
-            LOG.error("Error deleting refunds for CCD case number {}: {}", ccdCaseNumber, ex.getMessage(), ex);
+            LOG.error("Error deleting refunds for CCD case number {}: {}",
+                safeCcdCaseNumber, LogUtils.sanitize(ex.getMessage()), ex);
             throw ex;
         }
     }

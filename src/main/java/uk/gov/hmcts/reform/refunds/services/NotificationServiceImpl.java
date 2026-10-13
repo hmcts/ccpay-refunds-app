@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.refunds.mapper.RefundNotificationMapper;
 import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import uk.gov.hmcts.reform.refunds.model.Refund;
 import uk.gov.hmcts.reform.refunds.repository.RefundsRepository;
+import uk.gov.hmcts.reform.refunds.utils.LogUtils;
 import uk.gov.hmcts.reform.refunds.utils.RefundsUtil;
 import uk.gov.hmcts.reform.refunds.utils.StatusHistoryUtil;
 
@@ -325,8 +326,10 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void deleteNotification(MultiValueMap<String, String> headers, String reference) {
+        String safeReference = LogUtils.sanitize(reference);
         String url = notificationUrl + "/notifications/v2/" + reference;
-        log.info("Deleting notifications for refund reference {} via {}", reference, url);
+        log.info("Deleting notifications for refund reference {} via {}",
+            safeReference, LogUtils.sanitize(url));
 
         try {
             ResponseEntity<Void> response = restTemplateNotify.exchange(
@@ -335,25 +338,27 @@ public class NotificationServiceImpl implements NotificationService {
                 new HttpEntity<>(getFormatedHeadersForDelete(headers)),
                 Void.class
             );
-            log.info("Notification delete response for reference {}: {}", reference, response.getStatusCode());
+            log.info("Notification delete response for reference {}: {}",
+                safeReference, response.getStatusCode());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                log.info("No notifications found for refund reference {}. Continuing with refund deletion.", reference);
+                log.info("No notifications found for refund reference {}. Continuing with refund deletion.",
+                    safeReference);
                 return;
             }
             log.error("Client error deleting notifications for refund reference {}: {}",
-                reference, exception.getMessage(), exception);
+                safeReference, LogUtils.sanitize(exception.getMessage()), exception);
             throw new NotificationDeleteException(
                 "Failed to delete notifications for refund reference " + reference, exception);
         } catch (HttpServerErrorException exception) {
             log.error("Notification service unavailable while deleting notifications for refund reference {}: {}",
-                reference, exception.getMessage(), exception);
+                safeReference, LogUtils.sanitize(exception.getMessage()), exception);
             throw new NotificationDeleteException(
                 "Notification service unavailable while deleting notifications for refund reference " + reference,
                 exception);
         } catch (Exception exception) {
             log.error("Unexpected error deleting notifications for refund reference {}: {}",
-                reference, exception.getMessage(), exception);
+                safeReference, LogUtils.sanitize(exception.getMessage()), exception);
             throw new NotificationDeleteException(
                 "Unexpected error deleting notifications for refund reference " + reference, exception);
         }
