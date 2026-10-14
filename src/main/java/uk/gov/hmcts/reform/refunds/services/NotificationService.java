@@ -28,4 +28,6 @@ public interface NotificationService {
     Notification getNotificationDetails(MultiValueMap<String, String> headers, String reference);
 
     String retrieveCustomerReference(MultiValueMap<String, String> headers, String paymentReference);
+
+    void deleteNotification(MultiValueMap<String, String> headers, String reference);
 }

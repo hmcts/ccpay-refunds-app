@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundNotificationResendReq
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.InvalidRefundReviewRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.LargePayloadException;
+import uk.gov.hmcts.reform.refunds.exceptions.NotificationDeleteException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentInvalidRequestException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentReferenceNotFoundException;
 import uk.gov.hmcts.reform.refunds.exceptions.PaymentServerException;
@@ -109,7 +110,8 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({PaymentServerException.class, CheckDigitException.class, UserNotFoundException.class,
         RefundReasonNotFoundException.class, FeesNotFoundForRefundException.class, RefundFeeNotFoundInPaymentException.class,
-        RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class})
+        RetrospectiveRemissionNotFoundException.class, UnequalRemissionAmountWithRefundRaisedException.class,
+        NotificationDeleteException.class})
     public ResponseEntity return500(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

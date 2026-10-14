@@ -12,6 +12,8 @@ spring:
   datasource:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:15.0://localhost/features
+    hikari:
+      maximum-pool-size: 2
   liquibase:
     enabled: ${SPRING_LIQUIBASE_ENABLED:true}
     change-log: classpath:/db/changelog/db.changelog-master.xml
@@ -57,7 +59,7 @@ idam:
   api:
     url: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net}
   s2s-authorised:
-    services:  ccpay_bubble,internal,payment_app,refunds_api,ccpay_gw
+    services:  ccpay_bubble,internal,payment_app,refunds_api,ccpay_gw,disposer-fee-and-pay
   s2s-auth:
     url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     totp_secret: ${OIDC_S2S_SECRET:}
