@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -98,6 +99,12 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
     public ResponseEntity return409(Exception ex) {
         LOG.error(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ResponseEntity return429(RequestNotPermitted ex) {
+        LOG.warn(ex.getMessage());
+        return new ResponseEntity<>("Too many requests", HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler({PaymentServerException.class, CheckDigitException.class, UserNotFoundException.class,

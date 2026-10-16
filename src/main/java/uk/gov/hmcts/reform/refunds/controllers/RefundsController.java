@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -79,6 +80,7 @@ import static uk.gov.hmcts.reform.refunds.utils.DateUtil.toDdMmYyyy;
 @RestController
 @Validated
 @Tag(name = "Refund Journey group")
+@RateLimiter(name = "refundsApi")
 @SuppressWarnings({"PMD.AvoidUncheckedExceptionsInSignatures", "PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 public class RefundsController {
 

@@ -3,10 +3,12 @@ package uk.gov.hmcts.reform.refunds.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatusUpdateRequest;
 import uk.gov.hmcts.reform.refunds.dtos.responses.IdamTokenResponse;
 import uk.gov.hmcts.reform.refunds.dtos.responses.Notification;
@@ -50,6 +52,15 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
     @Autowired
     RefundsUtil refundsUtil;
 
+    @Autowired
+    private IdamClient idamClient;
+
+    @Value("${liberataUser.username}")
+    private String liberataUsername;
+
+    @Value("${liberataUser.password}")
+    private String liberataPassword;
+
     private StatusHistory getStatusHistoryEntity(String uid, RefundStatus refundStatus, String reason) {
         return StatusHistory.statusHistoryWith()
             .createdBy(uid)
@@ -88,9 +99,10 @@ public class RefundStatusServiceImpl extends StateUtil implements RefundStatusSe
                 LIBERATA_REASON)
             ));
 
-            IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens();
+            IdamTokenResponse idamTokenResponse = idamService.getSecurityTokens(liberataUsername, liberataPassword);
             String authorization =  "Bearer " + idamTokenResponse.getAccessToken();
             headers.put("authorization", Collections.singletonList(authorization));
+
             Notification notificationDetails = notificationService.getNotificationDetails(headers, originalRefundReference);
 
             if (notificationDetails == null) {

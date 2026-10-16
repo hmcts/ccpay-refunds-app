@@ -1,6 +1,10 @@
 package uk.gov.hmcts.reform.refunds.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -9,9 +13,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
+import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
+import uk.gov.hmcts.reform.idam.client.models.UserInfo;
+import uk.gov.hmcts.reform.refunds.config.security.idam.IdamRepository;
 import uk.gov.hmcts.reform.refunds.config.toggler.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundFeeDto;
 import uk.gov.hmcts.reform.refunds.dtos.requests.RefundRequest;
@@ -23,9 +32,14 @@ import uk.gov.hmcts.reform.refunds.model.ContactDetails;
 import java.math.BigDecimal;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,6 +55,15 @@ public class RefundControllerLock {
     @MockBean
     private LaunchDarklyFeatureToggler featureToggle;
 
+    @MockBean
+    private ServiceAuthFilter serviceAuthFilter;
+
+    @MockBean
+    private IdamRepository idamRepository;
+
+    @MockBean
+    private AuthTokenValidator authTokenValidator;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -51,7 +74,13 @@ public class RefundControllerLock {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        doAnswer(invocation -> {
+            FilterChain chain = invocation.getArgument(2);
+            chain.doFilter(invocation.getArgument(0), invocation.getArgument(1));
+            return null;
+        }).when(serviceAuthFilter).doFilter(
+            any(ServletRequest.class), any(ServletResponse.class), any(FilterChain.class));
         mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
@@ -214,5 +243,100 @@ public class RefundControllerLock {
             .andReturn();
     }
 
+    @Test
+    public void patchRefundWithoutAuthShouldReturn401() throws Exception {
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .content(asJsonString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void patchRefundWithInsufficientRoleShouldReturn403() throws Exception {
+        when(idamRepository.getUserInfo(anyString())).thenReturn(
+            UserInfo.builder().uid("test-uid").roles(Collections.singletonList("payments")).build());
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .with(jwt().authorities(new SimpleGrantedAuthority("payments")))
+                .content(asJsonString(request))
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void patchRefundWithRefundRoleShouldNotReturn401Or403() throws Exception {
+        when(idamRepository.getUserInfo(anyString())).thenReturn(
+            UserInfo.builder().uid("test-uid").roles(Collections.singletonList("payments-refund")).build());
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        int status = securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .with(jwt().authorities(new SimpleGrantedAuthority("payments-refund")))
+                .content(asJsonString(request))
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getStatus();
+        Assertions.assertTrue(status != 401 && status != 403,
+            "Expected status other than 401/403 but got " + status);
+    }
+
+    @Test
+    public void patchRefundWithApproverRoleShouldNotReturn401Or403() throws Exception {
+        when(idamRepository.getUserInfo(anyString())).thenReturn(
+            UserInfo.builder().uid("test-uid").roles(Collections.singletonList("payments-refund-approver")).build());
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        int status = securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .with(jwt().authorities(new SimpleGrantedAuthority("payments-refund-approver")))
+                .content(asJsonString(request))
+                .header("ServiceAuthorization", "Services")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getStatus();
+        Assertions.assertTrue(status != 401 && status != 403,
+            "Expected status other than 401/403 but got " + status);
+    }
+
+    @Test
+    public void patchRefundWithServiceTokenOnlyShouldNotReturn401Or403() throws Exception {
+        when(authTokenValidator.getServiceName(anyString())).thenReturn("ccpay_gw");
+        when(featureToggle.getBooleanValue(eq("refunds-release"), anyBoolean())).thenReturn(true);
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        int status = securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .header("ServiceAuthorization", "Bearer ccpay-gw-token")
+                .content(asJsonString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getStatus();
+        Assertions.assertTrue(status != 401 && status != 403,
+            "Expected status other than 401/403 but got " + status);
+    }
+
+    @Test
+    public void patchRefundWithNonApiGwServiceTokenShouldBeRejected() throws Exception {
+        when(authTokenValidator.getServiceName(anyString())).thenReturn("payment_app");
+        MockMvc securedMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RefundStatusUpdateRequest request = RefundStatusUpdateRequest.RefundRequestWith()
+            .status(uk.gov.hmcts.reform.refunds.dtos.requests.RefundStatus.ACCEPTED).build();
+        securedMockMvc.perform(patch("/refund/{reference}", "RF-1234-1234-1234-1234")
+                .header("ServiceAuthorization", "Bearer payment-app-token")
+                .content(asJsonString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is(401))
+            .andReturn();
+    }
 
 }
