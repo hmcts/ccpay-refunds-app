@@ -44,6 +44,8 @@ public interface RefundsService {
 
     void deleteRefund(String reference);
 
+    void deleteRefundsByCcdCaseNumber(MultiValueMap<String, String> headers, String ccdCaseNumber);
+
     List<Refund> getRefundsForPaymentReference(String paymentReference);
 
     List<RefundLiberata> search(Optional<String> startDateTimeString, Optional<String>  endDateTimeString, String refundReference);

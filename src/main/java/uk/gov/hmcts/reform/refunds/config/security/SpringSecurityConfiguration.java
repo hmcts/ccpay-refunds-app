@@ -47,6 +47,7 @@ public class SpringSecurityConfiguration {
     private static final String AUTHORISED_REFUNDS_ROLE = "payments-refund";
     private static final String AUTHORISED_REFUNDS_APPROVER_ROLE = "payments-refund-approver";
     private static final String PAYMENTS_ROLE = "payments";
+    private static final String DISPOSER_PAYMENT_USER_ROLE = "disposer-payment-user";
 
     private final ServiceAuthFilter serviceAuthFilter;
     private final ServiceAndUserAuthFilter serviceAndUserAuthFilter;
@@ -133,6 +134,8 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.PATCH, "/refund/*").access(refundStatusUpdateAuthorizationManager)
                 .requestMatchers("/jobs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/cases/*/refunds")
+                    .hasAuthority(DISPOSER_PAYMENT_USER_ROLE)
                 .requestMatchers(HttpMethod.GET, "/refunds/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund/refunds-report").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund/payment-failure-report").permitAll()

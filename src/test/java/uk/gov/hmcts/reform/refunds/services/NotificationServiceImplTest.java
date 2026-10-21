@@ -334,6 +334,41 @@ class NotificationServiceImplTest {
         assertEquals("SW1A 2AA", refund.getContactDetails().getPostalCode());
     }
 
+    @Test
+    void deleteNotification_shouldCallNotificationsDeleteEndpoint() {
+        MultiValueMap<String, String> headers = buildHeaders();
+        String url = "http://notify.local/notifications/v2/RF-1746-5507-4452-0488";
+        when(restTemplateNotify.exchange(eq(url), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(Void.class)))
+            .thenReturn(ResponseEntity.noContent().build());
+
+        notificationService.deleteNotification(headers, "RF-1746-5507-4452-0488");
+
+        verify(restTemplateNotify).exchange(eq(url), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(Void.class));
+    }
+
+    @Test
+    void deleteNotification_shouldIgnoreNotFoundResponses() {
+        MultiValueMap<String, String> headers = buildHeaders();
+        String url = "http://notify.local/notifications/v2/RF-1746-5507-4452-0488";
+        when(restTemplateNotify.exchange(eq(url), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(Void.class)))
+            .thenThrow(HttpClientErrorException.create(HttpStatus.NOT_FOUND, "Not Found", null, null, null));
+
+        notificationService.deleteNotification(headers, "RF-1746-5507-4452-0488");
+
+        verify(restTemplateNotify).exchange(eq(url), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(Void.class));
+    }
+
+    @Test
+    void deleteNotification_shouldThrowWhenNotificationServiceFails() {
+        MultiValueMap<String, String> headers = buildHeaders();
+        String url = "http://notify.local/notifications/v2/RF-1746-5507-4452-0488";
+        when(restTemplateNotify.exchange(eq(url), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(Void.class)))
+            .thenThrow(HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "Error", null, null, null));
+
+        assertThrows(uk.gov.hmcts.reform.refunds.exceptions.NotificationDeleteException.class,
+            () -> notificationService.deleteNotification(headers, "RF-1746-5507-4452-0488"));
+    }
+
     // Test-only helper for setting private fields via reflection
     static final class TestUtils {
         static void setField(Object target, String fieldName, Object value) {
