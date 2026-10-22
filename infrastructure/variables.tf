@@ -66,6 +66,12 @@ variable "jenkins_AAD_objectId" {
   description = "(Required) The Azure AD object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies."
 }
 
+variable "trust_forwarded_client_certificate" {
+  description = "Enable only when the trusted ingress overwrites certificate headers and direct APIM access is restricted."
+  type        = bool
+  default     = false
+}
+
 variable "refunds_api_gateway_certificate_thumbprints" {
   type    = list(any)
   default = [] # TODO: remove default and provide environment-specific values
