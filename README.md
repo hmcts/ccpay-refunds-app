@@ -87,6 +87,17 @@ docker image rm <image-id>
 
 There is no need to remove postgres and java or similar core images.
 
+
+### Rate Limiting
+All API endpoints within this application have rate limiting applied.
+
+The limit is configured through three resiliance4j parameters, which may be configured from environment variables:
+```
+REFUNDS_API_RATE_LIMIT_FOR_PERIOD  (default = 10)
+REFUNDS_API_RATE_LIMIT_REFRESH_PERIOD  (default = 1 second)
+REFUNDS_API_RATE_LIMIT_TIMEOUT_DURATION   (default = 0)
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
