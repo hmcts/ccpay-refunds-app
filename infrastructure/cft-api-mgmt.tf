@@ -10,8 +10,9 @@ data "template_file" "cft_policy_template" {
   template = file(join("", [path.module, "/template/cft-api-policy.xml"]))
 
   vars = {
-    allowed_certificate_thumbprints = local.refund_status_thumbprints_in_quotes_str
-    s2s_base_url                    = local.s2sUrl
+    allowed_certificate_thumbprints    = local.refund_status_thumbprints_in_quotes_str
+    s2s_base_url                       = local.s2sUrl
+    trust_forwarded_client_certificate = tostring(var.trust_forwarded_client_certificate)
   }
 }
 
