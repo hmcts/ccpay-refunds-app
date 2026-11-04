@@ -4,12 +4,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -41,10 +47,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "oidc.audience-list=refunds",
     "spring.security.oauth2.client.provider.oidc.issuer-uri=https://idam.example.test"
 })
-@Import({SpringSecurityConfiguration.class, PaymentServiceAuthorizationManager.class,
+@Import({PaymentServiceAuthorizationManager.class,
     RefundsAuthenticationEntryPoint.class, RefundsAccessDeniedHandler.class,
     RefundsActionController.class})
-@ContextConfiguration(classes = PaymentServiceSecurityTest.ServiceSecurityConfiguration.class)
+@ContextConfiguration(classes = {
+    SpringSecurityConfiguration.class, PaymentServiceSecurityTest.ServiceSecurityConfiguration.class
+})
+@ActiveProfiles("payment-service-security-test")
 class PaymentServiceSecurityTest {
 
     private static final String PAYMENT_REFERENCE = "RC-1111-2222-3333-4444";
@@ -155,7 +164,20 @@ class PaymentServiceSecurityTest {
         verifyNoInteractions(refundReviewService);
     }
 
-    @Configuration
+    @Test
+    void shouldKeepServiceTestConfigurationOutOfOtherApplicationScans() {
+        StandardEnvironment environment = new StandardEnvironment();
+        environment.setActiveProfiles("local", "test");
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        scanner.setEnvironment(environment);
+        scanner.addIncludeFilter(new AssignableTypeFilter(ServiceSecurityConfiguration.class));
+
+        assertTrue(scanner.findCandidateComponents("uk.gov.hmcts.reform.refunds").isEmpty());
+    }
+
+    // TestContextConfiguration also performs a broad component scan without Boot's test exclusions.
+    @TestConfiguration
+    @Profile("payment-service-security-test")
     static class ServiceSecurityConfiguration {
 
         @Bean
