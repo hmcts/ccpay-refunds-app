@@ -54,6 +54,7 @@ public class SpringSecurityConfiguration {
     private final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint;
     private final RefundsAccessDeniedHandler refundsAccessDeniedHandler;
     private final AuthorizationManager<RequestAuthorizationContext> refundStatusUpdateAuthorizationManager;
+    private final PaymentServiceAuthorizationManager paymentServiceAuthorizationManager;
 
     @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
     private String issuerUri;
@@ -69,7 +70,8 @@ public class SpringSecurityConfiguration {
         final SecurityUtils securityUtils,
         final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint,
         final RefundsAccessDeniedHandler refundsAccessDeniedHandler,
-        final AuthorizationManager<RequestAuthorizationContext> refundStatusUpdateAuthorizationManager
+        final RefundStatusUpdateAuthorizationManager refundStatusUpdateAuthorizationManager,
+        final PaymentServiceAuthorizationManager paymentServiceAuthorizationManager
     ) {
         super();
         this.serviceAndUserAuthFilter = new ServiceAndUserAuthFilter(
@@ -80,6 +82,7 @@ public class SpringSecurityConfiguration {
         this.refundsAuthenticationEntryPoint = refundsAuthenticationEntryPoint;
         this.refundsAccessDeniedHandler = refundsAccessDeniedHandler;
         this.refundStatusUpdateAuthorizationManager = refundStatusUpdateAuthorizationManager;
+        this.paymentServiceAuthorizationManager = paymentServiceAuthorizationManager;
     }
 
     @Bean
@@ -126,11 +129,9 @@ public class SpringSecurityConfiguration {
             .formLogin(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(HttpMethod.PATCH, "/payment/**").authenticated()
-                .anyRequest().authenticated()
+                // ServiceAuthFilter does not establish a user Authentication for S2S-only calls.
+                .anyRequest().access(paymentServiceAuthorizationManager)
             )
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(
-                jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
             .exceptionHandling(exception -> exception
                 .accessDeniedHandler(refundsAccessDeniedHandler)
                 .authenticationEntryPoint(refundsAuthenticationEntryPoint)

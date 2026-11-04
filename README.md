@@ -102,3 +102,31 @@ REFUNDS_API_RATE_LIMIT_TIMEOUT_DURATION   (default = 0)
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Payment service authorization and S2S compatibility (CME-898 / CME-900)
+
+`PATCH /payment/{paymentReference}/action/cancel` requires a valid `ServiceAuthorization` token
+from a configured allowed service. It does not require an IDAM user token. The service filter
+validates the token without establishing a Spring user login, so the payment security chain uses
+an explicit service authorization manager instead of a user `.authenticated()` rule. User tokens
+and forwarded certificate headers alone cannot authorize cancellation.
+
+S2S `/lease` uses six-digit HMAC-SHA1 TOTP with a 30-second step, matching
+`service-auth-provider-java-client`'s `TotpGenerator` and
+[payment-api-gateway PR #139](https://github.com/hmcts/ccpay-payment-api-gateway/pull/139/changes).
+Changing only the gateway to HMAC-SHA256 breaks this shared protocol; it does not change the algorithm
+used to sign S2S JWTs. A non-200 lease response now produces a gateway failure instead of reaching the
+backend as a malformed bearer token. Restoring compatibility does not close the broader weak-cryptography
+finding: a coordinated S2S protocol upgrade remains separate work for CME-900.
+
+Local checks:
+
+```sh
+./gradlew test --tests '*PaymentServiceSecurityTest' --tests '*RefundStatusUpdateAuthorizationManagerTest'
+python3 -B -m unittest discover -s infrastructure/tests -v
+```
+
+The Java tests exercise the real cancellation security chain with a stubbed S2S validator. The Python
+checks validate policy structure without executing APIM's C# expressions. After deploying to Demo,
+verify cancellation with valid, missing, invalid and unapproved service tokens, and confirm failed
+S2S leasing cannot forward an invalid `ServiceAuthorization` token. Certificate and trusted-source
+settings are documented in [infrastructure/README.md](infrastructure/README.md) and belong to CME-899.

@@ -49,7 +49,7 @@
     <set-variable name="client_secret" value="{{ccpay-s2s-client-secret}}" />
     <set-variable name="one_time_password" value="@{
                 const string Base32AllowedCharacters = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ234567&quot;;
-                var clientSecret = ((string)context.Variables[&quot;client_secret&quot;]).ToUpper();
+                var clientSecret = ((string)context.Variables[&quot;client_secret&quot;]).ToUpperInvariant();
                 var bits = clientSecret.ToCharArray().Select(c => Convert.ToString(Base32AllowedCharacters.IndexOf(c), 2).PadLeft(5, '0')).Aggregate((a, b) => a + b);
                 var secretKeyBytes = Enumerable.Range(0, bits.Length / 8).Select(i => Convert.ToByte(bits.Substring(i * 8, 8), 2)).ToArray();
 
@@ -60,9 +60,10 @@
                     Array.Reverse(challenge);
                 }
 
+                // S2S /lease requires the shared HMAC-SHA1 TOTP protocol.
                 HMACSHA1 hmac = new HMACSHA1(secretKeyBytes);
                 byte[] hash = hmac.ComputeHash(challenge);
-                int offset = hash[19] &amp; 0xf;
+                int offset = hash[hash.Length - 1] &amp; 0xf;
                 int truncatedHash = hash[offset] &amp; 0x7f;
                 for (int i = 1; i &lt; 4; i++)
                 {
@@ -86,6 +87,15 @@
         }</set-body>
     </send-request>
 
+    <!-- Never forward a failed lease response as a bearer token. -->
+    <choose>
+      <when condition="@(((IResponse)context.Variables[&quot;s2sBearerToken&quot;]).StatusCode != 200)">
+        <return-response>
+          <set-status code="502" reason="Bad Gateway" />
+          <set-body>Unable to obtain service authorization.</set-body>
+        </return-response>
+      </when>
+    </choose>
     <set-header name="ServiceAuthorization" exists-action="override">
       <value>@("Bearer " + ((IResponse)context.Variables["s2sBearerToken"]).Body.As&lt;string&gt;())</value>
     </set-header>

@@ -25,4 +25,3 @@ src/main/resources/application-local.yaml
 
 .DS_Store
 .vscode
-/bin/

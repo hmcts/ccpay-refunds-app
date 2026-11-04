@@ -192,10 +192,8 @@ public class PaymentTestService {
             .delete("/refund/{reference}", refundReference);
     }
 
-    public Response patchCancelRefunds(final String authToken,
-                                       final String serviceToken,
-                                       final String paymentReference) {
-        return givenWithAuthHeaders(authToken, serviceToken)
+    public Response patchCancelRefunds(final String serviceToken, final String paymentReference) {
+        return givenWithServiceHeaders(serviceToken)
             .contentType(ContentType.JSON).when()
             .patch("/payment/{paymentReference}/action/cancel", paymentReference);
     }
