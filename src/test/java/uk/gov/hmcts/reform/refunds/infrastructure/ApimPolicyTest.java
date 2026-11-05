@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Checks the committed policy structure and configuration without executing APIM expressions. */
+// Checks the committed policy structure and configuration without executing APIM expressions.
 class ApimPolicyTest {
 
     private static final Path INFRASTRUCTURE = Path.of("infrastructure");
