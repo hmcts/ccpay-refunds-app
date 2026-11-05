@@ -71,19 +71,6 @@ variable "refunds_api_gateway_certificate_thumbprints" {
   default = [] # TODO: remove default and provide environment-specific values
 }
 
-variable "trusted_client_certificate_gateway_cidrs" {
-  description = "Dedicated mTLS Application Gateway backend source IPv4 ranges as observed by APIM. Only these sources may supply a forwarded certificate thumbprint."
-  type        = list(string)
-  default     = []
-
-  validation {
-    condition = alltrue([
-      for cidr in var.trusted_client_certificate_gateway_cidrs : can(cidrnetmask(cidr)) && cidr != "0.0.0.0/0"
-    ])
-    error_message = "Specify dedicated Application Gateway IPv4 CIDRs; unrestricted forwarding is not allowed."
-  }
-}
-
 variable "product_name" {
   type    = string
   default = "refunds"
