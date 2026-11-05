@@ -4,16 +4,42 @@
   </backend>
   <inbound>
     <base/>
+    <!-- AppGW terminates mTLS and overwrites this header with the TLS certificate fingerprint. -->
+    <set-variable name="arr_cert_thumbprint" value="@(context.Request.Headers.GetValueOrDefault(&quot;X-ARR-ClientCertThumbprint&quot;, &quot;&quot;))" />
+    <set-header name="X-ARR-ClientCertThumbprint" exists-action="delete" />
+
+    <!-- A forwarded thumbprint is trusted only from the configured AppGW source ranges. -->
     <choose>
-      <when condition="@(context.Request.Headers[&quot;X-ARR-ClientCertThumbprint&quot;] == null)">
+      <when condition="@(context.Request.Certificate == null)">
+        ${forwarded_certificate_source_policy}
+      </when>
+    </choose>
+    <set-variable name="effective_client_thumbprint" value="@{
+        if (context.Request.Certificate != null)
+        {
+            return context.Request.Certificate.Thumbprint.ToUpperInvariant();
+        }
+        return ((string)context.Variables[&quot;arr_cert_thumbprint&quot;]).ToUpperInvariant();
+    }" />
+    <choose>
+      <when condition="@(string.IsNullOrEmpty((string)context.Variables[&quot;effective_client_thumbprint&quot;]))">
         <return-response>
-          <set-status code="401" />
+          <set-status code="401" reason="Unauthorized" />
           <set-body>Missing client certificate.</set-body>
         </return-response>
       </when>
-      <when condition="@(!(new string[] {${allowed_certificate_thumbprints}}.Contains(context.Request.Headers[&quot;X-ARR-ClientCertThumbprint&quot;].First().ToUpperInvariant())))">
+      <when condition="@(context.Request.Certificate != null &amp;&amp;
+          (context.Request.Certificate.NotAfter.ToUniversalTime() &lt; DateTime.UtcNow ||
+           context.Request.Certificate.NotBefore.ToUniversalTime() &gt; DateTime.UtcNow))">
         <return-response>
-          <set-status code="401" />
+          <set-status code="401" reason="Unauthorized" />
+          <set-body>Invalid client certificate. Please check expiry.</set-body>
+        </return-response>
+      </when>
+      <when condition="@(!(new string[] {${allowed_certificate_thumbprints}}.Any(c =>
+          string.Equals(c, (string)context.Variables[&quot;effective_client_thumbprint&quot;], StringComparison.OrdinalIgnoreCase))))">
+        <return-response>
+          <set-status code="401" reason="Unauthorized" />
           <set-body>Invalid client certificate.</set-body>
         </return-response>
       </when>
