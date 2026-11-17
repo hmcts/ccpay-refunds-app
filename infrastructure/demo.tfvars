@@ -1,3 +1,4 @@
+trusted_client_certificate_gateway_cidrs = ["10.11.72.224/27"]
 # Test Certificate refunds_api_gateway_certificate_thumbprints
 # "7744A2F56BD3B73C0D7FED61309E1C65AF08538C" - Shravan test cert
 # "02915FBE9F123E6F538654A4A3A0D7337C304DB6" - Arun test cert

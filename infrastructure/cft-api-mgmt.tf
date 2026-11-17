@@ -4,14 +4,28 @@ locals {
   cft_api_mgmt_suffix = var.apim_suffix == "" ? var.env : var.apim_suffix
   cft_api_mgmt_name   = join("-", ["cft-api-mgmt", local.cft_api_mgmt_suffix])
   cft_api_mgmt_rg     = join("-", ["cft", var.env, "network-rg"])
+  # Empty configuration disables header-based authentication rather than trusting arbitrary callers.
+  untrusted_certificate_source_policy = <<-XML
+    <return-response>
+      <set-status code="401" reason="Unauthorized" />
+      <set-body>Untrusted certificate forwarding source.</set-body>
+    </return-response>
+  XML
+  forwarded_certificate_source_policy = length(var.trusted_client_certificate_gateway_cidrs) == 0 ? local.untrusted_certificate_source_policy : format(
+    "<ip-filter action=\"allow\">%s</ip-filter>",
+    join("", [for cidr in var.trusted_client_certificate_gateway_cidrs : format(
+      "<address-range from=\"%s\" to=\"%s\" />", cidrhost(cidr, 0), cidrhost(cidr, -1)
+    )])
+  )
 }
 
 data "template_file" "cft_policy_template" {
   template = file(join("", [path.module, "/template/cft-api-policy.xml"]))
 
   vars = {
-    allowed_certificate_thumbprints = local.refund_status_thumbprints_in_quotes_str
-    s2s_base_url                    = local.s2sUrl
+    allowed_certificate_thumbprints     = local.refund_status_thumbprints_in_quotes_str
+    s2s_base_url                        = local.s2sUrl
+    forwarded_certificate_source_policy = local.forwarded_certificate_source_policy
   }
 }
 
