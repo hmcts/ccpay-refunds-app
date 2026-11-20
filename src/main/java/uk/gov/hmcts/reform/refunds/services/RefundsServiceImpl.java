@@ -69,6 +69,7 @@ import uk.gov.hmcts.reform.refunds.repository.StatusHistoryRepository;
 import uk.gov.hmcts.reform.refunds.state.RefundEvent;
 import uk.gov.hmcts.reform.refunds.state.RefundState;
 import uk.gov.hmcts.reform.refunds.utils.DateUtil;
+import uk.gov.hmcts.reform.refunds.utils.LogUtils;
 import uk.gov.hmcts.reform.refunds.utils.ReferenceUtil;
 import uk.gov.hmcts.reform.refunds.utils.RefundServiceRoleUtil;
 import uk.gov.hmcts.reform.refunds.utils.StateUtil;
@@ -165,6 +166,9 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
 
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private RefundReasonRepository refundReasonRepository;
@@ -525,6 +529,30 @@ public class RefundsServiceImpl extends StateUtil implements RefundsService {
         if (records == 0) {
             throw new RefundNotFoundException("No records found for given refund reference");
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteRefundsByCcdCaseNumber(MultiValueMap<String, String> headers, String ccdCaseNumber) {
+        String safeCcdCaseNumber = LogUtils.sanitize(ccdCaseNumber);
+        LOG.info("Deleting refunds for CCD case number {}", safeCcdCaseNumber);
+
+        Optional<List<Refund>> refundsOptional = refundsRepository.findByCcdCaseNumber(ccdCaseNumber);
+        if (refundsOptional.isEmpty() || refundsOptional.get().isEmpty()) {
+            LOG.info("No refunds found for CCD case number {}. Returning successfully for idempotent delete.",
+                safeCcdCaseNumber);
+            return;
+        }
+
+        List<Refund> refunds = refundsOptional.get();
+        for (Refund refund : refunds) {
+            LOG.info("Deleting notifications for refund reference {} before refund deletion",
+                LogUtils.sanitize(refund.getReference()));
+            notificationService.deleteNotification(headers, refund.getReference());
+        }
+
+        refundsRepository.deleteAll(refunds);
+        LOG.info("Deleted {} refund(s) for CCD case number {}", refunds.size(), safeCcdCaseNumber);
     }
 
     @Override
