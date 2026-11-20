@@ -21,6 +21,7 @@ buildscript {
 
 plugins {
   id 'application'
+  id 'idea'
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
@@ -80,6 +81,19 @@ sourceSets {
   tasks.withType(Copy) {
     filesMatching("**/*.yaml") {
       duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+  }
+}
+
+// IDE only; no effect on the build, tests or CI.
+// IntelliJ imports custom source sets as production code, so SonarLint applies main-code rules to
+// these tests (e.g. java:S5960 "Remove this assertion from production code"). Marking them as test
+// sources gives the IDE the same classification as src/test.
+idea {
+  module {
+    [sourceSets.functionalTest, sourceSets.integrationTest, sourceSets.smokeTest].each { sourceSet ->
+      testSources.from(sourceSet.java.srcDirs)
+      testResources.from(sourceSet.resources.srcDirs)
     }
   }
 }
