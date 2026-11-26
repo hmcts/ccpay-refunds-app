@@ -54,6 +54,7 @@ public class SpringSecurityConfiguration {
     private final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint;
     private final RefundsAccessDeniedHandler refundsAccessDeniedHandler;
     private final AuthorizationManager<RequestAuthorizationContext> refundStatusUpdateAuthorizationManager;
+    private final PaymentServiceAuthorizationManager paymentServiceAuthorizationManager;
 
     @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
     private String issuerUri;
@@ -69,7 +70,8 @@ public class SpringSecurityConfiguration {
         final SecurityUtils securityUtils,
         final RefundsAuthenticationEntryPoint refundsAuthenticationEntryPoint,
         final RefundsAccessDeniedHandler refundsAccessDeniedHandler,
-        final AuthorizationManager<RequestAuthorizationContext> refundStatusUpdateAuthorizationManager
+        final RefundStatusUpdateAuthorizationManager refundStatusUpdateAuthorizationManager,
+        final PaymentServiceAuthorizationManager paymentServiceAuthorizationManager
     ) {
         super();
         this.serviceAndUserAuthFilter = new ServiceAndUserAuthFilter(
@@ -80,6 +82,7 @@ public class SpringSecurityConfiguration {
         this.refundsAuthenticationEntryPoint = refundsAuthenticationEntryPoint;
         this.refundsAccessDeniedHandler = refundsAccessDeniedHandler;
         this.refundStatusUpdateAuthorizationManager = refundStatusUpdateAuthorizationManager;
+        this.paymentServiceAuthorizationManager = paymentServiceAuthorizationManager;
     }
 
     @Bean
@@ -113,10 +116,32 @@ public class SpringSecurityConfiguration {
         return http.build();
     }
 
-    @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED",
-        justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
+    @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED")
     @Bean
     @Order(2)
+    protected SecurityFilterChain paymentFilterChain(HttpSecurity http) throws Exception {
+
+        http
+            .securityMatcher("/payment/**")
+            .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
+            .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+            .csrf(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(authorize -> authorize
+                // ServiceAuthFilter does not establish a user Authentication for S2S-only calls.
+                .anyRequest().access(paymentServiceAuthorizationManager)
+            )
+            .exceptionHandling(exception -> exception
+                .accessDeniedHandler(refundsAccessDeniedHandler)
+                .authenticationEntryPoint(refundsAuthenticationEntryPoint)
+            );
+        return http.build();
+    }
+
+    @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED")
+    @Bean
+    @Order(3)
     protected SecurityFilterChain authFilterChain(HttpSecurity http) throws Exception {
 
         http
@@ -132,14 +157,12 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/refundstest").permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/refund/*").access(refundStatusUpdateAuthorizationManager)
                 .requestMatchers("/jobs/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refunds/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund/refunds-report").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund/payment-failure-report").permitAll()
                 .requestMatchers(HttpMethod.GET, "/refund").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
                 .requestMatchers(HttpMethod.GET, "/refund/**").hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE)
                 .requestMatchers(HttpMethod.PATCH, "/refund/*/action/*").hasAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE)
-                .requestMatchers(HttpMethod.PATCH, "/payment/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/refund/notifications/doc-preview")
                     .hasAnyAuthority(AUTHORISED_REFUNDS_APPROVER_ROLE,AUTHORISED_REFUNDS_ROLE,PAYMENTS_ROLE)
                 .requestMatchers("/error").permitAll()
