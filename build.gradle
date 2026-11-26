@@ -367,7 +367,7 @@ dependencies {
 
   testImplementation 'com.github.hmcts:fortify-client:1.4.10:all'
   testImplementation group: 'org.testng', name:'testng', version:'7.11.0'
-  testImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version:'4.6.20'
+  testImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version:'4.7.7'
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: versions.restAssured
   testImplementation group: 'org.testcontainers', name: 'testcontainers-postgresql'
   testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.27.7'
