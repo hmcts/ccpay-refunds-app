@@ -372,7 +372,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the old refund status history
         Response oldRefundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
             );
         assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -406,7 +406,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference
             );
         assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1299,7 +1299,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the 1st re-issued refund status history
         Response newRefundStatusHistoryListResponse1 =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference1
             );
         assertThat(newRefundStatusHistoryListResponse1.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1411,7 +1411,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the 2nd re-issued refund status history
         Response newRefundStatusHistoryListResponse2 =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference2
             );
         assertThat(newRefundStatusHistoryListResponse2.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1605,7 +1605,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the 1st re-issued refund status history
         Response newRefundStatusHistoryListResponse1 =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference1
             );
         assertThat(newRefundStatusHistoryListResponse1.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -1803,7 +1803,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the 2nd refund re-issued refund status history
         Response newRefundStatusHistoryListResponse2 =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefund2Reference
             );
         assertThat(newRefundStatusHistoryListResponse2.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -2323,7 +2323,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the old refund status history
         Response oldRefundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
             );
         assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -2348,7 +2348,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference
             );
         assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -2586,7 +2586,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the old refund status history
         Response oldRefundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
             );
         assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -2611,7 +2611,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference
             );
         assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -2849,7 +2849,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the old refund status history
         Response oldRefundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, refundReference
             );
         assertThat(oldRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -2874,7 +2874,7 @@ public class ReIssueExpiredRefundJourneyFunctionalTest {
 
         //verify the new refund status history
         Response newRefundStatusHistoryListResponse =
-            paymentTestService.getStatusHistory(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
+            paymentTestService.getStatusHistory(USER_TOKEN_WITH_SEARCH_SCOPE_PAYMENTS_ROLE,
                                                 SERVICE_TOKEN_PAY_BUBBLE_PAYMENT, reIssuedRefundReference
             );
         assertThat(newRefundStatusHistoryListResponse.getStatusCode()).isEqualTo(HttpStatus.OK.value());
